@@ -1,0 +1,40 @@
+{
+  "name": "p5-runner",
+  "version": "0.0.1",
+  "description": "CLI to create, run, and update p5.js sketches and collections",
+  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
+  "main": "index.js",
+  "homepage": "https://github.com/osteele/p5-runner#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osteele/p5-runner.git"
+  },
+  "keywords": [
+    "p5.js"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/osteele/p5-runner/issues"
+  },
+  "bin": {
+    "p5": "dist/bin/p5-runner.js"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "ts-node src/bin/p5-runner.ts",
+    "test": "true"
+  },
+  "dependencies": {
+    "@types/commander": "^2.12.2",
+    "@types/ejs": "^3.0.7",
+    "chalk": "^4.1.1",
+    "commander": "^8.0.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.4.0",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
+  }
+}

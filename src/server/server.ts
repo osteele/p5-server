@@ -4,6 +4,7 @@ import { createServer as createLiveReloadServer } from 'livereload';
 import ejs from 'ejs';
 import path from 'path';
 import minimatch from 'minimatch';
+import marked from 'marked'
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
 const templateDir = path.join(path.dirname(__filename), '../../templates');
@@ -49,9 +50,13 @@ function createIndexPage(dirPath: string) {
       && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
     );
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+  let readmeName = files.find(s => s.toLowerCase() === 'readme.md');
+  let readme = readmeName ? marked(fs.readFileSync(readmeName, 'utf8')) : null;
+
   const filename = path.join(templateDir, 'directory.html');
   const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  return template({ files });
+  return template({ title: path.basename(dirPath), files, readme, readmeName });
 }
 
 function createTemplateIndex(sketchPath: string) {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import chalk from 'chalk';
 import ejs from 'ejs';
+import { die } from './utils';
 
 const templateDir = path.join(path.dirname(__filename), '../../templates');
 
@@ -29,10 +29,4 @@ function copyTemplate(base: string, dstDir: string = '.', data: ejs.Data) {
   const filename = path.join(templateDir, base);
   const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
   fs.writeFileSync(path.join(dstDir, base), template(data));
-}
-
-// print the message to standard output, and exit with status code 1
-function die(message: string) {
-  console.error(chalk.red('Error:', message));
-  process.exit(1);
 }

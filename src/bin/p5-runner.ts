@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import createCommand from '../commands/create';
+import create from '../commands/create';
+import serve from '../commands/serve';
 
 const program = new Command()
 
@@ -12,12 +13,15 @@ program
   .alias('c')
   .description('Create a new p5.js sketch')
   .option('-f, --force', 'force overwite of existing files')
-  .action(createCommand);
+  .action(create);
 
-// program
-// .command('serve')
-// .alias('s')
-// .option('-p, --port [port]', 'HTTP port on which to start the server', '3000')
-// .action(req => server.run(req.port || 5555));
+program
+  .command('serve [directory]')
+  .description('Create a p5.js sketch')
+  .alias('s')
+  .alias('run')
+  .alias('r')
+  .option('-p, --port [port]', 'HTTP port on which to start the server', '3000')
+  .action(serve);
 
 program.parse(process.argv);

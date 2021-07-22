@@ -7,11 +7,11 @@ Sketches use a CDN.
 ## Current Features
 
 - [x] server with live reload
+- [x] view a sketch.js without an associated index.html
 
 ## Planned Features
 
 - [ ] display parse errors in the browser
-- [ ] make the HTML file optional
 - [ ] commands to add and update libraries
 - [ ] specify the CDN server, or use a local file
 

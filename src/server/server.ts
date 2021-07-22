@@ -1,10 +1,19 @@
 import express from 'express';
 import fs from 'fs';
-import livereload from 'livereload';
+import { createServer as createLiveReloadServer } from 'livereload';
+import ejs from 'ejs';
+import path from 'path';
+
 
 const app = express();
 
-let serverRoot: string;
+type ServerOptions = {
+  port: number;
+  root: string;
+  sketchPath: string | null;
+};
+
+let serverOptions: ServerOptions;
 
 const liveReloadPort = 35729;
 const liveReloadTemplate = `<script>
@@ -14,25 +23,46 @@ const liveReloadTemplate = `<script>
 
 app.get('/', (_req, res) => {
   const liveReloadString = liveReloadTemplate.replace('35729', liveReloadPort.toString());
-  let content = fs.readFileSync(`${serverRoot}/index.html`, 'utf8');
+  let content: string;
+  try {
+    content = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT' && serverOptions.sketchPath) {
+      content = createTemplateIndex(serverOptions.sketchPath);
+    } else {
+      throw e;
+    }
+  }
+  // TODO: more robust injection
+  // TODO: warn when injection is not possible
   content = content.replace(/(?=<\/head>)/, liveReloadString);
   res.send(content);
 });
 
-function useDirectory(rootPath: string) {
-  serverRoot = rootPath;
-  app.use('/', express.static(rootPath));
+function createTemplateIndex(sketchPath: string) {
+  // TODO: DRY w/ project generation
+  const templateDir = path.join(path.dirname(__filename), '../../templates');
+  const filename = path.join(templateDir, 'index.html');
+  const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
+  // TODO: derive project title from root when sketch path is sketch.js
+  const title = serverOptions.sketchPath?.replace(/_/g, ' ').replace(/\.js$/, '');
+  return template({ title, sketchPath });
 }
 
-function run(port: number) {
-  app.listen(port, () => {
-    console.log(`Serving ${serverRoot} at http://localhost:${port}`);
+function run(options: ServerOptions) {
+  // TODO: scan for another port when default port is in use and was not
+  // explicitly specified
+  serverOptions = options;
+  app.use('/', express.static(options.root));
+  app.listen(options.port, () => {
+    console.log(`Serving ${options.root} at http://localhost:${options.port}`);
   });
-  livereload.createServer().watch(serverRoot);
+  // TODO: scan for another live reload port when in use
+  createLiveReloadServer({ port: liveReloadPort })
+    .watch(options.root);
 }
 
 export default {
   app,
-  useDirectory,
   run
 };

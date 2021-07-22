@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listing</title>
+</head>
+
+<body>
+    <% for (let file of files) { %>
+        <li><a href="<%= file %>">
+                <%= file %>
+            </a></li>
+        <% } %>
+</body>
+
+</html>

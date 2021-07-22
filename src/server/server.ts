@@ -52,7 +52,7 @@ function createIndexPage(dirPath: string) {
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   let readmeName = files.find(s => s.toLowerCase() === 'readme.md');
-  let readme = readmeName ? marked(fs.readFileSync(readmeName, 'utf8')) : null;
+  let readme = readmeName ? marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')) : null;
 
   const filename = path.join(templateDir, 'directory.html');
   const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });

@@ -13,10 +13,14 @@
             margin: auto;
         }
 
-        .readme {
+        #readme {
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+
+        #readme #readme-title {
+            border-bottom: #ccc;
         }
     </style>
 </head>
@@ -33,8 +37,8 @@
         </ul>
     </div>
     <% if (readme) { %>
-        <div class="readme">
-            <div>
+        <div id="readme">
+            <div id="readme-title">
                 <%= readmeName %>
             </div>
             <%- readme %>

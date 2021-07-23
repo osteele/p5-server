@@ -1,8 +1,8 @@
-import ejs from 'ejs';
 import express from 'express';
 import fs from 'fs';
 import marked from 'marked';
 import minimatch from 'minimatch';
+import nunjucks from 'nunjucks';
 import path from 'path';
 import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
@@ -74,9 +74,8 @@ function createDirectoryListing(dirPath: string) {
   let readmeName = files.find(s => s.toLowerCase() === 'readme.md');
   let readme = readmeName ? marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')) : null;
 
-  const filename = path.join(templateDir, 'directory.html');
-  const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  return template({ title: path.basename(dirPath), files, projects, readme, readmeName });
+  const filename = path.join(templateDir, 'directory.html.njk');
+  return nunjucks.render(filename, { title: path.basename(dirPath), files, projects, readme, readmeName });
 }
 
 function run(options: ServerOptions) {

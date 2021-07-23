@@ -89,8 +89,10 @@ function createDirectoryListing(dirPath: string) {
 function sendDirectoryList(relDirPath: string, res: Response<any, Record<string, any>, number>) {
   const dirPath = path.join(serverOptions.root, relDirPath);
   let fileData: string;
+  let singleProject = false;
   try {
     fileData = fs.readFileSync(`${dirPath}/index.html`, 'utf-8');
+    singleProject = true;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
@@ -99,6 +101,12 @@ function sendDirectoryList(relDirPath: string, res: Response<any, Record<string,
       ? createSketchHtml(serverOptions.sketchPath)
       : createDirectoryListing(dirPath);
   }
+
+  if (singleProject && !relDirPath.endsWith('/')) {
+    res.redirect(relDirPath + '/');
+    return;
+  }
+
   // Note:  this injects the reload script into the generated index pages too.
   // This is helpful when the directory contents change.
   res.send(injectLiveReloadScript(fileData));

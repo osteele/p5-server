@@ -2,16 +2,23 @@
 
 A work in progress. This project is a command-line interface for p5.js.
 
-Sketches use a CDN.
+## Features
 
-## Current Features
+`p5 generate` creates an `index.html` / `sketch.js` pair.
 
-- [x] server with live reload
-- [x] view a sketch.js without an associated index.html
+`p5 serve` runs a server with these features:
 
-## Planned Features
+- Live reload – the browser reloads the page, when any file in the directory is
+  modified.
+- Directory listing – a list of sketches and non-sketch files is displayed
+- Bare JavaScript files – click on a JavaScript sketch file (or run e.g. `p5
+  serve sketch.js`) to run a p5.js sketch that consists of a single JavaScript
+  file, without an associated HTML file.
+
+### Planned Features
 
 - [ ] display parse errors in the browser
+- [ ] recognize when a sketch requires a library file
 - [ ] commands to add and update libraries
 - [ ] specify the CDN server, or use a local file
 
@@ -27,12 +34,45 @@ npm install -g p5-runner
 
 ## Commands
 
+Run `p5 --help` to see a list of commands.
+
+Run `p5 <command> --help` to see command-line options.
+
 ### `p5 create [sketch-name]`
 
 Creates a folder named `sketch-name` (default `sketch`), that contains an
 `index.html` file and a `sketch.js` file.
 
-### `p5 run [sketch-name]`
+### `p5 run [filename]`
+
+### `p5 serve [filename]`
 
 Runs a web server that serves the current directory (if there is no argument),
-or the `sketch-name` subdirectory of the current directory.
+or the `filename` subdirectory of the current directory.
+
+`p5 serve filename` runs a sketch in the browser.
+
+- If `filename` is an HTML file (for example, `index.html`), this command serves
+  that page.
+- If `filename` is a JavaScript file that contains a p5.js sketch (for example,
+  `sketch.js`), the browser runs the sketch. (In this case, the server creates a
+  HTML document that includes the sketch.)
+- If `filename` is a directory, the browser displays a list of sketches and files in that directory.
+- If `filename` is not supplied, the browser displays sketches and files in the
+  current directory.
+
+- It lists sketches, and files that are not associated with a sketch.
+
+## Notes
+
+Generated sketches use a CDN. I may add an option to use local files instead.
+
+A “bare JavaScript sketch file” is a JavaScript file that includes a definition
+for the `setup()` and/or `draw()` functions.
+
+Recognition of p5.js HTML and JavaScript files is currently done using regular
+expressions, and is therefore fragile.
+
+## License
+
+ISC

@@ -4,8 +4,8 @@ import fs from 'fs';
 import marked from 'marked';
 import minimatch from 'minimatch';
 import path from 'path';
-import { createSketchHtml, findProjects } from '../models/project';
-import { injectLiveReloadScript, createLiveReloadServer } from './liveReload';
+import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
+import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
 const templateDir = path.join(__dirname, './templates');
@@ -36,6 +36,17 @@ app.get('/', (_req, res) => {
   // too. This is helpful when the directory contents change.
   res.send(injectLiveReloadScript(content));
 });
+
+app.get('/*.js', (req, res, next) => {
+  if (req.headers['accept']?.match(/\btext\/html\b/) && req.method === 'GET') {
+    if (isSketchJs(path.join(serverOptions.root, req.path))) {
+      const content = createSketchHtml(path.basename(req.path));
+      res.send(injectLiveReloadScript(content));
+      return;
+    }
+  }
+  next();
+})
 
 function createIndexPage(dirPath: string) {
   let { projects, files } = findProjects(dirPath);

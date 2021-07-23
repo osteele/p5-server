@@ -29,7 +29,7 @@
 <body>
     <div class="listing">
         <% if (projects.length) { %>
-            <h1>Projects</h1>
+            <h1>Sketches</h1>
             <ul>
                 <% for (let project of projects) { %>
                     <li><a href="<%= project.rootFile %>">
@@ -40,7 +40,7 @@
     </div>
     <% } %>
         <% if (files.length) { %>
-            <h1>Files</h1>
+            <h1>Files and Folders</h1>
             <ul>
                 <% for (let file of files) { %>
                     <li><a href="<%= file %>">

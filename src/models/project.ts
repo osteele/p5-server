@@ -83,7 +83,7 @@ export class Project {
 }
 
 export function createSketchHtml(sketchPath: string) {
-  const project = new Project('.', 'index.html', sketchPath);
+  const project = new Project(sketchPath, null, sketchPath);
   return project.getGeneratedFileContent('index.html');
 }
 
@@ -126,7 +126,7 @@ function isSketchHtml(filePath: string) {
   return true;
 }
 
-function isSketchJs(filePath: string) {
+export function isSketchJs(filePath: string) {
   if (fs.statSync(filePath).isDirectory()) { return false; }
   if (!filePath.endsWith('.js')) {
     return false;

@@ -1,11 +1,11 @@
+import ejs from 'ejs';
 import express from 'express';
-import { createTemplateHtml } from '../models/project';
 import fs from 'fs';
 import { createServer as createLiveReloadServer } from 'livereload';
-import ejs from 'ejs';
-import path from 'path';
+import marked from 'marked';
 import minimatch from 'minimatch';
-import marked from 'marked'
+import path from 'path';
+import { createSketchHtml, findProjects } from '../models/project';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
 const templateDir = path.join(__dirname, './templates');
@@ -27,29 +27,27 @@ const liveReloadTemplate = `<script>
 const app = express();
 
 app.get('/', (_req, res) => {
-  const liveReloadString = liveReloadTemplate.replace('35729', liveReloadPort.toString());
   let content: string;
   try {
-    content = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf8');
+    content = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf-8');
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }
     content = serverOptions.sketchPath
-      ? createTemplateHtml(serverOptions.sketchPath)
+      ? createSketchHtml(serverOptions.sketchPath)
       : createIndexPage(serverOptions.root);
   }
-  // TODO: more robust injection
-  // TODO: warn when injection is not possible
-  content = content.replace(/(?=<\/head>)/, liveReloadString);
-  res.send(content);
+  // Note that this injects the reload script into the generated index pages
+  // too. This is helpful when the directory contents change.
+  res.send(injectLiveReloadScript(content));
 });
 
 function createIndexPage(dirPath: string) {
-  const files = fs.readdirSync(dirPath)
-    .filter(s => !s.startsWith('.')
-      && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
-    );
+  let { projects, files } = findProjects(dirPath);
+  files = files.filter(s => !s.startsWith('.')
+    && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
+  );
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   let readmeName = files.find(s => s.toLowerCase() === 'readme.md');
@@ -57,13 +55,22 @@ function createIndexPage(dirPath: string) {
 
   const filename = path.join(templateDir, 'directory.html');
   const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  return template({ title: path.basename(dirPath), files, readme, readmeName });
+  return template({ title: path.basename(dirPath), files, projects, readme, readmeName });
+}
+
+function injectLiveReloadScript(content: string) {
+  // TODO: more robust injection
+  // TODO: warn when injection is not possible
+  const liveReloadString = liveReloadTemplate.replace('35729', liveReloadPort.toString());
+  return content.replace(/(?=<\/head>)/, liveReloadString);
 }
 
 function run(options: ServerOptions) {
   // TODO: scan for another port when default port is in use and was not
   // explicitly specified
   serverOptions = options;
+  // do this at startup, in order to provide errors and diagnostics right away
+  createIndexPage(options.root);
   app.use('/', express.static(options.root));
   app.listen(options.port, () => {
     console.log(`Serving ${options.root} at http://localhost:${options.port}`);

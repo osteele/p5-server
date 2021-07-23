@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import ejs from 'ejs';
+import { glob } from 'glob';
 
 const templateDir = path.join(__dirname, './templates');
 
@@ -12,14 +13,37 @@ export class DirectoryExistsError extends Error {
 }
 
 export class Project {
-  dirName: string;
+  dirPath: string;
+  indexPath: string | null;
+  sketchPath: string;
 
-  constructor(name: string) {
-    this.dirName = name;
+  constructor(dirPath: string, indexPath: string | null = 'index.html', sketchPath: string = 'sketch.js') {
+    this.dirPath = dirPath;
+    this.indexPath = indexPath;
+    this.sketchPath = sketchPath;
+  }
+
+  get rootFile() {
+    return path.basename(this.indexPath || this.sketchPath || this.dirPath);
+  }
+
+  get name() {
+    return this.rootFile.replace(/\.(html?|js)$/, '');
+  }
+
+  get files() {
+    let files: Array<string> = [];
+    if (this.indexPath) {
+      files.push(path.basename(this.indexPath));
+    }
+    if (this.sketchPath) {
+      files.push(path.basename(this.sketchPath));
+    }
+    return files;
   }
 
   generate(force = false) {
-    const name = this.dirName;
+    const name = this.dirPath;
     try {
       fs.mkdirSync(name);
     } catch (e) {
@@ -34,27 +58,80 @@ export class Project {
       }
     }
 
-    const data = {
-      title: name.replace(/_/g, ' '),
-      sketchPath: './sketch.js',
+    this.writeGeneratedFile('index.html');
+    this.writeGeneratedFile('sketch.js');
+  }
+
+  getTemplateData() {
+    return {
+      title: this.dirPath.replace(/_/g, ' '),
+      sketchPath: `./${this.sketchPath}`,
     };
-    copyTemplate('index.html', name, data);
-    copyTemplate('sketch.js', name, data);
+  }
+
+  writeGeneratedFile(base: string) {
+    fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
+  }
+
+  getGeneratedFileContent(base: string) {
+    // Don't cache the template. It's not important to performance in this context,
+    // and leaving it uncached makes development easier.
+    const filename = path.join(templateDir, base);
+    const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
+    return template(this.getTemplateData());
   }
 }
 
-function copyTemplate(base: string, dstDir: string = '.', data: ejs.Data) {
-  // TODO: DRY w/ createTemplateHtml
-  const filename = path.join(templateDir, base);
-  const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  fs.writeFileSync(path.join(dstDir, base), template(data));
+export function createSketchHtml(sketchPath: string) {
+  const project = new Project('.', 'index.html', sketchPath);
+  return project.getGeneratedFileContent('index.html');
 }
 
-export function createTemplateHtml(sketchPath: string) {
-  // TODO: DRY w/ copyTemplate
-  const filename = path.join(templateDir, 'index.html');
-  const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  // TODO: derive project title from root when sketch path is sketch.js
-  const title = sketchPath.replace(/_/g, ' ').replace(/\.js$/, '');
-  return template({ title, sketchPath });
+export function findProjects(dir: string) {
+  const projects: Array<Project> = [];
+  for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
+    const filePath = path.join(dir, file);
+    if (isSketchHtml(filePath)) {
+      const project = new Project(dir, file);
+      projects.push(project);
+    }
+  }
+
+  let files = fs.readdirSync(dir);
+  for (const file of removeProjectFiles()) {
+    const filePath = path.join(dir, file);
+    if (isSketchJs(filePath)) {
+      const project = new Project(dir, null, file);
+      projects.push(project);
+    }
+  }
+  return { files: removeProjectFiles(), projects };
+
+  function removeProjectFiles() {
+    return files.filter(f => !projects.some(p => p.files.includes(f)));
+  }
+}
+
+function isSketchHtml(filePath: string) {
+  if (fs.statSync(filePath).isDirectory()) { return false; }
+  if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
+    return false;
+  }
+  const content = fs.readFileSync(filePath, 'utf-8');
+  // TODO read the DOM
+  // TODO allow attributes between the tag start and the src attributes
+  if (!content.search(/<script src="[^"]*p5(\.min)?\.js[^"]*">/)) {
+    return false;
+  }
+  return true;
+}
+
+function isSketchJs(filePath: string) {
+  if (fs.statSync(filePath).isDirectory()) { return false; }
+  if (!filePath.endsWith('.js')) {
+    return false;
+  }
+  const content = fs.readFileSync(filePath, 'utf-8');
+  // TODO: strip the comments and strings first
+  return content.search(/function\s+(setup|draw)\b/) >= 0;
 }

@@ -3,9 +3,8 @@
 This is a work in progress.
 
 This project is a command-line interface for p5.js. It can generate sketch
-files, and it includes a server, with live reload, that can serve
-JavaScript-only sketches (JavaScript files without an associated HTML file). so
-that they run in the browser.
+files, and it includes a server, with live reload, that can also JavaScript-only
+sketches (JavaScript files without an associated HTML file).
 
 I wrote this to make it easier to manage and run collections of p5.js sketches.
 
@@ -79,8 +78,8 @@ Generated sketches use a CDN. I may add an option to use local files instead.
 A “bare JavaScript sketch file” is a JavaScript file that includes a definition
 for the `setup()` and/or `draw()` functions.
 
-Recognition of p5.js HTML and JavaScript files is currently done using regular
-expressions, and is therefore fragile.
+Recognition of p5.js HTML files is currently done using regular expressions, and
+is therefore fragile.
 
 ## License
 

@@ -3,6 +3,9 @@ import path from 'path';
 import ejs from 'ejs';
 import { glob } from 'glob';
 
+// import esprima from 'esprima';
+const esprima = require('esprima');
+
 const templateDir = path.join(__dirname, './templates');
 
 export class DirectoryExistsError extends Error {
@@ -149,6 +152,10 @@ export function isSketchJs(filePath: string) {
     return false;
   }
   const content = fs.readFileSync(filePath, 'utf-8');
-  // TODO: strip the comments and strings first
-  return content.search(/function\s+(setup|draw)\b/) >= 0;
+  const ast = esprima.parseScript(content);
+  const functionNames = ast.body
+    .filter((node: { type: string }) => node.type === 'FunctionDeclaration')
+    .map((node: { id: { name: string } }) => node.id.name);
+  return functionNames.some((name: string) => name === 'setup' || name === 'draw');
+  // return content.search(/function\s+(setup|draw)\b/) >= 0;
 }

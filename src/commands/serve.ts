@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { die } from './utils';
-import server from '../server/server'
+import server from '../server/server';
 
 export default function serve(name: string, options = { port: '3000' }) {
     let root = process.cwd();

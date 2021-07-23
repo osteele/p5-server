@@ -1,4 +1,5 @@
 import express from 'express';
+import { Response } from 'express-serve-static-core';
 import fs from 'fs';
 import marked from 'marked';
 import minimatch from 'minimatch';
@@ -20,21 +21,8 @@ let serverOptions: ServerOptions;
 
 const app = express();
 
-app.get('/', (_req, res) => {
-  let fileData: string;
-  try {
-    fileData = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf-8');
-  } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
-    }
-    fileData = serverOptions.sketchPath
-      ? createSketchHtml(serverOptions.sketchPath)
-      : createDirectoryListing(serverOptions.root);
-  }
-  // Note that this injects the reload script into the generated index pages
-  // too. This is helpful when the directory contents change.
-  res.send(injectLiveReloadScript(fileData));
+app.get('/', (req, res) => {
+  sendDirectoryList(req.path, res);
 });
 
 app.get('/*.html', (req, res, next) => {
@@ -64,6 +52,17 @@ app.get('/*.md', (req, res) => {
   }
 });
 
+app.get('*', (req, res, next) => {
+  if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    const filePath = path.join(serverOptions.root, req.path);
+    if (fs.statSync(filePath).isDirectory()) {
+      sendDirectoryList(req.path, res);
+      return;
+    }
+  }
+  next();
+});
+
 function createDirectoryListing(dirPath: string) {
   let { projects, files } = findProjects(dirPath);
   files = files.filter(s => !s.startsWith('.')
@@ -87,15 +86,34 @@ function createDirectoryListing(dirPath: string) {
   });
 }
 
+function sendDirectoryList(relDirPath: string, res: Response<any, Record<string, any>, number>) {
+  const dirPath = path.join(serverOptions.root, relDirPath);
+  let fileData: string;
+  try {
+    fileData = fs.readFileSync(`${dirPath}/index.html`, 'utf-8');
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      throw e;
+    }
+    fileData = serverOptions.sketchPath
+      ? createSketchHtml(serverOptions.sketchPath)
+      : createDirectoryListing(dirPath);
+  }
+  // Note:  this injects the reload script into the generated index pages too.
+  // This is helpful when the directory contents change.
+  res.send(injectLiveReloadScript(fileData));
+}
+
 function run(options: ServerOptions) {
   serverOptions = options;
 
-  // do this at startup, in order to provide errors and diagnostics right away
+  // do this at startup for effect only, in order to provide errors and
+  // diagnostics immediately
   createDirectoryListing(options.root);
 
   app.use('/', express.static(options.root));
 
-  // TODO: scan for another port when default port is in use and was not
+  // TODO: scan for another port when the default port is in use and was not
   // explicitly specified
   app.listen(options.port, () => {
     console.log(`Serving ${options.root} at http://localhost:${options.port}`);

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import ejs from 'ejs';
 import { glob } from 'glob';
+import { parse } from 'node-html-parser';
 
 // import esprima from 'esprima';
 const esprima = require('esprima');
@@ -138,12 +139,9 @@ function isSketchHtml(filePath: string) {
     return false;
   }
   const content = fs.readFileSync(filePath, 'utf-8');
-  // TODO read the DOM
-  // TODO allow attributes between the tag start and the src attributes
-  if (!content.search(/<script src="[^"]*p5(\.min)?\.js[^"]*">/)) {
-    return false;
-  }
-  return true;
+  const root = parse(content);
+  const scriptSrcs = root.querySelectorAll('script').map(node => node.attributes.src);
+  return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
 }
 
 export function isSketchJs(filePath: string) {
@@ -151,11 +149,16 @@ export function isSketchJs(filePath: string) {
   if (!filePath.endsWith('.js')) {
     return false;
   }
+
   const content = fs.readFileSync(filePath, 'utf-8');
-  const ast = esprima.parseScript(content);
+  let ast;
+  try {
+    ast = esprima.parseScript(content);
+  } catch (e) {
+    return content.search(/function\s+(setup|draw)\b/) >= 0;
+  }
   const functionNames = ast.body
     .filter((node: { type: string }) => node.type === 'FunctionDeclaration')
     .map((node: { id: { name: string } }) => node.id.name);
   return functionNames.some((name: string) => name === 'setup' || name === 'draw');
-  // return content.search(/function\s+(setup|draw)\b/) >= 0;
 }

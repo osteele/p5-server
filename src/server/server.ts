@@ -1,4 +1,5 @@
 import express from 'express';
+import { createTemplateHtml } from '../models/project';
 import fs from 'fs';
 import { createServer as createLiveReloadServer } from 'livereload';
 import ejs from 'ejs';
@@ -7,7 +8,7 @@ import minimatch from 'minimatch';
 import marked from 'marked'
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
-const templateDir = path.join(path.dirname(__filename), '../../templates');
+const templateDir = path.join(__dirname, './templates');
 
 type ServerOptions = {
   port: number;
@@ -35,7 +36,7 @@ app.get('/', (_req, res) => {
       throw e;
     }
     content = serverOptions.sketchPath
-      ? createTemplateIndex(serverOptions.sketchPath)
+      ? createTemplateHtml(serverOptions.sketchPath)
       : createIndexPage(serverOptions.root);
   }
   // TODO: more robust injection
@@ -57,15 +58,6 @@ function createIndexPage(dirPath: string) {
   const filename = path.join(templateDir, 'directory.html');
   const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
   return template({ title: path.basename(dirPath), files, readme, readmeName });
-}
-
-function createTemplateIndex(sketchPath: string) {
-  // TODO: DRY w/ project generation
-  const filename = path.join(templateDir, 'index.html');
-  const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-  // TODO: derive project title from root when sketch path is sketch.js
-  const title = serverOptions.sketchPath?.replace(/_/g, ' ').replace(/\.js$/, '');
-  return template({ title, sketchPath });
 }
 
 function run(options: ServerOptions) {

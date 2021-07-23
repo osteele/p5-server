@@ -1,11 +1,11 @@
 import ejs from 'ejs';
 import express from 'express';
 import fs from 'fs';
-import { createServer as createLiveReloadServer } from 'livereload';
 import marked from 'marked';
 import minimatch from 'minimatch';
 import path from 'path';
 import { createSketchHtml, findProjects } from '../models/project';
+import { injectLiveReloadScript, createLiveReloadServer } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
 const templateDir = path.join(__dirname, './templates');
@@ -17,12 +17,6 @@ type ServerOptions = {
 };
 
 let serverOptions: ServerOptions;
-
-const liveReloadPort = 35729;
-const liveReloadTemplate = `<script>
-  document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
-  ':35729/livereload.js?snipver=1"></' + 'script>')
-</script>`;
 
 const app = express();
 
@@ -58,26 +52,20 @@ function createIndexPage(dirPath: string) {
   return template({ title: path.basename(dirPath), files, projects, readme, readmeName });
 }
 
-function injectLiveReloadScript(content: string) {
-  // TODO: more robust injection
-  // TODO: warn when injection is not possible
-  const liveReloadString = liveReloadTemplate.replace('35729', liveReloadPort.toString());
-  return content.replace(/(?=<\/head>)/, liveReloadString);
-}
-
 function run(options: ServerOptions) {
-  // TODO: scan for another port when default port is in use and was not
-  // explicitly specified
   serverOptions = options;
+
   // do this at startup, in order to provide errors and diagnostics right away
   createIndexPage(options.root);
+
   app.use('/', express.static(options.root));
+
+  // TODO: scan for another port when default port is in use and was not
+  // explicitly specified
   app.listen(options.port, () => {
     console.log(`Serving ${options.root} at http://localhost:${options.port}`);
   });
-  // TODO: scan for another live reload port when in use
-  createLiveReloadServer({ port: liveReloadPort })
-    .watch(options.root);
+  createLiveReloadServer(options.root);
 }
 
 export default {

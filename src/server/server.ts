@@ -112,7 +112,7 @@ function sendDirectoryList(relDirPath: string, res: Response<any, Record<string,
   res.send(injectLiveReloadScript(fileData));
 }
 
-function run(options: ServerOptions) {
+function run(options: ServerOptions, callback: (url: string) => void) {
   serverOptions = options;
 
   // do this at startup for effect only, in order to provide errors and
@@ -124,7 +124,9 @@ function run(options: ServerOptions) {
   // TODO: scan for another port when the default port is in use and was not
   // explicitly specified
   app.listen(options.port, () => {
-    console.log(`Serving ${options.root} at http://localhost:${options.port}`);
+    const serverUrl = `http://localhost:${options.port}`;
+    console.log(`Serving ${options.root} at ${serverUrl}`);
+    callback && callback(serverUrl);
   });
   createLiveReloadServer(options.root);
 }

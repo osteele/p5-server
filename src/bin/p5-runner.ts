@@ -24,7 +24,8 @@ program
   .alias('s')
   .alias('run')
   .alias('r')
-  .option('-p, --port [port]', 'HTTP port on which to start the server', '3000')
+  .option('-o, --open', 'Open the page in a browser')
+  .option('-p, --port [port]', 'HTTP port to listen on', '3000')
   .action(serve);
 
 program.parse(process.argv);

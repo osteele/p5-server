@@ -3,9 +3,9 @@
 This is a work in progress.
 
 This project is a command-line interface for p5.js. It can generate sketch
-files, and it includes a server, with live reload, that can serve bare
-JavaScript files (without an associated HTML file). so that they run in the
-browser.
+files, and it includes a server, with live reload, that can serve
+JavaScript-only sketches (JavaScript files without an associated HTML file). so
+that they run in the browser.
 
 I wrote this to make it easier to manage and run collections of p5.js sketches.
 
@@ -15,19 +15,23 @@ I wrote this to make it easier to manage and run collections of p5.js sketches.
 
 `p5 serve` runs a server with these features:
 
-- Live reload – the browser reloads the page, when any file in the directory is
+Live reload
+: The browser reloads the page, when any file in the directory is
   modified.
-- Directory listing – a list of sketches and non-sketch files is displayed
-- Bare JavaScript files – click on a JavaScript sketch file (or run e.g. `p5
-  serve sketch.js`) to run a p5.js sketch that consists of a single JavaScript
-  file, without an associated HTML file.
+
+Directory listing
+: A list of sketches and non-sketch files is displayed
+
+JavaScript-only sketches
+: Click on a JavaScript sketch file (or run e.g. `p5 serve sketch.js`) to run a
+p5.js sketch that consists of a single JavaScript file, without an associated
+HTML file.
 
 ### Planned Features
 
 - [ ] display parse errors in the browser
 - [ ] recognize when a sketch requires a library file
 - [ ] commands to add and update libraries
-- [ ] specify the CDN server, or use a local file
 
 ## Installation
 
@@ -67,8 +71,6 @@ or the `filename` subdirectory of the current directory.
 - If `filename` is a directory, the browser displays a list of sketches and files in that directory.
 - If `filename` is not supplied, the browser displays sketches and files in the
   current directory.
-
-- It lists sketches, and files that are not associated with a sketch.
 
 ## Notes
 

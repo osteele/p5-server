@@ -21,23 +21,23 @@ let serverOptions: ServerOptions;
 const app = express();
 
 app.get('/', (_req, res) => {
-  let content: string;
+  let fileData: string;
   try {
-    content = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf-8');
+    fileData = fs.readFileSync(`${serverOptions.root}/index.html`, 'utf-8');
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }
-    content = serverOptions.sketchPath
+    fileData = serverOptions.sketchPath
       ? createSketchHtml(serverOptions.sketchPath)
-      : createIndexPage(serverOptions.root);
+      : createDirectoryListing(serverOptions.root);
   }
   // Note that this injects the reload script into the generated index pages
   // too. This is helpful when the directory contents change.
-  res.send(injectLiveReloadScript(content));
+  res.send(injectLiveReloadScript(fileData));
 });
 
-app.get('/*.js', (req, res, next) => {
+app.get('/**/*.js', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.method === 'GET') {
     if (isSketchJs(path.join(serverOptions.root, req.path))) {
       const content = createSketchHtml(path.basename(req.path));
@@ -46,9 +46,14 @@ app.get('/*.js', (req, res, next) => {
     }
   }
   next();
-})
+});
 
-function createIndexPage(dirPath: string) {
+app.get('/*.md', (req, res) => {
+  const fileData = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
+  res.send(marked(fileData));
+});
+
+function createDirectoryListing(dirPath: string) {
   let { projects, files } = findProjects(dirPath);
   files = files.filter(s => !s.startsWith('.')
     && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
@@ -67,7 +72,7 @@ function run(options: ServerOptions) {
   serverOptions = options;
 
   // do this at startup, in order to provide errors and diagnostics right away
-  createIndexPage(options.root);
+  createDirectoryListing(options.root);
 
   app.use('/', express.static(options.root));
 

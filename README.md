@@ -1,6 +1,13 @@
 # P5.js Runner
 
-A work in progress. This project is a command-line interface for p5.js.
+This is a work in progress.
+
+This project is a command-line interface for p5.js. It can generate sketch
+files, and it includes a server, with live reload, that can serve bare
+JavaScript files (without an associated HTML file). so that they run in the
+browser.
+
+I wrote this to make it easier to manage and run collections of p5.js sketches.
 
 ## Features
 

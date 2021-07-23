@@ -24,10 +24,23 @@ export class Project {
   }
 
   get rootFile() {
-    return path.basename(this.indexPath || this.sketchPath || this.dirPath);
+    return this.indexPath || this.sketchPath || path.basename(this.dirPath);
   }
 
   get name() {
+    // if there's an index file with a <title> element, read the name from that
+    if (this.indexPath) {
+      const filePath = path.join(this.dirPath, this.indexPath);
+      if (fs.existsSync(filePath)) {
+        const htmlContent = fs.readFileSync(filePath, 'utf-8');
+        const m = htmlContent.match(/.*<title>(.+)<\/title>/s);
+        if (m) {
+          return m[1].trim();
+        }
+      }
+    }
+    // otherwise, return the basename of either the HTML file or the JavaScript
+    // file
     return this.rootFile.replace(/\.(html?|js)$/, '');
   }
 

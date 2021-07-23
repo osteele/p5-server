@@ -37,8 +37,17 @@ app.get('/', (_req, res) => {
   res.send(injectLiveReloadScript(fileData));
 });
 
-app.get('/**/*.js', (req, res, next) => {
-  if (req.headers['accept']?.match(/\btext\/html\b/) && req.method === 'GET') {
+app.get('/*.html', (req, res, next) => {
+  if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    const content = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
+    res.send(injectLiveReloadScript(content));
+    return;
+  }
+  next();
+});
+
+app.get('/*.js', (req, res, next) => {
+  if (req.headers['accept']?.match(/\btext\/html\b/)) {
     if (isSketchJs(path.join(serverOptions.root, req.path))) {
       const content = createSketchHtml(path.basename(req.path));
       res.send(injectLiveReloadScript(content));
@@ -49,8 +58,10 @@ app.get('/**/*.js', (req, res, next) => {
 });
 
 app.get('/*.md', (req, res) => {
-  const fileData = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
-  res.send(marked(fileData));
+  if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    const fileData = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
+    res.send(marked(fileData));
+  }
 });
 
 function createDirectoryListing(dirPath: string) {

@@ -71,11 +71,20 @@ function createDirectoryListing(dirPath: string) {
   );
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-  let readmeName = files.find(s => s.toLowerCase() === 'readme.md');
-  let readme = readmeName ? marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')) : null;
+  const readmeName = files.find(s => s.toLowerCase() === 'readme.md');
+  const readmeHtml = readmeName ? marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')) : null;
+
+  const directories = files.filter(s => fs.statSync(path.join(dirPath, s)).isDirectory());
+  files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
   const filename = path.join(templateDir, 'directory.html.njk');
-  return nunjucks.render(filename, { title: path.basename(dirPath), files, projects, readme, readmeName });
+  return nunjucks.render(filename, {
+    title: path.basename(dirPath),
+    directories,
+    files,
+    projects,
+    readme: readmeName && { name: readmeName, html: readmeHtml },
+  });
 }
 
 function run(options: ServerOptions) {

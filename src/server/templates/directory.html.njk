@@ -42,13 +42,13 @@
       </div>
     {% endif %}
 
-    {% if files.length %}
-      <h1>Files and Folders</h1>
+    {% if directories.length %}
+      <h1>Folders</h1>
       <ul>
-        {% for file in files %}
+        {% for folder in directories %}
           <li>
-            <a href="{{ file }}">
-              {{ file }}
+            <a href="{{ folder }}">
+              {{ folder }}
             </a>
           </li>
         {% endfor %}
@@ -56,14 +56,28 @@
     </div>
   {% endif %}
 
-  {% if readme %}
-    <div id="readme">
-      <div id="readme-title">
-        {{ readmeName }}
-      </div>
-      {{ readme| safe }}
+  {% if files.length %}
+    <h1>Loose Files</h1>
+    <ul>
+      {% for file in files %}
+        <li>
+          <a href="{{ file }}">
+            {{ file }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if readme %}
+  <div id="readme">
+    <div id="readme-title">
+      {{ readme.name }}
     </div>
-  {% endif %}
+    {{ readme.html | safe }}
+  </div>
+{% endif %}
 </body>
 
 </html>

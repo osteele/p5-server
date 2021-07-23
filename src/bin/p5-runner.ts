@@ -11,8 +11,11 @@ program.version(appVersion);
 program
   .command('create [name]')
   .alias('c')
+  .alias('generate')
+  .alias('g')
   .description('Create a new p5.js sketch')
   .option('-f, --force', 'force overwite of existing files')
+  .option('-t, --title [title]', 'sketch title')
   .action(create);
 
 program

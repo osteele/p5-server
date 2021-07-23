@@ -16,11 +16,14 @@ export class Project {
   dirPath: string;
   indexPath: string | null;
   sketchPath: string;
+  title: string | null;
 
-  constructor(dirPath: string, indexPath: string | null = 'index.html', sketchPath: string = 'sketch.js') {
+  constructor(dirPath: string, indexPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
+    options: { title: string | null } = { title: null }) {
     this.dirPath = dirPath;
     this.indexPath = indexPath;
     this.sketchPath = sketchPath;
+    this.title = options?.title;
   }
 
   get rootFile() {
@@ -28,6 +31,7 @@ export class Project {
   }
 
   get name() {
+    if (this.title) return this.title;
     // if there's an index file with a <title> element, read the name from that
     if (this.indexPath) {
       const filePath = path.join(this.dirPath, this.indexPath);
@@ -77,7 +81,7 @@ export class Project {
 
   getTemplateData() {
     return {
-      title: this.dirPath.replace(/_/g, ' '),
+      title: this.title || this.dirPath.replace(/_/g, ' '),
       sketchPath: `./${this.sketchPath}`,
     };
   }

@@ -46,7 +46,7 @@
     <ul>
       {% for folder in directories %}
       <li>
-        <a href="{{ folder }}">
+        <a href="{{ folder }}/">
           {{ folder }}
         </a>
       </li>
@@ -58,6 +58,7 @@
   {% if files.length %}
   <div>
     <h1>Loose Files</h1>
+    <div>These files don't appear to be associated with any project in this directory.</div>
     <ul>
       {% for file in files %}
       <li>

@@ -1,12 +1,11 @@
+import { exception } from 'console';
+import { FunctionDeclaration } from 'estree';
 import fs from 'fs';
-import path from 'path';
-import nunjucks from 'nunjucks';
 import { glob } from 'glob';
 import { parse } from 'node-html-parser';
-import { parseScript, Program } from 'esprima';
-import { FunctionDeclaration } from 'estree';
-import { fileURLToPath } from 'url';
-import { exception } from 'console';
+import nunjucks from 'nunjucks';
+import path from 'path';
+import { JavascriptSyntaxError, findFreeVariables, checkedParseScript } from './script';
 
 const templateDir = path.join(__dirname, './templates');
 
@@ -84,8 +83,29 @@ export class Project {
     this.writeGeneratedFile('sketch.js');
   }
 
-  writeGeneratedFile(base: string) {
+  private writeGeneratedFile(base: string) {
     fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
+  }
+
+  private getLibraries() {
+    const paths = Array<string>();
+    if (this.sketchPath) {
+      try {
+        const program = checkedParseScript(path.join(this.dirPath, this.sketchPath));
+        const freeVariables = findFreeVariables(program);
+        console.info('free variables', freeVariables);
+        for (const spec of librarySpecs) {
+          if (spec.globals && spec.globals.some(name => freeVariables.has(name))) {
+            paths.push(spec.path);
+          }
+        }
+      } catch (e) {
+        if (!(e instanceof JavascriptSyntaxError)) {
+          throw e;
+        }
+      }
+    }
+    return paths;
   }
 
   getGeneratedFileContent(base: string) {
@@ -95,13 +115,29 @@ export class Project {
     const data = {
       title: this.title || this.dirPath.replace(/_/g, ' '),
       sketchPath: `./${this.sketchPath}`,
+      libraries: this.getLibraries(),
     };
     return nunjucks.render(templatePath, data);
   }
 }
 
+const librarySpecs = [
+  {
+    name: 'sound',
+    path: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js',
+    globals: [
+      'getAudioContext', 'userStartAudio', 'getOutputVolume', 'outputVolume', 'soundOut', 'sampleRate',
+      'freqToMidi', 'midiToFreq', 'soundFormats', 'saveSound', 'loadSound', 'createConvolver', 'setBPM'
+    ],
+    props: [
+      'SoundFile', 'Amplitude', 'AudioIn', 'FFT', 'Oscillator', 'Noise', 'Pulse', 'MonoSynth', 'PolySynth', 'Envelope',
+      'Delay', 'Filter', 'Reverb', 'Convolver', 'SoundRecorder', 'SoundLop', 'Phrase', 'Part', 'Score'
+    ]
+  }
+];
+
 export function createSketchHtml(sketchPath: string) {
-  const project = new Project(sketchPath, null, sketchPath);
+  const project = new Project(path.dirname(sketchPath), null, path.basename(sketchPath));
   return project.getGeneratedFileContent('index.html');
 }
 
@@ -148,35 +184,16 @@ export function isSketchJs(filePath: string) {
   }
 
   try {
-    const program = parseOrReadJs(filePath);
+    const program = checkedParseScript(filePath);
+    // console.info('p5.*', findP5MemberReferences(program));
+    // console.info('free variables', findFreeVariables(program));
     const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
-    const globalFunctionNames = new Set(functionDeclarations.map(node => node?.id?.name));
+    const globalFunctionNames = new Set(functionDeclarations.map(node => node.id?.name));
     return globalFunctionNames.has('setup') || globalFunctionNames.has('draw');
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {
       return e.code.search(/function\s+(setup|draw)\b/) >= 0;
     }
     throw e;
-  }
-}
-
-export class JavascriptSyntaxError extends Error {
-  code: string;
-  fileName: string;
-
-  constructor(msg: string, fileName: string, code: string) {
-    super(msg);
-    Object.setPrototypeOf(this, JavascriptSyntaxError.prototype);
-    this.fileName = fileName;
-    this.code = code;
-  }
-}
-
-export function parseOrReadJs(filePath: string): Program {
-  const code = fs.readFileSync(filePath, 'utf-8');
-  try {
-    return parseScript(code);
-  } catch (e) {
-    throw new JavascriptSyntaxError(e.message, filePath, code);
   }
 }

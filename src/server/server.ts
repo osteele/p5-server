@@ -5,7 +5,8 @@ import marked from 'marked';
 import minimatch from 'minimatch';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { createSketchHtml, findProjects, isSketchJs, JavascriptSyntaxError, parseOrReadJs } from '../models/project';
+import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
+import { JavascriptSyntaxError, checkedParseScript } from '../models/script';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
@@ -40,13 +41,13 @@ app.get('/*.html', (req, res, next) => {
 app.get('/*.js', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     if (isSketchJs(path.join(serverOptions.root, req.path))) {
-      const content = createSketchHtml(path.basename(req.path));
+      const content = createSketchHtml(path.join(serverOptions.root, req.path));
       res.send(injectLiveReloadScript(content));
       return;
     }
   }
   try {
-    parseOrReadJs(path.join(serverOptions.root, req.path));
+    checkedParseScript(path.join(serverOptions.root, req.path));
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {
       const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');

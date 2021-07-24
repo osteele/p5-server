@@ -1,6 +1,7 @@
 [
   {
-    "name": "sound",
+    "name": "p5.sound",
+    "homepage": "https://p5js.org/reference/#/libraries/p5.sound",
     "path": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
     "globals": [
       "createConvolver",
@@ -37,6 +38,367 @@
       "SoundFile",
       "SoundLop",
       "SoundRecorder"
+    ]
+  },
+  {
+    "name": "ml5.js",
+    "homepage": "https://learn.ml5js.org/",
+    "path": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
+    "globals": [
+      "ml5"
+    ]
+  },
+  {
+    "name": "ASCII Art",
+    "homepage": "https://www.tetoki.eu/asciiart/",
+    "globals": [
+      "AsciiArt"
+    ]
+  },
+  {
+    "name": "p5.ble.js",
+    "homepage": "https://itpnyu.github.io/p5ble-website/",
+    "path": "https://unpkg.com/p5ble@0.0.4/dist/p5.ble.js",
+    "globals": [
+      "p5ble"
+    ]
+  },
+  {
+    "name": "p5bots",
+    "homepage": "https://github.com/sarahgp/p5bots",
+    "props": [
+      "board",
+      "serial"
+    ]
+  },
+  {
+    "name": "p5.clickable",
+    "homepage": "https://github.com/Lartu/p5.clickable",
+    "globals": [
+      "Clickable"
+    ]
+  },
+  {
+    "name": "p5.cmyk.js",
+    "homepage": "https://github.com/jtnimoy/p5.cmyk.js",
+    "globals": [
+      "Cmyk"
+    ]
+  },
+  {
+    "name": "p5.collide2D",
+    "homepage": "https://github.com/bmoren/p5.collide2D",
+    "path": "https://unpkg.com/p5.collide2d",
+    "globals": [
+      "collideDebug",
+      "collidePointPoint",
+      "collidePointCircle",
+      "collidePointEllipse",
+      "collidePointRect",
+      "collidePointLine",
+      "collidePointArc",
+      "collideRectRect",
+      "collideCircleCircle",
+      "collideRectCircle",
+      "collideLineLine",
+      "collideLineCircle",
+      "collideLineRect",
+      "collidePointPoly",
+      "collideCirclePoly",
+      "collideRectPoly",
+      "collideLinePoly",
+      "collidePolyPoly",
+      "collidePointTriangle"
+    ]
+  },
+  {
+    "name": "p5.createloop",
+    "homepage": "https://www.npmjs.com/package/p5.createloop",
+    "path": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
+    "globals": [
+      "createloop"
+    ]
+  },
+  {
+    "name": "p5.dimensions.js",
+    "homepage": "https://github.com/Smilebags/p5.dimensions.js",
+    "path": "https://raw.githubusercontent.com/Smilebags/p5.dimensions.js/master/libraries/p5.dimensions.js",
+    "globals": [
+      "nDist",
+      "nDistSq",
+      "nDot",
+      "nLerp",
+      "nAdd",
+      "nSub",
+      "nMul",
+      "nDiv",
+      "nSetMag",
+      "nCross",
+      "nEqual",
+      "nNormalize",
+      "nMag",
+      "nMagSq"
+    ]
+  },
+  {
+    "name": "p5.EasyCam",
+    "homepage": "https://github.com/freshfork/p5.EasyCam",
+    "path": "https://freshfork.github.io/p5.EasyCam/p5.easycam.js",
+    "globals": [
+      "Dw",
+      "createEasyCam"
+    ],
+    "props": [
+      "RoverCam"
+    ]
+  },
+  {
+    "name": "p5.experience.js",
+    "homepage": "https://github.com/loneboarder/p5.experience.js",
+    "globals": [
+      "uxRect",
+      "uxSquare",
+      "uxTriangle",
+      "uxCircle",
+      "uxEllipse",
+      "uxFillColor",
+      "uxnoFill",
+      "uxStroke",
+      "uxNoStroke",
+      "uxStrokeWeight"
+    ]
+  },
+  {
+    "name": "p5.func",
+    "homepage": "https://idmnyu.github.io/p5.js-func/",
+    "globals": [
+      "AsciiArt"
+    ],
+    "props": [
+      "Gen",
+      "Ease",
+      "ArrayEval",
+      "Filt",
+      "FastFourierTransform"
+    ]
+  },
+  {
+    "name": "p5.geolocation",
+    "homepage": "https://github.com/bmoren/p5.geolocation",
+    "globals": [
+      "geoCheck",
+      "getCurrentPosition",
+      "watchPosition",
+      "clearWatch",
+      "intervalCurrentPosition",
+      "clearIntervalPos",
+      "calcGeoDistance",
+      "geoFenceCircle",
+      "geoFencePolygon"
+    ]
+  },
+  {
+    "name": "grafica.js",
+    "homepage": "https://github.com/jagracar/grafica.js",
+    "globals": [
+      "GPlot"
+    ]
+  },
+  {
+    "name": "p5.gui",
+    "homepage": "https://github.com/bitcraftlab/p5.gui",
+    "globals": [
+      "createGui"
+    ]
+  },
+  {
+    "name": "p5.localmessage",
+    "homepage": "https://github.com/bmoren/p5.localmessage",
+    "globals": [
+      "registerServiceWorker",
+      "sendMessage",
+      "listenMessage"
+    ]
+  },
+  {
+    "name": "marching",
+    "homepage": "https://github.com/jtnimoy/marching",
+    "globals": [
+      "marchingSquares"
+    ]
+  },
+  {
+    "name": "Mappa",
+    "homepage": "https://github.com/cvalenzuela/Mappa",
+    "path": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
+    "globals": [
+      "Mappa"
+    ]
+  },
+  {
+    "name": "p5.play",
+    "homepage": "http://molleindustria.github.io/p5.play/",
+    "globals": [
+      "createSprite",
+      "loadAnimation"
+    ]
+  },
+  {
+    "name": "p5.particle",
+    "homepage": "https://github.com/bobcgausa/cook-js",
+    "globals": [
+      "Particle",
+      "Fountain"
+    ]
+  },
+  {
+    "name": "p5.Riso",
+    "homepage": "https://antiboredom.github.io/p5.riso/",
+    "globals": [
+      "drawRiso"
+    ]
+  },
+  {
+    "name": "Rita",
+    "homepage": "https://rednoise.org/rita/",
+    "path": "https://unpkg.com/rita",
+    "globals": [
+      "RiTa"
+    ]
+  },
+  {
+    "name": "Rotating Knobs",
+    "homepage": "http://codeforartists.com/RotatingKnobMaker/",
+    "globals": [
+      "MakeKnob"
+    ]
+  },
+  {
+    "name": "p5.SceneManager",
+    "homepage": "https://github.com/mveteanu/p5.SceneManager",
+    "globals": [
+      "SceneManager"
+    ]
+  },
+  {
+    "name": "p5js.screenPosition",
+    "homepage": "https://github.com/bohnacker/p5js-screenPosition",
+    "globals": [
+      "addScreenPositionFunction"
+    ]
+  },
+  {
+    "name": "p5.scribble",
+    "homepage": "https://github.com/generative-light/p5.scribble.js",
+    "globals": [
+      "Scribble"
+    ]
+  },
+  {
+    "name": "p5.serial",
+    "homepage": "https://github.com/p5-serial/p5.serialport",
+    "path": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
+    "props": [
+      "SerialPort"
+    ]
+  },
+  {
+    "name": "Shape5",
+    "homepage": "https://github.com/pfe1223/Shape5js",
+    "globals": [
+      "Circle",
+      "Square",
+      "Triangle",
+      "Polygon",
+      "Oval",
+      "Rectangle",
+      "Semicircle",
+      "Rhombus",
+      "RightTriangle",
+      "IsoscelesTriangle",
+      "Stripe"
+    ]
+  },
+  {
+    "name": "p5.shape.js",
+    "homepage": "https://github.com/gaba5/p5.shape.js",
+    "globals": [
+      "tri",
+      "pent",
+      "hexagon",
+      "hept",
+      "octo",
+      "nona",
+      "heart",
+      "center",
+      "deca",
+      "trap",
+      "rightTri"
+    ]
+  },
+  {
+    "name": "p5.speech",
+    "homepage": "https://idmnyu.github.io/p5.js-speech/",
+    "props": [
+      "Speech",
+      "SpeechRec"
+    ]
+  },
+  {
+    "name": "p5.start2d.js",
+    "homepage": "https://github.com/eltapir/p5.start2d.js"
+  },
+  {
+    "name": "p5.tiledmap",
+    "homepage": "https://github.com/linux-man/p5.tiledmap",
+    "globals": [
+      "loadTiledMap"
+    ]
+  },
+  {
+    "name": "p5.touchgui",
+    "homepage": "https://github.com/L05/p5.touchgui",
+    "path": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
+    "globals": [
+      "createGui"
+    ]
+  },
+  {
+    "name": "vida",
+    "homepage": "https://www.tetoki.eu/vida/",
+    "globals": [
+      "Vida"
+    ]
+  },
+  {
+    "name": "p5.voronoi",
+    "homepage": "https://github.com/Dozed12/p5.voronoi",
+    "globals": [
+      "voronoi",
+      "voronoiGetDiagram"
+    ]
+  },
+  {
+    "name": "p5xr",
+    "homepage": "http://p5xr.org/",
+    "globals": [
+      "createVRCanvas"
+    ]
+  },
+  {
+    "name": "p5.3D",
+    "homepage": "https://github.com/FreddieRa/p5.3D",
+    "globals": [
+      "createWord3D",
+      "createPicture3D",
+      "createCanvas3D"
+    ]
+  },
+  {
+    "name": "dat.gui",
+    "homepage": "https://github.com/dataarts/dat.gui",
+    "globals": [
+      "dat"
     ]
   }
 ]

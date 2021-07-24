@@ -87,24 +87,21 @@ export class Project {
     fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
   }
 
-  private getLibraries() {
+  private getLibraries(): LibrarySpec[] {
     if (this.sketchPath) {
       try {
         const program = checkedParseScript(path.join(this.dirPath, this.sketchPath));
         const freeVariables = findFreeVariables(program);
         return librarySpecs.filter(spec => {
           return spec.globals && spec.globals.some(name => freeVariables.has(name));
-        }).map(spec => ({
-          ...spec,
-          path: spec.path.replace("$(P5Version)", p5Version)
-        }));
+        });
       } catch (e) {
         if (!(e instanceof JavascriptSyntaxError)) {
           throw e;
         }
       }
-      return [];
     }
+    return [];
   }
 
   getGeneratedFileContent(base: string) {
@@ -115,7 +112,10 @@ export class Project {
     const data = {
       title: this.title || this.dirPath.replace(/_/g, ' '),
       sketchPath: `./${this.sketchPath}`,
-      libraries,
+      libraries: libraries.map(spec => ({
+        ...spec,
+        path: spec.path?.replace("$(P5Version)", p5Version)
+      })),
       p5Version
     };
     return nunjucks.render(templatePath, data);
@@ -124,7 +124,8 @@ export class Project {
 
 type LibrarySpec = {
   name: string,
-  path: string,
+  homepage: string,
+  path?: string,
   version?: string,
   globals?: string[],
   props?: string[],

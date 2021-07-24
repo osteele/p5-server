@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ title }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css" />
   <style>
@@ -75,7 +76,11 @@
     {% if files.length %}
     <div class="ui segment">
       <h2 class="ui header">Loose Files</h2>
-      <div>These files don't appear to be associated with any sketches in this directory.</div>
+      <div>
+        These files don't appear to be associated with any sketches in this directory.
+        This may just be because p5-runner doesn't currently inspect HTML and JavaScript
+        files to see what other files they include.
+      </div>
       <div class="ui divided list">
         {% for file in files %}
         <div class="item">

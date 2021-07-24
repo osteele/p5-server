@@ -6,13 +6,18 @@
   "type": "array",
   "items": {
     "type": "object",
+    "uniqueItems": true,
     "properties": {
       "name": {
         "description": "The human-readable name of the library",
         "type": "string"
       },
+      "homepage": {
+        "description": "The library's home page",
+        "type": "string"
+      },
       "path": {
-        "description": "The path to the library file",
+        "description": "A CDN URL that loads the library",
         "type": "string"
       },
       "globals": {
@@ -32,7 +37,7 @@
     },
     "required": [
       "name",
-      "path"
+      "homepage"
     ]
   }
 }

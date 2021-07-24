@@ -21,9 +21,11 @@ JavaScript-only sketches
 
 Automatic library inclusion
 
-: JavaScript-only sketches automatically include the p5.sound library, if the
-  code uses any functions (such as `loadSound`) from this library. (I am working
-  on extending this to other libraries.)
+: JavaScript-only sketches automatically include many of the libraries that are
+  listed on the [p5.js Libraries page](https://p5js.org/libraries/), as well as
+  [dat.gui](https://github.com/dataarts/dat.gui). For example, if the sketch
+  calls  `loadSound`, it will include the p5.sound library. If it refers to
+  `ml5`, it will include the ml5.js library.
 
 In-Page Syntax errors
 
@@ -87,10 +89,11 @@ Generated sketches use a CDN. I may add an option to use local files instead.
 A “JavaScript-only sketch file” is a JavaScript file that includes a function
 definition for either the `setup()` or `draw()` functions.
 
-Recognition of p5.js HTML files is currently done using regular expressions, and
-is therefore fragile.
+Automatic library loading is done by examining the free variables in the sketch.
+A list of libraries, and the global variables that trigger including a library,
+is in `./config/libraries.json`.
 
-I haven't tested this on instance-mode sketches.
+I haven't tested this on instance-mode sketches, or on Windows.
 
 ## License
 

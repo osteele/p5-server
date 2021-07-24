@@ -89,6 +89,12 @@ export function findFreeVariables(program: Program): Set<string> {
         yield* iterExpression(node.right);
         yield* iterStatement(node.body);
         break;
+      case 'ForOfStatement':
+        // FIXME: build local context
+        // TODO: yield* iterExpression(node.left);
+        yield* iterExpression(node.right);
+        yield* iterStatement(node.body);
+        break;
       case 'IfStatement':
         yield* iterExpression(node.test);
         yield* iterStatement(node.consequent);
@@ -121,11 +127,11 @@ export function findFreeVariables(program: Program): Set<string> {
       case 'ContinueStatement':
         break;
       default:
-        console.warn('unimplemented statement', node);
+        console.warn('findFreeVariables: unimplemented statement', node);
         break;
     }
     // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement
-    // TODO: ForInStatement | ForOfStatement | Declaration
+    // TODO: ForInStatement | Declaration
   }
 
   function* iterExpression(node: Expression): Iterable<string> {
@@ -155,14 +161,27 @@ export function findFreeVariables(program: Program): Set<string> {
       case 'Identifier':
         yield node.name;
         break;
+      case 'ObjectExpression':
+        for (const prop of node.properties) {
+          if (prop.type === 'SpreadElement') {
+            yield* iterExpression(prop.argument);
+          } else {
+            // TODO
+            // yield* iterExpression(prop.key);
+            // yield* iterExpression(prop.value);
+          }
+        }
+        break;
+      case 'UnaryExpression':
+        yield* iterExpression(node.argument);
       case 'Literal':
         break;
       default:
-        console.warn('unimplemented expression', node);
+        console.warn('findFreeVariables: unimplemented expression', node);
         break;
     }
-    // TODO: ThisExpression | ArrayExpression | ObjectExpression | FunctionExpression
-    // TODO: ArrowFunctionExpression | YieldExpression | UnaryExpression
+    // TODO: ThisExpression | ArrayExpression | FunctionExpression
+    // TODO: ArrowFunctionExpression | YieldExpression
     // TODO: UpdateExpression
     // TODO: LogicalExpression | ConditionalExpression
     // TODO: NewExpression | SequenceExpression | TemplateLiteral
@@ -248,7 +267,7 @@ export function findP5MemberReferences(program: Program): Set<string> {
         }
         break;
       default:
-        console.warn('unimplemented statement', node);
+        console.warn('findP5MemberReferences: unimplemented statement', node);
         break;
     }
   }
@@ -282,7 +301,7 @@ export function findP5MemberReferences(program: Program): Set<string> {
       case 'Literal':
         break;
       default:
-        console.warn('unimplemented expression', node);
+        console.warn('findP5MemberReferences: unimplemented expression', node);
         break;
     }
   }

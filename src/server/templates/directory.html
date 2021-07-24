@@ -25,15 +25,23 @@
   {% if projects.length %}
   <div class="ui segment">
     <h2 class="ui header">Sketches</h2>
-    <ul>
+    <div class="ui three stackable cards">
       {% for project in projects %}
-      <li>
-        <a href="{{ project.rootFile }}">
-          {{ project.name }}
-        </a>
-      </li>
+      <div class="ui card">
+        <div class="content">
+          <a href="{{ project.rootFile }}">
+            {{ project.name }}
+          </a>
+        </div>
+        <div class="extra content">
+          <a href="{{ project.rootFile }}">
+            <i class="play icon"></i>
+            Run
+          </a>
+        </div>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
   </div>
   {% endif %}
 

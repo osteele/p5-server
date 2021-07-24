@@ -3,9 +3,8 @@ import path from 'path';
 import ejs from 'ejs';
 import { glob } from 'glob';
 import { parse } from 'node-html-parser';
-
-// import esprima from 'esprima';
-const esprima = require('esprima');
+import { parseScript, Program } from 'esprima';
+import { FunctionDeclaration } from 'estree';
 
 const templateDir = path.join(__dirname, './templates');
 
@@ -150,15 +149,22 @@ export function isSketchJs(filePath: string) {
     return false;
   }
 
-  const content = fs.readFileSync(filePath, 'utf-8');
-  let ast;
-  try {
-    ast = esprima.parseScript(content);
-  } catch (e) {
-    return content.search(/function\s+(setup|draw)\b/) >= 0;
+  const program = parseOrReadJs(filePath);
+  if (typeof program === 'string') {
+    return program.search(/function\s+(setup|draw)\b/) >= 0;
+  } else {
+    const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
+    const globalFunctionNames = new Set(functionDeclarations.map(node => node?.id?.name));
+    return globalFunctionNames.has('setup') || globalFunctionNames.has('draw');
   }
-  const functionNames = ast.body
-    .filter((node: { type: string }) => node.type === 'FunctionDeclaration')
-    .map((node: { id: { name: string } }) => node.id.name);
-  return functionNames.some((name: string) => name === 'setup' || name === 'draw');
+}
+5
+export function parseOrReadJs(filePath: string): string | Program {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  try {
+    return parseScript(content);
+  } catch (e) {
+    console.warn(`Warning: ${e} while parsing ${filePath}`);
+    return content;
+  }
 }

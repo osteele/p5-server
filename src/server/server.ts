@@ -76,8 +76,8 @@ function createDirectoryListing(dirPath: string) {
   const directories = files.filter(s => fs.statSync(path.join(dirPath, s)).isDirectory());
   files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
-  const filename = path.join(templateDir, 'directory.html.njk');
-  return nunjucks.render(filename, {
+  const templatePath = path.join(templateDir, 'directory.html');
+  return nunjucks.render(templatePath, {
     title: path.basename(dirPath),
     directories,
     files,

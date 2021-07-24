@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import ejs from 'ejs';
+import nunjucks from 'nunjucks';
 import { glob } from 'glob';
 import { parse } from 'node-html-parser';
 import { parseScript, Program } from 'esprima';
@@ -82,13 +82,6 @@ export class Project {
     this.writeGeneratedFile('sketch.js');
   }
 
-  getTemplateData() {
-    return {
-      title: this.title || this.dirPath.replace(/_/g, ' '),
-      sketchPath: `./${this.sketchPath}`,
-    };
-  }
-
   writeGeneratedFile(base: string) {
     fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
   }
@@ -96,9 +89,12 @@ export class Project {
   getGeneratedFileContent(base: string) {
     // Don't cache the template. It's not important to performance in this context,
     // and leaving it uncached makes development easier.
-    const filename = path.join(templateDir, base);
-    const template = ejs.compile(fs.readFileSync(filename, 'utf-8'), { filename });
-    return template(this.getTemplateData());
+    const templatePath = path.join(templateDir, base);
+    const data = {
+      title: this.title || this.dirPath.replace(/_/g, ' '),
+      sketchPath: `./${this.sketchPath}`,
+    };
+    return nunjucks.render(templatePath, data);
   }
 }
 

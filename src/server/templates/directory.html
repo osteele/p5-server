@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }}</title>
+  <style>
+    body {
+      max-width: 800px;
+      margin: auto;
+      padding: 5px;
+    }
+
+    #readme {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #readme #readme-title {
+      border-bottom: #ccc;
+    }
+  </style>
+</head>
+
+<body>
+  {% if projects.length %}
+  <div>
+    <h1>Sketches</h1>
+    <ul>
+      {% for project in projects %}
+      <li>
+        <a href="{{ project.rootFile }}">
+          {{ project.name }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if directories.length %}
+  <div>
+    <h1>Folders</h1>
+    <ul>
+      {% for folder in directories %}
+      <li>
+        <a href="{{ folder }}">
+          {{ folder }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if files.length %}
+  <div>
+    <h1>Loose Files</h1>
+    <ul>
+      {% for file in files %}
+      <li>
+        <a href="{{ file }}">
+          {{ file }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if readme %}
+  <div id="readme">
+    <div id="readme-title">{{ readme.name }}</div>
+    {{ readme.html | safe }}
+  </div>
+  {% endif %}
+</body>
+
+</html>

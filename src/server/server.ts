@@ -5,7 +5,7 @@ import marked from 'marked';
 import minimatch from 'minimatch';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
+import { createSketchHtml, findProjects, isSketchJs, JavascriptSyntaxError, parseOrReadJs } from '../models/project';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
@@ -18,6 +18,9 @@ type ServerOptions = {
 };
 
 let serverOptions: ServerOptions;
+
+const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
+jsTemplateEnv.addFilter('quote', JSON.stringify);
 
 const app = express();
 
@@ -41,6 +44,18 @@ app.get('/*.js', (req, res, next) => {
       res.send(injectLiveReloadScript(content));
       return;
     }
+  }
+  try {
+    parseOrReadJs(path.join(serverOptions.root, req.path));
+  } catch (e) {
+    if (e instanceof JavascriptSyntaxError) {
+      const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
+      return res.send(jsTemplateEnv.renderString(template, {
+        fileName: path.basename(e.fileName), // TODO: relative to referer
+        message: e.message,
+      }));
+    }
+    throw e;
   }
   next();
 });

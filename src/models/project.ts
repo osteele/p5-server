@@ -5,6 +5,8 @@ import { glob } from 'glob';
 import { parse } from 'node-html-parser';
 import { parseScript, Program } from 'esprima';
 import { FunctionDeclaration } from 'estree';
+import { fileURLToPath } from 'url';
+import { exception } from 'console';
 
 const templateDir = path.join(__dirname, './templates');
 
@@ -145,22 +147,36 @@ export function isSketchJs(filePath: string) {
     return false;
   }
 
-  const program = parseOrReadJs(filePath);
-  if (typeof program === 'string') {
-    return program.search(/function\s+(setup|draw)\b/) >= 0;
-  } else {
+  try {
+    const program = parseOrReadJs(filePath);
     const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
     const globalFunctionNames = new Set(functionDeclarations.map(node => node?.id?.name));
     return globalFunctionNames.has('setup') || globalFunctionNames.has('draw');
+  } catch (e) {
+    if (e instanceof JavascriptSyntaxError) {
+      return e.code.search(/function\s+(setup|draw)\b/) >= 0;
+    }
+    throw e;
   }
 }
-5
-export function parseOrReadJs(filePath: string): string | Program {
-  const content = fs.readFileSync(filePath, 'utf-8');
+
+export class JavascriptSyntaxError extends Error {
+  code: string;
+  fileName: string;
+
+  constructor(msg: string, fileName: string, code: string) {
+    super(msg);
+    Object.setPrototypeOf(this, JavascriptSyntaxError.prototype);
+    this.fileName = fileName;
+    this.code = code;
+  }
+}
+
+export function parseOrReadJs(filePath: string): Program {
+  const code = fs.readFileSync(filePath, 'utf-8');
   try {
-    return parseScript(content);
+    return parseScript(code);
   } catch (e) {
-    console.warn(`Warning: ${e} while parsing ${filePath}`);
-    return content;
+    throw new JavascriptSyntaxError(e.message, filePath, code);
   }
 }

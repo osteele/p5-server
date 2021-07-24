@@ -1,6 +1,6 @@
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    text('Subdirectory with a bare JavaScript file', 10, 10);
+    text('Sketch #1', 10, 10);
 }
 
 function draw() {

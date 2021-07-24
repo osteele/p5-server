@@ -5,6 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ title }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css" />
   <style>
     body {
       max-width: 800px;
@@ -12,22 +14,17 @@
       padding: 5px;
     }
 
-    #readme {
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    #readme #readme-title {
-      border-bottom: #ccc;
+    #readme-title {
+      display: block;
+      border-bottom: 1px dotted #ccc;
     }
   </style>
 </head>
 
 <body>
   {% if projects.length %}
-  <div>
-    <h1>Sketches</h1>
+  <div class="ui segment">
+    <h2 class="ui header">Sketches</h2>
     <ul>
       {% for project in projects %}
       <li>
@@ -41,8 +38,8 @@
   {% endif %}
 
   {% if directories.length %}
-  <div>
-    <h1>Folders</h1>
+  <div class="ui segment">
+    <h2 class="ui header">Folders</h2>
     <ul>
       {% for folder in directories %}
       <li>
@@ -56,8 +53,8 @@
   {% endif %}
 
   {% if files.length %}
-  <div>
-    <h1>Loose Files</h1>
+  <div class="ui segment">
+    <h2 class="ui header">Loose Files</h2>
     <div>These files don't appear to be associated with any project in this directory.</div>
     <ul>
       {% for file in files %}
@@ -72,8 +69,8 @@
   {% endif %}
 
   {% if readme %}
-  <div id="readme">
-    <div id="readme-title">{{ readme.name }}</div>
+  <div class="ui segment" id="readme">
+    <a id="readme-title" href="{{ readme.name }}">{{ readme.name }}</a>
     {{ readme.html | safe }}
   </div>
   {% endif %}

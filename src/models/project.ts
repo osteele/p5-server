@@ -1,12 +1,12 @@
-import { exception } from 'console';
 import { FunctionDeclaration } from 'estree';
 import fs from 'fs';
 import { glob } from 'glob';
 import { parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { JavascriptSyntaxError, findFreeVariables, checkedParseScript } from './script';
+import { checkedParseScript, findFreeVariables, JavascriptSyntaxError } from './script';
 
+const p5Version = '1.4.0';
 const templateDir = path.join(__dirname, './templates');
 
 export class DirectoryExistsError extends Error {
@@ -88,53 +88,50 @@ export class Project {
   }
 
   private getLibraries() {
-    const paths = Array<string>();
     if (this.sketchPath) {
       try {
         const program = checkedParseScript(path.join(this.dirPath, this.sketchPath));
         const freeVariables = findFreeVariables(program);
-        console.info('free variables', freeVariables);
-        for (const spec of librarySpecs) {
-          if (spec.globals && spec.globals.some(name => freeVariables.has(name))) {
-            paths.push(spec.path);
-          }
-        }
+        return librarySpecs.filter(spec => {
+          return spec.globals && spec.globals.some(name => freeVariables.has(name));
+        }).map(spec => ({
+          ...spec,
+          path: spec.path.replace("$(P5Version)", p5Version)
+        }));
       } catch (e) {
         if (!(e instanceof JavascriptSyntaxError)) {
           throw e;
         }
       }
+      return [];
     }
-    return paths;
   }
 
   getGeneratedFileContent(base: string) {
     // Don't cache the template. It's not important to performance in this context,
     // and leaving it uncached makes development easier.
     const templatePath = path.join(templateDir, base);
+    const libraries = this.getLibraries();
     const data = {
       title: this.title || this.dirPath.replace(/_/g, ' '),
       sketchPath: `./${this.sketchPath}`,
-      libraries: this.getLibraries(),
+      libraries,
+      p5Version
     };
     return nunjucks.render(templatePath, data);
   }
 }
 
-const librarySpecs = [
-  {
-    name: 'sound',
-    path: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js',
-    globals: [
-      'getAudioContext', 'userStartAudio', 'getOutputVolume', 'outputVolume', 'soundOut', 'sampleRate',
-      'freqToMidi', 'midiToFreq', 'soundFormats', 'saveSound', 'loadSound', 'createConvolver', 'setBPM'
-    ],
-    props: [
-      'SoundFile', 'Amplitude', 'AudioIn', 'FFT', 'Oscillator', 'Noise', 'Pulse', 'MonoSynth', 'PolySynth', 'Envelope',
-      'Delay', 'Filter', 'Reverb', 'Convolver', 'SoundRecorder', 'SoundLop', 'Phrase', 'Part', 'Score'
-    ]
-  }
-];
+type LibrarySpec = {
+  name: string,
+  path: string,
+  version?: string,
+  globals?: string[],
+  props?: string[],
+}
+
+const librarySpecs: LibrarySpec[] =
+  JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/libraries.json'), 'utf-8'));
 
 export function createSketchHtml(sketchPath: string) {
   const project = new Project(path.dirname(sketchPath), null, path.basename(sketchPath));

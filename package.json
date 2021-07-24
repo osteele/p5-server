@@ -24,7 +24,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/bin/p5-runner.ts",
-    "dev:serve": "nodemon -w src -e 'js ts css html njk' src/bin/p5-runner.ts serve",
+    "dev:serve": "nodemon -w src -e 'js ts css html json njk' src/bin/p5-runner.ts serve",
     "test": "true"
   },
   "files": [

@@ -17,8 +17,8 @@
 
 <!-- import the javascript library file(s) -->
 <script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js" crossorigin="anonymous"></script>
-{% for path in libraries -%}
-<script src="{{ path }}" crossorigin="anonymous"></script>
+{% for lib in libraries -%}
+<script src="{{ lib.path }}" crossorigin="anonymous"></script>
 {% endfor %}
 
 <!-- import the javascript sketch file -->

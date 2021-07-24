@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product.schema.json",
+  "title": "Libraries",
+  "description": "A list of p5.js libraries",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "The human-readable name of the library",
+        "type": "string"
+      },
+      "path": {
+        "description": "The path to the library file",
+        "type": "string"
+      },
+      "globals": {
+        "description": "Global variables defined by the library",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "props": {
+        "description": "p5 properties added by the library",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "path"
+    ]
+  }
+}

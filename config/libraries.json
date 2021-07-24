@@ -1,0 +1,42 @@
+[
+  {
+    "name": "sound",
+    "path": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
+    "globals": [
+      "createConvolver",
+      "freqToMidi",
+      "getAudioContext",
+      "getOutputVolume",
+      "loadSound",
+      "midiToFreq",
+      "outputVolume",
+      "sampleRate",
+      "saveSound",
+      "setBPM",
+      "soundFormats",
+      "soundOut",
+      "userStartAudio"
+    ],
+    "props": [
+      "Amplitude",
+      "AudioIn",
+      "Convolver",
+      "Delay",
+      "Envelope",
+      "FFT",
+      "Filter",
+      "MonoSynth",
+      "Noise",
+      "Oscillator",
+      "Part",
+      "Phrase",
+      "PolySynth",
+      "Pulse",
+      "Reverb",
+      "Score",
+      "SoundFile",
+      "SoundLop",
+      "SoundRecorder"
+    ]
+  }
+]

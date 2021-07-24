@@ -124,8 +124,8 @@ export function findFreeVariables(program: Program): Set<string> {
         console.warn('unimplemented statement', node);
         break;
     }
-    // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement |
-    // TODO: ForInStatement | ForOfStatement | Declaration;
+    // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement
+    // TODO: ForInStatement | ForOfStatement | Declaration
   }
 
   function* iterExpression(node: Expression): Iterable<string> {
@@ -147,6 +147,11 @@ export function findFreeVariables(program: Program): Set<string> {
           }
         }
         break;
+      case 'MemberExpression':
+        if (node.object.type !== 'Super') {
+          yield* iterExpression(node.object);
+        }
+        break;
       case 'Identifier':
         yield node.name;
         break;
@@ -156,11 +161,11 @@ export function findFreeVariables(program: Program): Set<string> {
         console.warn('unimplemented expression', node);
         break;
     }
-    // TODO: ThisExpression | ArrayExpression | ObjectExpression | FunctionExpression |
-    // TODO: ArrowFunctionExpression | YieldExpression | UnaryExpression |
+    // TODO: ThisExpression | ArrayExpression | ObjectExpression | FunctionExpression
+    // TODO: ArrowFunctionExpression | YieldExpression | UnaryExpression
     // TODO: UpdateExpression
-    // TODO: LogicalExpression | MemberExpression | ConditionalExpression |
-    // TODO: NewExpression | SequenceExpression | TemplateLiteral |
+    // TODO: LogicalExpression | ConditionalExpression
+    // TODO: NewExpression | SequenceExpression | TemplateLiteral
     // TODO: TaggedTemplateExpression | ClassExpression | MetaProperty
     // TODO: AwaitExpression | ImportExpression | ChainExpression
   }
@@ -265,6 +270,12 @@ export function findP5MemberReferences(program: Program): Set<string> {
           if (arg.type !== 'SpreadElement') {
             yield* iterExpression(arg);
           }
+        }
+        break;
+      case 'MemberExpression':
+        if (node.object.type === 'Identifier' && node.object.name === 'p5'
+          && node.property.type === 'Identifier') {
+          yield node.property.name;
         }
         break;
       case 'Identifier':

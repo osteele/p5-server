@@ -78,7 +78,7 @@ app.get('*', (req, res, next) => {
   next();
 });
 
-function createDirectoryListing(dirPath: string) {
+function createDirectoryListing(relDirPath: string, dirPath: string) {
   let { projects, files } = findProjects(dirPath);
   files = files.filter(s => !s.startsWith('.')
     && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
@@ -92,7 +92,10 @@ function createDirectoryListing(dirPath: string) {
   files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
   const templatePath = path.join(templateDir, 'directory.html');
+  const pathComponents = relDirPath.replace(/\/$/, '').split('/').slice(1).reduce((prev, name) =>
+    [...prev, { name, path: (prev[prev.length - 1].path + '/').replace('//', '/') + name }], [{ name: 'Home', path: '/' }]);
   return nunjucks.render(templatePath, {
+    pathComponents,
     title: path.basename(dirPath),
     directories,
     files,
@@ -114,7 +117,7 @@ function sendDirectoryList(relDirPath: string, res: Response<any, Record<string,
     }
     fileData = serverOptions.sketchPath
       ? createSketchHtml(serverOptions.sketchPath)
-      : createDirectoryListing(dirPath);
+      : createDirectoryListing(relDirPath, dirPath);
   }
 
   if (singleProject && !relDirPath.endsWith('/')) {
@@ -132,7 +135,7 @@ function run(options: ServerOptions, callback: (url: string) => void) {
 
   // do this at startup for effect only, in order to provide errors and
   // diagnostics immediately
-  createDirectoryListing(options.root);
+  createDirectoryListing('', options.root);
 
   app.use('/', express.static(options.root));
 

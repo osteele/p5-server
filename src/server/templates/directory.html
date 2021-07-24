@@ -22,64 +22,77 @@
 </head>
 
 <body>
-  {% if projects.length %}
-  <div class="ui segment">
-    <h2 class="ui header">Sketches</h2>
-    <div class="ui three stackable cards">
-      {% for project in projects %}
-      <div class="ui card">
-        <div class="content">
-          <a href="{{ project.rootFile }}">
-            {{ project.name }}
-          </a>
+  <div class="ui breadcrumb">
+    {% for component in pathComponents %}
+    {% if not loop.first %}
+    <div class="divider"> / </div>
+    {% endif %}
+    {% if loop.last %}
+    <div class="section active"">{{ component.name }}</div>
+    {% else %}
+    <a class=" section" href="{{ component.path }}">{{ component.name }}</a>
+      {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if projects.length %}
+    <div class="ui segment">
+      <h2 class="ui header">Sketches</h2>
+      <div class="ui three stackable cards">
+        {% for project in projects %}
+        <div class="ui card">
+          <div class="content">
+            <a href="{{ project.rootFile }}">
+              {{ project.name }}
+            </a>
+          </div>
+          <div class="extra content">
+            <a href="{{ project.rootFile }}">
+              <i class="play icon"></i>
+              Run
+            </a>
+          </div>
         </div>
-        <div class="extra content">
-          <a href="{{ project.rootFile }}">
-            <i class="play icon"></i>
-            Run
-          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if directories.length %}
+    <div class="ui segment">
+      <h2 class="ui header">Folders</h2>
+      <div class="ui divided list">
+        {% for folder in directories %}
+        <div class="item">
+          <i class="folder outline icon"></i>
+          <a class="content" href="{{ folder }}/"> {{ folder }} </a>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if directories.length %}
-  <div class="ui segment">
-    <h2 class="ui header">Folders</h2>
-    <div class="ui divided list">
-      {% for folder in directories %}
-      <div class="item">
-        <i class="folder outline icon"></i>
-        <a class="content" href="{{ folder }}/"> {{ folder }} </a>
+    {% if files.length %}
+    <div class="ui segment">
+      <h2 class="ui header">Loose Files</h2>
+      <div>These files don't appear to be associated with any sketches in this directory.</div>
+      <div class="ui divided list">
+        {% for file in files %}
+        <div class="item">
+          <i class="file outline icon"></i>
+          <a class="content" href="{{ file }}"> {{ file }} </a>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if files.length %}
-  <div class="ui segment">
-    <h2 class="ui header">Loose Files</h2>
-    <div>These files don't appear to be associated with any sketches in this directory.</div>
-    <div class="ui divided list">
-      {% for file in files %}
-      <div class="item">
-        <i class="file outline icon"></i>
-        <a class="content" href="{{ file }}"> {{ file }} </a>
-      </div>
-      {% endfor %}
+    {% if readme %}
+    <div class="ui segment" id="readme">
+      <a id="readme-title" href="{{ readme.name }}">{{ readme.name }}</a>
+      {{ readme.html | safe }}
     </div>
-  </div>
-  {% endif %}
-
-  {% if readme %}
-  <div class="ui segment" id="readme">
-    <a id="readme-title" href="{{ readme.name }}">{{ readme.name }}</a>
-    {{ readme.html | safe }}
-  </div>
-  {% endif %}
+    {% endif %}
 </body>
 
 </html>

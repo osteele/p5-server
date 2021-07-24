@@ -48,31 +48,29 @@
   {% if directories.length %}
   <div class="ui segment">
     <h2 class="ui header">Folders</h2>
-    <ul>
+    <div class="ui divided list">
       {% for folder in directories %}
-      <li>
-        <a href="{{ folder }}/">
-          {{ folder }}
-        </a>
-      </li>
+      <div class="item">
+        <i class="folder outline icon"></i>
+        <a class="content" href="{{ folder }}/"> {{ folder }} </a>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
   </div>
   {% endif %}
 
   {% if files.length %}
   <div class="ui segment">
     <h2 class="ui header">Loose Files</h2>
-    <div>These files don't appear to be associated with any project in this directory.</div>
-    <ul>
+    <div>These files don't appear to be associated with any sketches in this directory.</div>
+    <div class="ui divided list">
       {% for file in files %}
-      <li>
-        <a href="{{ file }}">
-          {{ file }}
-        </a>
-      </li>
+      <div class="item">
+        <i class="file outline icon"></i>
+        <a class="content" href="{{ file }}"> {{ file }} </a>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
   </div>
   {% endif %}
 

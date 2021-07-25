@@ -1,5 +1,5 @@
 import { parseScript, Program } from 'esprima';
-import { Directive, ModuleDeclaration, Expression, FunctionDeclaration, Pattern, Statement } from 'estree';
+import { Directive, ModuleDeclaration, Expression, FunctionDeclaration, Pattern, Statement, SwitchCase } from 'estree';
 import fs from 'fs';
 
 export class JavascriptSyntaxError extends Error {
@@ -62,7 +62,7 @@ function findFreeVariables(program: Program): Set<string> {
   return freeVariables;
 
   function* iterProgram(program: Program): Iterable<string> {
-    yield* new FreeVariableVisitor(program).visit();
+    yield* new FreeVariableIterator(program).visit();
   }
 }
 
@@ -140,6 +140,26 @@ class Visitor {
           yield* this.visitExpression(node.argument);
         }
         break;
+      case 'SwitchStatement':
+        yield* this.visitExpression(node.discriminant);
+        for (const switchCase of node.cases) {
+          yield* this.visitSwitchCase(switchCase);
+        }
+        break;
+      case 'ThrowStatement':
+        yield* this.visitExpression(node.argument);
+        break;
+      case 'TryStatement':
+        yield* this.visitStatement(node.block);
+        if (node.handler) {
+          yield* this.visitStatement(node.handler.body);
+        }
+        if (node.finalizer) {
+          for (const stmt of node.finalizer.body) {
+            yield* this.visitStatement(stmt);
+          }
+        }
+        break;
       case 'VariableDeclaration':
         for (const decl of node.declarations) {
           if (decl.init) {
@@ -160,8 +180,7 @@ class Visitor {
         console.warn('Visitor: unimplemented statement', node);
         break;
     }
-    // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement
-    // TODO: Declaration
+    // TODO: Declaration | WithStatement
   }
 
   * visitExpression(node: Expression): Iterable<string> {
@@ -280,13 +299,18 @@ class Visitor {
         break;
     }
   }
+
+  * visitSwitchCase(switchCase: SwitchCase) {
+    if (switchCase.test) {
+      yield* this.visitExpression(switchCase.test);
+    }
+    for (const stmt of switchCase.consequent) {
+      yield* this.visitStatement(stmt);
+    }
+  }
 }
 
-class FreeVariableVisitor extends Visitor {
-  * visit() {
-    yield* this.visitProgram(this.program);
-  }
-
+class FreeVariableIterator extends Visitor {
   * visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
@@ -343,7 +367,8 @@ class FreeVariableVisitor extends Visitor {
         yield* Visitor.prototype.visitStatement.call(this, node);
         break;
     }
-    // TODO: Declaration
+    // TODO: Declaration ImportExpression
+    // TODO: note binding in TryStatement
   }
 
   * visitExpression(node: Expression): Iterable<string> {
@@ -385,7 +410,6 @@ class FreeVariableVisitor extends Visitor {
     }
   }
 }
-
 
 // TODO: very incomplete
 function findP5PropertyReferences(program: Program): Set<string> {

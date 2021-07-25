@@ -1,6 +1,6 @@
 # About this directory
 
-This directory contains a set of test cases for p5 runner's server.
+This directory contains a set of test cases for p5-server.
 
 `sketch-dir` contains an HTML file and a sketch JavaScript. Visiting it should
 present the sketch.

@@ -1,13 +1,13 @@
 {
-  "name": "p5-runner",
+  "name": "p5-server",
   "version": "0.0.1",
   "description": "CLI to create, run, and update p5.js sketches and collections",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "main": "index.js",
-  "homepage": "https://github.com/osteele/p5-runner#readme",
+  "homepage": "https://github.com/osteele/p5-server#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/osteele/p5-runner.git"
+    "url": "git+https://github.com/osteele/p5-server.git"
   },
   "keywords": [
     "p5.js",
@@ -16,15 +16,15 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/osteele/p5-runner/issues"
+    "url": "https://github.com/osteele/p5-server/issues"
   },
   "bin": {
-    "p5": "dist/bin/p5-runner.js"
+    "p5": "dist/bin/p5-server.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/bin/p5-runner.ts",
-    "dev:serve": "nodemon -w src -e 'js ts css html json njk' src/bin/p5-runner.ts serve",
+    "dev": "ts-node src/bin/p5-server.ts",
+    "dev:serve": "nodemon -w src -e 'js ts css html json njk' src/bin/p5-server.ts serve",
     "test": "jest"
   },
   "files": [

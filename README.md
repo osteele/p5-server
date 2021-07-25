@@ -1,12 +1,12 @@
-# P5.js Runner
+# P5.js Server
 
 This is a work in progress.
 
-This project is a command-line interface for
-[p5.js](https://p5js.org/reference/#/p5/loadSound). It provides features that
-make it easier to manage large numbers of sketches (smart directory listings,
-JavaScript-only sketches), and that automate some of the features that I see
-beginners struggle with (syntax error reporting, adding libraries).
+This project is a command-line interface for [p5.js](https://p5js.org/). It
+provides features that make it easier to manage large numbers of sketches (smart
+directory listings, JavaScript-only sketches), and that automate some of the
+features that I see beginners struggle with (syntax error reporting, adding
+libraries).
 
 ## Features
 

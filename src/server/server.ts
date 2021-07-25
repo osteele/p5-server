@@ -30,6 +30,10 @@ app.get('/', (req, res) => {
   sendDirectoryList(req.path, res);
 });
 
+app.get('/assets/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'static', req.path));
+});
+
 app.get('/*.html', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const content = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');

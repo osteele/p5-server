@@ -7,6 +7,12 @@ It provides features that make it easier to manage collections of sketches
 the features that I see beginners struggle with (noticing syntax errors, adding
 libraries).
 
+For example, serving the `examples` directory in this project is rendered as the
+following screenshot. Clicking on a project runs it, even if there is no
+associated HTML file.
+
+![screenshot](docs/screenshot.png)
+
 This is a work in progress.
 
 ## Features
@@ -30,7 +36,7 @@ Automatic library inclusion
 
 In-Page Syntax errors
 
-: Syntax error are displayed in the HTML body. This way you see them even if you
+: Syntax error are displayed in the HTML body. This way you see them ecven if you
   don't open the browser developer console.
 
   (Yes, everybody should do program development with the console open or a

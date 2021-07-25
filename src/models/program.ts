@@ -24,7 +24,7 @@ export function checkedParseScript(filePath: string): Program {
 }
 
 export function analyzeScript(code: string, options: { deep: boolean, filePath?: string } = { deep: false })
-  : { globals: Set<string>, freeVariables?: Set<string>, p5Properties?: Set<string> } {
+  : { globals: Set<string>, freeVariables?: Set<string>, p5properties?: Set<string> } {
   try {
     const program = parseScript(code);
     const globals = findGlobals(program);
@@ -32,15 +32,15 @@ export function analyzeScript(code: string, options: { deep: boolean, filePath?:
       return { globals };
     }
     const freeVariables = findFreeVariables(program);
-    const p5Properties = findP5PropertyReferences(program);
-    return { globals, freeVariables, p5Properties };
+    const p5properties = findP5PropertyReferences(program);
+    return { globals, freeVariables, p5properties };
   } catch (e) {
     throw new JavascriptSyntaxError(e.message, options.filePath, code);
   }
 }
 
 export function analyzeScriptFile(filePath: string, options = { deep: false })
-  : { globals: Set<string>, freeVariables?: Set<string>, p5Properties?: Set<string> } {
+  : { globals: Set<string>, freeVariables?: Set<string>, p5properties?: Set<string> } {
   const code = fs.readFileSync(filePath, 'utf-8');
   return analyzeScript(code, { ...options, filePath });
 }
@@ -225,10 +225,11 @@ class Visitor {
           yield* this.visitExpression(node.object);
         }
         break;
-      // case 'NewExpression':
-      //   yield* this.iterExpression(node.callee);
-      //   yield* this.iterExpression(node.arguments);
-      //   break;
+      case 'NewExpression':
+        if (node.callee.type !== 'Super') {
+          yield* this.visitExpression(node.callee);
+        }
+        break;
       case 'ObjectExpression':
         for (const prop of node.properties) {
           if (prop.type === 'SpreadElement') {
@@ -262,7 +263,7 @@ class Visitor {
         break;
     }
     // TODO: FunctionExpression | ArrowFunctionExpression
-    // TODO: NewExpression | ClassExpression
+    // TODO: ClassExpression
     // TODO: TemplateLiteral | TaggedTemplateExpression | MetaProperty
     // TODO: ImportExpression
   }
@@ -411,77 +412,22 @@ class FreeVariableIterator extends Visitor {
   }
 }
 
-// TODO: very incomplete
 function findP5PropertyReferences(program: Program): Set<string> {
-  const references = new Set<string>(iterProgram(program));
-  return references;
+  return new Set<string>(iterProgram(program));
 
   function* iterProgram(program: Program): Iterable<string> {
-    for (const block of program.body) {
-      yield* iterStatement(block);
-    }
+    yield* new PropertyMemberIterator(program).visit();
   }
-  function* iterStatement(node: Directive | Statement | ModuleDeclaration): Iterable<string> {
-    switch (node.type) {
-      case 'FunctionDeclaration':
-        for (const child of node.body.body) {
-          yield* iterStatement(child);
-        }
-        break;
-      case 'VariableDeclaration':
-        for (const decl of node.declarations) {
-          if (decl.init) {
-            yield* iterExpression(decl.init);
-          }
-        }
-        break;
-      case 'ExpressionStatement':
-        yield* iterExpression(node.expression);
-        break;
-      case 'ReturnStatement':
-        if (node.argument) {
-          yield* iterExpression(node.argument);
-        }
-        break;
-      case 'EmptyStatement':
-        break;
-      default:
-        console.warn('findP5MemberReferences: unimplemented statement', node);
-        break;
-    }
-  }
+}
 
-  function* iterExpression(node: Expression): Iterable<string> {
-    switch (node.type) {
-      case 'AssignmentExpression':
-        yield* iterExpression(node.right);
-        break;
-      case 'BinaryExpression':
-        yield* iterExpression(node.left);
-        yield* iterExpression(node.right);
-        break;
-      case 'CallExpression':
-        if (node.callee.type !== 'Super') {
-          yield* iterExpression(node.callee);
-        }
-        for (const arg of node.arguments) {
-          if (arg.type !== 'SpreadElement') {
-            yield* iterExpression(arg);
-          }
-        }
-        break;
-      case 'MemberExpression':
-        if (node.object.type === 'Identifier' && node.object.name === 'p5'
-          && node.property.type === 'Identifier') {
-          yield node.property.name;
-        }
-        break;
-      case 'Identifier':
-      case 'Literal':
-        break;
-      default:
-        console.warn('findP5MemberReferences: unimplemented expression', node);
-        break;
+class PropertyMemberIterator extends Visitor {
+  * visitExpression(node: Expression): Iterable<string> {
+    if (node.type === 'MemberExpression') {
+      if (node.object.type === 'Identifier' && node.object.name === 'p5'
+        && node.property.type === 'Identifier') {
+        yield node.property.name;
+      }
     }
+    yield* Visitor.prototype.visitExpression.call(this, node);
   }
 }

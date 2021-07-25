@@ -36,7 +36,9 @@ test('analyzeScript free variables', () => {
 });
 
 test('analyzeScript p5 references', () => {
-    expect(analyzeScript('function f() {}', { deep: true }).p5Properties).toEqual(new Set());
-    expect(analyzeScript('function f() {p5.p}', { deep: true }).p5Properties).toEqual(new Set("p"));
-    expect(analyzeScript('function f() {p5.m()}', { deep: true }).p5Properties).toEqual(new Set("m"));
+    expect(analyzeScript('function f() {}', { deep: true }).p5properties).toEqual(new Set());
+    expect(analyzeScript('function f() {p5.p}', { deep: true }).p5properties).toEqual(new Set("p"));
+    expect(analyzeScript('function f() {p5.m()}', { deep: true }).p5properties).toEqual(new Set("m"));
+    expect(analyzeScript('function f() {new p5.c}', { deep: true }).p5properties).toEqual(new Set("c"));
+    expect(analyzeScript('function f() {new p5.c()}', { deep: true }).p5properties).toEqual(new Set("c"));
 });

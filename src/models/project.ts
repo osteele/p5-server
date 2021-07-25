@@ -89,9 +89,10 @@ export class Project {
   private getLibraries(): LibrarySpec[] {
     if (this.sketchPath) {
       try {
-        const { freeVariables } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath), { deep: true });
+        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath), { deep: true });
         return librarySpecs.filter(spec => {
-          return spec.globals && spec.globals.some(name => freeVariables!.has(name));
+          return spec.globals && spec.globals.some(name => freeVariables!.has(name)) ||
+            spec.props && spec.props.some(name => p5properties!.has(name));
         }).map(spec => ({
           ...spec,
           path: spec.path?.replace("$(P5Version)", p5Version)

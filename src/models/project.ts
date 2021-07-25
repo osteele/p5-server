@@ -17,36 +17,52 @@ export class DirectoryExistsError extends Error {
 
 export class Project {
   dirPath: string;
-  htmlIndexPath: string | null;
+  htmlPath: string | null;
   jsSketchPath: string;
   title: string | null;
 
-  constructor(dirPath: string, htmlIndexPath: string | null = 'index.html', jsSketchPath: string = 'sketch.js',
+  constructor(dirPath: string, htmlPath: string | null = 'index.html', jsSketchPath: string = 'sketch.js',
     options: { title: string | null } = { title: null }) {
     this.dirPath = dirPath;
-    this.htmlIndexPath = htmlIndexPath;
+    this.htmlPath = htmlPath;
     this.jsSketchPath = jsSketchPath;
     this.title = options?.title;
   }
 
+  static fromHtmlFile(htmlPath: string) {
+    const dirPath = path.dirname(htmlPath);
+    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+    const htmlRoot = parse(htmlContent);
+    const title = htmlRoot.querySelector('head title')?.text?.trim();
+    const scripts = htmlRoot.querySelectorAll('script')
+      .map(e => e.attributes.src.replace(/^\.\//, ''))
+      .filter(s => !s.match(/https?:/));
+    return new Project(dirPath, path.basename(htmlPath), scripts[0], { title });
+  }
+
+  static fromJsFile(filePath: string) {
+    const dirPath = path.dirname(filePath);
+    return new Project(dirPath, null, path.basename(filePath));
+  }
+
   get indexFile() {
-    return this.htmlIndexPath || this.jsSketchPath || path.basename(this.dirPath);
+    return this.htmlPath || this.jsSketchPath || path.basename(this.dirPath);
   }
 
   get name() {
     if (this.title) return this.title;
+
     // if there's an index file with a <title> element, read the name from that
-    if (this.htmlIndexPath) {
-      const filePath = path.join(this.dirPath, this.htmlIndexPath);
+    if (this.htmlPath) {
+      const filePath = path.join(this.dirPath, this.htmlPath);
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
-        // TODO: replace this with HTML parser
-        const m = htmlContent.match(/.*<title>(.+)<\/title>/s);
-        if (m) {
-          return m[1].trim();
-        }
+        const htmlRoot = parse(htmlContent);
+        const title = htmlRoot.querySelector('head title')?.text?.trim();
+        if (title) return title;
       }
     }
+
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
     return this.indexFile.replace(/\.(html?|js)$/, '');
@@ -54,8 +70,8 @@ export class Project {
 
   get files() {
     let files: Array<string> = [];
-    if (this.htmlIndexPath) {
-      files.push(path.basename(this.htmlIndexPath));
+    if (this.htmlPath) {
+      files.push(path.basename(this.htmlPath));
     }
     if (this.jsSketchPath) {
       files.push(path.basename(this.jsSketchPath));
@@ -155,8 +171,7 @@ export function findProjects(dir: string) {
   for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
     const htmlPath = path.join(dir, file);
     if (isSketchHtml(htmlPath)) {
-      const project = new Project(dir, file);
-      projects.push(project);
+      projects.push(Project.fromHtmlFile(htmlPath));
     }
   }
 
@@ -164,8 +179,7 @@ export function findProjects(dir: string) {
   for (const file of removeProjectFiles()) {
     const filePath = path.join(dir, file);
     if (isSketchJs(filePath)) {
-      const project = new Project(dir, null, file);
-      projects.push(project);
+      projects.push(Project.fromJsFile(filePath));
     }
   }
   return { files: removeProjectFiles(), projects };

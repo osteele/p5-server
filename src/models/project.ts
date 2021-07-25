@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { glob } from 'glob';
-import { parse } from 'node-html-parser';
+import { parse, HTMLElement } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import { analyzeScriptFile, JavascriptSyntaxError } from './program';
@@ -34,15 +34,19 @@ export class Project {
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(htmlContent);
     const title = htmlRoot.querySelector('head title')?.text?.trim();
-    const scripts = htmlRoot.querySelectorAll('script')
-      .map(e => e.attributes.src.replace(/^\.\//, ''))
-      .filter(s => !s.match(/https?:/));
+    const scripts = this.getScriptFiles(htmlRoot);
     return new Project(dirPath, path.basename(htmlPath), scripts[0], { title });
   }
 
   static fromJsFile(filePath: string) {
     const dirPath = path.dirname(filePath);
     return new Project(dirPath, null, path.basename(filePath));
+  }
+
+  private static getScriptFiles(htmlRoot: HTMLElement) {
+    return htmlRoot.querySelectorAll('script')
+      .map(e => e.attributes.src.replace(/^\.\//, ''))
+      .filter(s => !s.match(/https?:/));
   }
 
   get indexFile() {
@@ -75,6 +79,14 @@ export class Project {
     }
     if (this.jsSketchPath) {
       files.push(path.basename(this.jsSketchPath));
+    }
+    if (this.htmlPath) {
+      const filePath = path.join(this.dirPath, this.htmlPath);
+      if (fs.existsSync(filePath)) {
+        const htmlContent = fs.readFileSync(filePath, 'utf-8');
+        const htmlRoot = parse(htmlContent);
+        files = [...files, ...Project.getScriptFiles(htmlRoot)];
+      }
     }
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {

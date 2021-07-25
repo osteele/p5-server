@@ -62,7 +62,7 @@ function findFreeVariables(program: Program): Set<string> {
   return freeVariables;
 
   function* iterProgram(program: Program): Iterable<string> {
-    yield* new Visitor(program).visit();
+    yield* new FreeVariableVisitor(program).visit();
   }
 }
 
@@ -74,20 +74,220 @@ class Visitor {
   }
 
   * visit() {
-    yield* this.iterProgram(this.program);
+    yield* this.visitProgram(this.program);
   }
 
-  * iterProgram(program: Program): Iterable<string> {
+  * visitProgram(program: Program): Iterable<string> {
     for (const node of program.body) {
       switch (node.type) {
         case 'FunctionDeclaration':
         case 'VariableDeclaration':
-          yield* this.iterStatement(node);
+          yield* this.visitStatement(node);
       }
     }
   }
 
-  * iterStatement(node: Statement): Iterable<string> {
+  * visitStatement(node: Statement): Iterable<string> {
+    switch (node.type) {
+      case 'FunctionDeclaration':
+        for (const child of node.params) {
+          yield* this.visitPattern(child);
+        }
+        for (const child of node.body.body) {
+          yield* this.visitStatement(child);
+        }
+        break;
+      case 'BlockStatement':
+        for (const child of node.body) {
+          yield* this.visitStatement(child);
+        }
+        break;
+      case 'DoWhileStatement':
+        yield* this.visitStatement(node.body);
+        yield* this.visitExpression(node.test);
+        break;
+      case 'ExpressionStatement':
+        yield* this.visitExpression(node.expression);
+        break;
+      case 'ForStatement':
+        // TODO: if (node.init) { yield* this.iterExpression(node.init); }
+        if (node.test) { yield* this.visitExpression(node.test); }
+        if (node.update) { yield* this.visitExpression(node.update); }
+        yield* this.visitStatement(node.body);
+        break;
+      case 'ForInStatement':
+        // TODO: yield* this.iterExpression(node.left);
+        yield* this.visitExpression(node.right);
+        yield* this.visitStatement(node.body);
+        break;
+      case 'ForOfStatement':
+        // TODO: yield* this.iterExpression(node.left);
+        yield* this.visitExpression(node.right);
+        yield* this.visitStatement(node.body);
+        break;
+      case 'IfStatement':
+        yield* this.visitExpression(node.test);
+        yield* this.visitStatement(node.consequent);
+        if (node.alternate) {
+          yield* this.visitStatement(node.alternate);
+        }
+        break;
+      case 'LabeledStatement':
+        yield* this.visitStatement(node.body);
+        break;
+      case 'ReturnStatement':
+        if (node.argument) {
+          yield* this.visitExpression(node.argument);
+        }
+        break;
+      case 'VariableDeclaration':
+        for (const decl of node.declarations) {
+          if (decl.init) {
+            yield* this.visitExpression(decl.init);
+          }
+        }
+        break;
+      case 'WhileStatement':
+        yield* this.visitExpression(node.test);
+        yield* this.visitStatement(node.body);
+        break;
+      case 'DebuggerStatement':
+      case 'EmptyStatement':
+      case 'BreakStatement':
+      case 'ContinueStatement':
+        break;
+      default:
+        console.warn('Visitor: unimplemented statement', node);
+        break;
+    }
+    // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement
+    // TODO: Declaration
+  }
+
+  * visitExpression(node: Expression): Iterable<string> {
+    switch (node.type) {
+      case 'ArrayExpression':
+        for (const child of node.elements) {
+          if (child && child.type !== 'SpreadElement') {
+            yield* this.visitExpression(child);
+          }
+        }
+        break;
+      case 'AssignmentExpression':
+        yield* this.visitExpression(node.right);
+        break;
+      case 'BinaryExpression':
+      case 'LogicalExpression':
+        yield* this.visitExpression(node.left);
+        yield* this.visitExpression(node.right);
+        break;
+      case 'CallExpression':
+        if (node.callee.type !== 'Super') {
+          yield* this.visitExpression(node.callee);
+        }
+        for (const arg of node.arguments) {
+          if (arg.type === 'SpreadElement') {
+            yield* this.visitExpression(arg.argument);
+          } else {
+            yield* this.visitExpression(arg);
+          }
+        }
+        break;
+      case 'ChainExpression':
+        yield* this.visitExpression(node.expression);
+        break;
+      case 'ConditionalExpression':
+        yield* this.visitExpression(node.test);
+        yield* this.visitExpression(node.consequent);
+        yield* this.visitExpression(node.alternate);
+        break;
+      case 'MemberExpression':
+        if (node.object.type !== 'Super') {
+          yield* this.visitExpression(node.object);
+        }
+        break;
+      // case 'NewExpression':
+      //   yield* this.iterExpression(node.callee);
+      //   yield* this.iterExpression(node.arguments);
+      //   break;
+      case 'ObjectExpression':
+        for (const prop of node.properties) {
+          if (prop.type === 'SpreadElement') {
+            yield* this.visitExpression(prop.argument);
+          } else {
+            // TODO
+            // yield* iterExpression(prop.key);
+            // yield* iterExpression(prop.value);
+          }
+        }
+        break;
+      case 'SequenceExpression':
+        for (const expr of node.expressions) {
+          yield* this.visitExpression(expr);
+        }
+        break;
+      case 'AwaitExpression':
+      case 'UnaryExpression':
+      case 'UpdateExpression':
+      case 'YieldExpression':
+        if (node.argument) {
+          yield* this.visitExpression(node.argument);
+        }
+        break;
+      case 'Identifier':
+      case 'Literal':
+      case 'ThisExpression':
+        break;
+      default:
+        console.warn('Visitor: unimplemented expression', node);
+        break;
+    }
+    // TODO: FunctionExpression | ArrowFunctionExpression
+    // TODO: NewExpression | ClassExpression
+    // TODO: TemplateLiteral | TaggedTemplateExpression | MetaProperty
+    // TODO: ImportExpression
+  }
+
+  * visitPattern(node: Pattern): Iterable<string> {
+    switch (node.type) {
+      case 'ObjectPattern':
+        for (const prop of node.properties) {
+          if (prop.type === 'Property') {
+            yield* this.visitPattern(prop.value);
+          } else {
+            yield* this.visitPattern(prop.argument);
+          }
+        }
+        break;
+      case 'ArrayPattern':
+        for (const elem of node.elements) {
+          if (elem) {
+            yield* this.visitPattern(elem);
+          }
+        }
+        break;
+      case 'RestElement':
+        yield* this.visitPattern(node.argument);
+        break;
+      case 'AssignmentPattern':
+        yield* this.visitPattern(node.left);
+        break;
+      case 'Identifier':
+        break;
+      default:
+        // TODO: MemberExpression ?
+        console.warn('Visitor: unimplemented pattern', node);
+        break;
+    }
+  }
+}
+
+class FreeVariableVisitor extends Visitor {
+  * visit() {
+    yield* this.visitProgram(this.program);
+  }
+
+  * visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
         const locals = new Set<string>();
@@ -95,7 +295,7 @@ class Visitor {
           locals.add(node.id.name);
         }
         for (const param of node.params) {
-          for (const name of this.iterPattern(param)) {
+          for (const name of this.visitPattern(param)) {
             locals.add(name);
           }
         }
@@ -106,142 +306,57 @@ class Visitor {
           }
         }
         for (const child of node.body.body) {
-          for (const name of this.iterStatement(child)) {
+          for (const name of this.visitStatement(child)) {
             if (!locals.has(name)) {
               yield name;
             }
           }
         }
         break;
-      case 'BlockStatement':
-        for (const child of node.body) {
-          yield* this.iterStatement(child);
-        }
-        break;
-      case 'DoWhileStatement':
-        yield* this.iterStatement(node.body);
-        yield* this.iterExpression(node.test);
-        break;
-      case 'ExpressionStatement':
-        yield* this.iterExpression(node.expression);
-        break;
       case 'ForStatement':
         // FIXME: build local context
         // TODO: if (node.init) { yield* iterExpression(node.init); }
-        if (node.test) { yield* this.iterExpression(node.test); }
-        if (node.update) { yield* this.iterExpression(node.update); }
-        yield* this.iterStatement(node.body);
+        if (node.test) { yield* this.visitExpression(node.test); }
+        if (node.update) { yield* this.visitExpression(node.update); }
+        yield* this.visitStatement(node.body);
         break;
       case 'ForInStatement':
         // FIXME: build local context
         // TODO: yield* iterExpression(node.left);
-        yield* this.iterExpression(node.right);
-        yield* this.iterStatement(node.body);
+        yield* this.visitExpression(node.right);
+        yield* this.visitStatement(node.body);
         break;
       case 'ForOfStatement':
         // FIXME: build local context
         // TODO: yield* iterExpression(node.left);
-        yield* this.iterExpression(node.right);
-        yield* this.iterStatement(node.body);
-        break;
-      case 'IfStatement':
-        yield* this.iterExpression(node.test);
-        yield* this.iterStatement(node.consequent);
-        if (node.alternate) {
-          yield* this.iterStatement(node.alternate);
-        }
-        break;
-      case 'LabeledStatement':
-        yield* this.iterStatement(node.body);
-        break;
-      case 'ReturnStatement':
-        if (node.argument) {
-          yield* this.iterExpression(node.argument);
-        }
+        yield* this.visitExpression(node.right);
+        yield* this.visitStatement(node.body);
         break;
       case 'VariableDeclaration':
         for (const decl of node.declarations) {
           if (decl.init) {
-            yield* this.iterExpression(decl.init);
+            yield* this.visitExpression(decl.init);
           }
         }
-        break;
-      case 'WhileStatement':
-        yield* this.iterExpression(node.test);
-        yield* this.iterStatement(node.body);
-        break;
-      case 'DebuggerStatement':
-      case 'EmptyStatement':
-      case 'BreakStatement':
-      case 'ContinueStatement':
         break;
       default:
-        console.warn('findFreeVariables: unimplemented statement', node);
+        yield* Visitor.prototype.visitStatement.call(this, node);
         break;
     }
-    // TODO: WithStatement |  SwitchStatement | ThrowStatement | TryStatement
-    // TODO: ForInStatement | Declaration
+    // TODO: Declaration
   }
 
-  * iterExpression(node: Expression): Iterable<string> {
+  * visitExpression(node: Expression): Iterable<string> {
     switch (node.type) {
-      case 'AssignmentExpression':
-        yield* this.iterExpression(node.right);
-        break;
-      case 'BinaryExpression':
-        yield* this.iterExpression(node.left);
-        yield* this.iterExpression(node.right);
-        break;
-      case 'CallExpression':
-        if (node.callee.type !== 'Super') {
-          yield* this.iterExpression(node.callee);
-        }
-        for (const arg of node.arguments) {
-          if (arg.type !== 'SpreadElement') {
-            yield* this.iterExpression(arg);
-          }
-        }
-        break;
-      case 'MemberExpression':
-        if (node.object.type !== 'Super') {
-          yield* this.iterExpression(node.object);
-        }
-        break;
       case 'Identifier':
         yield node.name;
         break;
-      case 'ObjectExpression':
-        for (const prop of node.properties) {
-          if (prop.type === 'SpreadElement') {
-            yield* this.iterExpression(prop.argument);
-          } else {
-            // TODO
-            // yield* iterExpression(prop.key);
-            // yield* iterExpression(prop.value);
-          }
-        }
-        break;
-      case 'SequenceExpression':
-        for (const expr of node.expressions) {
-          yield* this.iterExpression(expr);
-        }
-        break;
-      case 'UnaryExpression':
-        yield* this.iterExpression(node.argument);
-      case 'UpdateExpression':
-        yield* this.iterExpression(node.argument);
-      case 'Literal':
-        break;
       default:
-        console.warn('findFreeVariables: unimplemented expression', node);
+        yield* Visitor.prototype.visitExpression.call(this, node);
         break;
     }
-    // TODO: ThisExpression | ArrayExpression | FunctionExpression
-    // TODO: ArrowFunctionExpression | YieldExpression
-    // TODO: LogicalExpression | ConditionalExpression
-    // TODO: NewExpression | TemplateLiteral
-    // TODO: TaggedTemplateExpression | ClassExpression | MetaProperty
-    // TODO: AwaitExpression | ImportExpression | ChainExpression
+    // TODO: FunctionExpression
+    // TODO: ArrowFunctionExpression
   }
 
   * iterDeclaredNames(node: Statement): Iterable<string> {
@@ -253,41 +368,24 @@ class Visitor {
         break;
       case 'VariableDeclaration':
         for (const decl of node.declarations) {
-          yield* this.iterPattern(decl.id);
+          yield* this.visitPattern(decl.id);
           break;
         }
     }
   }
 
-  * iterPattern(node: Pattern): Iterable<string> {
+  * visitPattern(node: Pattern): Iterable<string> {
     switch (node.type) {
       case 'Identifier':
         yield node.name;
         break;
-      case 'ObjectPattern':
-        for (const prop of node.properties) {
-          if (prop.type === 'Property') {
-            yield* this.iterPattern(prop.value);
-          } else {
-            yield* this.iterPattern(prop.argument);
-          }
-        }
+      default:
+        yield* Visitor.prototype.visitPattern.call(this, node);
         break;
-      case 'ArrayPattern':
-        for (const elem of node.elements as Array<Pattern>) {
-          yield* this.iterPattern(elem);
-        }
-        break;
-      case 'RestElement':
-        yield* this.iterPattern(node.argument);
-        break;
-      case 'AssignmentPattern':
-        yield* this.iterPattern(node.left);
-        break;
-      // TODO: MemberExpression ?
     }
   }
 }
+
 
 // TODO: very incomplete
 function findP5PropertyReferences(program: Program): Set<string> {

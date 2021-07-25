@@ -1,10 +1,9 @@
-import { FunctionDeclaration } from 'estree';
 import fs from 'fs';
 import { glob } from 'glob';
 import { parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { checkedParseScript, findFreeVariables, JavascriptSyntaxError } from './script';
+import { analyzeScriptFile, JavascriptSyntaxError } from './program';
 
 const p5Version = '1.4.0';
 const templateDir = path.join(__dirname, './templates');
@@ -90,11 +89,13 @@ export class Project {
   private getLibraries(): LibrarySpec[] {
     if (this.sketchPath) {
       try {
-        const program = checkedParseScript(path.join(this.dirPath, this.sketchPath));
-        const freeVariables = findFreeVariables(program);
+        const { freeVariables } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath), { deep: true });
         return librarySpecs.filter(spec => {
-          return spec.globals && spec.globals.some(name => freeVariables.has(name));
-        });
+          return spec.globals && spec.globals.some(name => freeVariables!.has(name));
+        }).map(spec => ({
+          ...spec,
+          path: spec.path?.replace("$(P5Version)", p5Version)
+        }));
       } catch (e) {
         if (!(e instanceof JavascriptSyntaxError)) {
           throw e;
@@ -112,10 +113,7 @@ export class Project {
     const data = {
       title: this.title || this.dirPath.replace(/_/g, ' '),
       sketchPath: `./${this.sketchPath}`,
-      libraries: libraries.map(spec => ({
-        ...spec,
-        path: spec.path?.replace("$(P5Version)", p5Version)
-      })),
+      libraries,
       p5Version
     };
     return nunjucks.render(templatePath, data);
@@ -182,12 +180,8 @@ export function isSketchJs(filePath: string) {
   }
 
   try {
-    const program = checkedParseScript(filePath);
-    // console.info('p5.*', findP5MemberReferences(program));
-    // console.info('free variables', findFreeVariables(program));
-    const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
-    const globalFunctionNames = new Set(functionDeclarations.map(node => node.id?.name));
-    return globalFunctionNames.has('setup') || globalFunctionNames.has('draw');
+    const { globals } = analyzeScriptFile(filePath);
+    return globals.has('setup') || globals.has('draw');
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {
       return e.code.search(/function\s+(setup|draw)\b/) >= 0;

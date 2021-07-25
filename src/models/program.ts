@@ -23,7 +23,34 @@ export function checkedParseScript(filePath: string): Program {
   }
 }
 
-export function findFreeVariables(program: Program): Set<string> {
+export function analyzeScript(code: string, options: { deep: boolean, filePath?: string } = { deep: false })
+  : { globals: Set<string>, freeVariables?: Set<string>, p5Properties?: Set<string> } {
+  try {
+    const program = parseScript(code);
+    const globals = findGlobals(program);
+    if (!options.deep) {
+      return { globals };
+    }
+    const freeVariables = findFreeVariables(program);
+    const p5Properties = findP5PropertyReferences(program);
+    return { globals, freeVariables, p5Properties };
+  } catch (e) {
+    throw new JavascriptSyntaxError(e.message, options.filePath || 'source', code);
+  }
+}
+
+export function analyzeScriptFile(filePath: string, options = { deep: false })
+  : { globals: Set<string>, freeVariables?: Set<string>, p5Properties?: Set<string> } {
+  const code = fs.readFileSync(filePath, 'utf-8');
+  return analyzeScript(code, { ...options, filePath });
+}
+
+function findGlobals(program: Program): Set<string> {
+  const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration' || node.type === 'VariableDeclaration') as Array<FunctionDeclaration>;
+  return new Set(functionDeclarations.map(node => node.id?.name).filter(Boolean)) as Set<string>;
+}
+
+function findFreeVariables(program: Program): Set<string> {
   const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
   const globalVariables = new Set(functionDeclarations.map(node => node.id?.name)) as Set<string>;
   // TODO: collect variable declarations too
@@ -172,7 +199,14 @@ export function findFreeVariables(program: Program): Set<string> {
           }
         }
         break;
+      case 'SequenceExpression':
+        for (const expr of node.expressions) {
+          yield* iterExpression(expr);
+        }
+        break;
       case 'UnaryExpression':
+        yield* iterExpression(node.argument);
+      case 'UpdateExpression':
         yield* iterExpression(node.argument);
       case 'Literal':
         break;
@@ -182,9 +216,8 @@ export function findFreeVariables(program: Program): Set<string> {
     }
     // TODO: ThisExpression | ArrayExpression | FunctionExpression
     // TODO: ArrowFunctionExpression | YieldExpression
-    // TODO: UpdateExpression
     // TODO: LogicalExpression | ConditionalExpression
-    // TODO: NewExpression | SequenceExpression | TemplateLiteral
+    // TODO: NewExpression | TemplateLiteral
     // TODO: TaggedTemplateExpression | ClassExpression | MetaProperty
     // TODO: AwaitExpression | ImportExpression | ChainExpression
   }
@@ -235,7 +268,7 @@ export function findFreeVariables(program: Program): Set<string> {
 }
 
 // TODO: very incomplete
-export function findP5MemberReferences(program: Program): Set<string> {
+function findP5PropertyReferences(program: Program): Set<string> {
   const references = new Set<string>(iterProgram(program));
   return references;
 
@@ -265,6 +298,8 @@ export function findP5MemberReferences(program: Program): Set<string> {
         if (node.argument) {
           yield* iterExpression(node.argument);
         }
+        break;
+      case 'EmptyStatement':
         break;
       default:
         console.warn('findP5MemberReferences: unimplemented statement', node);

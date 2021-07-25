@@ -7,7 +7,7 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
-import { checkedParseScript, JavascriptSyntaxError } from '../models/script';
+import { checkedParseScript, JavascriptSyntaxError } from '../models/program';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];

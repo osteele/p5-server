@@ -1,3 +1,6 @@
+// Description: This sketch is just a single JavaScript file, with no associated
+// HTML file.
+
 function setup() {
     createCanvas(windowWidth, windowHeight);
 }

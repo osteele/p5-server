@@ -51,6 +51,9 @@
               </a>
             </div>
             <div class="description">
+              {% if project.description %}
+              <div>{{ project.description }}</div>
+              {% endif %}
               <div>
                 Index: <a href="{{ project.indexFile }}?fmt=view">{{ project.indexFile }}</a>
               </div>

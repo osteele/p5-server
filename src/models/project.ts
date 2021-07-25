@@ -19,34 +19,58 @@ export class Project {
   dirPath: string;
   htmlPath: string | null;
   jsSketchPath: string;
-  title: string | null;
+  title?: string;
+  description?: string;
 
   constructor(dirPath: string, htmlPath: string | null = 'index.html', jsSketchPath: string = 'sketch.js',
-    options: { title: string | null } = { title: null }) {
+    options: { title?: string, description?: string } = {}) {
     this.dirPath = dirPath;
     this.htmlPath = htmlPath;
     this.jsSketchPath = jsSketchPath;
-    this.title = options?.title;
+    this.title = options.title;
+    this.description = options.description;
   }
 
   static fromHtmlFile(htmlPath: string) {
     const dirPath = path.dirname(htmlPath);
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(htmlContent);
-    const title = htmlRoot.querySelector('head title')?.text?.trim();
+    const title = htmlRoot.querySelector('head title')?.text.trim();
+    const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getScriptFiles(htmlRoot);
-    return new Project(dirPath, path.basename(htmlPath), scripts[0], { title });
+    return new Project(dirPath, path.basename(htmlPath), scripts[0], { title, description });
   }
 
   static fromJsFile(filePath: string) {
     const dirPath = path.dirname(filePath);
-    return new Project(dirPath, null, path.basename(filePath));
+    let description;
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      description = this.getJsDescription(content);
+    }
+    return new Project(dirPath, null, path.basename(filePath), { description });
   }
 
   private static getScriptFiles(htmlRoot: HTMLElement) {
     return htmlRoot.querySelectorAll('script')
       .map(e => e.attributes.src.replace(/^\.\//, ''))
       .filter(s => !s.match(/https?:/));
+  }
+
+  private static getJsDescription(content: string) {
+    let text;
+    const m1 = content.match(/\n*((?:\/\/.*\n)+)/);
+    if (m1) {
+      text = m1[1].replace(/^\/\//gm, '').trim();
+    }
+    const m2 = content.match(/\n*\/\*+(.+?)\*\//s);
+    if (m2) {
+      text = m2[1].replace(/^\s*\**/gm, '').trim();
+    }
+    const m3 = text?.match(/^Description:\s*(.+)/s);
+    if (m3) {
+      return m3[1].replace(/\n\n.+/, '');
+    }
   }
 
   get indexFile() {

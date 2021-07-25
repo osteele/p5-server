@@ -45,20 +45,20 @@
         <div class="ui card">
           <div class="content">
             <div class="header">
-              <a href="{{ project.rootFile }}">
+              <a href="{{ project.indexFile }}">
                 <img src="/assets/p5js-icon.png" class="ui mini image">
                 {{ project.name }}
               </a>
             </div>
             <div class="description">
               <div>
-                Index: <a href="{{ project.indexFile }}">{{ project.indexFile }}</a>
+                Index: <a href="{{ project.indexFile }}?fmt=view">{{ project.indexFile }}</a>
               </div>
               {% if project.files.length > 1 %}
               <div>Other files:
                 {% for file in project.files %}
                 {% if file != project.indexFile %}
-                <a href="{{ file }}">{{ file }}</a>
+                <a href="{{ file }}?fmt=view">{{ file }}</a>
                 {% endif %}
                 {% endfor %}
               </div>

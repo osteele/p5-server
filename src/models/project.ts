@@ -124,7 +124,7 @@ export class Project {
     const templatePath = path.join(templateDir, base);
     const libraries = this.libraries;
     const data = {
-      title: this.title || this.dirPath.replace(/_/g, ' '),
+      title: this.title || this.indexFile?.replace(/_/g, ' ') || 'Sketch',
       sketchPath: `./${this.jsSketchPath}`,
       libraries,
       p5Version

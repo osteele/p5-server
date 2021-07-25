@@ -34,7 +34,12 @@ app.get('/assets/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'static', req.path));
 });
 
-app.get('/*.html', (req, res, next) => {
+app.get('/*.html?', (req, res, next) => {
+  if (req.query.fmt === 'view') {
+    res.set('Content-Type', 'text/plain')
+    res.sendFile(path.join(serverOptions.root, req.path));
+    return;
+  }
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const content = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
     res.send(injectLiveReloadScript(content));
@@ -44,7 +49,7 @@ app.get('/*.html', (req, res, next) => {
 });
 
 app.get('/*.js', (req, res, next) => {
-  if (req.headers['accept']?.match(/\btext\/html\b/)) {
+  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
     if (isSketchJs(path.join(serverOptions.root, req.path))) {
       const content = createSketchHtml(path.join(serverOptions.root, req.path));
       res.send(injectLiveReloadScript(content));

@@ -47,14 +47,11 @@ Sketch generation
 
 Install [Node.js](https://nodejs.org/).
 
-In the command line, `cd` to this repository's directory and enter:
+In a terminal window, enter:
 
 ```sh
-npm install
+npm install p5-server
 ```
-
-(This step be replaced by one that uses the npmjs package directory, once I find
-an unoccupied package name.)
 
 ## Commands
 

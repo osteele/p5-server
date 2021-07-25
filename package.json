@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI to create, run, and update p5.js sketches and collections",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "main": "index.js",

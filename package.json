@@ -25,7 +25,7 @@
     "build": "tsc",
     "dev": "ts-node src/bin/p5-runner.ts",
     "dev:serve": "nodemon -w src -e 'js ts css html json njk' src/bin/p5-runner.ts serve",
-    "test": "true"
+    "test": "jest"
   },
   "files": [
     "dist",
@@ -50,14 +50,21 @@
     "@types/esprima": "^4.0.3",
     "@types/express": "^4.17.13",
     "@types/glob": "^7.1.4",
+    "@types/jest": "^26.0.24",
     "@types/livereload": "^0.9.1",
     "@types/marked": "^2.0.4",
     "@types/minimatch": "^3.0.5",
     "@types/node": "^16.4.0",
     "@types/nunjucks": "^3.1.5",
     "@types/open": "^6.2.1",
+    "jest": "^27.0.6",
     "nodemon": "^2.0.12",
+    "ts-jest": "^27.0.4",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   }
 }

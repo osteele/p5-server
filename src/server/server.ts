@@ -5,8 +5,9 @@ import marked from 'marked';
 import minimatch from 'minimatch';
 import nunjucks from 'nunjucks';
 import path from 'path';
+import { pathComponentsForBreadcrumbs } from '../utils';
 import { createSketchHtml, findProjects, isSketchJs } from '../models/project';
-import { JavascriptSyntaxError, checkedParseScript } from '../models/script';
+import { checkedParseScript, JavascriptSyntaxError } from '../models/script';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
@@ -93,8 +94,7 @@ function createDirectoryListing(relDirPath: string, dirPath: string) {
   files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
   const templatePath = path.join(templateDir, 'directory.html');
-  const pathComponents = relDirPath.replace(/\/$/, '').split('/').slice(1).reduce((prev, name) =>
-    [...prev, { name, path: (prev[prev.length - 1].path + '/').replace('//', '/') + name }], [{ name: 'Home', path: '/' }]);
+  const pathComponents = pathComponentsForBreadcrumbs(relDirPath);
   return nunjucks.render(templatePath, {
     pathComponents,
     title: path.basename(dirPath),

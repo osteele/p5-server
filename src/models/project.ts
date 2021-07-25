@@ -17,29 +17,30 @@ export class DirectoryExistsError extends Error {
 
 export class Project {
   dirPath: string;
-  indexPath: string | null;
-  sketchPath: string;
+  htmlIndexPath: string | null;
+  jsSketchPath: string;
   title: string | null;
 
-  constructor(dirPath: string, indexPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
+  constructor(dirPath: string, htmlIndexPath: string | null = 'index.html', jsSketchPath: string = 'sketch.js',
     options: { title: string | null } = { title: null }) {
     this.dirPath = dirPath;
-    this.indexPath = indexPath;
-    this.sketchPath = sketchPath;
+    this.htmlIndexPath = htmlIndexPath;
+    this.jsSketchPath = jsSketchPath;
     this.title = options?.title;
   }
 
-  get rootFile() {
-    return this.indexPath || this.sketchPath || path.basename(this.dirPath);
+  get indexFile() {
+    return this.htmlIndexPath || this.jsSketchPath || path.basename(this.dirPath);
   }
 
   get name() {
     if (this.title) return this.title;
     // if there's an index file with a <title> element, read the name from that
-    if (this.indexPath) {
-      const filePath = path.join(this.dirPath, this.indexPath);
+    if (this.htmlIndexPath) {
+      const filePath = path.join(this.dirPath, this.htmlIndexPath);
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
+        // TODO: replace this with HTML parser
         const m = htmlContent.match(/.*<title>(.+)<\/title>/s);
         if (m) {
           return m[1].trim();
@@ -48,20 +49,20 @@ export class Project {
     }
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
-    return this.rootFile.replace(/\.(html?|js)$/, '');
+    return this.indexFile.replace(/\.(html?|js)$/, '');
   }
 
   get files() {
     let files: Array<string> = [];
-    if (this.indexPath) {
-      files.push(path.basename(this.indexPath));
+    if (this.htmlIndexPath) {
+      files.push(path.basename(this.htmlIndexPath));
     }
-    if (this.sketchPath) {
-      files.push(path.basename(this.sketchPath));
+    if (this.jsSketchPath) {
+      files.push(path.basename(this.jsSketchPath));
     }
-    if (this.sketchPath && fs.existsSync(path.join(this.dirPath, this.sketchPath))) {
+    if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {
-        const { loadCallArguments } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath));
+        const { loadCallArguments } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
@@ -97,10 +98,10 @@ export class Project {
     fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
   }
 
-  private getLibraries(): LibrarySpec[] {
-    if (this.sketchPath) {
+  get libraries(): LibrarySpec[] {
+    if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {
-        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath));
+        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
         return librarySpecs.filter(spec => {
           return spec.globals && spec.globals.some(name => freeVariables!.has(name)) ||
             spec.props && spec.props.some(name => p5properties!.has(name));
@@ -121,10 +122,10 @@ export class Project {
     // Don't cache the template. It's not important to performance in this context,
     // and leaving it uncached makes development easier.
     const templatePath = path.join(templateDir, base);
-    const libraries = this.getLibraries();
+    const libraries = this.libraries;
     const data = {
       title: this.title || this.dirPath.replace(/_/g, ' '),
-      sketchPath: `./${this.sketchPath}`,
+      sketchPath: `./${this.jsSketchPath}`,
       libraries,
       p5Version
     };

@@ -1,12 +1,13 @@
 # P5.js Server
 
-This is a work in progress.
+This project is a command-line interface for [p5.js](https://p5js.org/).
 
-This project is a command-line interface for [p5.js](https://p5js.org/). It
-provides features that make it easier to manage large numbers of sketches (smart
-directory listings, JavaScript-only sketches), and that automate some of the
-features that I see beginners struggle with (syntax error reporting, adding
+It provides features that make it easier to manage collections of sketches
+(smart directory listings, JavaScript-only sketches); and that automate some of
+the features that I see beginners struggle with (noticing syntax errors, adding
 libraries).
+
+This is a work in progress.
 
 ## Features
 
@@ -84,8 +85,6 @@ or the `filename` subdirectory of the current directory.
 
 ## Notes
 
-Generated sketches use a CDN. I may add an option to use local files instead.
-
 A “JavaScript-only sketch file” is a JavaScript file that includes a function
 definition for either the `setup()` or `draw()` functions.
 
@@ -93,7 +92,12 @@ Automatic library loading is done by examining the free variables in the sketch.
 A list of libraries, and the global variables that trigger including a library,
 is in `./config/libraries.json`.
 
-I haven't tested this on instance-mode sketches, or on Windows.
+Limitations:
+
+- Generated sketches use a CDN. (I may add an option to use local files instead.)
+- I haven't tested this on instance-mode sketches
+- This hasn't been tested on Windows.
+- It doesn't recognize scripts inside of HTML files
 
 ## License
 

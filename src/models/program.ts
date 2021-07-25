@@ -62,16 +62,32 @@ function findFreeVariables(program: Program): Set<string> {
   return freeVariables;
 
   function* iterProgram(program: Program): Iterable<string> {
+    yield* new Visitor(program).visit();
+  }
+}
+
+class Visitor {
+  program: Program;
+
+  constructor(program: Program) {
+    this.program = program;
+  }
+
+  * visit() {
+    yield* this.iterProgram(this.program);
+  }
+
+  * iterProgram(program: Program): Iterable<string> {
     for (const node of program.body) {
       switch (node.type) {
         case 'FunctionDeclaration':
         case 'VariableDeclaration':
-          yield* iterStatement(node);
+          yield* this.iterStatement(node);
       }
     }
   }
 
-  function* iterStatement(node: Statement): Iterable<string> {
+  * iterStatement(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
         const locals = new Set<string>();
@@ -79,18 +95,18 @@ function findFreeVariables(program: Program): Set<string> {
           locals.add(node.id.name);
         }
         for (const param of node.params) {
-          for (const name of iterPatternNames(param)) {
+          for (const name of this.iterPattern(param)) {
             locals.add(name);
           }
         }
         // FIXME: this doesn't account for names that are used before they are declared
         for (const block of node.body.body) {
-          for (const name of iterDeclaredNames(block)) {
+          for (const name of this.iterDeclaredNames(block)) {
             locals.add(name);
           }
         }
         for (const child of node.body.body) {
-          for (const name of iterStatement(child)) {
+          for (const name of this.iterStatement(child)) {
             if (!locals.has(name)) {
               yield name;
             }
@@ -99,60 +115,60 @@ function findFreeVariables(program: Program): Set<string> {
         break;
       case 'BlockStatement':
         for (const child of node.body) {
-          yield* iterStatement(child);
+          yield* this.iterStatement(child);
         }
         break;
       case 'DoWhileStatement':
-        yield* iterStatement(node.body);
-        yield* iterExpression(node.test);
+        yield* this.iterStatement(node.body);
+        yield* this.iterExpression(node.test);
         break;
       case 'ExpressionStatement':
-        yield* iterExpression(node.expression);
+        yield* this.iterExpression(node.expression);
         break;
       case 'ForStatement':
         // FIXME: build local context
         // TODO: if (node.init) { yield* iterExpression(node.init); }
-        if (node.test) { yield* iterExpression(node.test); }
-        if (node.update) { yield* iterExpression(node.update); }
-        yield* iterStatement(node.body);
+        if (node.test) { yield* this.iterExpression(node.test); }
+        if (node.update) { yield* this.iterExpression(node.update); }
+        yield* this.iterStatement(node.body);
         break;
       case 'ForInStatement':
         // FIXME: build local context
         // TODO: yield* iterExpression(node.left);
-        yield* iterExpression(node.right);
-        yield* iterStatement(node.body);
+        yield* this.iterExpression(node.right);
+        yield* this.iterStatement(node.body);
         break;
       case 'ForOfStatement':
         // FIXME: build local context
         // TODO: yield* iterExpression(node.left);
-        yield* iterExpression(node.right);
-        yield* iterStatement(node.body);
+        yield* this.iterExpression(node.right);
+        yield* this.iterStatement(node.body);
         break;
       case 'IfStatement':
-        yield* iterExpression(node.test);
-        yield* iterStatement(node.consequent);
+        yield* this.iterExpression(node.test);
+        yield* this.iterStatement(node.consequent);
         if (node.alternate) {
-          yield* iterStatement(node.alternate);
+          yield* this.iterStatement(node.alternate);
         }
         break;
       case 'LabeledStatement':
-        yield* iterStatement(node.body);
+        yield* this.iterStatement(node.body);
         break;
       case 'ReturnStatement':
         if (node.argument) {
-          yield* iterExpression(node.argument);
+          yield* this.iterExpression(node.argument);
         }
         break;
       case 'VariableDeclaration':
         for (const decl of node.declarations) {
           if (decl.init) {
-            yield* iterExpression(decl.init);
+            yield* this.iterExpression(decl.init);
           }
         }
         break;
       case 'WhileStatement':
-        yield* iterExpression(node.test);
-        yield* iterStatement(node.body);
+        yield* this.iterExpression(node.test);
+        yield* this.iterStatement(node.body);
         break;
       case 'DebuggerStatement':
       case 'EmptyStatement':
@@ -167,28 +183,28 @@ function findFreeVariables(program: Program): Set<string> {
     // TODO: ForInStatement | Declaration
   }
 
-  function* iterExpression(node: Expression): Iterable<string> {
+  * iterExpression(node: Expression): Iterable<string> {
     switch (node.type) {
       case 'AssignmentExpression':
-        yield* iterExpression(node.right);
+        yield* this.iterExpression(node.right);
         break;
       case 'BinaryExpression':
-        yield* iterExpression(node.left);
-        yield* iterExpression(node.right);
+        yield* this.iterExpression(node.left);
+        yield* this.iterExpression(node.right);
         break;
       case 'CallExpression':
         if (node.callee.type !== 'Super') {
-          yield* iterExpression(node.callee);
+          yield* this.iterExpression(node.callee);
         }
         for (const arg of node.arguments) {
           if (arg.type !== 'SpreadElement') {
-            yield* iterExpression(arg);
+            yield* this.iterExpression(arg);
           }
         }
         break;
       case 'MemberExpression':
         if (node.object.type !== 'Super') {
-          yield* iterExpression(node.object);
+          yield* this.iterExpression(node.object);
         }
         break;
       case 'Identifier':
@@ -197,7 +213,7 @@ function findFreeVariables(program: Program): Set<string> {
       case 'ObjectExpression':
         for (const prop of node.properties) {
           if (prop.type === 'SpreadElement') {
-            yield* iterExpression(prop.argument);
+            yield* this.iterExpression(prop.argument);
           } else {
             // TODO
             // yield* iterExpression(prop.key);
@@ -207,13 +223,13 @@ function findFreeVariables(program: Program): Set<string> {
         break;
       case 'SequenceExpression':
         for (const expr of node.expressions) {
-          yield* iterExpression(expr);
+          yield* this.iterExpression(expr);
         }
         break;
       case 'UnaryExpression':
-        yield* iterExpression(node.argument);
+        yield* this.iterExpression(node.argument);
       case 'UpdateExpression':
-        yield* iterExpression(node.argument);
+        yield* this.iterExpression(node.argument);
       case 'Literal':
         break;
       default:
@@ -228,7 +244,7 @@ function findFreeVariables(program: Program): Set<string> {
     // TODO: AwaitExpression | ImportExpression | ChainExpression
   }
 
-  function* iterDeclaredNames(node: Statement): Iterable<string> {
+  * iterDeclaredNames(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
         if (node.id) {
@@ -237,13 +253,13 @@ function findFreeVariables(program: Program): Set<string> {
         break;
       case 'VariableDeclaration':
         for (const decl of node.declarations) {
-          yield* iterPatternNames(decl.id);
+          yield* this.iterPattern(decl.id);
           break;
         }
     }
   }
 
-  function* iterPatternNames(node: Pattern): Iterable<string> {
+  * iterPattern(node: Pattern): Iterable<string> {
     switch (node.type) {
       case 'Identifier':
         yield node.name;
@@ -251,22 +267,22 @@ function findFreeVariables(program: Program): Set<string> {
       case 'ObjectPattern':
         for (const prop of node.properties) {
           if (prop.type === 'Property') {
-            yield* iterPatternNames(prop.value);
+            yield* this.iterPattern(prop.value);
           } else {
-            yield* iterPatternNames(prop.argument);
+            yield* this.iterPattern(prop.argument);
           }
         }
         break;
       case 'ArrayPattern':
         for (const elem of node.elements as Array<Pattern>) {
-          yield* iterPatternNames(elem);
+          yield* this.iterPattern(elem);
         }
         break;
       case 'RestElement':
-        yield* iterPatternNames(node.argument);
+        yield* this.iterPattern(node.argument);
         break;
       case 'AssignmentPattern':
-        yield* iterPatternNames(node.left);
+        yield* this.iterPattern(node.left);
         break;
       // TODO: MemberExpression ?
     }

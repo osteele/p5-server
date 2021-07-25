@@ -53,7 +53,7 @@ app.get('/*.js', (req, res, next) => {
     if (e instanceof JavascriptSyntaxError) {
       const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
       return res.send(jsTemplateEnv.renderString(template, {
-        fileName: path.basename(e.fileName), // TODO: relative to referer
+        fileName: path.basename(e.fileName!), // TODO: relative to referer
         message: e.message,
       }));
     }

@@ -4,9 +4,9 @@ import fs from 'fs';
 
 export class JavascriptSyntaxError extends Error {
   code: string;
-  fileName: string;
+  fileName: string | null;
 
-  constructor(msg: string, fileName: string, code: string) {
+  constructor(msg: string, fileName: string | null = null, code: string) {
     super(msg);
     Object.setPrototypeOf(this, JavascriptSyntaxError.prototype);
     this.fileName = fileName;
@@ -35,7 +35,7 @@ export function analyzeScript(code: string, options: { deep: boolean, filePath?:
     const p5Properties = findP5PropertyReferences(program);
     return { globals, freeVariables, p5Properties };
   } catch (e) {
-    throw new JavascriptSyntaxError(e.message, options.filePath || 'source', code);
+    throw new JavascriptSyntaxError(e.message, options.filePath, code);
   }
 }
 
@@ -46,24 +46,30 @@ export function analyzeScriptFile(filePath: string, options = { deep: false })
 }
 
 function findGlobals(program: Program): Set<string> {
-  const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration' || node.type === 'VariableDeclaration') as Array<FunctionDeclaration>;
+  const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
   return new Set(functionDeclarations.map(node => node.id?.name).filter(Boolean)) as Set<string>;
 }
 
 function findFreeVariables(program: Program): Set<string> {
-  const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
-  const globalVariables = new Set(functionDeclarations.map(node => node.id?.name)) as Set<string>;
   // TODO: collect variable declarations too
-  // const globalVariableReferences = new Set(iterVariableNames(program.body));
+  const globalVariables = findGlobals(program);
   const freeVariables = new Set<string>();
-  for (const node of functionDeclarations) {
-    for (const name of iterStatement(node)) {
-      if (!globalVariables.has(name)) {
-        freeVariables.add(name);
-      }
+  for (const name of iterProgram(program)) {
+    if (!globalVariables.has(name)) {
+      freeVariables.add(name);
     }
   }
   return freeVariables;
+
+  function* iterProgram(program: Program): Iterable<string> {
+    for (const node of program.body) {
+      switch (node.type) {
+        case 'FunctionDeclaration':
+        case 'VariableDeclaration':
+          yield* iterStatement(node);
+      }
+    }
+  }
 
   function* iterStatement(node: Statement): Iterable<string> {
     switch (node.type) {

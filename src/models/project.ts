@@ -59,6 +59,17 @@ export class Project {
     if (this.sketchPath) {
       files.push(path.basename(this.sketchPath));
     }
+    if (this.sketchPath && fs.existsSync(path.join(this.dirPath, this.sketchPath))) {
+      try {
+        const { loadCallArguments } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath));
+        const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
+        files = [...files, ...paths];
+      } catch (e) {
+        if (!(e instanceof JavascriptSyntaxError)) {
+          throw e;
+        }
+      }
+    }
     return files;
   }
 
@@ -89,7 +100,7 @@ export class Project {
   private getLibraries(): LibrarySpec[] {
     if (this.sketchPath) {
       try {
-        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath), { deep: true });
+        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.sketchPath));
         return librarySpecs.filter(spec => {
           return spec.globals && spec.globals.some(name => freeVariables!.has(name)) ||
             spec.props && spec.props.some(name => p5properties!.has(name));
@@ -141,8 +152,8 @@ export function createSketchHtml(sketchPath: string) {
 export function findProjects(dir: string) {
   const projects: Array<Project> = [];
   for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
-    const filePath = path.join(dir, file);
-    if (isSketchHtml(filePath)) {
+    const htmlPath = path.join(dir, file);
+    if (isSketchHtml(htmlPath)) {
       const project = new Project(dir, file);
       projects.push(project);
     }
@@ -181,7 +192,7 @@ export function isSketchJs(filePath: string) {
   }
 
   try {
-    const { globals } = analyzeScriptFile(filePath);
+    const { globals } = analyzeScriptFile(filePath, { deep: false });
     return globals.has('setup') || globals.has('draw');
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {

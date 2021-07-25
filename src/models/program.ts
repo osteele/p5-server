@@ -1,5 +1,5 @@
 import { parseScript, Program } from 'esprima';
-import { Directive, ModuleDeclaration, Expression, FunctionDeclaration, Pattern, Statement, SwitchCase } from 'estree';
+import { Expression, FunctionDeclaration, Pattern, Statement, SwitchCase } from 'estree';
 import fs from 'fs';
 
 export class JavascriptSyntaxError extends Error {
@@ -23,8 +23,15 @@ export function checkedParseScript(filePath: string): Program {
   }
 }
 
-export function analyzeScript(code: string, options: { deep: boolean, filePath?: string } = { deep: false })
-  : { globals: Set<string>, freeVariables?: Set<string>, p5properties?: Set<string> } {
+type ScriptAnalysis = {
+  globals: Set<string>;
+  freeVariables?: Set<string>;
+  loadCallArguments?: Set<string>;
+  p5properties?: Set<string>;
+};
+
+export function analyzeScript(code: string, options: { deep: boolean, filePath?: string } = { deep: true })
+  : ScriptAnalysis {
   try {
     const program = parseScript(code);
     const globals = findGlobals(program);
@@ -33,14 +40,15 @@ export function analyzeScript(code: string, options: { deep: boolean, filePath?:
     }
     const freeVariables = findFreeVariables(program);
     const p5properties = findP5PropertyReferences(program);
-    return { globals, freeVariables, p5properties };
+    const loadCallArguments = findLoadCalls(program);
+    return { globals, freeVariables, p5properties, loadCallArguments };
   } catch (e) {
     throw new JavascriptSyntaxError(e.message, options.filePath, code);
   }
 }
 
-export function analyzeScriptFile(filePath: string, options = { deep: false })
-  : { globals: Set<string>, freeVariables?: Set<string>, p5properties?: Set<string> } {
+export function analyzeScriptFile(filePath: string, options = { deep: true })
+  : ScriptAnalysis {
   const code = fs.readFileSync(filePath, 'utf-8');
   return analyzeScript(code, { ...options, filePath });
 }
@@ -51,15 +59,7 @@ function findGlobals(program: Program): Set<string> {
 }
 
 function findFreeVariables(program: Program): Set<string> {
-  // TODO: collect variable declarations too
-  const globalVariables = findGlobals(program);
-  const freeVariables = new Set<string>();
-  for (const name of iterProgram(program)) {
-    if (!globalVariables.has(name)) {
-      freeVariables.add(name);
-    }
-  }
-  return freeVariables;
+  return new Set(iterProgram(program));
 
   function* iterProgram(program: Program): Iterable<string> {
     yield* new FreeVariableIterator(program).visit();
@@ -254,6 +254,7 @@ class Visitor {
           yield* this.visitExpression(node.argument);
         }
         break;
+      case 'ArrowFunctionExpression':
       case 'Identifier':
       case 'Literal':
       case 'ThisExpression':
@@ -312,6 +313,16 @@ class Visitor {
 }
 
 class FreeVariableIterator extends Visitor {
+  * visitProgram(node: Program) {
+    // TODO: collect variable declarations too
+    const globalVariables = findGlobals(this.program);
+    for (const name of Visitor.prototype.visitProgram.call(this, node)) {
+      if (!globalVariables.has(name)) {
+        yield name;
+      }
+    }
+  }
+
   * visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
@@ -413,7 +424,7 @@ class FreeVariableIterator extends Visitor {
 }
 
 function findP5PropertyReferences(program: Program): Set<string> {
-  return new Set<string>(iterProgram(program));
+  return new Set(iterProgram(program));
 
   function* iterProgram(program: Program): Iterable<string> {
     yield* new PropertyMemberIterator(program).visit();
@@ -426,6 +437,30 @@ class PropertyMemberIterator extends Visitor {
       if (node.object.type === 'Identifier' && node.object.name === 'p5'
         && node.property.type === 'Identifier') {
         yield node.property.name;
+      }
+    }
+    yield* Visitor.prototype.visitExpression.call(this, node);
+  }
+}
+
+function findLoadCalls(program: Program) {
+  return new Set(iterProgram(program));
+
+  function* iterProgram(program: Program): Iterable<string> {
+    yield* new LoadCallIterator(program).visit();
+  }
+}
+
+
+class LoadCallIterator extends Visitor {
+  * visitExpression(node: Expression): Iterable<string> {
+    if (node.type === 'CallExpression') {
+      if (node.callee.type === 'Identifier' && node.callee.name.startsWith('load')
+        && node.arguments.length >= 1) {
+        const arg = node.arguments[0];
+        if (arg.type === 'Literal' && typeof arg.value === 'string') {
+          yield arg.value;
+        }
       }
     }
     yield* Visitor.prototype.visitExpression.call(this, node);

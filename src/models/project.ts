@@ -1,10 +1,10 @@
-import minimatch from 'minimatch';
 import fs from 'fs';
 import { glob } from 'glob';
-import { parse, HTMLElement } from 'node-html-parser';
+import minimatch from 'minimatch';
+import { HTMLElement, parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { libraries, Library, p5Version } from './Library';
+import { Library, p5Version } from './Library';
 import { analyzeScriptFile, JavascriptSyntaxError } from './script-analysis';
 
 const templateDir = path.join(__dirname, './templates');
@@ -152,22 +152,11 @@ export class Project {
   }
 
   get libraries(): Library[] {
-    let libs: LibraryArray = new LibraryArray();
-    if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
-      try {
-        const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
-        for (const lib of libraries) {
-          if (lib.globals?.some(name => freeVariables!.has(name)) || lib.props?.some(name => p5properties!.has(name))) {
-            libs.push(lib);
-          }
-        }
-      } catch (e) {
-        if (!(e instanceof JavascriptSyntaxError)) {
-          throw e;
-        }
-      }
-    }
-    return libs;
+    return Library.inferLibraries(
+      this.files
+        .filter(f => f.endsWith('.js'))
+        .map(f => path.join(this.dirPath, f)),
+      this.htmlPath && path.join(this.dirPath, this.htmlPath));
   }
 
   getGeneratedFileContent(base: string) {
@@ -182,15 +171,6 @@ export class Project {
       p5Version
     };
     return nunjucks.render(templatePath, data);
-  }
-}
-
-class LibraryArray extends Array<Library> {
-  get withImportPaths() {
-    return this.filter(lib => lib.path);
-  }
-  get withoutImportPaths() {
-    return this.filter(lib => !lib.path);
   }
 }
 
@@ -227,9 +207,10 @@ function isSketchHtml(filePath: string) {
   if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
     return false;
   }
+
   const content = fs.readFileSync(filePath, 'utf-8');
-  const root = parse(content);
-  const scriptSrcs = root.querySelectorAll('script').map(node => node.attributes.src);
+  const htmlRoot = parse(content);
+  const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
   return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
 }
 

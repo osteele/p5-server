@@ -1,3 +1,4 @@
+import minimatch from 'minimatch';
 import fs from 'fs';
 import { glob } from 'glob';
 import { parse, HTMLElement } from 'node-html-parser';
@@ -198,7 +199,7 @@ export function createSketchHtml(sketchPath: string) {
   return project.getGeneratedFileContent('index.html');
 }
 
-export function findProjects(dir: string) {
+export function findProjects(dir: string, { excludeDirs }: { excludeDirs?: string[] }) {
   const projects: Array<Project> = [];
   for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
     const htmlPath = path.join(dir, file);
@@ -207,7 +208,7 @@ export function findProjects(dir: string) {
     }
   }
 
-  let files = fs.readdirSync(dir);
+  let files = fs.readdirSync(dir).filter(s => !excludeDirs?.some(exclusion => minimatch(s, exclusion)));
   for (const file of removeProjectFiles()) {
     const filePath = path.join(dir, file);
     if (isSketchJs(filePath)) {

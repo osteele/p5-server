@@ -94,6 +94,9 @@ app.get('*', (req, res, next) => {
   const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const filePath = path.join(serverOptions.root, req.path);
+    if (!fs.existsSync(filePath)) {
+      return next();
+    }
     if (fs.statSync(filePath).isDirectory()) {
       sendDirectoryListing(req.path, serverOptions.root, res);
       return;

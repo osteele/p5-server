@@ -20,6 +20,10 @@
         "description": "A CDN URL that loads the library",
         "type": "string"
       },
+      "packageName": {
+        "description": "NPM package name",
+        "type": "string"
+      },
       "globals": {
         "description": "Global variables defined by the library",
         "type": "array",

@@ -4,7 +4,7 @@ import marked from 'marked';
 import minimatch from 'minimatch';
 import path from 'path';
 import pug from 'pug';
-import { createSketchHtml, findProjects } from '../models/project';
+import { createSketchHtml, findProjects } from '../models/Project';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 import { injectLiveReloadScript } from './liveReload';

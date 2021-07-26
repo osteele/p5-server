@@ -3,9 +3,9 @@ import { glob } from 'glob';
 import { parse, HTMLElement } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
+import { libraries, Library, p5Version } from './Library';
 import { analyzeScriptFile, JavascriptSyntaxError } from './script-analysis';
 
-const p5Version = '1.4.0';
 const templateDir = path.join(__dirname, './templates');
 
 export class DirectoryExistsError extends Error {
@@ -150,17 +150,14 @@ export class Project {
     fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
   }
 
-  get libraries(): LibrarySpec[] {
+  get libraries(): Library[] {
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {
         const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
-        return librarySpecs.filter(spec => {
+        return libraries.filter(spec => {
           return spec.globals && spec.globals.some(name => freeVariables!.has(name)) ||
             spec.props && spec.props.some(name => p5properties!.has(name));
-        }).map(spec => ({
-          ...spec,
-          path: spec.path?.replace("$(P5Version)", p5Version)
-        }));
+        });
       } catch (e) {
         if (!(e instanceof JavascriptSyntaxError)) {
           throw e;
@@ -184,18 +181,6 @@ export class Project {
     return nunjucks.render(templatePath, data);
   }
 }
-
-type LibrarySpec = {
-  name: string,
-  homepage: string,
-  path?: string,
-  version?: string,
-  globals?: string[],
-  props?: string[],
-}
-
-const librarySpecs: LibrarySpec[] =
-  JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/libraries.json'), 'utf-8'));
 
 export function createSketchHtml(sketchPath: string) {
   const project = new Project(path.dirname(sketchPath), null, path.basename(sketchPath));

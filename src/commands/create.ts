@@ -1,4 +1,4 @@
-import { DirectoryExistsError, Project } from '../models/project';
+import { DirectoryExistsError, Project } from '../models/Project';
 import { die } from '../utils';
 
 export default function create(name: string = 'sketch', options: { force: boolean, title: string }) {

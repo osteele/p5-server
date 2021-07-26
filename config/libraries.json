@@ -42,6 +42,7 @@
   },
   {
     "name": "ml5.js",
+    "packageName": "ml5",
     "homepage": "https://learn.ml5js.org/",
     "path": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
     "globals": [
@@ -57,6 +58,7 @@
   },
   {
     "name": "p5.ble.js",
+    "packageName": "p5ble",
     "homepage": "https://itpnyu.github.io/p5ble-website/",
     "path": "https://unpkg.com/p5ble@0.0.4/dist/p5.ble.js",
     "globals": [
@@ -65,6 +67,7 @@
   },
   {
     "name": "p5bots",
+    "packageName": "p5bots",
     "homepage": "https://github.com/sarahgp/p5bots",
     "props": [
       "board",
@@ -87,6 +90,7 @@
   },
   {
     "name": "p5.collide2D",
+    "packageName": "p5.collide2d",
     "homepage": "https://github.com/bmoren/p5.collide2D",
     "path": "https://unpkg.com/p5.collide2d",
     "globals": [
@@ -113,6 +117,7 @@
   },
   {
     "name": "p5.createloop",
+    "packageName": "createloop",
     "homepage": "https://www.npmjs.com/package/p5.createloop",
     "path": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
     "globals": [
@@ -184,6 +189,7 @@
   },
   {
     "name": "p5.geolocation",
+    "packageName": "p5.geolocation",
     "homepage": "https://github.com/bmoren/p5.geolocation",
     "globals": [
       "geoCheck",
@@ -229,6 +235,7 @@
   },
   {
     "name": "Mappa",
+    "packageName": "mappa-mundi",
     "homepage": "https://github.com/cvalenzuela/Mappa",
     "path": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
     "globals": [
@@ -260,6 +267,7 @@
   },
   {
     "name": "Rita",
+    "packageName": "rita",
     "homepage": "https://rednoise.org/rita/",
     "path": "https://unpkg.com/rita",
     "globals": [
@@ -275,6 +283,7 @@
   },
   {
     "name": "p5.SceneManager",
+    "packageName": "p5.scenemanager",
     "homepage": "https://github.com/mveteanu/p5.SceneManager",
     "globals": [
       "SceneManager"
@@ -296,8 +305,10 @@
   },
   {
     "name": "p5.serial",
+    "name": "p5.serialserver",
     "homepage": "https://github.com/p5-serial/p5.serialport",
     "path": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
+    "packageName": "p5.serialserver",
     "props": [
       "SerialPort"
     ]
@@ -350,6 +361,7 @@
   },
   {
     "name": "p5.tiledmap",
+    "packageName": "p5.tiledmap",
     "homepage": "https://github.com/linux-man/p5.tiledmap",
     "globals": [
       "loadTiledMap"
@@ -357,6 +369,7 @@
   },
   {
     "name": "p5.touchgui",
+    "packageName": "p5.touchgui",
     "homepage": "https://github.com/L05/p5.touchgui",
     "path": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
     "globals": [
@@ -396,6 +409,7 @@
   },
   {
     "name": "dat.gui",
+    "packageName": "dat.gui",
     "homepage": "https://github.com/dataarts/dat.gui",
     "globals": [
       "dat"

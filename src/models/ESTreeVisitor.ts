@@ -15,8 +15,12 @@ export class ESTreeVisitor<T> {
     *visitProgram(program: Program): Iterable<T> {
         for (const node of program.body) {
             switch (node.type) {
-                case 'FunctionDeclaration':
-                case 'VariableDeclaration':
+                case 'ExportAllDeclaration':
+                case 'ExportDefaultDeclaration':
+                case 'ExportNamedDeclaration':
+                case 'ImportDeclaration':
+                    break;
+                default:
                     yield* this.visitStatement(node);
             }
         }
@@ -113,7 +117,6 @@ export class ESTreeVisitor<T> {
                 break;
             default:
                 console.warn('Visitor: unimplemented statement', node);
-                break;
         }
         // TODO: Declaration | WithStatement
     }
@@ -196,7 +199,6 @@ export class ESTreeVisitor<T> {
                 break;
             default:
                 console.warn('Visitor: unimplemented expression', node);
-                break;
         }
         // TODO: FunctionExpression | ArrowFunctionExpression
         // TODO: ClassExpression
@@ -233,7 +235,6 @@ export class ESTreeVisitor<T> {
             default:
                 // TODO: MemberExpression ?
                 console.warn('Visitor: unimplemented pattern', node);
-                break;
         }
     }
 

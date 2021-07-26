@@ -80,7 +80,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
 
   * visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
-      case 'FunctionDeclaration':
+      case 'FunctionDeclaration': {
         const locals = new Set<string>();
         if (node.id) {
           locals.add(node.id.name);
@@ -96,21 +96,36 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
             locals.add(name);
           }
         }
-        for (const child of node.body.body) {
-          for (const name of this.visitStatement(child)) {
-            if (!locals.has(name)) {
-              yield name;
+        const that = this;
+        yield* this.filterLocals(locals, function* () {
+          for (const child of node.body.body) {
+            yield* that.visitStatement(child);
+          }
+        });
+        break;
+      }
+      case 'ForStatement': {
+        const locals = new Set<string>();
+        if (node.init) {
+          if (node.init.type === 'VariableDeclaration') {
+            for (const decl of node.init.declarations) {
+              if (decl.init) yield* this.visitExpression(decl.init);
+              for (const name of this.visitPattern(decl.id)) {
+                locals.add(name);
+              }
             }
+          } else {
+            yield* this.visitExpression(node.init);
           }
         }
+        const that = this;
+        yield* this.filterLocals(locals, function* () {
+          if (node.test) { yield* that.visitExpression(node.test); }
+          if (node.update) { yield* that.visitExpression(node.update); }
+          yield* that.visitStatement(node.body);
+        })
         break;
-      case 'ForStatement':
-        // FIXME: build local context
-        // TODO: if (node.init) { yield* iterExpression(node.init); }
-        if (node.test) { yield* this.visitExpression(node.test); }
-        if (node.update) { yield* this.visitExpression(node.update); }
-        yield* this.visitStatement(node.body);
-        break;
+      }
       case 'ForInStatement':
         // FIXME: build local context
         // TODO: yield* iterExpression(node.left);
@@ -174,6 +189,14 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
       default:
         yield* ESTreeVisitor.prototype.visitPattern.call(this, node);
         break;
+    }
+  }
+
+  * filterLocals(locals: Set<string>, iter: () => Iterable<string>): Iterable<string> {
+    for (const name of iter()) {
+      if (!locals.has(name)) {
+        yield name;
+      }
     }
   }
 }

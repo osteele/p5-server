@@ -16,22 +16,29 @@ test('analyzeScript free variables', () => {
     // local variables
     expect(analyzeScript('function f(a) {let b; b}').freeVariables).toEqual(new Set());
     expect(analyzeScript('function f(a) {let b; c}').freeVariables).toEqual(new Set('c'));
+    expect(analyzeScript('function f(a) {let b=c}').freeVariables).toEqual(new Set('c'));
+    expect(analyzeScript('function f(a) {let b=a; let c=b}').freeVariables).toEqual(new Set());
+    // expect(analyzeScript('function f() {let b=c; let c=b}').freeVariables).toEqual(new Set('c'));
 
     // expressions
     expect(analyzeScript('function f() {a + b}').freeVariables).toEqual(new Set(['a', 'b']));
-    // expect(analyzeScript('function f() {a ? b : c}').freeVariables).toEqual(new Set(['a', 'b', 'c']));
+    expect(analyzeScript('function f() {a ? b : c}').freeVariables).toEqual(new Set(['a', 'b', 'c']));
 
     expect(analyzeScript('function f() {let a = b + c}').freeVariables).toEqual(new Set(['b', 'c']));
-    // expect(analyzeScript('let a = b + c').freeVariables).toEqual(new Set(['b', 'c']));
+    expect(analyzeScript('let a = b + c').freeVariables).toEqual(new Set(['b', 'c']));
 
     // function calls and nested functions
     expect(analyzeScript('function f(a) {g()}').freeVariables).toEqual(new Set('g'));
     expect(analyzeScript('function f(a) {f(a); g(b)}').freeVariables).toEqual(new Set(['g', 'b']));
     expect(analyzeScript('function f(a) {let b; function g(c) {a+b+c+d}}').freeVariables).toEqual(new Set('d'));
 
+    // function expressions
+    // expect(analyzeScript('let f = a => a + b').freeVariables).toEqual(new Set('b'));
+    // expect(analyzeScript('let f = function(a) {a + b}').freeVariables).toEqual(new Set('b'));
+
     // control structures
-    expect(analyzeScript('function f() {for (i=0; i<10; i++) a;}').freeVariables).toEqual(new Set(['i', 'a']));
-    // expect(analyzeScript('function f() {for (let i=0; i<10; i++) a;}').freeVariables).toEqual(new Set(['i', 'a']));
+    // expect(analyzeScript('function f() {for (i=a; i<b; i+=c) d;}').freeVariables).toEqual(new Set(['i', 'a', 'b', 'c', 'd']));
+    expect(analyzeScript('function f() {for (let i=a; i<b; i+=c) d;}').freeVariables).toEqual(new Set(['a', 'b', 'c', 'd']));
     expect(analyzeScript('function f() {for (p of obj) p, a;}').freeVariables).toEqual(new Set(['obj', 'a', 'p']));
     // expect(analyzeScript('function f() {for (const p of obj) p, a;}').freeVariables).toEqual(new Set(['obj', 'a']));
     expect(analyzeScript('function f() {if(a)b;else c}').freeVariables).toEqual(new Set(['a', 'b', 'c']));

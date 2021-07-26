@@ -58,20 +58,73 @@ export function analyzeScriptFile(filePath: string, options = { deep: true })
 }
 
 function findGlobals(program: Program): Set<string> {
-  const functionDeclarations = program.body.filter(node => node.type === 'FunctionDeclaration') as Array<FunctionDeclaration>;
-  return new Set(functionDeclarations.map(node => node.id?.name).filter(Boolean)) as Set<string>;
+  return new Set(iterProgram());
+  function* iterProgram() {
+    for (const { name, nodeType } of new DeclarationIterator(program).visit()) {
+      if (nodeType === 'FunctionDeclaration')
+        yield name;
+    }
+  }
 }
 
 function findFreeVariables(program: Program): Set<string> {
   return new Set(iterProgram(program));
-
   function* iterProgram(program: Program): Iterable<string> {
     yield* new FreeVariableIterator(program).visit();
   }
 }
 
+// This does not recurse inside function bodies. It only collects the
+// top-level ids.
+type DeclarationIteratorIterationType = Iterable<{ name: string, nodeType: string }>;
+class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string }> {
+
+  * iterProgram(program: Program): DeclarationIteratorIterationType {
+    for (const stmt of program.body) {
+      switch (stmt.type) {
+        case 'FunctionDeclaration':
+        case 'VariableDeclaration':
+          yield* this.visitStatement(stmt);
+          break;
+        default:
+        // ignore other node types
+      }
+    }
+  }
+
+  * visitStatement(node: Statement): DeclarationIteratorIterationType {
+    switch (node.type) {
+      case 'FunctionDeclaration':
+        if (node.id) {
+          yield { name: node.id.name, nodeType: node.type };
+        }
+        break;
+      case 'VariableDeclaration':
+        for (const decl of node.declarations) {
+          for (const { name } of this.visitPattern(decl.id)) {
+            yield { name, nodeType: node.type };
+          }
+        }
+        break;
+      default:
+      // ignore other node types
+    }
+  }
+
+  * visitPattern(node: Pattern) {
+    switch (node.type) {
+      case 'Identifier':
+        yield { name: node.name, nodeType: node.type };
+        break;
+      default:
+        yield* ESTreeVisitor.prototype.visitPattern.call(this, node);
+        break;
+    }
+  }
+}
+
 class FreeVariableIterator extends ESTreeVisitor<string> {
-  * visitProgram(node: Program) {
+  * visitProgram(node: Program): Iterable<string> {
     // TODO: collect variable declarations too
     const globalVariables = findGlobals(this.program);
     for (const name of ESTreeVisitor.prototype.visitProgram.call(this, node)) {

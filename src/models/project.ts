@@ -98,7 +98,7 @@ export class Project {
   }
 
   get files() {
-    let files: Array<string> = [];
+    let files: string[] = [];
     if (this.htmlPath) {
       files.push(path.basename(this.htmlPath));
     }
@@ -180,7 +180,7 @@ export function createSketchHtml(sketchPath: string) {
 }
 
 export function findProjects(dir: string, { excludeDirs }: { excludeDirs?: string[] }) {
-  const projects: Array<Project> = [];
+  const projects: Project[] = [];
   for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
     const htmlPath = path.join(dir, file);
     if (isSketchHtml(htmlPath)) {

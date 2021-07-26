@@ -1,5 +1,5 @@
-import { parseScript, Program } from 'esprima';
-import { Expression, ArrowFunctionExpression, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
+import { parseScript, parseModule, Program } from 'esprima';
+import { ArrowFunctionExpression, Expression, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
 import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
@@ -19,6 +19,9 @@ export function checkedParseScript(filePath: string): Program {
   const code = fs.readFileSync(filePath, 'utf-8');
   try {
     return parseScript(code);
+  } catch { }
+  try {
+    return parseModule(code);
   } catch (e) {
     throw new JavascriptSyntaxError(e.message, filePath, code);
   }

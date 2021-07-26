@@ -5,7 +5,8 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/program';
 import { createSketchHtml, isSketchJs } from '../models/project';
-import { createDirectoryListing, sendDirectoryList, templateDir } from './directory-listing';
+import { createDirectoryListing, sendDirectoryListing } from './directory-listing';
+import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 type ServerOptions = {
@@ -22,8 +23,20 @@ jsTemplateEnv.addFilter('quote', JSON.stringify);
 const app = express();
 
 app.get('/', (req, res) => {
-  const filePath = path.join(serverOptions.root, req.path);
-  sendDirectoryList(req.path, filePath, res, serverOptions.sketchPath);
+  if (serverOptions.sketchPath) {
+    const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
+    if (isSketchJs(filePath)) {
+      const content = createSketchHtml(filePath);
+      res.send(injectLiveReloadScript(content));
+    } else if (filePath.match(/.*\.html?$/)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      res.send(injectLiveReloadScript(content));
+    } else {
+      res.sendFile(serverOptions.sketchPath, { root: serverOptions.root });
+    }
+  } else {
+    sendDirectoryListing(req.path, serverOptions.root, res);
+  }
 });
 
 app.get('/assets/*', (req, res) => {
@@ -78,7 +91,7 @@ app.get('*', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const filePath = path.join(serverOptions.root, req.path);
     if (fs.statSync(filePath).isDirectory()) {
-      sendDirectoryList(req.path, filePath, res);
+      sendDirectoryListing(req.path, filePath, res);
       return;
     }
   }

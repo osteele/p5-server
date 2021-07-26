@@ -6,14 +6,15 @@ import path from 'path';
 import pug from 'pug';
 import { createSketchHtml, findProjects } from '../models/project';
 import { pathComponentsForBreadcrumbs } from '../utils';
+import { templateDir } from './globals';
 import { injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
-export const templateDir = path.join(__dirname, './templates');
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
-export function createDirectoryListing(relDirPath: string, dirPath: string) {
-  let { projects, files } = findProjects(dirPath);
+export function createDirectoryListing(relPath: string, root: string) {
+  const absPath = path.join(root, relPath);
+  let { projects, files } = findProjects(absPath);
   files = files.filter(s => !s.startsWith('.')
     && !directoryListingExclusions.some(exclusion => minimatch(s, exclusion))
   );
@@ -22,41 +23,40 @@ export function createDirectoryListing(relDirPath: string, dirPath: string) {
   const readmeName = files.find(s => s.toLowerCase() === 'readme.md');
   const readme = readmeName && {
     name: readmeName,
-    html: marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')),
+    html: marked(fs.readFileSync(path.join(absPath, readmeName), 'utf8')),
   };
 
-  const directories = files.filter(s => fs.statSync(path.join(dirPath, s)).isDirectory());
+  const directories = files.filter(s => fs.statSync(path.join(absPath, s)).isDirectory());
   files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
-  const pathComponents = pathComponentsForBreadcrumbs(relDirPath);
+  const pathComponents = pathComponentsForBreadcrumbs(relPath);
   return directoryListingTmpl({
     pathComponents,
-    title: path.basename(dirPath),
+    title: path.basename(absPath),
     directories,
     files,
     projects,
     readme,
-    srcViewHref: (s: string) => s + '?fmt=view',
+    srcViewHref: (s: string) => s.match(/.*\.(html?|js)$/) ? `${s}/?fmt=view` : s,
   });
 }
 
-export function sendDirectoryList(relDirPath: string, dirPath: string, res: Response<any, any>, sketchPath?: string | null) {
+export function sendDirectoryListing(relPath: string, root: string, res: Response<any, any>) {
+  const absPath = path.join(root, relPath);
   let fileData: string;
   let singleProject = false;
   try {
-    fileData = fs.readFileSync(path.join(dirPath, 'index.html'), 'utf-8');
+    fileData = fs.readFileSync(path.join(absPath, 'index.html'), 'utf-8');
     singleProject = true;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }
-    fileData = sketchPath
-      ? createSketchHtml(sketchPath)
-      : createDirectoryListing(relDirPath, dirPath);
+    fileData = createDirectoryListing(relPath, root);
   }
 
-  if (singleProject && !relDirPath.endsWith('/')) {
-    res.redirect(relDirPath + '/');
+  if (singleProject && !relPath.endsWith('/')) {
+    res.redirect(relPath + '/');
     return;
   }
 

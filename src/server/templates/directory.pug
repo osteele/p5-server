@@ -5,7 +5,7 @@ html(lang='en')
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
     title= title
     script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
-    script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous')
+    script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
     style.
       body {
@@ -44,27 +44,27 @@ html(lang='en')
                     div(data-tooltip="This description comes from the HTML or JavaScript file")= project.description
                   .ui.divider
                   div
-                    span(data-tooltip="The root of the sketch. The HTML or JavaScript file that includes everything else") Main file:
-                    span &ensp;
+                    span(data-tooltip="The root of the sketch. The HTML or JavaScript file that includes everything else")
+                      i.small.info.circle.icon
+                    | Main file
+                    | :&ensp;
                     a(href=srcViewHref(project.indexFile))= project.indexFile
                   if project.files.length > 1
                     div
-                      | Other files:
-                      |
+                      | Other files:&ensp;
                       .ui.horizontal.list
                         each file in project.files
                           if file != project.indexFile
                             a.item(href=srcViewHref(file))= file
                   if project.libraries.withImportPaths.length > 0
                     div
-                      | Libraries:
-                      |
+                      | Libraries:&ensp;
                       .ui.horizontal.list
                         each library in project.libraries.withImportPaths
                           a.item(href=library.homepage)= library.name
                   if project.libraries.withoutImportPaths.length > 0
                     div
-                      h5 Library candidates
+                      | Library Candidates
                       div.
                         This sketches uses libraries that can't be automatically included,
                         because they haven't been published to npm.
@@ -88,11 +88,12 @@ html(lang='en')
 
     if files.length
       .ui.segment
-        h2.ui.header Loose Files
+        h2.ui.header
+          span(data-html="These files don't appear to be associated with any\nsketches in this directory. See the p5-server docs.")
+            i.small.info.circle.icon
+          | Loose Files
         div.
-          These files don't appear to be associated with any sketches in this directory.
-          This may just be because p5-server doesn't currently inspect HTML files to see what other files they include.
-          Also note that p5-server only recognizes literal strings, for example `loadImage("dog.png")`
+          Note that p5-server only recognizes literal strings, for example `loadImage("dog.png")`
           but not `name = "cat.png"; loadImage(name)`.
         .ui.divided.list
           each file in files

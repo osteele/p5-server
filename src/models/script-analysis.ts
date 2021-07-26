@@ -1,5 +1,5 @@
 import { parseScript, Program } from 'esprima';
-import { Expression, FunctionDeclaration, Pattern, Statement } from 'estree';
+import { Expression, ArrowFunctionExpression, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
 import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
@@ -80,30 +80,9 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
 
   * visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
-      case 'FunctionDeclaration': {
-        const locals = new Set<string>();
-        if (node.id) {
-          locals.add(node.id.name);
-        }
-        for (const param of node.params) {
-          for (const name of this.visitPattern(param)) {
-            locals.add(name);
-          }
-        }
-        // FIXME: this doesn't account for names that are used before they are declared
-        for (const block of node.body.body) {
-          for (const name of this.iterDeclaredNames(block)) {
-            locals.add(name);
-          }
-        }
-        const that = this;
-        yield* this.filterLocals(locals, function* () {
-          for (const child of node.body.body) {
-            yield* that.visitStatement(child);
-          }
-        });
+      case 'FunctionDeclaration':
+        yield* this.visitBaseFunction(node, node.id);
         break;
-      }
       case 'ForStatement': {
         const locals = new Set<string>();
         if (node.init) {
@@ -149,12 +128,18 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
         yield* ESTreeVisitor.prototype.visitStatement.call(this, node);
         break;
     }
-    // TODO: Declaration ImportExpression
+    // TODO: Declaration | ImportExpression
     // TODO: note binding in TryStatement
   }
 
   * visitExpression(node: Expression): Iterable<string> {
     switch (node.type) {
+      case 'ArrowFunctionExpression':
+        yield* this.visitBaseFunction(node);
+        break;
+      case 'FunctionExpression':
+        yield* this.visitBaseFunction(node);
+        break;
       case 'Identifier':
         yield node.name;
         break;
@@ -162,8 +147,6 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
         yield* ESTreeVisitor.prototype.visitExpression.call(this, node);
         break;
     }
-    // TODO: FunctionExpression
-    // TODO: ArrowFunctionExpression
   }
 
   * iterDeclaredNames(node: Statement): Iterable<string> {
@@ -190,6 +173,31 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
         yield* ESTreeVisitor.prototype.visitPattern.call(this, node);
         break;
     }
+  }
+
+  * visitBaseFunction(node: FunctionDeclaration | FunctionExpression | ArrowFunctionExpression, id?: Identifier | null): Iterable<string> {
+    const locals = new Set<string>();
+    if (id) {
+      locals.add(id.name);
+    }
+    for (const param of node.params) {
+      for (const name of this.visitPattern(param)) {
+        locals.add(name);
+      }
+    }
+    const that = this;
+    yield* this.filterLocals(locals, function* () {
+      if (node.body.type === 'BlockStatement') {
+        for (const block of node.body.body) {
+          for (const name of that.iterDeclaredNames(block)) {
+            locals.add(name);
+          }
+          yield* that.visitStatement(block);
+        }
+      } else {
+        yield* that.visitExpression(node.body);
+      }
+    });
   }
 
   * filterLocals(locals: Set<string>, iter: () => Iterable<string>): Iterable<string> {

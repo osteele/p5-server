@@ -29,16 +29,16 @@ export class ESTreeVisitor<T> {
     *visitStatement(node: Statement): Iterable<T> {
         switch (node.type) {
             case 'FunctionDeclaration':
-                for (const child of node.params) {
-                    yield* this.visitPattern(child);
+                for (const param of node.params) {
+                    yield* this.visitPattern(param);
                 }
-                for (const child of node.body.body) {
-                    yield* this.visitStatement(child);
+                for (const stmt of node.body.body) {
+                    yield* this.visitStatement(stmt);
                 }
                 break;
             case 'BlockStatement':
-                for (const child of node.body) {
-                    yield* this.visitStatement(child);
+                for (const stmt of node.body) {
+                    yield* this.visitStatement(stmt);
                 }
                 break;
             case 'DoWhileStatement':
@@ -124,10 +124,22 @@ export class ESTreeVisitor<T> {
     *visitExpression(node: Expression): Iterable<T> {
         switch (node.type) {
             case 'ArrayExpression':
-                for (const child of node.elements) {
-                    if (child && child.type !== 'SpreadElement') {
-                        yield* this.visitExpression(child);
+                for (const elt of node.elements) {
+                    if (elt && elt.type !== 'SpreadElement') {
+                        yield* this.visitExpression(elt);
                     }
+                }
+                break;
+            case 'ArrowFunctionExpression':
+                if (node.params) {
+                    for (const param of node.params) {
+                        yield* this.visitPattern(param);
+                    }
+                }
+                if (node.body.type === 'BlockStatement') {
+                    yield* this.visitStatement(node.body);
+                } else {
+                    yield* this.visitExpression(node.body);
                 }
                 break;
             case 'AssignmentExpression':
@@ -157,6 +169,12 @@ export class ESTreeVisitor<T> {
                 yield* this.visitExpression(node.test);
                 yield* this.visitExpression(node.consequent);
                 yield* this.visitExpression(node.alternate);
+                break;
+            case 'FunctionExpression':
+                for (const param of node.params) {
+                    yield* this.visitPattern(param);
+                }
+                yield* this.visitStatement(node.body);
                 break;
             case 'MemberExpression':
                 if (node.object.type !== 'Super') {
@@ -200,7 +218,6 @@ export class ESTreeVisitor<T> {
             default:
                 console.warn('Visitor: unimplemented expression', node);
         }
-        // TODO: FunctionExpression | ArrowFunctionExpression
         // TODO: ClassExpression
         // TODO: TemplateLiteral | TaggedTemplateExpression | MetaProperty
         // TODO: ImportExpression

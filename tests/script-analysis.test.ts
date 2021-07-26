@@ -18,7 +18,7 @@ test('analyzeScript free variables', () => {
     expect(analyzeScript('function f(a) {let b; c}').freeVariables).toEqual(new Set('c'));
     expect(analyzeScript('function f(a) {let b=c}').freeVariables).toEqual(new Set('c'));
     expect(analyzeScript('function f(a) {let b=a; let c=b}').freeVariables).toEqual(new Set());
-    // expect(analyzeScript('function f() {let b=c; let c=b}').freeVariables).toEqual(new Set('c'));
+    expect(analyzeScript('function f() {let b=c; let c=b}').freeVariables).toEqual(new Set('c'));
 
     // expressions
     expect(analyzeScript('function f() {a + b}').freeVariables).toEqual(new Set(['a', 'b']));
@@ -33,8 +33,8 @@ test('analyzeScript free variables', () => {
     expect(analyzeScript('function f(a) {let b; function g(c) {a+b+c+d}}').freeVariables).toEqual(new Set('d'));
 
     // function expressions
-    // expect(analyzeScript('let f = a => a + b').freeVariables).toEqual(new Set('b'));
-    // expect(analyzeScript('let f = function(a) {a + b}').freeVariables).toEqual(new Set('b'));
+    expect(analyzeScript('let f = function(a) {a + b}').freeVariables).toEqual(new Set('b'));
+    expect(analyzeScript('let f = a => a + b').freeVariables).toEqual(new Set('b'));
 
     // control structures
     // expect(analyzeScript('function f() {for (i=a; i<b; i+=c) d;}').freeVariables).toEqual(new Set(['i', 'a', 'b', 'c', 'd']));
@@ -46,13 +46,21 @@ test('analyzeScript free variables', () => {
 
 test('analyzeScript p5 property references', () => {
     expect(analyzeScript('function f() {}').p5properties).toEqual(new Set());
-    expect(analyzeScript('function f() {p5.p}').p5properties).toEqual(new Set("p"));
-    expect(analyzeScript('function f() {p5.m()}').p5properties).toEqual(new Set("m"));
-    expect(analyzeScript('function f() {new p5.c}').p5properties).toEqual(new Set("c"));
-    expect(analyzeScript('function f() {new p5.c()}').p5properties).toEqual(new Set("c"));
+    expect(analyzeScript('function f() {p5.p}').p5properties).toEqual(new Set('p'));
+    expect(analyzeScript('function f() {p5.m()}').p5properties).toEqual(new Set('m'));
+    expect(analyzeScript('function f() {new p5.c}').p5properties).toEqual(new Set('c'));
+    expect(analyzeScript('function f() {new p5.c()}').p5properties).toEqual(new Set('c'));
+
+    // function expressions
+    expect(analyzeScript('let f = function() {p5.c}').p5properties).toEqual(new Set('c'));
+    expect(analyzeScript('let f = () => p5.c').p5properties).toEqual(new Set('c'));
 });
 
 test('analyzeScript loadXXX calls', () => {
     expect(analyzeScript('function f() {}').loadCallArguments).toEqual(new Set());
-    expect(analyzeScript('function f() {loadImage("s")}').loadCallArguments).toEqual(new Set("s"));
+    expect(analyzeScript('function f() {loadImage("s")}').loadCallArguments).toEqual(new Set('s'));
+
+    // function expressions
+    expect(analyzeScript('let f = function() {loadImage("s")}').loadCallArguments).toEqual(new Set('s'));
+    expect(analyzeScript('let f = () => loadImage("s")').loadCallArguments).toEqual(new Set('s'));
 });

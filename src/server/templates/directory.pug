@@ -44,7 +44,7 @@ html(lang='en')
                     div= project.description
                   .ui.divider
                   div
-                    | Index:
+                    | Main file:
                     |
                     a(href=srcViewHref(project.indexFile))= project.indexFile
                   if project.files.length > 1
@@ -56,11 +56,19 @@ html(lang='en')
                         each file in project.files
                           if file != project.indexFile
                             a.item(href=srcViewHref(file))= file
-                  if project.libraries.length > 0
+                  if project.libraries.withImportPaths.length > 0
                     div
                       | Libraries:
                       |
-                      each library in project.libraries
+                      each library in project.libraries.withImportPaths
+                        a(href=library.homepage)= library.name
+                  if project.libraries.withoutImportPaths.length > 0
+                    div
+                      h5 Library candidates
+                      div.
+                        This sketches uses libraries that can't be automatically included.
+                        Create an HTML file that imports the sketch file and these libraries.
+                      each library in project.libraries.withoutImportPaths
                         a(href=library.homepage)= library.name
               .extra.content
                 a(href=project.indexFile)

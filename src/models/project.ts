@@ -151,20 +151,22 @@ export class Project {
   }
 
   get libraries(): Library[] {
+    let libs: LibraryArray = new LibraryArray();
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {
         const { freeVariables, p5properties } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
-        return libraries.filter(spec => {
-          return spec.globals && spec.globals.some(name => freeVariables!.has(name)) ||
-            spec.props && spec.props.some(name => p5properties!.has(name));
-        });
+        for (const lib of libraries) {
+          if (lib.globals?.some(name => freeVariables!.has(name)) || lib.props?.some(name => p5properties!.has(name))) {
+            libs.push(lib);
+          }
+        }
       } catch (e) {
         if (!(e instanceof JavascriptSyntaxError)) {
           throw e;
         }
       }
     }
-    return [];
+    return libs;
   }
 
   getGeneratedFileContent(base: string) {
@@ -179,6 +181,15 @@ export class Project {
       p5Version
     };
     return nunjucks.render(templatePath, data);
+  }
+}
+
+class LibraryArray extends Array<Library> {
+  get withImportPaths() {
+    return this.filter(lib => lib.path);
+  }
+  get withoutImportPaths() {
+    return this.filter(lib => !lib.path);
   }
 }
 

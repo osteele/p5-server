@@ -3,7 +3,7 @@ import fs from 'fs';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { checkedParseScript, JavascriptSyntaxError } from '../models/program';
+import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
 import { createSketchHtml, isSketchJs } from '../models/project';
 import { createDirectoryListing, sendDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';

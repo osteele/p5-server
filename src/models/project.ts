@@ -3,7 +3,7 @@ import { glob } from 'glob';
 import { parse, HTMLElement } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { analyzeScriptFile, JavascriptSyntaxError } from './program';
+import { analyzeScriptFile, JavascriptSyntaxError } from './script-analysis';
 
 const p5Version = '1.4.0';
 const templateDir = path.join(__dirname, './templates');

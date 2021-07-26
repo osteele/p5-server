@@ -1,4 +1,4 @@
-import { analyzeScript } from "../src/models/program";
+import { analyzeScript } from "../src/models/script-analysis";
 
 test('analyzeScript globals', () => {
     expect(analyzeScript('function f() {}').globals).toEqual(new Set(['f']));

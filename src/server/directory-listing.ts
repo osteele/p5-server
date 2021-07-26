@@ -37,7 +37,7 @@ export function createDirectoryListing(relPath: string, root: string) {
     files,
     projects,
     readme,
-    srcViewHref: (s: string) => s.match(/.*\.(html?|js)$/) ? `${s}/?fmt=view` : s,
+    srcViewHref: (s: string) => s.match(/.*\.(html?|js)$/) ? `${s}?fmt=view` : s,
   });
 }
 

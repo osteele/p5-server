@@ -15,14 +15,13 @@ type ServerOptions = {
   sketchPath: string | null;
 };
 
-let serverOptions: ServerOptions;
-
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
 
 const app = express();
 
 app.get('/', (req, res) => {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
     if (isSketchJs(filePath)) {
@@ -45,6 +44,7 @@ app.get('/__p5_server_assets/:path', (req, res) => {
 });
 
 app.get('/*.html?', (req, res, next) => {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.query.fmt === 'view') {
     res.set('Content-Type', 'text/plain')
     res.sendFile(path.join(serverOptions.root, req.path));
@@ -59,6 +59,7 @@ app.get('/*.html?', (req, res, next) => {
 });
 
 app.get('/*.js', (req, res, next) => {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
     if (isSketchJs(path.join(serverOptions.root, req.path))) {
       const content = createSketchHtml(path.join(serverOptions.root, req.path));
@@ -82,6 +83,7 @@ app.get('/*.js', (req, res, next) => {
 });
 
 app.get('/*.md', (req, res) => {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const fileData = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
     res.send(marked(fileData));
@@ -89,10 +91,11 @@ app.get('/*.md', (req, res) => {
 });
 
 app.get('*', (req, res, next) => {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const filePath = path.join(serverOptions.root, req.path);
     if (fs.statSync(filePath).isDirectory()) {
-      sendDirectoryListing(req.path, filePath, res);
+      sendDirectoryListing(req.path, serverOptions.root, res);
       return;
     }
   }
@@ -100,7 +103,7 @@ app.get('*', (req, res, next) => {
 });
 
 function run(options: ServerOptions, callback: (url: string) => void) {
-  serverOptions = options;
+  Object.assign(app.locals, options);
 
   // do this at startup, for effect only, in order to provide errors and
   // diagnostics immediately

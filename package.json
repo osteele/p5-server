@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "CLI to create, run, and update p5.js sketches and collections",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "main": "index.js",
@@ -25,9 +25,11 @@
     "build": "tsc",
     "dev": "ts-node src/bin/p5-server.ts",
     "dev:serve": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
+    "prepublishOnly": "rm -rf dist && npm run build",
     "test": "jest"
   },
   "files": [
+    "config",
     "dist",
     "templates",
     "README.md"

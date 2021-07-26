@@ -123,7 +123,7 @@ export class Project {
         }
       }
     }
-    return files;
+    return [...new Set(files)];
   }
 
   generate(force = false) {

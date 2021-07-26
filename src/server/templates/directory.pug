@@ -1,0 +1,90 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    title {{ title }}
+    script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
+    script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous')
+    link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
+    style.
+      body {
+        max-width: 800px;
+        margin: auto;
+        padding: 5px;
+      }
+      #readme-title {
+        display: block;
+        padding-bottom: 5px;
+        border-bottom: 1px dotted #ccc;
+      }
+  body
+    .ui.breadcrumb
+      each component, i in pathComponents
+        if i > 0
+          .divider  /
+        if i + 1 == pathComponents.last
+          .section.active= component.name
+        else
+          a.section(href=component.path)= component.name
+    if projects.length
+      .ui.segment
+        h2.ui.header Sketches
+        .ui.three.stackable.cards
+          each project in projects
+            .ui.card
+              .content
+                .header
+                  a(href=project.indexFile)
+                    img.ui.mini.image(src='/assets/p5js-icon.png')
+                    | &ensp;
+                    = project.name
+                .description
+                  if project.description
+                    div= project.description
+                  div
+                    | Index:
+                    |
+                    a(href=srcViewHref(project.indexFile))= project.indexFile
+                  if project.files.length > 1
+                    div
+                      | Other files:
+                      |
+                      each file in project.files
+                        if file != project.indexFile
+                          a(href=srcViewHref(file))= file
+                  if project.libraries.length > 0
+                    div
+                      | Libraries:
+                      |
+                      each library in project.libraries
+                        a(href=library.homepage)= library.name
+              .extra.content
+                a(href=project.rootFile)
+                  i.play.icon
+                  | Run
+    if directories.length
+      .ui.segment
+        h2.ui.header Folders
+        .ui.divided.list
+          each folder in directories
+            .item
+              i.folder.outline.icon
+              a.content(href=folder + '/')= folder
+    if files.length
+      .ui.segment
+        h2.ui.header Loose Files
+        div.
+          These files don't appear to be associated with any sketches in this directory.
+          This may just be because p5-server doesn't currently inspect HTML files to see what other files they include.
+          Also note that p5-server only recognizes literal strings, for example `loadImage("dog.png")`
+          but not `name = "cat.png"; loadImage(name)`.
+        .ui.divided.list
+          each file in files
+            .item
+              i.file.outline.icon
+              a.content(href=file)= file
+    if readme
+      #readme.ui.segment
+        a#readme-title(href=readme.name)= readme.name
+        | !{readme.html}

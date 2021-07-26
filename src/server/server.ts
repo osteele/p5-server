@@ -1,4 +1,5 @@
 import express from 'express';
+import pug from 'pug'
 import { Response } from 'express-serve-static-core';
 import fs from 'fs';
 import marked from 'marked';
@@ -12,6 +13,7 @@ import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 const directoryListingExclusions = ['node_modules', 'package.json', 'package-lock.json'];
 const templateDir = path.join(__dirname, './templates');
+const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
 type ServerOptions = {
   port: number;
@@ -97,20 +99,23 @@ function createDirectoryListing(relDirPath: string, dirPath: string) {
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   const readmeName = files.find(s => s.toLowerCase() === 'readme.md');
-  const readmeHtml = readmeName ? marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')) : null;
+  const readme = readmeName && {
+    name: readmeName,
+    html: marked(fs.readFileSync(path.join(dirPath, readmeName), 'utf8')),
+  };
 
   const directories = files.filter(s => fs.statSync(path.join(dirPath, s)).isDirectory());
   files = files.filter(s => !directories.includes(s) && s !== readmeName);
 
-  const templatePath = path.join(templateDir, 'directory.html');
   const pathComponents = pathComponentsForBreadcrumbs(relDirPath);
-  return nunjucks.render(templatePath, {
+  return directoryListingTmpl({
     pathComponents,
     title: path.basename(dirPath),
     directories,
     files,
     projects,
-    readme: readmeName && { name: readmeName, html: readmeHtml },
+    readme,
+    srcViewHref: (s: string) => s + '?fmt=view',
   });
 }
 

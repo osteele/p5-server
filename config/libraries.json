@@ -305,10 +305,9 @@
   },
   {
     "name": "p5.serial",
-    "name": "p5.serialserver",
+    "packageName": "p5.serialserver",
     "homepage": "https://github.com/p5-serial/p5.serialport",
     "path": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
-    "packageName": "p5.serialserver",
     "props": [
       "SerialPort"
     ]

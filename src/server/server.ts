@@ -45,30 +45,38 @@ app.get('/__p5_server_assets/:path', (req, res) => {
 
 app.get('/*.html?', (req, res, next) => {
   const serverOptions: ServerOptions = req.app.locals as ServerOptions;
-  if (req.query.fmt === 'view') {
-    res.set('Content-Type', 'text/plain')
-    res.sendFile(path.join(serverOptions.root, req.path));
-    return;
-  }
-  if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const content = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
-    res.send(injectLiveReloadScript(content));
-    return;
+  const filePath = path.join(serverOptions.root, req.path);
+  try {
+    if (req.query.fmt === 'view') {
+      res.set('Content-Type', 'text/plain')
+      res.sendFile(filePath);
+      return;
+    }
+    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      res.send(injectLiveReloadScript(content));
+      return;
+    }
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      throw e;
+    }
   }
   next();
 });
 
 app.get('/*.js', (req, res, next) => {
   const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const filePath = path.join(serverOptions.root, req.path);
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
-    if (isSketchJs(path.join(serverOptions.root, req.path))) {
-      const content = createSketchHtml(path.join(serverOptions.root, req.path));
+    if (fs.existsSync(filePath) && isSketchJs(filePath)) {
+      const content = createSketchHtml(filePath);
       res.send(injectLiveReloadScript(content));
       return;
     }
   }
   try {
-    checkedParseScript(path.join(serverOptions.root, req.path));
+    checkedParseScript(filePath);
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {
       const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
@@ -77,17 +85,24 @@ app.get('/*.js', (req, res, next) => {
         message: e.message,
       }));
     }
-    throw e;
+    if (e.code !== 'ENOENT') {
+      throw e;
+    }
   }
   next();
 });
 
-app.get('/*.md', (req, res) => {
+app.get('/*.md', (req, res, next) => {
   const serverOptions: ServerOptions = req.app.locals as ServerOptions;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const fileData = fs.readFileSync(path.join(serverOptions.root, req.path), 'utf-8');
+    const filePath = path.join(serverOptions.root, req.path);
+    if (!fs.existsSync(filePath)) {
+      return next();
+    }
+    const fileData = fs.readFileSync(filePath, 'utf-8');
     res.send(marked(fileData));
   }
+  return next();
 });
 
 app.get('*', (req, res, next) => {

@@ -67,7 +67,7 @@ function findFreeVariables(program: Program): Set<string> {
   }
 }
 
-class FreeVariableIterator extends ESTreeVisitor {
+class FreeVariableIterator extends ESTreeVisitor<string> {
   * visitProgram(node: Program) {
     // TODO: collect variable declarations too
     const globalVariables = findGlobals(this.program);
@@ -186,7 +186,7 @@ function findP5PropertyReferences(program: Program): Set<string> {
   }
 }
 
-class PropertyMemberIterator extends ESTreeVisitor {
+class PropertyMemberIterator extends ESTreeVisitor<string> {
   * visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'MemberExpression') {
       if (node.object.type === 'Identifier' && node.object.name === 'p5'
@@ -207,7 +207,7 @@ function findLoadCalls(program: Program) {
 }
 
 
-class LoadCallIterator extends ESTreeVisitor {
+class LoadCallIterator extends ESTreeVisitor<string> {
   * visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'CallExpression') {
       if (node.callee.type === 'Identifier' && node.callee.name.startsWith('load')

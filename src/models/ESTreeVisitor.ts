@@ -1,7 +1,7 @@
 import { Program } from 'esprima';
 import { Expression, Pattern, Statement, SwitchCase } from 'estree';
 
-export class ESTreeVisitor {
+export class ESTreeVisitor<T> {
     program: Program;
 
     constructor(program: Program) {
@@ -12,7 +12,7 @@ export class ESTreeVisitor {
         yield* this.visitProgram(this.program);
     }
 
-    *visitProgram(program: Program): Iterable<string> {
+    *visitProgram(program: Program): Iterable<T> {
         for (const node of program.body) {
             switch (node.type) {
                 case 'FunctionDeclaration':
@@ -22,7 +22,7 @@ export class ESTreeVisitor {
         }
     }
 
-    *visitStatement(node: Statement): Iterable<string> {
+    *visitStatement(node: Statement): Iterable<T> {
         switch (node.type) {
             case 'FunctionDeclaration':
                 for (const child of node.params) {
@@ -118,7 +118,7 @@ export class ESTreeVisitor {
         // TODO: Declaration | WithStatement
     }
 
-    *visitExpression(node: Expression): Iterable<string> {
+    *visitExpression(node: Expression): Iterable<T> {
         switch (node.type) {
             case 'ArrayExpression':
                 for (const child of node.elements) {
@@ -204,7 +204,7 @@ export class ESTreeVisitor {
         // TODO: ImportExpression
     }
 
-    *visitPattern(node: Pattern): Iterable<string> {
+    *visitPattern(node: Pattern): Iterable<T> {
         switch (node.type) {
             case 'ObjectPattern':
                 for (const prop of node.properties) {

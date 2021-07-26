@@ -39,8 +39,9 @@ app.get('/', (req, res) => {
   }
 });
 
-app.get('/assets/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'static', req.path));
+app.get('/__p5_server_assets/:path', (req, res) => {
+  const filePath = path.join(__dirname, 'static/assets', req.params.path);
+  res.sendFile(filePath);
 });
 
 app.get('/*.html?', (req, res, next) => {
@@ -101,7 +102,7 @@ app.get('*', (req, res, next) => {
 function run(options: ServerOptions, callback: (url: string) => void) {
   serverOptions = options;
 
-  // do this at startup for effect only, in order to provide errors and
+  // do this at startup, for effect only, in order to provide errors and
   // diagnostics immediately
   createDirectoryListing('', options.root);
 

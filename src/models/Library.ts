@@ -85,8 +85,8 @@ export class Library implements LibrarySpec {
   matchesPath(path: string) {
     return this.path === path || this.packageName && getPackageName(path) === this.packageName;
     function getPackageName(s: string) {
-      const m = s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([\/]+)/)
-        || s.match(/^https:\/\/unpkg\.com\/([\/]+)/);
+      const m = s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/)
+        || s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
       return m ? m[1] : undefined;
     }
   }

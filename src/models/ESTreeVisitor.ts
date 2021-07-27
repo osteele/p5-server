@@ -210,7 +210,6 @@ export class ESTreeVisitor<T> {
           yield* this.visitExpression(node.argument);
         }
         break;
-      case 'ArrowFunctionExpression':
       case 'Identifier':
       case 'Literal':
       case 'ThisExpression':

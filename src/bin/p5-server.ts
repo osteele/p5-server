@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import fs from 'fs';
+import path from 'path';
 import create from '../commands/create';
 import serve from '../commands/serve';
 
 const program = new Command()
 
-const appVersion = require('../../package').version;
+const appVersion = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')).version;
 program.version(appVersion);
 
 program

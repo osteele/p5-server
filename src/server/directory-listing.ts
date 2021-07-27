@@ -37,6 +37,7 @@ export function createDirectoryListing(relPath: string, root: string) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function sendDirectoryListing(relPath: string, root: string, res: Response<any, any>) {
   const absPath = path.join(root, relPath);
   let fileData: string;

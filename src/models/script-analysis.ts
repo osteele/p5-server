@@ -19,7 +19,9 @@ export function checkedParseScript(filePath: string): Program {
   const code = fs.readFileSync(filePath, 'utf-8');
   try {
     return parseScript(code);
-  } catch { }
+  } catch {
+    // eslint-disable-next-line no-empty
+  }
   try {
     return parseModule(code);
   } catch (e) {

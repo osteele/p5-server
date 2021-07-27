@@ -28,6 +28,7 @@
     "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js} dist/",
     "dev": "ts-node src/bin/p5-server.ts",
     "dev:serve": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepare": "husky install",
     "prepublishOnly": "npm run build",
     "test": "jest"
@@ -68,6 +69,9 @@
     "@types/node": "^16.4.0",
     "@types/nunjucks": "^3.1.5",
     "@types/open": "^6.2.1",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
+    "eslint": "^7.31.0",
     "husky": "^7.0.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.12",

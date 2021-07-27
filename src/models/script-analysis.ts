@@ -29,19 +29,19 @@ export function checkedParseScript(filePath: string): Program {
   }
 }
 
-type ScriptAnalysis = {
+export type ScriptAnalysis = {
   globals: Set<string>;
   freeVariables?: Set<string>;
   loadCallArguments?: Set<string>;
   p5properties?: Set<string>;
 };
 
-export function analyzeScript(code: string, options: { deep: boolean, filePath?: string } = { deep: true })
+export function analyzeScript(code: string, filePath?: string, deep = true)
   : ScriptAnalysis {
   try {
     const program = parseScript(code);
     const globals = findGlobals(program);
-    if (!options.deep) {
+    if (!deep) {
       return { globals };
     }
     const freeVariables = findFreeVariables(program);
@@ -49,14 +49,14 @@ export function analyzeScript(code: string, options: { deep: boolean, filePath?:
     const loadCallArguments = findLoadCalls(program);
     return { globals, freeVariables, p5properties, loadCallArguments };
   } catch (e) {
-    throw new JavascriptSyntaxError(e.message, options.filePath, code);
+    throw new JavascriptSyntaxError(e.message, filePath, code);
   }
 }
 
-export function analyzeScriptFile(filePath: string, options = { deep: true })
+export function analyzeScriptFile(filePath: string)
   : ScriptAnalysis {
   const code = fs.readFileSync(filePath, 'utf-8');
-  return analyzeScript(code, { ...options, filePath });
+  return analyzeScript(code, filePath);
 }
 
 function findGlobals(program: Program): Set<string> {

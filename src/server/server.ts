@@ -150,15 +150,16 @@ export function sendDirectoryListing(req: Request<any, any, any, any, any>, res:
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-export async function run(options: ServerOptions) {
+export async function run(options: Partial<ServerOptions>) {
+  const derivedOptions: ServerOptions = { root: '.', sketchPath: null, ...options };
   Object.assign(app.locals, options);
   let port = options.port || 3000;
 
-  app.use('/', express.static(options.root));
+  app.use('/', express.static(derivedOptions.root));
 
   // do this at startup, for effect only, in order to provide errors and
   // diagnostics immediately
-  createDirectoryListing('', options.root);
+  createDirectoryListing('', derivedOptions.root);
 
   let server: http.Server;
   for (let p = port; p < port + 10; p++) {
@@ -178,7 +179,7 @@ export async function run(options: ServerOptions) {
   if (!address || typeof address === 'string') {
     throw new Error('Failed to start server 1');
   }
-  const liveReloadServer = createLiveReloadServer(options.root);
+  const liveReloadServer = createLiveReloadServer(derivedOptions.root);
   app.locals.liveReloadServer = liveReloadServer;
   const url = `http://localhost:${address.port}`;
   return { server, liveReloadServer, url };
@@ -215,12 +216,12 @@ export async function run(options: ServerOptions) {
 // This is misleading. There can be only one server.
 // TODO: warn on multiple instantiation
 export class Server {
-  options: ServerOptions;
+  options: Partial<ServerOptions>;
   server: http.Server | null = null;
   liveReloadServer: WebSocket.Server | null = null;
   url?: string;
 
-  constructor(options: ServerOptions) {
+  constructor(options: Partial<ServerOptions>) {
     this.options = options;
   }
 

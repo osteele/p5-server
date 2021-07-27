@@ -1,15 +1,16 @@
 import express from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
 import http from 'http';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
+import WebSocket from 'ws';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
 import { createSketchHtml, isSketchJs } from '../models/Sketch';
-import { createDirectoryListing, sendDirectoryListing } from './directory-listing';
+import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
-import WebSocket from 'ws';
 
 export type ServerOptions = {
   root: string;
@@ -28,15 +29,15 @@ app.get('/', (req, res) => {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
     if (isSketchJs(filePath)) {
       const content = createSketchHtml(filePath);
-      res.send(injectLiveReloadScript(content));
+      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
     } else if (filePath.match(/.*\.html?$/)) {
       const content = fs.readFileSync(filePath, 'utf8');
-      res.send(injectLiveReloadScript(content));
+      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
     } else {
       res.sendFile(serverOptions.sketchPath, { root: serverOptions.root });
     }
   } else {
-    sendDirectoryListing(req.path, serverOptions.root, res);
+    sendDirectoryListing(req, res);
   }
 });
 
@@ -56,7 +57,7 @@ app.get('/*.html?', (req, res, next) => {
     }
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
       const content = fs.readFileSync(filePath, 'utf-8');
-      res.send(injectLiveReloadScript(content));
+      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
       return;
     }
   } catch (e) {
@@ -73,7 +74,7 @@ app.get('/*.js', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
     if (fs.existsSync(filePath) && isSketchJs(filePath)) {
       const content = createSketchHtml(filePath);
-      res.send(injectLiveReloadScript(content));
+      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
       return;
     }
   }
@@ -115,12 +116,39 @@ app.get('*', (req, res, next) => {
       return next();
     }
     if (fs.statSync(filePath).isDirectory()) {
-      sendDirectoryListing(req.path, serverOptions.root, res);
+      sendDirectoryListing(req, res);
       return;
     }
   }
   next();
 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Response<any, any>) {
+  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const relPath = req.path;
+  let fileData: string;
+  let singleProject = false;
+  try {
+    const absPath = path.join(serverOptions.root, relPath);
+    fileData = fs.readFileSync(path.join(absPath, 'index.html'), 'utf-8');
+    singleProject = true;
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      throw e;
+    }
+    fileData = createDirectoryListing(relPath, serverOptions.root);
+  }
+
+  if (singleProject && !relPath.endsWith('/')) {
+    res.redirect(relPath + '/');
+    return;
+  }
+
+  // Note:  this injects the reload script into the generated index pages too.
+  // This is helpful when the directory contents change.
+  res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
+}
 
 export async function run(options: ServerOptions) {
   Object.assign(app.locals, options);
@@ -133,21 +161,25 @@ export async function run(options: ServerOptions) {
   createDirectoryListing('', options.root);
 
   let server: http.Server;
-  try {
-    server = await listenSync(port);
-  } catch (e) {
-    if (e.code !== 'EADDRINUSE') {
-      throw e;
+  for (let p = port; p < port + 10; p++) {
+    try {
+      server = await listenSync(p);
+      break;
+    } catch (e) {
+      if (e.code !== 'EADDRINUSE') {
+        throw e;
+      }
+      console.warn('Address in use, retrying...');
     }
-    console.warn('Address in use, retrying...');
-    server = await listenSync();
   }
+  server ||= await listenSync();
 
   const address = server.address();
   if (!address || typeof address === 'string') {
     throw new Error('Failed to start server 1');
   }
   const liveReloadServer = createLiveReloadServer(options.root);
+  app.locals.liveReloadServer = liveReloadServer;
   const url = `http://localhost:${address.port}`;
   return { server, liveReloadServer, url };
 

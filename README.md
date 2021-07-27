@@ -107,21 +107,23 @@ or the `filename` subdirectory of the current directory.
 * If `filename` is not supplied, the browser displays sketches and files in the
   current directory.
 
-## Notes
+## Implementation Notes
 
 A “JavaScript-only sketch file” is a JavaScript file that includes a function
-definition for either the `setup()` or `draw()` functions.
+definition for `setup()` function, and a call to `createCanvas()`.
 
 Automatic library loading is done by examining the free variables in the sketch.
 A list of libraries, and the global variables that trigger including a library,
 is in `./config/libraries.json`.
 
-Limitations:
+## Limitations
 
 * Generated sketches use a CDN. (I may add an option to use local files instead.)
-* I haven't tested this on instance-mode sketches
-* This hasn't been tested on Windows.
-* It doesn't recognize scripts inside of HTML files
+* I haven't tested this code on instance-mode sketches.
+* The code hasn't been tested on Windows.
+* The code doesn't recognize scripts inside of HTML files.
+* Library inference probably doesn't work on ES modules. (It parses them, but
+  doesn't pay attention to exports)
 
 ## License
 

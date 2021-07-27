@@ -223,11 +223,11 @@ export function isSketchJs(filePath: string) {
   }
 
   try {
-    const { globals } = analyzeScriptFile(filePath, { deep: false });
-    return globals.has('setup') || globals.has('draw');
+    const { globals, freeVariables } = analyzeScriptFile(filePath);
+    return globals.has('setup') && freeVariables!.has('createCanvas');
   } catch (e) {
     if (e instanceof JavascriptSyntaxError) {
-      return e.code.search(/function\s+(setup|draw)\b/) >= 0;
+      return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);
     }
     throw e;
   }

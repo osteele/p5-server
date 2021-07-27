@@ -128,27 +128,29 @@ export class Sketch {
   }
 
   generate(force = false) {
-    const name = this.dirPath;
+    const dirPath = this.dirPath;
     try {
-      fs.mkdirSync(name);
+      fs.mkdirSync(dirPath);
     } catch (e) {
       if (e.code !== 'EEXIST') {
         throw e;
       }
-      if (!fs.statSync(name).isDirectory()) {
-        throw new DirectoryExistsError(`${name} already exists and is not a directory`);
+      if (!fs.statSync(dirPath).isDirectory()) {
+        throw new DirectoryExistsError(`${dirPath} already exists and is not a directory`);
       }
-      if (fs.readdirSync(name).length && !force) {
-        throw new DirectoryExistsError(`${name} already exists and is not empty`);
+      if (fs.readdirSync(dirPath).length && !force && this.htmlPath) {
+        throw new DirectoryExistsError(`${dirPath} already exists and is not empty`);
       }
     }
 
-    this.writeGeneratedFile('index.html');
-    this.writeGeneratedFile('sketch.js');
+    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath) }
+    this.writeGeneratedFile('sketch.js', this.jsSketchPath);
   }
 
-  private writeGeneratedFile(base: string) {
-    fs.writeFileSync(path.join(this.dirPath, base), this.getGeneratedFileContent(base));
+  private writeGeneratedFile(templateName: string, relPath: string) {
+    const filePath = path.join(this.dirPath, relPath);
+    fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName));
+    console.log(`Created ${filePath}`);
   }
 
   get libraries(): Library[] {

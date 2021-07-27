@@ -87,6 +87,10 @@ Run `p5 <command> --help` to see command-line options.
 Creates a folder named `sketch-name` (default `sketch`), that contains an
 `index.html` file and a `sketch.js` file.
 
+### `p5 create [sketch-name] --no-html`
+
+Creates a file named `sketch-name.js` in the current directory.
+
 ### `p5 serve [filename]`
 
 Runs a web server that serves the current directory (if there is no argument),

@@ -16,6 +16,7 @@ program
   .alias('generate')
   .alias('g')
   .description('Create a new p5.js sketch')
+  .option('--no-html', 'only create a JavaScript file')
   .option('-f, --force', 'force overwite of existing files')
   .option('-t, --title [title]', 'sketch title')
   .action(create);

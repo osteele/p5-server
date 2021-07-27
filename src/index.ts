@@ -1,4 +1,4 @@
-import { Project } from './models/Project';
+import { Sketch } from './models/Sketch';
 import { Server, ServerOptions } from './server/server';
 
-export { Project, Server, ServerOptions };
+export { Sketch, Server, ServerOptions };

@@ -16,7 +16,7 @@ export class DirectoryExistsError extends Error {
   }
 }
 
-export class Project {
+export class Sketch {
   dirPath: string;
   htmlPath: string | null;
   jsSketchPath: string;
@@ -39,7 +39,7 @@ export class Project {
     const title = htmlRoot.querySelector('head title')?.text.trim();
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getScriptFiles(htmlRoot);
-    return new Project(dirPath, path.basename(htmlPath), scripts[0], { title, description });
+    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { title, description });
   }
 
   static fromJsFile(filePath: string) {
@@ -49,7 +49,7 @@ export class Project {
       const content = fs.readFileSync(filePath, 'utf-8');
       description = this.getJsDescription(content);
     }
-    return new Project(dirPath, null, path.basename(filePath), { description });
+    return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
   private static getScriptFiles(htmlRoot: HTMLElement) {
@@ -110,7 +110,7 @@ export class Project {
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
         const htmlRoot = parse(htmlContent);
-        files = [...files, ...Project.getScriptFiles(htmlRoot)];
+        files = [...files, ...Sketch.getScriptFiles(htmlRoot)];
       }
     }
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
@@ -175,16 +175,16 @@ export class Project {
 }
 
 export function createSketchHtml(sketchPath: string) {
-  const project = new Project(path.dirname(sketchPath), null, path.basename(sketchPath));
+  const project = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
   return project.getGeneratedFileContent('index.html');
 }
 
 export function findProjects(dir: string, { excludeDirs }: { excludeDirs?: string[] }) {
-  const projects: Project[] = [];
+  const projects: Sketch[] = [];
   for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
     const htmlPath = path.join(dir, file);
     if (isSketchHtml(htmlPath)) {
-      projects.push(Project.fromHtmlFile(htmlPath));
+      projects.push(Sketch.fromHtmlFile(htmlPath));
     }
   }
 
@@ -192,7 +192,7 @@ export function findProjects(dir: string, { excludeDirs }: { excludeDirs?: strin
   for (const file of removeProjectFiles()) {
     const filePath = path.join(dir, file);
     if (isSketchJs(filePath)) {
-      projects.push(Project.fromJsFile(filePath));
+      projects.push(Sketch.fromJsFile(filePath));
     }
   }
   return { files: removeProjectFiles(), projects };

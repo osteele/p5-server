@@ -3,7 +3,7 @@ import fs from 'fs';
 import marked from 'marked';
 import path from 'path';
 import pug from 'pug';
-import { findProjects } from '../models/Project';
+import { findProjects } from '../models/Sketch';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 import { injectLiveReloadScript } from './liveReload';

@@ -1,8 +1,8 @@
-import { DirectoryExistsError, Project } from '../models/Project';
+import { DirectoryExistsError, Sketch } from '../models/Sketch';
 import { die } from '../utils';
 
 export default function create(name: string = 'sketch', options: { force: boolean, title: string }) {
-  const project = new Project(name, 'index.html', 'sketch.js', options);
+  const project = new Sketch(name, 'index.html', 'sketch.js', options);
   try {
     project.generate(options.force);
   } catch (err) {

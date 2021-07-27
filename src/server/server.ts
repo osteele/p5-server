@@ -4,7 +4,7 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
-import { createSketchHtml, isSketchJs } from '../models/Project';
+import { createSketchHtml, isSketchJs } from '../models/Sketch';
 import { createDirectoryListing, sendDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';

@@ -9,6 +9,7 @@ import { createSketchHtml, isSketchJs } from '../models/Sketch';
 import { createDirectoryListing, sendDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
+import WebSocket from 'ws';
 
 export type ServerOptions = {
   root: string;
@@ -121,9 +122,9 @@ app.get('*', (req, res, next) => {
   next();
 });
 
-export function run(options: ServerOptions, callback?: (url: string) => void) {
+export async function run(options: ServerOptions) {
   Object.assign(app.locals, options);
-  const port = options.port || 3000;
+  let port = options.port || 3000;
 
   app.use('/', express.static(options.root));
 
@@ -131,15 +132,52 @@ export function run(options: ServerOptions, callback?: (url: string) => void) {
   // diagnostics immediately
   createDirectoryListing('', options.root);
 
-  // TODO: scan for another port when the default port is in use and was not
-  // explicitly specified
-  const server = app.listen(port, () => {
-    const serverUrl = `http://localhost:${port}`;
-    console.log(`Serving ${options.root} at ${serverUrl}`);
-    callback && callback(serverUrl);
-  });
-  createLiveReloadServer(options.root);
-  return server;
+  let server: http.Server;
+  try {
+    server = await listenSync(port);
+  } catch (e) {
+    if (e.code !== 'EADDRINUSE') {
+      throw e;
+    }
+    console.warn('Address in use, retrying...');
+    server = await listenSync();
+  }
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Failed to start server 1');
+  }
+  const liveReloadServer = createLiveReloadServer(options.root);
+  const url = `http://localhost:${address.port}`;
+  return { server, liveReloadServer, url };
+
+  function listenSync(port?: number) {
+    return new Promise<http.Server>((resolve, reject) => {
+      const server = app.listen(port);
+      server.on('error', e => {
+        clearTimeout(timeoutTimer);
+        clearInterval(intervalTimer);
+        reject(e);
+      });
+      const timeoutTimer = setTimeout(() => {
+        const address = server.address();
+        clearInterval(intervalTimer);
+        if (address) {
+          resolve(server);
+        } else {
+          reject(new Error('Failed to start server'));
+        }
+      }, 1000);
+      const intervalTimer = setInterval(() => {
+        const address = server.address();
+        if (address) {
+          clearInterval(intervalTimer);
+          clearTimeout(timeoutTimer);
+          resolve(server);
+        }
+      }, 50);
+    });
+  }
 }
 
 // This is misleading. There can be only one server.
@@ -147,23 +185,26 @@ export function run(options: ServerOptions, callback?: (url: string) => void) {
 export class Server {
   options: ServerOptions;
   server: http.Server | null = null;
-  url?: string | undefined;
+  liveReloadServer: WebSocket.Server | null = null;
+  url?: string;
 
   constructor(options: ServerOptions) {
     this.options = options;
   }
 
-  start(callback?: (url: string) => void) {
-    this.server = run(this.options, (url) => {
-      this.url = url;
-      callback && callback(url);
-    });
+  async start() {
+    const { server, liveReloadServer, url } = await run(this.options);
+    this.server = server;
+    this.liveReloadServer = liveReloadServer;
+    this.url = url;
     return this;
   }
 
   stop() {
     this.server?.close();
+    this.liveReloadServer?.close();
     this.server = null;
+    this.liveReloadServer = null;
     this.url = undefined;
   }
 }

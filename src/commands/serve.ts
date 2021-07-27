@@ -23,7 +23,7 @@ export default async function serve(name: string, options = { open: false, port:
     port: Number(options.port),
     sketchPath,
   };
-  server.run(serverOptions, (url) => {
-    if (options.open) open(url);
-  });
+  const { url } = await server.run(serverOptions);
+  console.log(`Serving ${name} at ${url}`);
+  if (options.open) open(url);
 }

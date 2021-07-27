@@ -15,6 +15,7 @@ export function injectLiveReloadScript(content: string) {
 
 export function createLiveReloadServer(watchDir: string) {
   // TODO: scan for another live reload port when in use
-  livereload.createServer({ port: liveReloadPort })
-    .watch(watchDir);
+  const server = livereload.createServer({ port: liveReloadPort });
+  server.watch(watchDir);
+  return server.server;
 }

@@ -9,7 +9,7 @@ import { createDirectoryListing, sendDirectoryListing } from './directory-listin
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
-type ServerOptions = {
+export type ServerOptions = {
   port: number;
   root: string;
   sketchPath: string | null;
@@ -120,7 +120,7 @@ app.get('*', (req, res, next) => {
   next();
 });
 
-function run(options: ServerOptions, callback: (url: string) => void) {
+export function run(options: ServerOptions, callback?: (url: string) => void) {
   Object.assign(app.locals, options);
 
   // do this at startup, for effect only, in order to provide errors and
@@ -139,7 +139,19 @@ function run(options: ServerOptions, callback: (url: string) => void) {
   createLiveReloadServer(options.root);
 }
 
-export default {
-  app,
-  run
-};
+// This is misleading. There can be only one server.
+// TODO: warn on multiple instantiation
+export class Server {
+  options: ServerOptions;
+  constructor(options: ServerOptions) {
+    this.options = options;
+  }
+
+  start(callback?: (url: string) => void) {
+    run(this.options, callback);
+  }
+
+  stop() {
+    // TODO
+  }
+}

@@ -8,5 +8,5 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": ["tests"]
+  "exclude": ["tests", "dist", "node_modules"]
 }

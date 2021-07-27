@@ -1,7 +1,7 @@
 import fs from 'fs';
 import open from 'open';
 import path from 'path';
-import * as server from '../server/server';
+import * as server from '../server/Server';
 
 export default async function serve(name: string, options = { open: false, port: '3000' }) {
   let root: string;

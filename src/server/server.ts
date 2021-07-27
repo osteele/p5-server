@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import http from 'http';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
@@ -10,8 +11,8 @@ import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 
 export type ServerOptions = {
-  port: number;
   root: string;
+  port?: number;
   sketchPath: string | null;
 };
 
@@ -122,36 +123,47 @@ app.get('*', (req, res, next) => {
 
 export function run(options: ServerOptions, callback?: (url: string) => void) {
   Object.assign(app.locals, options);
+  const port = options.port || 3000;
+
+  app.use('/', express.static(options.root));
 
   // do this at startup, for effect only, in order to provide errors and
   // diagnostics immediately
   createDirectoryListing('', options.root);
 
-  app.use('/', express.static(options.root));
-
   // TODO: scan for another port when the default port is in use and was not
   // explicitly specified
-  app.listen(options.port, () => {
-    const serverUrl = `http://localhost:${options.port}`;
+  const server = app.listen(port, () => {
+    const serverUrl = `http://localhost:${port}`;
     console.log(`Serving ${options.root} at ${serverUrl}`);
     callback && callback(serverUrl);
   });
   createLiveReloadServer(options.root);
+  return server;
 }
 
 // This is misleading. There can be only one server.
 // TODO: warn on multiple instantiation
 export class Server {
   options: ServerOptions;
+  server: http.Server | null = null;
+  url?: string | undefined;
+
   constructor(options: ServerOptions) {
     this.options = options;
   }
 
   start(callback?: (url: string) => void) {
-    run(this.options, callback);
+    this.server = run(this.options, (url) => {
+      this.url = url;
+      callback && callback(url);
+    });
+    return this;
   }
 
   stop() {
-    // TODO
+    this.server?.close();
+    this.server = null;
+    this.url = undefined;
   }
 }

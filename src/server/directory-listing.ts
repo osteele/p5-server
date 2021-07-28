@@ -2,7 +2,7 @@ import fs from 'fs';
 import marked from 'marked';
 import path from 'path';
 import pug from 'pug';
-import { findProjects } from '../models/Sketch';
+import { Sketch } from '../models/Sketch';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 
@@ -11,7 +11,7 @@ const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.p
 
 export function createDirectoryListing(relPath: string, root: string) {
   const absPath = path.join(root, relPath);
-  let { projects, files } = findProjects(absPath, { excludeDirs: directoryListingExclusions });
+  let { projects, nonProjectFiles: files } = Sketch.findProjects(absPath, { exclusions: directoryListingExclusions });
   files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   const readmeName = files.find(s => s.toLowerCase() === 'readme.md');

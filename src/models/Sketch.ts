@@ -1,11 +1,11 @@
 import fs from 'fs';
-import { glob } from 'glob';
 import minimatch from 'minimatch';
 import { HTMLElement, parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import { Library, p5Version } from './Library';
-import { analyzeScriptFile, JavascriptSyntaxError } from './script-analysis';
+import { Script } from './Script';
+import { JavascriptSyntaxError } from './script-analysis';
 
 const templateDir = path.join(__dirname, './templates');
 
@@ -50,6 +50,61 @@ export class Sketch {
       description = this.getJsDescription(content);
     }
     return new Sketch(dirPath, null, path.basename(filePath), { description });
+  }
+
+  static findProjects(dir: string, { exclusions: excludePatterns }: { exclusions?: string[] }) {
+    const projects: Sketch[] = [];
+    let files = fs.readdirSync(dir).filter(s => !excludePatterns?.some(exclusion => minimatch(s, exclusion)));
+
+    // collect HTML sketches
+    for (const file of files) {
+      const filePath = path.join(dir, file);
+      if (Sketch.isSketchHtml(filePath)) {
+        projects.push(Sketch.fromHtmlFile(filePath));
+      }
+    }
+
+    // collect JS sketches
+    for (const file of removeProjectFiles(files)) {
+      const filePath = path.join(dir, file);
+      if (Sketch.isSketchJs(filePath)) {
+        projects.push(Sketch.fromJsFile(filePath));
+      }
+    }
+    return { projects, files, nonProjectFiles: removeProjectFiles(files) };
+
+    function removeProjectFiles(files: string[]) {
+      return files.filter(f => !projects.some(p => p.files.includes(f)));
+    }
+  }
+
+  static isSketchHtml(filePath: string) {
+    if (fs.statSync(filePath).isDirectory()) { return false; }
+    if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
+      return false;
+    }
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const htmlRoot = parse(content);
+    const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
+    return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
+  }
+
+  static isSketchJs(filePath: string) {
+    if (fs.statSync(filePath).isDirectory()) { return false; }
+    if (!filePath.endsWith('.js')) {
+      return false;
+    }
+
+    try {
+      const { globals, freeVariables } = Script.fromFile(filePath);
+      return globals.has('setup') && freeVariables!.has('createCanvas');
+    } catch (e) {
+      if (e instanceof JavascriptSyntaxError) {
+        return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);
+      }
+      throw e;
+    }
   }
 
   private static getScriptFiles(htmlRoot: HTMLElement) {
@@ -115,7 +170,7 @@ export class Sketch {
     }
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
       try {
-        const { loadCallArguments } = analyzeScriptFile(path.join(this.dirPath, this.jsSketchPath));
+        const { loadCallArguments } = Script.fromFile(path.join(this.dirPath, this.jsSketchPath));
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
@@ -179,56 +234,4 @@ export class Sketch {
 export function createSketchHtml(sketchPath: string) {
   const project = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
   return project.getGeneratedFileContent('index.html');
-}
-
-export function findProjects(dir: string, { excludeDirs }: { excludeDirs?: string[] }) {
-  const projects: Sketch[] = [];
-  for (const file of glob.sync('*.@(html|html)', { cwd: dir })) {
-    const htmlPath = path.join(dir, file);
-    if (isSketchHtml(htmlPath)) {
-      projects.push(Sketch.fromHtmlFile(htmlPath));
-    }
-  }
-
-  let files = fs.readdirSync(dir).filter(s => !excludeDirs?.some(exclusion => minimatch(s, exclusion)));
-  for (const file of removeProjectFiles()) {
-    const filePath = path.join(dir, file);
-    if (isSketchJs(filePath)) {
-      projects.push(Sketch.fromJsFile(filePath));
-    }
-  }
-  return { files: removeProjectFiles(), projects };
-
-  function removeProjectFiles() {
-    return files.filter(f => !projects.some(p => p.files.includes(f)));
-  }
-}
-
-function isSketchHtml(filePath: string) {
-  if (fs.statSync(filePath).isDirectory()) { return false; }
-  if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
-    return false;
-  }
-
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const htmlRoot = parse(content);
-  const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
-  return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
-}
-
-export function isSketchJs(filePath: string) {
-  if (fs.statSync(filePath).isDirectory()) { return false; }
-  if (!filePath.endsWith('.js')) {
-    return false;
-  }
-
-  try {
-    const { globals, freeVariables } = analyzeScriptFile(filePath);
-    return globals.has('setup') && freeVariables!.has('createCanvas');
-  } catch (e) {
-    if (e instanceof JavascriptSyntaxError) {
-      return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);
-    }
-    throw e;
-  }
 }

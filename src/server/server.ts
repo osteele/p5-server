@@ -5,7 +5,7 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
-import { createSketchHtml, isSketchJs } from '../models/Sketch';
+import { Sketch, createSketchHtml } from '../models/Sketch';
 import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
   const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
-    if (isSketchJs(filePath)) {
+    if (Sketch.isSketchJs(filePath)) {
       const content = createSketchHtml(filePath);
       res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
     } else if (filePath.match(/.*\.html?$/)) {
@@ -74,7 +74,7 @@ app.get('/*.js', (req, res, next) => {
   const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const filePath = path.join(serverOptions.root, req.path);
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
-    if (fs.existsSync(filePath) && isSketchJs(filePath)) {
+    if (fs.existsSync(filePath) && Sketch.isSketchJs(filePath)) {
       const content = createSketchHtml(filePath);
       res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
       return;

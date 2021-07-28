@@ -39,7 +39,7 @@ export class Sketch {
     const htmlRoot = parse(htmlContent);
     const title = htmlRoot.querySelector('head title')?.text.trim();
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
-    const scripts = this.getScriptFiles(htmlRoot);
+    const scripts = this.getScriptFiles(htmlRoot, '');
     return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { title, description });
   }
 
@@ -53,9 +53,29 @@ export class Sketch {
     return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
-  static findProjects(dir: string, { exclusions: excludePatterns }: { exclusions?: string[] }) {
+  static findProjects(dir: string, { exclusions }: { exclusions?: string[] }) {
     const projects: Sketch[] = [];
-    let files = fs.readdirSync(dir).filter(s => !excludePatterns?.some(exclusion => minimatch(s, exclusion)));
+
+    let files = fs.readdirSync(dir)
+      .filter(s => !exclusions?.some(exclusion => minimatch(s, exclusion)));
+
+    files = files.filter(name => {
+      const dirPath = path.join(dir, name);
+      const project = Sketch.isSketchDir(dirPath, { exclusions });
+      if (project) {
+        // Re-create the project so that all the file names are relative to this
+        // directory, not the project directory; and name it after the directory
+        // so that it can be distinguished from other directory sketches (which
+        // all tend to have the same name).
+
+        // FIXME: the following works but is terrible code.
+        projects.push(new Sketch(dir,
+          project.htmlPath && path.join(name, project.htmlPath),
+          project.jsSketchPath && path.join(name, project.jsSketchPath),
+          { title: name + '/', description: project.description }));
+      }
+      return !project;
+    });
 
     // collect HTML sketches
     for (const file of files) {
@@ -108,10 +128,20 @@ export class Sketch {
     }
   }
 
-  private static getScriptFiles(htmlRoot: HTMLElement) {
+  static isSketchDir(dirPath: string, { exclusions }: { exclusions?: string[] }) {
+    if (!fs.statSync(dirPath).isDirectory()) { return false; }
+    const { projects, files } = Sketch.findProjects(dirPath, { exclusions });
+    return (projects.length === 1 &&
+      !files.some(file => /^readme($|\.)/i.test(file)))
+      ? projects[0]
+      : null;
+  }
+
+  private static getScriptFiles(htmlRoot: HTMLElement, dir: string) {
     return htmlRoot.querySelectorAll('script')
       .map(e => e.attributes.src.replace(/^\.\//, ''))
-      .filter(s => !s.match(/https?:/));
+      .filter(s => !s.match(/https?:/))
+      .map(s => dir != '' ? path.join(dir, s) : s);
   }
 
   private static getJsDescription(content: string) {
@@ -156,17 +186,17 @@ export class Sketch {
   get files() {
     let files: string[] = [];
     if (this.htmlPath) {
-      files.push(path.basename(this.htmlPath));
+      files.push(this.htmlPath);
     }
     if (this.jsSketchPath) {
-      files.push(path.basename(this.jsSketchPath));
+      files.push(this.jsSketchPath);
     }
     if (this.htmlPath) {
       const filePath = path.join(this.dirPath, this.htmlPath);
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
         const htmlRoot = parse(htmlContent);
-        files = [...files, ...Sketch.getScriptFiles(htmlRoot)];
+        files = [...files, ...Sketch.getScriptFiles(htmlRoot, path.dirname(this.htmlPath))];
       }
     }
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {

@@ -53,8 +53,8 @@ app.get('/*.html?', (req, res, next) => {
   const filePath = path.join(serverOptions.root, req.path);
   try {
     if (req.query.fmt === 'view') {
-      res.set('Content-Type', 'text/plain')
-      res.sendFile(filePath);
+      res.set('Content-Type', 'text/plain');
+      res.sendFile(req.path, { root: serverOptions.root });
       return;
     }
     if (req.headers['accept']?.match(/\btext\/html\b/)) {

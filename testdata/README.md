@@ -1,7 +1,9 @@
-# Markdown
+# Test Cases
 
-This content should be shown in the directory listing.
+This directory contains a set of test cases for p5-server.
 
-* a
-* bullet
-* list
+The content of this README should be shown in the directory listing.
+
+`implicit-imports` tests automatic library loading.
+
+`subdir` contains just a README. It tests the display of subdirectories.

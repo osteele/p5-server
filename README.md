@@ -117,6 +117,9 @@ itself define `createCanvas`).
 An HTML sketch file is an HTML file that includes a `<script>` element with a
 `src` attribute that ends in `p5.js` or `p5.min.js`.
 
+A directory is recognized as a sketch if it contains a single sketch and either
+no loose files, or the only loose file is a README.
+
 ### Sketch descriptions
 
 The directory listing displays the sketch description. For an HTML sketch, this

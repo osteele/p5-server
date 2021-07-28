@@ -1,16 +1,16 @@
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
-import http from 'http';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import WebSocket from 'ws';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
 import { createSketchHtml, isSketchJs } from '../models/Sketch';
 import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
+import WebSocket = require('ws');
+import http = require('http');
 
 export type ServerOptions = {
   root: string;

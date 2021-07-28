@@ -1,4 +1,4 @@
 import { Sketch } from './models/Sketch';
-import { Server, ServerOptions } from './server/Server';
+import { Server, ServerConfig } from './server/Server';
 
-export { Sketch, Server, ServerOptions };
+export { Sketch, Server, ServerConfig as ServerOptions };

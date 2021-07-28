@@ -12,11 +12,13 @@ import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
 
-export type ServerOptions = {
+export type ServerConfig = {
   root: string;
   port?: number;
   sketchPath: string | null;
 };
+
+export type ServerOptions = Partial<ServerConfig>;
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
@@ -24,7 +26,7 @@ jsTemplateEnv.addFilter('quote', JSON.stringify);
 const app = express();
 
 app.get('/', (req, res) => {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
     if (isSketchJs(filePath)) {
@@ -47,7 +49,7 @@ app.get('/__p5_server_assets/:path', (req, res) => {
 });
 
 app.get('/*.html?', (req, res, next) => {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const filePath = path.join(serverOptions.root, req.path);
   try {
     if (req.query.fmt === 'view') {
@@ -69,7 +71,7 @@ app.get('/*.html?', (req, res, next) => {
 });
 
 app.get('/*.js', (req, res, next) => {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const filePath = path.join(serverOptions.root, req.path);
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
     if (fs.existsSync(filePath) && isSketchJs(filePath)) {
@@ -96,7 +98,7 @@ app.get('/*.js', (req, res, next) => {
 });
 
 app.get('/*.md', (req, res, next) => {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const filePath = path.join(serverOptions.root, req.path);
     if (!fs.existsSync(filePath)) {
@@ -109,7 +111,7 @@ app.get('/*.md', (req, res, next) => {
 });
 
 app.get('*', (req, res, next) => {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
     const filePath = path.join(serverOptions.root, req.path);
     if (!fs.existsSync(filePath)) {
@@ -124,8 +126,8 @@ app.get('*', (req, res, next) => {
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Response<any, any>) {
-  const serverOptions: ServerOptions = req.app.locals as ServerOptions;
+function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Response<any, any>) {
+  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const relPath = req.path;
   let fileData: string;
   let singleProject = false;
@@ -150,8 +152,8 @@ export function sendDirectoryListing(req: Request<any, any, any, any, any>, res:
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-export async function run(options: Partial<ServerOptions>) {
-  const derivedOptions: ServerOptions = { root: '.', sketchPath: null, ...options };
+async function startServer(options: ServerOptions) {
+  const derivedOptions: ServerConfig = { root: '.', sketchPath: null, ...options };
   Object.assign(app.locals, options);
   let port = options.port || 3000;
 
@@ -179,10 +181,15 @@ export async function run(options: Partial<ServerOptions>) {
   if (!address || typeof address === 'string') {
     throw new Error('Failed to start server 1');
   }
-  const liveReloadServer = createLiveReloadServer(derivedOptions.root);
-  app.locals.liveReloadServer = liveReloadServer;
-  const url = `http://localhost:${address.port}`;
-  return { server, liveReloadServer, url };
+  try {
+    const liveReloadServer = createLiveReloadServer(derivedOptions.root);
+    app.locals.liveReloadServer = liveReloadServer;
+    const url = `http://localhost:${address.port}`;
+    return { server, liveReloadServer, url };
+  } catch (e) {
+    server.close();
+    throw e;
+  }
 
   function listenSync(port?: number) {
     return new Promise<http.Server>((resolve, reject) => {
@@ -214,19 +221,23 @@ export async function run(options: Partial<ServerOptions>) {
 }
 
 // This is misleading. There can be only one server.
-// TODO: warn on multiple instantiation
+// TODO: warn on multiple instances
 export class Server {
-  options: Partial<ServerOptions>;
+  options: ServerOptions;
   server: http.Server | null = null;
-  liveReloadServer: WebSocket.Server | null = null;
+  protected liveReloadServer: WebSocket.Server | null = null;
   url?: string;
 
-  constructor(options: Partial<ServerOptions>) {
+  constructor(options: ServerOptions) {
     this.options = options;
   }
 
+  static async start(options: ServerOptions) {
+    return new Server(options).start();
+  }
+
   async start() {
-    const { server, liveReloadServer, url } = await run(this.options);
+    const { server, liveReloadServer, url } = await startServer(this.options);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;

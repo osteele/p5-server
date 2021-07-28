@@ -1,7 +1,7 @@
 import fs from 'fs';
 import open from 'open';
 import path from 'path';
-import * as server from '../server/Server';
+import { Server } from '../server/Server';
 
 export default async function serve(name: string, options = { open: false, port: '3000' }) {
   let root: string;
@@ -23,7 +23,7 @@ export default async function serve(name: string, options = { open: false, port:
     port: Number(options.port),
     sketchPath,
   };
-  const { url } = await server.run(serverOptions);
-  console.log(`Serving ${name} at ${url}`);
-  if (options.open) open(url);
+  const server = await Server.start(serverOptions);
+  console.log(`Serving ${name} at ${server.url}`);
+  if (options.open && server.url) open(server.url);
 }

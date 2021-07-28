@@ -199,12 +199,15 @@ export class Sketch {
       }
     }
 
-    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath, options) }
-    this.writeGeneratedFile('sketch.js.njk', this.jsSketchPath, options);
+    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath, force, options) }
+    this.writeGeneratedFile('sketch.js.njk', this.jsSketchPath, force, options);
   }
 
-  private writeGeneratedFile(templateName: string, relPath: string, options: Record<string, unknown>) {
+  private writeGeneratedFile(templateName: string, relPath: string, force: boolean, options: Record<string, unknown>) {
     const filePath = path.join(this.dirPath, relPath);
+    if (!force && fs.existsSync(filePath)) {
+      throw new Error(`${filePath} already exists`);
+    }
     fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
     console.log(`Created ${filePath}`);
   }

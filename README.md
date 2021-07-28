@@ -17,41 +17,20 @@ This is a work in progress.
 
 ## Features
 
-### Live reload
-
-The browser reloads the page, when any file in its directory is modified.
-
-### JavaScript-only sketches
-
-Click on a JavaScript sketch file (or run e.g. `p5 serve sketch.js`) to run a
-p5.js sketch that consists of a single JavaScript file, without an associated
-HTML file.
-
-### Automatic library inclusion
-
-JavaScript-only sketches automatically include many of the libraries that are
-isted on the [p5.js Libraries page](https://p5js.org/libraries/), as well as
-[dat.gui](https://github.com/dataarts/dat.gui). For example, if the sketch calls
-`loadSound`, it will include the p5.sound library. If it refers to `ml5`, it
-will include the ml5.js library.
-
-### In-Page Syntax errors
-
-Syntax error are displayed in the HTML body. This way you see them ecven if you
-don't open the browser developer console.
-
-(Yes, everybody should do program development with the console open or a
-debugger attached. I've still found this to be a barrier to getting started with
-p5.js: no matter of classroom instruction reduces the time to build that habit
-to zero.)
-
-### Directory listing
-
-Viewing a directory in the browser lists the sketches in that directory.
-
-### Sketch generation
-
-`p5 generate` creates an `index.html` / `sketch.js` pair of files.
+* **Live reload**. The browser reloads the page, when any file in its directory is
+  modified.
+* **JavaScript-only sketches**. Run a sketch that's just a JavaScript file (e.g.
+  `p5 serve sketch.js`). You don't need to create an HTML wrapper.
+* **Automatic library includes**. If the server detects that your JavaScript-only
+  sketch requires a [p5.js library](https://p5js.org/libraries/), it will
+  automatically include it. (See
+  [here](https://github.com/osteele/p5-server#automatic-library-inclusion) for
+  how this works.)
+* **In-Page syntax errors**. If a JavaScript file has a syntax error, it is
+  displayed in the body of the page (you don't have to check the console).
+* **P5-aware directory listings**. Viewing a directory in the browser lists the
+  sketches, folders, other files in that directory.
+* **Sketch generation**. `p5 generate` creates an `index.html` / `sketch.js` pair of files.
 
 ## Installation and Quick Start
 
@@ -109,10 +88,25 @@ or the `filename` subdirectory of the current directory.
 
 ## Implementation Notes
 
+### Sketch file recognition
+
 A “JavaScript-only sketch file” is a JavaScript file that includes a function
 definition for `setup()` function, and a call to `createCanvas()`.
 
-Automatic library loading is done by examining the free variables in the sketch.
+An HTML sketch file is an HTML file that includes a `<script>` tag that sources
+a URL that ends in `p5.js` or `p5.min.js`.
+
+### Automatic library inclusion
+
+JavaScript-only sketches automatically include many of the libraries that are
+isted on the [p5.js Libraries page](https://p5js.org/libraries/), as well as
+[dat.gui](https://github.com/dataarts/dat.gui). For example, if the sketch calls
+`loadSound`, it will include the p5.sound library. If it refers to `ml5`, it
+will include the ml5.js library.
+
+Automatic library loading is done by examining the free variables, and
+references to `p5.prop` where `prop` is any property name, in the sketch.
+
 A list of libraries, and the global variables that trigger including a library,
 is in `./config/libraries.json`.
 
@@ -125,6 +119,18 @@ is in `./config/libraries.json`.
 * Library inference probably doesn't work on ES modules. (It parses them, but
   doesn't pay attention to exports)
 
+## Acknowledgements
+
+This project builds on these libraries and frameworks:
+
+* commander, for parsing command-line arguments
+* esprima and node-html-parser for parsing JavaScript and HTML, respectively
+* expressjs for the web server
+* livereload for the live reload functionality
+* marked for converting Markdown to HTML
+* nunjucks and pug for template generation
+* The Semantic UI CSS framework
+
 ## License
 
-ISC
+ISC © Oliver Steele

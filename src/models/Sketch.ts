@@ -8,6 +8,7 @@ import { Script } from './Script';
 import { JavascriptSyntaxError } from './script-analysis';
 
 const templateDir = path.join(__dirname, './templates');
+const defaultGenerationOptions = { draw: true, examples: true }
 
 export class DirectoryExistsError extends Error {
   constructor(msg: string) {
@@ -182,7 +183,7 @@ export class Sketch {
     return [...new Set(files)];
   }
 
-  generate(force = false) {
+  generate(force = false, options: Record<string, unknown> = {}) {
     const dirPath = this.dirPath;
     try {
       fs.mkdirSync(dirPath);
@@ -198,13 +199,13 @@ export class Sketch {
       }
     }
 
-    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath) }
-    this.writeGeneratedFile('sketch.js', this.jsSketchPath);
+    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath, options) }
+    this.writeGeneratedFile('sketch.js.njk', this.jsSketchPath, options);
   }
 
-  private writeGeneratedFile(templateName: string, relPath: string) {
+  private writeGeneratedFile(templateName: string, relPath: string, options: Record<string, unknown>) {
     const filePath = path.join(this.dirPath, relPath);
-    fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName));
+    fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
     console.log(`Created ${filePath}`);
   }
 
@@ -216,7 +217,7 @@ export class Sketch {
       this.htmlPath && path.join(this.dirPath, this.htmlPath));
   }
 
-  getGeneratedFileContent(base: string) {
+  getGeneratedFileContent(base: string, options: Record<string, unknown>) {
     // Don't cache the template. It's not important to performance in this context,
     // and leaving it uncached makes development easier.
     const templatePath = path.join(templateDir, base);
@@ -225,13 +226,15 @@ export class Sketch {
       title: this.title || this.indexFile?.replace(/_/g, ' ') || 'Sketch',
       sketchPath: `./${this.jsSketchPath}`,
       libraries,
-      p5Version
+      p5Version,
+      ...defaultGenerationOptions,
+      ...options
     };
-    return nunjucks.render(templatePath, data);
+    return nunjucks.render(templatePath, data).trim() + '\n';
   }
 }
 
 export function createSketchHtml(sketchPath: string) {
   const project = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
-  return project.getGeneratedFileContent('index.html');
+  return project.getGeneratedFileContent('index.html', {});
 }

@@ -70,6 +70,20 @@ Creates a folder named `sketch-name` (default `sketch`), that contains an
 
 Creates a file named `sketch-name.js` in the current directory.
 
+Use `-options <options>` to control what is places in the JavaScript file.
+`<options>` is a comma-separate list of option names, such as `resizeCanvas` or
+`preload,static`.
+
+The option names are:
+
+* `comments` – include comments (e.g. `// put setup code here`) inside the
+  functions
+* `preload` – include an (empty) `preload()` function
+* `windowResized` – include a `windowResized()` function, that resizes the
+  canvas when the window is resized
+* `no-draw` – omit the `draw()` function, in order to create a "static" sketch
+* `no-examples` – omit the example call inside of `draw()`
+
 ### `p5 serve [filename]`
 
 Runs a web server that serves the current directory (if there is no argument),

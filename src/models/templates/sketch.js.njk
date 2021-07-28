@@ -1,0 +1,36 @@
+{% if preload -%}
+function preload() {
+  {%- if comments %}
+  // put load functions such as loadImage here
+  {%- endif %}
+}
+
+{% endif -%}
+
+function setup() {
+  createCanvas({{ dimensions | default("windowWidth, windowHeight") }});
+  {%- if comments %}
+  {%- if draw %}
+  // put setup code here
+  {%- else %}
+  // put setup and drawing code here
+  {%- endif %}
+{%- endif %}
+}
+
+{% if draw -%}
+function draw() {
+  {%- if comments %}
+  // put drawing code here
+  {%- endif %}
+  {%- if examples %}
+  circle(mouseX, mouseY, 20);
+  {%- endif %}
+}
+{% endif %}
+
+{%- if windowResized %}
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+{% endif %}

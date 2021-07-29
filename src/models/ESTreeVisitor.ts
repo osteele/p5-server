@@ -1,5 +1,5 @@
 import { Program } from 'esprima';
-import { Expression, Pattern, Statement, SwitchCase } from 'estree';
+import { Expression, MethodDefinition, Pattern, PropertyDefinition, Statement, SwitchCase } from 'estree';
 
 export class ESTreeVisitor<T> {
   program: Program;
@@ -39,6 +39,14 @@ export class ESTreeVisitor<T> {
       case 'BlockStatement':
         for (const stmt of node.body) {
           yield* this.visitStatement(stmt);
+        }
+        break;
+      case 'ClassDeclaration':
+        if (node.superClass) {
+          yield* this.visitExpression(node.superClass);
+        }
+        for (const defn of node.body.body) {
+          yield* this.visitDefinition(defn);
         }
         break;
       case 'DoWhileStatement':
@@ -222,7 +230,12 @@ export class ESTreeVisitor<T> {
     // TODO: ImportExpression
   }
 
-  *visitPattern(node: Pattern): Iterable<T> {
+  *visitDefinition(node: MethodDefinition | PropertyDefinition) {
+    if (node.key.type !== 'PrivateIdentifier') { yield* this.visitExpression(node.key); }
+    if (node.value) { yield* this.visitExpression(node.value); }
+  }
+
+  * visitPattern(node: Pattern): Iterable<T> {
     switch (node.type) {
       case 'ObjectPattern':
         for (const prop of node.properties) {
@@ -254,7 +267,7 @@ export class ESTreeVisitor<T> {
     }
   }
 
-  *visitSwitchCase(switchCase: SwitchCase) {
+  * visitSwitchCase(switchCase: SwitchCase) {
     if (switchCase.test) {
       yield* this.visitExpression(switchCase.test);
     }

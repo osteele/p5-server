@@ -4,8 +4,10 @@ test('Script.findGlobals', () => {
     expect(Script.fromSource('function f() {}').globals).toEqual(new Set(['f']));
     expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(new Set('fg'));
     expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(new Set('f'));
+
     // for now, globals is only function definitions
     expect(Script.fromSource('let a, b').globals).toEqual(new Set());
+    expect(Script.fromSource('class A {}').globals).toEqual(new Set());
 });
 
 test('Script.freeVariables', () => {
@@ -46,7 +48,10 @@ test('Script.freeVariables', () => {
     expect(Script.fromSource('function f() {if(a)b;else c}').freeVariables).toEqual(new Set('abc'));
 
     // classes
-    // expect(Script.fromSource('class A { constructor() { this.a = b; } }').freeVariables).toEqual(new Set('b'));
+    expect(Script.fromSource('class A { constructor() { this.a = b; } }').freeVariables).toEqual(new Set('b'));
+    expect(Script.fromSource('class A { m(a) { a,b; } }').freeVariables).toEqual(new Set('b'));
+    expect(Script.fromSource('class A extends B {}').freeVariables).toEqual(new Set('B'));
+    expect(Script.fromSource('class A {}; class B extends A {}').freeVariables).toEqual(new Set());
 });
 
 test('Script.p5properties', () => {

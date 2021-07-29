@@ -1,5 +1,5 @@
 import { parseScript, parseModule, Program } from 'esprima';
-import { ArrowFunctionExpression, Expression, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
+import { ArrowFunctionExpression, Expression, PropertyDefinition, MethodDefinition, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
 import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
@@ -36,12 +36,13 @@ export type ScriptAnalysis = {
   p5properties?: Set<string>;
 };
 
-export function findGlobals(program: Program): Set<string> {
+export function findGlobals(program: Program, nodeTypes = new Set(['FunctionDeclaration'])): Set<string> {
   return new Set(iterProgram());
   function* iterProgram() {
     for (const { name, nodeType } of new DeclarationIterator(program).visit()) {
-      if (nodeType === 'FunctionDeclaration')
+      if (nodeTypes.has(nodeType)) {
         yield name;
+      }
     }
   }
 }
@@ -57,10 +58,10 @@ export function findFreeVariables(program: Program): Set<string> {
 // top-level ids.
 type DeclarationIteratorIterationType = Iterable<{ name: string, nodeType: string }>;
 class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string }> {
-
   * iterProgram(program: Program): DeclarationIteratorIterationType {
     for (const stmt of program.body) {
       switch (stmt.type) {
+        case 'ClassDeclaration':
         case 'FunctionDeclaration':
         case 'VariableDeclaration':
           yield* this.visitStatement(stmt);
@@ -73,6 +74,7 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
 
   * visitStatement(node: Statement): DeclarationIteratorIterationType {
     switch (node.type) {
+      case 'ClassDeclaration':
       case 'FunctionDeclaration':
         if (node.id) {
           yield { name: node.id.name, nodeType: node.type };
@@ -103,10 +105,9 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
 }
 
 class FreeVariableIterator extends ESTreeVisitor<string> {
-  * visitProgram(node: Program): Iterable<string> {
-    // TODO: collect variable declarations too
-    const globalVariables = findGlobals(this.program);
-    for (const name of ESTreeVisitor.prototype.visitProgram.call(this, node)) {
+  * visitProgram(program: Program): Iterable<string> {
+    const globalVariables = findGlobals(program, new Set(['ClassDeclaration', 'FunctionDeclaration', 'VariableDeclaration']));
+    for (const name of ESTreeVisitor.prototype.visitProgram.call(this, program)) {
       if (!globalVariables.has(name)) {
         yield name;
       }
@@ -196,6 +197,14 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
           yield* this.visitPattern(decl.id);
           break;
         }
+    }
+  }
+
+  *visitDefinition(node: MethodDefinition | PropertyDefinition) {
+    if (node.type === 'MethodDefinition') {
+      yield* this.visitExpression(node.value);
+    } else {
+      yield* ESTreeVisitor.prototype.visitDefinition.call(this, node);
     }
   }
 

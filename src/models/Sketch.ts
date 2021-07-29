@@ -130,33 +130,33 @@ export class Sketch {
 
   static isSketchDir(dirPath: string, { exclusions }: { exclusions?: string[] }) {
     if (!fs.statSync(dirPath).isDirectory()) { return false; }
-    const { projects, files } = Sketch.findProjects(dirPath, { exclusions });
+    const { projects, nonProjectFiles: files } = Sketch.findProjects(dirPath, { exclusions });
     return (projects.length === 1 &&
-      !files.some(file => /^readme($|\.)/i.test(file)))
+      files.every(file => /^readme($|\.)/i.test(file)))
       ? projects[0]
       : null;
   }
 
   private static getScriptFiles(htmlRoot: HTMLElement, dir: string) {
-    return htmlRoot.querySelectorAll('script')
+    return htmlRoot.querySelectorAll('script[src]')
       .map(e => e.attributes.src.replace(/^\.\//, ''))
       .filter(s => !s.match(/https?:/))
-      .map(s => dir != '' ? path.join(dir, s) : s);
+      .map(s => path.join(dir, s));
   }
 
   private static getJsDescription(content: string) {
     let text;
-    const m1 = content.match(/\n*((?:\/\/.*\n)+)/);
-    if (m1) {
-      text = m1[1].replace(/^\/\//gm, '').trim();
+    let m = content.match(/\n*((?:\/\/.*\n)+)/);
+    if (m) {
+      text = m[1].replace(/^\/\//gm, '').trim();
     }
-    const m2 = content.match(/\n*\/\*+(.+?)\*\//s);
-    if (m2) {
-      text = m2[1].replace(/^\s*\**/gm, '').trim();
+    m = content.match(/\n*\/\*+(.+?)\*\//s);
+    if (m) {
+      text = m[1].replace(/^\s*\**/gm, '').trim();
     }
-    const m3 = text?.match(/^Description:\s*(.+)/s);
-    if (m3) {
-      return m3[1].replace(/\n\n.+/, '');
+    m = text?.match(/^Description:\s*(.+)/s) || null;
+    if (m) {
+      return m[1].replace(/\n\n.+/, '');
     }
   }
 
@@ -196,7 +196,15 @@ export class Sketch {
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
         const htmlRoot = parse(htmlContent);
-        files = [...files, ...Sketch.getScriptFiles(htmlRoot, path.dirname(this.htmlPath))];
+        const dir = path.dirname(this.htmlPath);
+        files = [
+          ...files,
+          ...Sketch.getScriptFiles(htmlRoot, dir),
+          ...htmlRoot.querySelectorAll('head link[href]')
+            .map(e => e.attributes.href.replace(/^\.\//, ''))
+            .filter(s => !s.match(/https?:/))
+            .map(s => dir != '' ? path.join(dir, s) : s)
+        ];
       }
     }
     if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {

@@ -144,13 +144,13 @@ entry in this list must have either a `path` or `npmPackage` key.
 
 ### Associated files
 
-The directory listing attempts to group the files that are associated with a
-project into the card for that project.
+The directory listing groups the files that are associated with a project into
+the card for that project.
 
 The files that are associated with an HTML file are just the local script files
 that are included via the `<script>` tag, and the files that are associated with
-those scripts. The server does not inspect `<link>` or `<img>` tags, etc., and
-it does not inspect CSS files.
+those scripts. The server does not inspect `<img>` tags, etc., and it does not
+inspect CSS files.
 
 The files that are associated with a script file are the string literal
 arguments to functions whose names begin with `load`, such as `loadImage()` and

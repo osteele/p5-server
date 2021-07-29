@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { parse } from 'node-html-parser';
 import path from 'path';
-import { analyzeScriptFile, JavascriptSyntaxError } from './script-analysis';
+import { Script } from './Script';
+import { JavascriptSyntaxError } from './script-analysis';
 
 export const p5Version = '1.4.0';
 
@@ -38,7 +39,7 @@ export class Library implements LibrarySpec {
     for (const scriptFile of scriptPaths) {
       if (fs.existsSync(scriptFile)) {
         try {
-          const { freeVariables, p5properties } = analyzeScriptFile(scriptFile);
+          const { freeVariables, p5properties } = Script.fromFile(scriptFile);
           for (const lib of libraries) {
             if (lib.globals?.some(name => freeVariables!.has(name)) || lib.props?.some(name => p5properties!.has(name))) {
               libs.push(lib);

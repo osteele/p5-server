@@ -36,30 +36,7 @@ export type ScriptAnalysis = {
   p5properties?: Set<string>;
 };
 
-export function analyzeScript(code: string, filePath?: string, deep = true)
-  : ScriptAnalysis {
-  try {
-    const program = parseScript(code);
-    const globals = findGlobals(program);
-    if (!deep) {
-      return { globals };
-    }
-    const freeVariables = findFreeVariables(program);
-    const p5properties = findP5PropertyReferences(program);
-    const loadCallArguments = findLoadCalls(program);
-    return { globals, freeVariables, p5properties, loadCallArguments };
-  } catch (e) {
-    throw new JavascriptSyntaxError(e.message, filePath, code);
-  }
-}
-
-export function analyzeScriptFile(filePath: string)
-  : ScriptAnalysis {
-  const code = fs.readFileSync(filePath, 'utf-8');
-  return analyzeScript(code, filePath);
-}
-
-function findGlobals(program: Program): Set<string> {
+export function findGlobals(program: Program): Set<string> {
   return new Set(iterProgram());
   function* iterProgram() {
     for (const { name, nodeType } of new DeclarationIterator(program).visit()) {
@@ -69,7 +46,7 @@ function findGlobals(program: Program): Set<string> {
   }
 }
 
-function findFreeVariables(program: Program): Set<string> {
+export function findFreeVariables(program: Program): Set<string> {
   return new Set(iterProgram(program));
   function* iterProgram(program: Program): Iterable<string> {
     yield* new FreeVariableIterator(program).visit();
@@ -267,7 +244,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
   }
 }
 
-function findP5PropertyReferences(program: Program): Set<string> {
+export function findP5PropertyReferences(program: Program): Set<string> {
   return new Set(iterProgram(program));
 
   function* iterProgram(program: Program): Iterable<string> {
@@ -287,7 +264,7 @@ class PropertyMemberIterator extends ESTreeVisitor<string> {
   }
 }
 
-function findLoadCalls(program: Program) {
+export function findLoadCalls(program: Program) {
   return new Set(iterProgram(program));
 
   function* iterProgram(program: Program): Iterable<string> {

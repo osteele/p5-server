@@ -52,6 +52,11 @@ test('Script.freeVariables', () => {
     expect(Script.fromSource('class A { m(a) { a,b; } }').freeVariables).toEqual(new Set('b'));
     expect(Script.fromSource('class A extends B {}').freeVariables).toEqual(new Set('B'));
     expect(Script.fromSource('class A {}; class B extends A {}').freeVariables).toEqual(new Set());
+
+    // template literals
+    // eslint-disable-next-line no-useless-escape
+    expect(Script.fromSource('let a = \`${b+c} ${d}}\`').freeVariables).toEqual(new Set('bcd'));
+    expect(Script.fromSource('let a = f`${b+c} ${d}`').freeVariables).toEqual(new Set('fbcd'));
 });
 
 test('Script.p5properties', () => {

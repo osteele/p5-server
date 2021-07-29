@@ -210,6 +210,15 @@ export class ESTreeVisitor<T> {
           yield* this.visitExpression(expr);
         }
         break;
+      case 'TaggedTemplateExpression':
+        yield* this.visitExpression(node.tag);
+        yield* this.visitExpression(node.quasi);
+        break;
+      case 'TemplateLiteral':
+        for (const expr of node.expressions) {
+          yield* this.visitExpression(expr);
+        }
+        break;
       case 'AwaitExpression':
       case 'UnaryExpression':
       case 'UpdateExpression':
@@ -225,9 +234,7 @@ export class ESTreeVisitor<T> {
       default:
         console.warn('Visitor: unimplemented expression', node);
     }
-    // TODO: ClassExpression
-    // TODO: TemplateLiteral | TaggedTemplateExpression | MetaProperty
-    // TODO: ImportExpression
+    // TODO: ClassExpression | MetaProperty | ImportExpression
   }
 
   *visitDefinition(node: MethodDefinition | PropertyDefinition) {

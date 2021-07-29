@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "CLI to create, run, and update p5.js sketches and collections",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "homepage": "https://github.com/osteele/p5-server#readme",
@@ -40,6 +40,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@types/ws": "^7.4.7",
     "chalk": "^4.1.1",
     "commander": "^8.0.0",
     "copyfiles": "^2.4.1",
@@ -68,7 +69,6 @@
     "@types/nunjucks": "^3.1.5",
     "@types/open": "^6.2.1",
     "@types/pug": "^2.0.5",
-    "@types/ws": "^7.4.7",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "eslint": "^7.31.0",

@@ -5,8 +5,8 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
-import { Sketch, createSketchHtml } from '../models/Sketch';
-import { createDirectoryListing } from './directory-listing';
+import { createSketchHtml, Sketch } from '../models/Sketch';
+import { createDirectoryListing, directoryListingExclusions } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
@@ -70,14 +70,23 @@ app.get('/*.html?', (req, res, next) => {
   next();
 });
 
+// A request for the HTML of a JavaScript file returns HTML that includes the sketch.
+// A request for the HTML of a main sketch js file redirects to the sketch's index page.
 app.get('/*.js', (req, res, next) => {
   const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const filePath = path.join(serverOptions.root, req.path);
-  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view') {
-    if (fs.existsSync(filePath) && Sketch.isSketchJs(filePath)) {
-      const content = createSketchHtml(filePath);
-      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
-      return;
+  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchJs(filePath)) {
+    const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath), { exclusions: directoryListingExclusions });
+    const sketch = sketches.find(sketch => sketch.files.includes(path.basename(filePath)));
+    if (sketch) {
+      if (sketch.htmlPath) {
+        res.redirect(path.dirname(req.path).replace(/\/$/, '') + '/' + sketch.htmlPath);
+        return;
+      } else {
+        const content = sketch.generateHtmlContent();
+        res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
+        return;
+      }
     }
   }
   try {
@@ -98,8 +107,8 @@ app.get('/*.js', (req, res, next) => {
 });
 
 app.get('/*.md', (req, res, next) => {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    const serverOptions: ServerConfig = req.app.locals as ServerConfig;
     const filePath = path.join(serverOptions.root, req.path);
     if (!fs.existsSync(filePath)) {
       return next();
@@ -111,13 +120,10 @@ app.get('/*.md', (req, res, next) => {
 });
 
 app.get('*', (req, res, next) => {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    const serverOptions: ServerConfig = req.app.locals as ServerConfig;
     const filePath = path.join(serverOptions.root, req.path);
-    if (!fs.existsSync(filePath)) {
-      return next();
-    }
-    if (fs.statSync(filePath).isDirectory()) {
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
       sendDirectoryListing(req, res);
       return;
     }

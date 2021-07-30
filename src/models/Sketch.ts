@@ -258,7 +258,7 @@ export class Sketch {
       this.htmlPath && path.join(this.dirPath, this.htmlPath));
   }
 
-  getGeneratedFileContent(base: string, options: Record<string, unknown>) {
+  protected getGeneratedFileContent(base: string, options: Record<string, unknown>) {
     // Don't cache the template. It's not important to performance in this context,
     // and leaving it uncached makes development easier.
     const templatePath = path.join(templateDir, base);
@@ -273,9 +273,13 @@ export class Sketch {
     };
     return nunjucks.render(templatePath, data).trim() + '\n';
   }
+
+  generateHtmlContent() {
+    return this.getGeneratedFileContent('index.html', {});
+  }
 }
 
 export function createSketchHtml(sketchPath: string) {
-  const project = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
-  return project.getGeneratedFileContent('index.html', {});
+  const sketch = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
+  return sketch.generateHtmlContent();
 }

@@ -6,7 +6,7 @@ import { Sketch } from '../models/Sketch';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 
-const directoryListingExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
+export const directoryListingExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
 export function createDirectoryListing(relPath: string, root: string) {

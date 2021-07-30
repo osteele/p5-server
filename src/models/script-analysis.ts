@@ -29,13 +29,6 @@ export function checkedParseScript(filePath: string): Program {
   }
 }
 
-export type ScriptAnalysis = {
-  globals: Set<string>;
-  freeVariables?: Set<string>;
-  loadCallArguments?: Set<string>;
-  p5properties?: Set<string>;
-};
-
 export function findGlobals(program: Program, nodeTypes = new Set(['FunctionDeclaration'])): Set<string> {
   return new Set(iterProgram());
   function* iterProgram() {

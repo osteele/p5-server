@@ -1,17 +1,21 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
-import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavascriptSyntaxError, ScriptAnalysis } from './script-analysis';
+import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavascriptSyntaxError } from './script-analysis';
 
 export class Script {
   source: string;
   filePath?: string;
-  analysis: Partial<ScriptAnalysis>;
-  private program: Program;
+  protected program: Program;
+  private analysis: {
+    globals?: Set<string>;
+    freeVariables?: Set<string>;
+    loadCallArguments?: Set<string>;
+    p5properties?: Set<string>;
+  } = {};
 
   constructor(source: string, filePath?: string) {
     this.source = source;
     this.filePath = filePath;
-    this.analysis = {};
     try {
       this.program = parseScript(this.source);
     } catch {

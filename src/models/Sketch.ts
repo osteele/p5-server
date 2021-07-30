@@ -24,11 +24,11 @@ export class Sketch {
   title?: string;
   description?: string;
 
-  constructor(dirPath: string, htmlPath: string | null = 'index.html', jsSketchPath: string = 'sketch.js',
+  constructor(dirPath: string, htmlPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
     this.dirPath = dirPath;
     this.htmlPath = htmlPath;
-    this.jsSketchPath = jsSketchPath;
+    this.jsSketchPath = sketchPath;
     this.title = options.title;
     this.description = options.description;
   }

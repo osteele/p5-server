@@ -11,17 +11,17 @@ const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.p
 
 export function createDirectoryListing(relPath: string, root: string) {
   const absPath = path.join(root, relPath);
-  let { projects, nonProjectFiles: files } = Sketch.findProjects(absPath, { exclusions: directoryListingExclusions });
-  files.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  let { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(absPath, { exclusions: directoryListingExclusions });
+  unaffiliatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-  const readmeName = files.find(s => s.toLowerCase() === 'readme.md');
+  const readmeName = unaffiliatedFiles.find(s => s.toLowerCase() === 'readme.md');
   const readme = readmeName && {
     name: readmeName,
     html: marked(fs.readFileSync(path.join(absPath, readmeName), 'utf8')),
   };
 
-  const directories = files.filter(s => fs.statSync(path.join(absPath, s)).isDirectory());
-  files = files.filter(s => !directories.includes(s) && s !== readmeName);
+  const directories = unaffiliatedFiles.filter(s => fs.statSync(path.join(absPath, s)).isDirectory());
+  const files = unaffiliatedFiles.filter(s => !directories.includes(s) && s !== readmeName);
 
   const pathComponents = pathComponentsForBreadcrumbs(relPath);
   return directoryListingTmpl({
@@ -29,7 +29,7 @@ export function createDirectoryListing(relPath: string, root: string) {
     title: path.basename(absPath),
     directories,
     files,
-    projects,
+    sketches,
     readme,
     srcViewHref: (s: string) => s.match(/.*\.(html?|js)$/) ? `${s}?fmt=view` : s,
   });

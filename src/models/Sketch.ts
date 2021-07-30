@@ -53,8 +53,8 @@ export class Sketch {
     return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
-  static findProjects(dir: string, { exclusions }: { exclusions?: string[] }) {
-    const projects: Sketch[] = [];
+  static analyzeDirectory(dir: string, { exclusions }: { exclusions?: string[] }) {
+    const sketches: Sketch[] = [];
 
     let files = fs.readdirSync(dir)
       .filter(s => !exclusions?.some(exclusion => minimatch(s, exclusion)));
@@ -69,7 +69,7 @@ export class Sketch {
         // all tend to have the same name).
 
         // FIXME: the following works but is terrible code.
-        projects.push(new Sketch(dir,
+        sketches.push(new Sketch(dir,
           project.htmlPath && path.join(name, project.htmlPath),
           project.jsSketchPath && path.join(name, project.jsSketchPath),
           { title: name + '/', description: project.description }));
@@ -81,7 +81,7 @@ export class Sketch {
     for (const file of files) {
       const filePath = path.join(dir, file);
       if (Sketch.isSketchHtml(filePath)) {
-        projects.push(Sketch.fromHtmlFile(filePath));
+        sketches.push(Sketch.fromHtmlFile(filePath));
       }
     }
 
@@ -89,18 +89,18 @@ export class Sketch {
     for (const file of removeProjectFiles(files)) {
       const filePath = path.join(dir, file);
       if (Sketch.isSketchJs(filePath)) {
-        projects.push(Sketch.fromJsFile(filePath));
+        sketches.push(Sketch.fromJsFile(filePath));
       }
     }
-    return { projects, files, nonProjectFiles: removeProjectFiles(files) };
+    return { sketches, allFiles: files, unaffiliatedFiles: removeProjectFiles(files) };
 
     function removeProjectFiles(files: string[]) {
-      return files.filter(f => !projects.some(p => p.files.includes(f)));
+      return files.filter(f => !sketches.some(p => p.files.includes(f)));
     }
   }
 
   static isSketchHtml(filePath: string) {
-    if (fs.statSync(filePath).isDirectory()) { return false; }
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
       return false;
     }
@@ -112,7 +112,7 @@ export class Sketch {
   }
 
   static isSketchJs(filePath: string) {
-    if (fs.statSync(filePath).isDirectory()) { return false; }
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.js')) {
       return false;
     }
@@ -128,12 +128,12 @@ export class Sketch {
     }
   }
 
-  static isSketchDir(dirPath: string, { exclusions }: { exclusions?: string[] }) {
-    if (!fs.statSync(dirPath).isDirectory()) { return false; }
-    const { projects, nonProjectFiles: files } = Sketch.findProjects(dirPath, { exclusions });
-    return (projects.length === 1 &&
-      files.every(file => /^readme($|\.)/i.test(file)))
-      ? projects[0]
+  static isSketchDir(dirPath: string, { exclusions }: { exclusions?: string[] }): Sketch | null {
+    if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) { return null; }
+    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dirPath, { exclusions });
+    return (sketches.length === 1 &&
+      unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)))
+      ? sketches[0]
       : null;
   }
 

@@ -28,42 +28,42 @@ html(lang='en')
         else
           a.section(href=component.path)= component.name
 
-    if projects.length
+    if sketches.length
       .ui.segment
         h2.ui.header Sketches
         .ui.three.stackable.cards
-          each project in projects.sort((a, b) => a.name.localeCompare(b.name))
+          each sketch in sketches.sort((a, b) => a.name.localeCompare(b.name))
             .ui.card
               .content
                 .header
-                  a(href=project.indexFile)
+                  a(href=sketch.indexFile)
                     img.ui.mini.image(src='/__p5_server_assets/p5js-icon.png')
                     | &ensp;
-                    = project.name
+                    = sketch.name
                 .description
-                  if project.description
-                    div(data-tooltip="This description comes from the HTML or JavaScript file")= project.description
+                  if sketch.description
+                    div(data-tooltip="This description comes from the HTML or JavaScript file")= sketch.description
                   .ui.divider
                   div
                     span(data-tooltip="The root of the sketch. The HTML or JavaScript file that includes everything else")
                       i.small.info.circle.icon
                     | Main file
                     | :&ensp;
-                    a(href=srcViewHref(project.indexFile))= project.indexFile
-                  if project.files.length > 1
+                    a(href=srcViewHref(sketch.indexFile))= sketch.indexFile
+                  if sketch.files.length > 1
                     div
                       | Other files:&ensp;
                       .ui.horizontal.list
-                        each file in project.files
-                          if file != project.indexFile
+                        each file in sketch.files
+                          if file != sketch.indexFile
                             a.item(href=srcViewHref(file))= file
-                  if project.libraries.withImportPaths.length > 0
+                  if sketch.libraries.withImportPaths.length > 0
                     div
                       | Libraries:&ensp;
                       .ui.horizontal.list
-                        each library in project.libraries.withImportPaths
+                        each library in sketch.libraries.withImportPaths
                           a.item(href=library.homepage)= library.name
-                  if project.libraries.withoutImportPaths.length > 0
+                  if sketch.libraries.withoutImportPaths.length > 0
                     div
                       | Library Candidates
                       div.
@@ -71,10 +71,10 @@ html(lang='en')
                         because they haven't been published to npm.
                         Create an HTML file that imports the sketch file and these libraries.
                       .ui.horizontal.list
-                        each library in project.libraries.withoutImportPaths
+                        each library in sketch.libraries.withoutImportPaths
                           a.item(href=library.homepage)= library.name
               .extra.content
-                a(href=project.indexFile)
+                a(href=sketch.indexFile)
                   i.play.icon
                   | Run
 

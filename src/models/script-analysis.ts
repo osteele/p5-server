@@ -29,13 +29,11 @@ export function checkedParseScript(filePath: string): Program {
   }
 }
 
-export function findGlobals(program: Program, nodeTypes = new Set(['FunctionDeclaration'])): Set<string> {
-  return new Set(iterProgram());
-  function* iterProgram() {
+export function findGlobals(program: Program) {
+  return new Map<string, string>(iterProgram());
+  function* iterProgram(): Iterable<[string, string]> {
     for (const { name, nodeType } of new DeclarationIterator(program).visit()) {
-      if (nodeTypes.has(nodeType)) {
-        yield name;
-      }
+      yield [name, nodeType];
     }
   }
 }
@@ -99,7 +97,7 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
 
 class FreeVariableIterator extends ESTreeVisitor<string> {
   * visitProgram(program: Program): Iterable<string> {
-    const globalVariables = findGlobals(program, new Set(['ClassDeclaration', 'FunctionDeclaration', 'VariableDeclaration']));
+    const globalVariables = new Set(findGlobals(program).keys());
     for (const name of ESTreeVisitor.prototype.visitProgram.call(this, program)) {
       if (!globalVariables.has(name)) {
         yield name;

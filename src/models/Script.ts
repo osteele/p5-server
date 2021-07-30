@@ -3,7 +3,7 @@ import fs from 'fs';
 import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavascriptSyntaxError } from './script-analysis';
 
 interface ScriptAnalysis {
-  globals: Set<string>;
+  globals: Map<string, string>;
   freeVariables: Set<string>;
   loadCallArguments: Set<string>;
   p5properties: Set<string>;

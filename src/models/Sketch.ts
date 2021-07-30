@@ -119,7 +119,7 @@ export class Sketch {
 
     try {
       const { globals, freeVariables } = Script.fromFile(filePath);
-      return globals.has('setup') && freeVariables!.has('createCanvas');
+      return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
     } catch (e) {
       if (e instanceof JavascriptSyntaxError) {
         return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);

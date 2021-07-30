@@ -1,13 +1,18 @@
 import { Script } from "../src/models/Script";
 
 test('Script.findGlobals', () => {
-    expect(Script.fromSource('function f() {}').globals).toEqual(new Set(['f']));
-    expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(new Set('fg'));
-    expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(new Set('f'));
+    expect(Script.fromSource('function f() {}').globals).toEqual(
+        new Map([['f', 'FunctionDeclaration']]));
+    expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(
+        new Map([['f', 'FunctionDeclaration'], ['g', 'FunctionDeclaration']]));
+    expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(
+        new Map([['f', 'FunctionDeclaration']]));
 
     // for now, globals is only function definitions
-    expect(Script.fromSource('let a, b').globals).toEqual(new Set());
-    expect(Script.fromSource('class A {}').globals).toEqual(new Set());
+    expect(Script.fromSource('let a, b').globals).toEqual(
+        new Map([['a', 'VariableDeclaration'], ['b', 'VariableDeclaration']]));
+    expect(Script.fromSource('class A {}').globals).toEqual(
+        new Map([['A', 'ClassDeclaration']]));
 });
 
 test('Script.freeVariables', () => {

@@ -27,11 +27,12 @@ html(lang='en')
           .section.active= component.name
         else
           a.section(href=component.path)= component.name
+
     if projects.length
       .ui.segment
         h2.ui.header Sketches
         .ui.three.stackable.cards
-          each project in projects
+          each project in projects.sort((a, b) => a.name.localeCompare(b.name))
             .ui.card
               .content
                 .header
@@ -104,4 +105,4 @@ html(lang='en')
     if readme
       #readme.ui.segment
         a#readme-title(href=readme.name)= readme.name
-        | !{readme.html}
+        != readme.html

@@ -1,8 +1,13 @@
 # Change Log
 
-## [0.2.1]
+## [Unreleased]
 
-- libraries.json wasn't included in distr
+- Added svg files to distr
+- Remove src
+
+## [0.2.2]
+
+- Add libraries.json back to distr
 
 ## [0.2.1]
 

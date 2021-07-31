@@ -3,3 +3,4 @@
 
 npm run lint
 npm test
+if [[ $(grep -r --include \*.ts 'console.info' src | wc -l) -gt 0 ]]; then exit 1; fi

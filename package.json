@@ -36,7 +36,6 @@
     "test": "jest"
   },
   "files": [
-    "config",
     "dist",
     "src",
     "README.md"

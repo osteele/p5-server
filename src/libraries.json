@@ -52,6 +52,7 @@
   {
     "name": "ASCII Art",
     "homepage": "https://www.tetoki.eu/asciiart/",
+    "path": "https://www.tetoki.eu/asciiart/asciiart/p5.asciiart.min.js",
     "globals": [
       "AsciiArt"
     ]

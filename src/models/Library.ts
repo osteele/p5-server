@@ -106,7 +106,7 @@ class LibraryArray extends Array<Library> {
 
 
 const librarySpecs: LibrarySpec[] =
-  JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/libraries.json'), 'utf-8'))
+  JSON.parse(fs.readFileSync(path.join(__dirname, '../libraries.json'), 'utf-8'))
 
 export const libraries: Library[] =
   librarySpecs.map(Library.fromSpec);

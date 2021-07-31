@@ -139,7 +139,7 @@ Automatic library loading is done by examining the free variables, and
 references to `p5.prop` where `prop` is any property name, in the JavaScript source.
 
 A list of libraries, and the global variables that trigger including a library,
-is in `./config/libraries.json`. In order to qualify for automatic inclusion, an
+is in `./src/libraries.json`. In order to qualify for automatic inclusion, an
 entry in this list must have either a `path` or `npmPackage` key.
 
 ### Associated files

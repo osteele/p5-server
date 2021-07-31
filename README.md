@@ -204,4 +204,4 @@ This project builds on these libraries and frameworks:
 
 ## License
 
-ISC © Oliver Steele
+[MIT](LICENSE)

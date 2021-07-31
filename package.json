@@ -13,7 +13,7 @@
     "web server",
     "live reload"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },

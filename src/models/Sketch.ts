@@ -107,7 +107,7 @@ export class Sketch {
 
     const content = fs.readFileSync(filePath, 'utf-8');
     const htmlRoot = parse(content);
-    const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
+    const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
 

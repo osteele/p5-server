@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CLI to create, run, and update p5.js sketches and collections",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "homepage": "https://github.com/osteele/p5-server#readme",
@@ -25,7 +25,7 @@
   "scripts": {
     "build": "npm run clean && npm run copy-files && tsc --declaration",
     "clean": "rimraf dist/",
-    "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js} dist/",
+    "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js,json} dist/",
     "dev": "ts-node src/bin/p5-server.ts",
     "dev:serve": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "dev:serve:examples": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve examples",

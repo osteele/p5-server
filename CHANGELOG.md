@@ -2,6 +2,10 @@
 
 ## [0.2.1]
 
+- libraries.json wasn't included in distr
+
+## [0.2.1]
+
 - Fix crash involving `<script>` tags with no src attribute
 - Teach script analyzer about script expressions; (properly) ignore meta properties
 - Add a directory listing favicon

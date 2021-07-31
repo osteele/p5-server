@@ -178,6 +178,14 @@ export class ESTreeVisitor<T> {
         yield* this.visitExpression(node.consequent);
         yield* this.visitExpression(node.alternate);
         break;
+      case 'ClassExpression':
+        if (node.superClass) {
+          yield* this.visitExpression(node.superClass);
+        }
+        for (const defn of node.body.body) {
+          yield* this.visitDefinition(defn);
+        }
+        break;
       case 'FunctionExpression':
         for (const param of node.params) {
           yield* this.visitPattern(param);
@@ -234,7 +242,7 @@ export class ESTreeVisitor<T> {
       default:
         console.warn('Visitor: unimplemented expression', node);
     }
-    // TODO: ClassExpression | MetaProperty | ImportExpression
+    // TODO: MetaProperty | ImportExpression
   }
 
   *visitDefinition(node: MethodDefinition | PropertyDefinition) {

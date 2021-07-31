@@ -33,7 +33,8 @@
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepare": "husky install",
     "prepublishOnly": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "files": [
     "dist",

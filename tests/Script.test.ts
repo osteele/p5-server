@@ -53,10 +53,13 @@ test('Script.freeVariables', () => {
     expect(Script.fromSource('function f() {if(a)b;else c}').freeVariables).toEqual(new Set('abc'));
 
     // classes
-    expect(Script.fromSource('class A { constructor() { this.a = b; } }').freeVariables).toEqual(new Set('b'));
+    expect(Script.fromSource('class A { constructor() { this.a = b; A} }').freeVariables).toEqual(new Set('b'));
     expect(Script.fromSource('class A { m(a) { a,b; } }').freeVariables).toEqual(new Set('b'));
     expect(Script.fromSource('class A extends B {}').freeVariables).toEqual(new Set('B'));
     expect(Script.fromSource('class A {}; class B extends A {}').freeVariables).toEqual(new Set());
+
+    // class expressions
+    expect(Script.fromSource('const A = class { constructor() { this.a = b; A}}').freeVariables).toEqual(new Set('b'));
 
     // template literals
     // eslint-disable-next-line no-useless-escape

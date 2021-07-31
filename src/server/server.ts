@@ -43,8 +43,8 @@ app.get('/', (req, res) => {
   }
 });
 
-app.get('/__p5_server_assets/:path', (req, res) => {
-  const filePath = path.join(__dirname, 'static/assets', req.params.path);
+app.get('/__p5_server_static/:path(*)', (req, res) => {
+  const filePath = path.join(__dirname, 'static', req.params.path);
   res.sendFile(filePath);
 });
 

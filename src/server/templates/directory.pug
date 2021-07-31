@@ -3,6 +3,8 @@ html(lang='en')
   head
     meta(charset='utf-8')
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    link(rel='icon', href='/__p5_server_static/favicon.svg')
+    link(rel='mask-icon', href='/__p5_server_static/favicon-mask.svg', color='#000000')
     title= title
     script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
     script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
@@ -37,7 +39,7 @@ html(lang='en')
               .content
                 .header
                   a(href=sketch.indexFile)
-                    img.ui.mini.image(src='/__p5_server_assets/p5js-icon.png')
+                    img.ui.mini.image(src='/__p5_server_static/assets/p5js-icon.png')
                     | &ensp;
                     = sketch.name
                 .description

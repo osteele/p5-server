@@ -124,7 +124,7 @@ export class ESTreeVisitor<T> {
       case 'ContinueStatement':
         break;
       default:
-        console.warn('Visitor: unimplemented statement', node);
+        console.warn('ESTreeVisitor: unimplemented statement', node);
     }
     // TODO: Declaration | WithStatement
   }
@@ -192,6 +192,9 @@ export class ESTreeVisitor<T> {
         }
         yield* this.visitStatement(node.body);
         break;
+      case 'MetaProperty':
+        // This matches `new.target`
+        break;
       case 'MemberExpression':
         if (node.object.type !== 'Super') {
           yield* this.visitExpression(node.object);
@@ -240,9 +243,9 @@ export class ESTreeVisitor<T> {
       case 'ThisExpression':
         break;
       default:
-        console.warn('Visitor: unimplemented expression', node);
+        console.warn('ESTreeVisitor: unimplemented expression', node);
     }
-    // TODO: MetaProperty | ImportExpression
+    // TODO: ImportExpression
   }
 
   *visitDefinition(node: MethodDefinition | PropertyDefinition) {
@@ -278,7 +281,7 @@ export class ESTreeVisitor<T> {
         break;
       default:
         // TODO: MemberExpression ?
-        console.warn('Visitor: unimplemented pattern', node);
+        console.warn('ESTreeVisitor: unimplemented pattern', node);
     }
   }
 

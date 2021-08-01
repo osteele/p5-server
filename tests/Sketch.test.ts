@@ -74,6 +74,7 @@ test('Sketch.generation', async () => {
   await testGeneration('test.js', { windowResized: true }, 'windowResized');
   await testGeneration('test.js', { draw: false }, 'no-draw');
   await testGeneration('test.js', { examples: false }, 'no-examples');
+  await testGeneration('test.html', {}, 'html');
 
   async function testGeneration(outputName: string, options: Record<string, boolean>, golden: string) {
     const outputDir = `${testData}/generation/output`;
@@ -102,7 +103,6 @@ function expectDirectoriesEqual(d1: string, d2: string) {
       }
     });
   } catch (e) {
-    console.error(`While comparing ${d1} to ${d2}`);
-    throw e;
+    throw new Error(`${e.message} while comparing ${d1} to ${d2}`)
   }
 }

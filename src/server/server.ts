@@ -6,7 +6,7 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { checkedParseScript, JavascriptSyntaxError } from '../models/script-analysis';
 import { createSketchHtml, Sketch } from '../models/Sketch';
-import { createDirectoryListing, directoryListingExclusions } from './directory-listing';
+import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
   const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
-    if (Sketch.isSketchJs(filePath)) {
+    if (Sketch.isSketchScriptFile(filePath)) {
       const content = createSketchHtml(filePath);
       res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
     } else if (filePath.match(/.*\.html?$/)) {
@@ -75,8 +75,8 @@ app.get('/*.html?', (req, res, next) => {
 app.get('/*.js', (req, res, next) => {
   const serverOptions: ServerConfig = req.app.locals as ServerConfig;
   const filePath = path.join(serverOptions.root, req.path);
-  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchJs(filePath)) {
-    const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath), { exclusions: directoryListingExclusions });
+  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(filePath)) {
+    const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath));
     const sketch = sketches.find(sketch => sketch.files.includes(path.basename(filePath)));
     if (sketch) {
       if (sketch.htmlPath) {

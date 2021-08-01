@@ -4,6 +4,7 @@
 
 - Added svg files to distr
 - Remove src
+- Sketch API changes (see commit descriptions)
 
 ## [0.2.2]
 

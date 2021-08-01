@@ -6,12 +6,11 @@ import { Sketch } from '../models/Sketch';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 
-export const directoryListingExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
 export function createDirectoryListing(relPath: string, root: string) {
   const absPath = path.join(root, relPath);
-  let { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(absPath, { exclusions: directoryListingExclusions });
+  let { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(absPath);
   unaffiliatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   const readmeName = unaffiliatedFiles.find(s => s.toLowerCase() === 'readme.md');

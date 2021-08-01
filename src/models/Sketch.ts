@@ -9,6 +9,7 @@ import { JavascriptSyntaxError } from './script-analysis';
 
 const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true }
+const defaultDirectoryExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
 
 export class DirectoryExistsError extends Error {
   constructor(msg: string) {
@@ -43,7 +44,7 @@ export class Sketch {
     return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { title, description });
   }
 
-  static fromJsFile(filePath: string) {
+  static fromScriptFile(filePath: string) {
     const dirPath = path.dirname(filePath);
     let description;
     if (fs.existsSync(filePath)) {
@@ -53,11 +54,32 @@ export class Sketch {
     return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
-  static analyzeDirectory(dir: string, { exclusions }: { exclusions?: string[] }) {
+  static fromFile(filePath: string) {
+    if (fs.statSync(filePath).isDirectory()) {
+      return Sketch.fromDirectory(filePath);
+    } else if (/\.js$/.test(filePath)) {
+      return Sketch.fromScriptFile(filePath);
+    } else if (/\.html$/.test(filePath)) {
+      return Sketch.fromHtmlFile(filePath);
+    } else {
+      throw new Error(`Unrecognized file type: ${filePath}`);
+    }
+  }
+
+  static fromDirectory(dirPath: string, options?: { exclusions?: string[] }) {
+    const sketch = Sketch.isSketchDir(dirPath, options);
+    if (!sketch) {
+      throw new Error(`Directory ${dirPath} is not a sketch directory`);
+    }
+    return sketch;
+  }
+
+  static analyzeDirectory(dir: string, options?: { exclusions?: string[] }) {
     const sketches: Sketch[] = [];
 
+    const exclusions = options?.exclusions || defaultDirectoryExclusions;
     let files = fs.readdirSync(dir)
-      .filter(s => !exclusions?.some(exclusion => minimatch(s, exclusion)));
+      .filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
 
     files = files.filter(name => {
       const dirPath = path.join(dir, name);
@@ -80,7 +102,7 @@ export class Sketch {
     // collect HTML sketches
     for (const file of files) {
       const filePath = path.join(dir, file);
-      if (Sketch.isSketchHtml(filePath)) {
+      if (Sketch.isSketchHtmlFile(filePath)) {
         sketches.push(Sketch.fromHtmlFile(filePath));
       }
     }
@@ -88,8 +110,8 @@ export class Sketch {
     // collect JS sketches
     for (const file of removeProjectFiles(files)) {
       const filePath = path.join(dir, file);
-      if (Sketch.isSketchJs(filePath)) {
-        sketches.push(Sketch.fromJsFile(filePath));
+      if (Sketch.isSketchScriptFile(filePath)) {
+        sketches.push(Sketch.fromScriptFile(filePath));
       }
     }
     return { sketches, allFiles: files, unaffiliatedFiles: removeProjectFiles(files) };
@@ -99,7 +121,7 @@ export class Sketch {
     }
   }
 
-  static isSketchHtml(filePath: string) {
+  static isSketchHtmlFile(filePath: string) {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
       return false;
@@ -111,7 +133,7 @@ export class Sketch {
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
 
-  static isSketchJs(filePath: string) {
+  static isSketchScriptFile(filePath: string) {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.js')) {
       return false;
@@ -128,9 +150,9 @@ export class Sketch {
     }
   }
 
-  static isSketchDir(dirPath: string, { exclusions }: { exclusions?: string[] }): Sketch | null {
+  static isSketchDir(dirPath: string, options?: { exclusions?: string[] }): Sketch | null {
     if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) { return null; }
-    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dirPath, { exclusions });
+    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dirPath, options);
     return (sketches.length === 1 &&
       unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)))
       ? sketches[0]

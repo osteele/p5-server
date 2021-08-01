@@ -148,9 +148,9 @@ The directory listing groups the files that are associated with a project into
 the card for that project.
 
 The files that are associated with an HTML file are just the local script files
-that are included via the `<script>` tag, and the files that are associated with
-those scripts. The server does not inspect `<img>` tags, etc., and it does not
-inspect CSS files.
+that are included via the `<script>` tag and `<link>` tags. The server does not
+inspect `<img>` tags,
+etc., and it does not inspect CSS files.
 
 The files that are associated with a script file are the string literal
 arguments to functions whose names begin with `load`, such as `loadImage()` and
@@ -180,15 +180,22 @@ loader("cat.png");
 
 ## Limitations
 
-* Generated sketches use a CDN. (I may add an option to use local files instead.)
+* This code hasn't been tested on Windows.
+* Generated sketches require an internet connection to run. They load the p5.js
+  and other libraries from a content delivery network (“CDN”). Browsers cache
+  these files, so reloading a page or running other sketches that use the same
+  (or no) libraries do not require additional internet access, but you will need
+  internet access the first time you use this extension or after the browser
+  cache has expired.
+* The server requires an internet connection in order to display sketches and
+  directory listings. (It loads the Semantic UI CSS framework from a CDN.)
 * This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.
-* The code hasn't been tested on Windows.
-* See the implementation notes for limitations on the recognition of associated
-  files.
 * Library inference hasn't been tested with sketches that are written as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+* See the implementation notes for limitations on the recognition of associated
+  files.
 
 ## Acknowledgements
 

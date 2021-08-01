@@ -18,11 +18,11 @@ export class DirectoryExistsError extends Error {
 }
 
 export class Sketch {
-  dirPath: string;
-  htmlPath: string | null;
-  jsSketchPath: string;
-  title?: string;
-  description?: string;
+  public readonly dirPath: string;
+  public readonly htmlPath: string | null;
+  public readonly jsSketchPath: string;
+  public readonly title?: string;
+  public readonly description?: string;
 
   constructor(dirPath: string, htmlPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {

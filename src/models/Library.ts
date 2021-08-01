@@ -16,12 +16,12 @@ type LibrarySpec = {
 };
 
 export class Library implements LibrarySpec {
-  name: string;
-  homepage: string;
-  packageName?: string;
-  _path?: string;
-  globals?: string[];
-  props?: string[];
+  public readonly name: string;
+  public readonly homepage: string;
+  public readonly packageName?: string;
+  public readonly globals?: string[];
+  public readonly props?: string[];
+  private _path?: string;
 
   constructor(spec: LibrarySpec) {
     this.name = spec.name;
@@ -68,7 +68,6 @@ export class Library implements LibrarySpec {
     }
     return libs;
   }
-
 
   get path() {
     if (this._path) {

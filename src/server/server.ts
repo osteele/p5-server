@@ -196,43 +196,43 @@ async function startServer(options: ServerOptions) {
     server.close();
     throw e;
   }
-
-  function listenSync(port?: number) {
-    return new Promise<http.Server>((resolve, reject) => {
-      const server = app.listen(port);
-      server.on('error', e => {
-        clearTimeout(timeoutTimer);
-        clearInterval(intervalTimer);
-        reject(e);
-      });
-      const timeoutTimer = setTimeout(() => {
-        const address = server.address();
-        clearInterval(intervalTimer);
-        if (address) {
-          resolve(server);
-        } else {
-          reject(new Error('Failed to start server'));
-        }
-      }, 1000);
-      const intervalTimer = setInterval(() => {
-        const address = server.address();
-        if (address) {
-          clearInterval(intervalTimer);
-          clearTimeout(timeoutTimer);
-          resolve(server);
-        }
-      }, 50);
-    });
-  }
 }
 
-// This is misleading. There can be only one server.
-// TODO: warn on multiple instances
+function listenSync(port?: number) {
+  return new Promise<http.Server>((resolve, reject) => {
+    const server = app.listen(port);
+    server.on('error', e => {
+      clearTimeout(timeoutTimer);
+      clearInterval(intervalTimer);
+      reject(e);
+    });
+    const timeoutTimer = setTimeout(() => {
+      const address = server.address();
+      clearInterval(intervalTimer);
+      if (address) {
+        resolve(server);
+      } else {
+        reject(new Error('Failed to start server'));
+      }
+    }, 1000);
+    const intervalTimer = setInterval(() => {
+      const address = server.address();
+      if (address) {
+        clearInterval(intervalTimer);
+        clearTimeout(timeoutTimer);
+        resolve(server);
+      }
+    }, 50);
+  });
+}
+
+// This API is misleading. There can be only one server instance.
+// TODO: warn on multiple instances, or, wrap the code above in a function
 export class Server {
-  options: ServerOptions;
-  server: http.Server | null = null;
+  public server: http.Server | null = null;
+  public url?: string;
   protected liveReloadServer: WebSocket.Server | null = null;
-  url?: string;
+  private readonly options: ServerOptions;
 
   constructor(options: ServerOptions) {
     this.options = options;

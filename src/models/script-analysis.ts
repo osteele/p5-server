@@ -4,10 +4,7 @@ import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
 export class JavascriptSyntaxError extends Error {
-  code: string;
-  fileName: string | null;
-
-  constructor(msg: string, fileName: string | null = null, code: string) {
+  constructor(msg: string, public readonly fileName: string | null = null, public readonly code: string) {
     super(msg);
     Object.setPrototypeOf(this, JavascriptSyntaxError.prototype);
     this.fileName = fileName;

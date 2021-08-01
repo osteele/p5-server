@@ -2,11 +2,7 @@ import { Program } from 'esprima';
 import { Expression, MethodDefinition, Pattern, PropertyDefinition, Statement, SwitchCase } from 'estree';
 
 export class ESTreeVisitor<T> {
-  program: Program;
-
-  constructor(program: Program) {
-    this.program = program;
-  }
+  constructor(public readonly program: Program) { }
 
   *visit() {
     yield* this.visitProgram(this.program);

@@ -10,14 +10,10 @@ interface ScriptAnalysis {
 }
 
 export class Script implements ScriptAnalysis {
-  source: string;
-  filePath?: string;
-  protected program: Program;
-  private analysis: Partial<ScriptAnalysis> = {};
+  protected readonly program: Program;
+  private readonly analysis: Partial<ScriptAnalysis> = {};
 
-  constructor(source: string, filePath?: string) {
-    this.source = source;
-    this.filePath = filePath;
+  constructor(public readonly source: string, public readonly filePath?: string) {
     try {
       this.program = parseScript(this.source);
     } catch {

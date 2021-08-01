@@ -34,10 +34,13 @@ export class Sketch {
     this.description = options.description;
   }
 
-  static create(mainFile: string, options: { title?: string, description?: string } = {}) {
+  static create(mainFile: string, options: { title?: string, description?: string, scriptPath?: string } = {}) {
     if (mainFile.endsWith('.html') || mainFile.endsWith('.htm')) {
-      return new Sketch(path.dirname(mainFile), path.basename(mainFile), undefined, options);
+      return new Sketch(path.dirname(mainFile), path.basename(mainFile), options.scriptPath, options);
     } else if (mainFile.endsWith('.js')) {
+      if (mainFile && options.scriptPath) {
+        throw new Error(`Cannot specify both a .js file and a scriptPath`);
+      }
       return new Sketch(path.dirname(mainFile), null, path.basename(mainFile), options);
     } else {
       throw new Error(`Unsupported file type: ${mainFile}`);
@@ -307,6 +310,30 @@ export class Sketch {
 
   generateHtmlContent() {
     return this.getGeneratedFileContent('index.html', {});
+  }
+
+  convert(options: { type: 'html' | 'javascript' }) {
+    switch (options.type) {
+      case 'html': {
+        if (this.htmlPath) {
+          return;
+        }
+        const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
+        const htmlPath = path.join(this.dirPath, htmlName);
+        if (fs.existsSync(htmlPath)) {
+          throw new Error(`${htmlPath} already exists`);
+        }
+        this.writeGeneratedFile('index.html', htmlName, false, {});
+      }
+        break;
+      case 'javascript': {
+        if (!this.htmlPath) {
+          return;
+        }
+        const htmlPath = path.join(this.dirPath, this.htmlPath);
+        fs.unlinkSync(htmlPath);
+      }
+    }
   }
 }
 

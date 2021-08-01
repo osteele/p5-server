@@ -25,13 +25,23 @@ export class Sketch {
   public readonly title?: string;
   public readonly description?: string;
 
-  constructor(dirPath: string, htmlPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
+  protected constructor(dirPath: string, htmlPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
     this.dirPath = dirPath;
     this.htmlPath = htmlPath;
     this.jsSketchPath = sketchPath;
     this.title = options.title;
     this.description = options.description;
+  }
+
+  static create(mainFile: string, options: { title?: string, description?: string } = {}) {
+    if (mainFile.endsWith('.html') || mainFile.endsWith('.htm')) {
+      return new Sketch(path.dirname(mainFile), path.basename(mainFile), undefined, options);
+    } else if (mainFile.endsWith('.js')) {
+      return new Sketch(path.dirname(mainFile), null, path.basename(mainFile), options);
+    } else {
+      throw new Error(`Unsupported file type: ${mainFile}`);
+    }
   }
 
   static fromHtmlFile(htmlPath: string) {
@@ -269,7 +279,6 @@ export class Sketch {
       throw new Error(`${filePath} already exists`);
     }
     fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
-    console.log(`Created ${filePath}`);
   }
 
   get libraries(): Library[] {
@@ -301,7 +310,7 @@ export class Sketch {
   }
 }
 
-export function createSketchHtml(sketchPath: string) {
-  const sketch = new Sketch(path.dirname(sketchPath), null, path.basename(sketchPath));
+export function createSketchHtml(scriptPath: string) {
+  const sketch = Sketch.fromFile(scriptPath);
   return sketch.generateHtmlContent();
 }

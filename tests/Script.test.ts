@@ -65,6 +65,10 @@ test('Script.freeVariables', () => {
     // eslint-disable-next-line no-useless-escape
     expect(Script.fromSource('let a = \`${b+c} ${d}}\`').freeVariables).toEqual(new Set('bcd'));
     expect(Script.fromSource('let a = f`${b+c} ${d}`').freeVariables).toEqual(new Set('fbcd'));
+
+    // FIXME: should not include lf1
+    expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
+        new Set(['gf1', 'gf2', 'gv1', 'l3', 'lf1']));
 });
 
 test('Script.p5properties', () => {

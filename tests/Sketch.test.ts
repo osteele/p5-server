@@ -9,7 +9,8 @@ test('Sketch.fromHtmlFile', () => {
   expect(sketch.name).toBe('HTML-based sketch');
   expect(sketch.dirPath).toBe(`${testData}/directory-analysis`);
   expect(sketch.htmlPath).toBe('sketch.html');
-  expect(sketch.jsSketchPath).toBe('script.js');
+  expect(sketch.scriptPath).toBe('script.js');
+  expect(sketch.mainFile).toBe('sketch.html');
 });
 
 test('Sketch.fromJsFile', () => {
@@ -17,7 +18,8 @@ test('Sketch.fromJsFile', () => {
   expect(sketch.name).toBe('circles');
   expect(sketch.dirPath).toBe(`${testData}`);
   expect(sketch.htmlPath).toBe(null);
-  expect(sketch.jsSketchPath).toBe('circles.js');
+  expect(sketch.scriptPath).toBe('circles.js');
+  expect(sketch.mainFile).toBe('circles.js');
 });
 
 test('Sketch.isSketchHtmlFile', () => {
@@ -85,6 +87,8 @@ test('Sketch.generation', async () => {
     sketch.generate(false, options);
     expectDirectoriesEqual(outputDir, `${testData}/generation/golden/${golden}`);
   }
+});
+
 });
 
 function expectDirectoriesEqual(d1: string, d2: string) {

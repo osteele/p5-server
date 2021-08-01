@@ -38,7 +38,7 @@ html(lang='en')
             .ui.card
               .content
                 .header
-                  a(href=sketch.indexFile)
+                  a(href=sketch.mainFile)
                     img.ui.mini.image(src='/__p5_server_static/assets/p5js-icon.png')
                     | &ensp;
                     = sketch.name
@@ -51,13 +51,13 @@ html(lang='en')
                       i.small.info.circle.icon
                     | Main file
                     | :&ensp;
-                    a(href=srcViewHref(sketch.indexFile))= sketch.indexFile
+                    a(href=srcViewHref(sketch.mainFile))= sketch.mainFile
                   if sketch.files.length > 1
                     div
                       | Other files:&ensp;
                       .ui.horizontal.list
                         each file in sketch.files
-                          if file != sketch.indexFile
+                          if file != sketch.mainFile
                             a.item(href=srcViewHref(file))= file
                   if sketch.libraries.withImportPaths.length > 0
                     div
@@ -76,7 +76,7 @@ html(lang='en')
                         each library in sketch.libraries.withoutImportPaths
                           a.item(href=library.homepage)= library.name
               .extra.content
-                a(href=sketch.indexFile)
+                a(href=sketch.mainFile)
                   i.play.icon
                   | Run
 

@@ -21,15 +21,15 @@ export class DirectoryExistsError extends Error {
 export class Sketch {
   public readonly dirPath: string;
   public readonly htmlPath: string | null;
-  public readonly jsSketchPath: string;
+  public readonly scriptPath: string;
   public readonly title?: string;
   public readonly description?: string;
 
-  protected constructor(dirPath: string, htmlPath: string | null = 'index.html', sketchPath: string = 'sketch.js',
+  protected constructor(dirPath: string, htmlPath: string | null = 'index.html', scriptPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
     this.dirPath = dirPath;
     this.htmlPath = htmlPath;
-    this.jsSketchPath = sketchPath;
+    this.scriptPath = scriptPath;
     this.title = options.title;
     this.description = options.description;
   }
@@ -103,7 +103,7 @@ export class Sketch {
         // FIXME: the following works but is terrible code.
         sketches.push(new Sketch(dir,
           project.htmlPath && path.join(name, project.htmlPath),
-          project.jsSketchPath && path.join(name, project.jsSketchPath),
+          project.scriptPath && path.join(name, project.scriptPath),
           { title: name + '/', description: project.description }));
       }
       return !project;
@@ -192,8 +192,8 @@ export class Sketch {
     }
   }
 
-  get indexFile() {
-    return this.htmlPath || this.jsSketchPath || path.basename(this.dirPath);
+  get mainFile() {
+    return this.htmlPath || this.scriptPath || path.basename(this.dirPath);
   }
 
   get name() {
@@ -212,7 +212,7 @@ export class Sketch {
 
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
-    return this.indexFile.replace(/\.(html?|js)$/, '');
+    return this.mainFile.replace(/\.(html?|js)$/, '');
   }
 
   get files() {
@@ -220,8 +220,8 @@ export class Sketch {
     if (this.htmlPath) {
       files.push(this.htmlPath);
     }
-    if (this.jsSketchPath) {
-      files.push(this.jsSketchPath);
+    if (this.scriptPath) {
+      files.push(this.scriptPath);
     }
     if (this.htmlPath) {
       const filePath = path.join(this.dirPath, this.htmlPath);
@@ -239,9 +239,9 @@ export class Sketch {
         ];
       }
     }
-    if (this.jsSketchPath && fs.existsSync(path.join(this.dirPath, this.jsSketchPath))) {
+    if (this.scriptPath && fs.existsSync(path.join(this.dirPath, this.scriptPath))) {
       try {
-        const { loadCallArguments } = Script.fromFile(path.join(this.dirPath, this.jsSketchPath));
+        const { loadCallArguments } = Script.fromFile(path.join(this.dirPath, this.scriptPath));
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
@@ -270,7 +270,7 @@ export class Sketch {
     }
 
     if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath, force, options) }
-    this.writeGeneratedFile('sketch.js.njk', this.jsSketchPath, force, options);
+    this.writeGeneratedFile('sketch.js.njk', this.scriptPath, force, options);
   }
 
   private writeGeneratedFile(templateName: string, relPath: string, force: boolean, options: Record<string, unknown>) {
@@ -295,8 +295,8 @@ export class Sketch {
     const templatePath = path.join(templateDir, base);
     const libraries = this.libraries;
     const data = {
-      title: this.title || this.indexFile?.replace(/_/g, ' ') || 'Sketch',
-      sketchPath: `./${this.jsSketchPath}`,
+      title: this.title || this.mainFile?.replace(/_/g, ' ') || 'Sketch',
+      sketchPath: `./${this.scriptPath}`,
       libraries,
       p5Version,
       ...defaultGenerationOptions,

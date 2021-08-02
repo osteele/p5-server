@@ -1,10 +1,7 @@
 import fs from "fs";
 import path from "path";
 import rimraf from "rimraf";
-import util from 'util';
 import { Sketch } from "../src/models/Sketch";
-
-const rimrafP = util.promisify(rimraf);
 
 const testfilesPath = './tests/testdata';
 
@@ -80,34 +77,34 @@ describe('Sketch.generation', () => {
   const testfileDir = path.join(testfilesPath, 'generation');
   const outputDir = path.join(testfileDir, 'output');
 
-  beforeEach(async () => {
-    await rimrafP(outputDir);
+  beforeEach(() => {
+    rimraf.sync(outputDir);
     fs.mkdirSync(outputDir);
   });
 
   test('default options', () => {
-    testGeneration('test.js', {}, 'default');
+    testSketchGenerate('test.js', {}, 'default');
   });
   test('comments', () => {
-    testGeneration('test.js', { comments: true }, 'comments');
+    testSketchGenerate('test.js', { comments: true }, 'comments');
   });
   test('preload', () => {
-    testGeneration('test.js', { preload: true }, 'preload');
+    testSketchGenerate('test.js', { preload: true }, 'preload');
   });
   test('windowResized', () => {
-    testGeneration('test.js', { windowResized: true }, 'windowResized');
+    testSketchGenerate('test.js', { windowResized: true }, 'windowResized');
   });
   test('no-draw', () => {
-    testGeneration('test.js', { draw: false }, 'no-draw');
+    testSketchGenerate('test.js', { draw: false }, 'no-draw');
   });
   test('no-examples', () => {
-    testGeneration('test.js', { examples: false }, 'no-examples');
+    testSketchGenerate('test.js', { examples: false }, 'no-examples');
   });
   test('html', () => {
-    testGeneration('test.html', {}, 'html');
+    testSketchGenerate('test.html', {}, 'html');
   });
 
-  function testGeneration(outputName: string, options: Record<string, boolean>, golden: string) {
+  function testSketchGenerate(outputName: string, options: Record<string, boolean>, golden: string) {
     const sketch = Sketch.create(`${outputDir}/${outputName}`);
     sketch.generate(false, options);
     expectDirectoriesEqual(outputDir, path.join(testfileDir, 'golden', golden));
@@ -118,37 +115,54 @@ describe('Sketch.conversion', () => {
   const testfileDir = path.join(testfilesPath, 'conversion');
   const outputDir = path.join(testfileDir, 'output');
 
-  beforeEach(async () => {
-    await rimrafP(outputDir);
+  beforeEach(() => {
+    rimraf.sync(outputDir);
     fs.mkdirSync(outputDir);
   });
 
   describe('script -> html', () => {
     test('simple case', () => {
       testSketchConvert('sketch.js', { type: 'html' }, 'html');
-      // TODO: test library imports
       // TODO: test the description
-      // TODO: remove the description form the js file
+      // TODO: remove the description from the js file?
     });
 
     test('html file already exists', () => {
       testSketchConvert('collision/sketch.js', { type: 'html' }, { exception: /html already exists/ });
+    });
+
+    test('library import', () => {
+      testSketchConvert('use-sound-library.js', { type: 'html' }, 'use-sound-library');
     });
   });
 
   describe('html -> script', () => {
     test('simple case', () => {
       testSketchConvert(['sketch.html', 'sketch.js'], { type: 'javascript' }, 'script');
-      // TODO: error if html file has custom css or other structure
-      // TODO: error if the html file includes multiple scripts
-      // TODO: error if html file includes uninferred libraries
-      // TODO: add the description?
+      // TODO: add the description to the script file?
+    });
+
+    test('library', () => {
+      testSketchConvert('use-sound-library/index.html', { type: 'javascript' }, 'use-sound-library-js');
+    });
+
+    // TODO: error if html file includes uninferred libraries
+    test.skip('uninferred library', () => {
+      testSketchConvert('uninferred-library/index.html', { type: 'javascript' }, { exception: /an exception/ });
+    });
+
+    // TODO: error if html file includes an inline script
+    // TODO: error if html file includes multiple scripts
+    // TODO: error if html file includes custom css
+    // TODO: error if html file includes extra structure
+    test.skip('multiple scripts', () => {
+      testSketchConvert('multiple-scripts/index.html', { type: 'javascript' }, { exception: /multiple scripts/ });
     });
   });
 
   function testSketchConvert(filePath: string | string[], options: any, expectation: string | { exception: string | RegExp }) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;
-    let snapshotName = path.join('golden',
+    let snapshotRelDir = path.join('golden',
       typeof expectation === 'string' ? expectation : path.dirname(mainFile));
     if (filePath instanceof Array) {
       filePath.forEach(file => {
@@ -160,10 +174,10 @@ describe('Sketch.conversion', () => {
       const srcDir = filePath.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
       mainFile = filePath.split(path.sep).slice(1).join(path.sep);
-      snapshotName = srcDir;
+      if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
-      mainFile = filePath;
+      // mainFile = filePath;
     }
     const convert = () => Sketch.fromFile(path.join(outputDir, mainFile!)).convert(options);
     if (expectation instanceof Object) {
@@ -171,7 +185,7 @@ describe('Sketch.conversion', () => {
     } else {
       convert();
     }
-    expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotName));
+    expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotRelDir));
   }
 });
 
@@ -191,7 +205,11 @@ function copyDirectory(src: string, dst: string) {
 function expectDirectoriesEqual(a: string, b: string) {
   let aFiles = getDirectoryJson(a);
   let bFiles = getDirectoryJson(b);
-  expect(aFiles).toEqual(bFiles);
+  try {
+    expect(aFiles).toEqual(bFiles);
+  } catch (e) {
+    throw new Error(`${e.message} while comparing ${a} to ${b}`);
+  }
 }
 
 type ValueOrArray<T> = T | Array<ValueOrArray<T>>;

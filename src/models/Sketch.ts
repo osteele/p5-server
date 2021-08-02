@@ -24,15 +24,15 @@ export class Sketch {
   public readonly dirPath: string;
   public readonly htmlPath: string | null;
   public readonly scriptPath: string;
-  public readonly title?: string;
   public readonly description?: string;
+  protected readonly _title?: string;
 
   protected constructor(dirPath: string, htmlPath: string | null = 'index.html', scriptPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
     this.dirPath = dirPath;
     this.htmlPath = htmlPath;
     this.scriptPath = scriptPath;
-    this.title = options.title;
+    this._title = options.title;
     this.description = options.description;
   }
 
@@ -53,25 +53,19 @@ export class Sketch {
     const dirPath = path.dirname(htmlPath);
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(htmlContent);
-    const title = htmlRoot.querySelector('head title')?.text.trim();
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
-    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { description, title });
+    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { description });
   }
 
   static fromScriptFile(filePath: string) {
     const dirPath = path.dirname(filePath);
     let description;
-    const title = capitalize(path.basename(filePath, '.js').replace(/[-_]/g, ' '));
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
       description = this.getDescriptionFromScript(content);
     }
-    return new Sketch(dirPath, null, path.basename(filePath), { description, title });
-
-    function capitalize(str: string) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
   static fromFile(filePath: string) {
@@ -209,8 +203,13 @@ export class Sketch {
   }
 
   get name() {
-    if (this.title) return this.title;
+    // otherwise, return the basename of either the HTML file or the JavaScript
+    // file
+    return this.mainFile.replace(/\.(html?|js)$/, '');
+  }
 
+  get title() {
+    if (this._title) return this._title;
     // if there's an index file with a <title> element, read the name from that
     if (this.htmlPath) {
       const filePath = path.join(this.dirPath, this.htmlPath);
@@ -224,7 +223,12 @@ export class Sketch {
 
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
-    return this.mainFile.replace(/\.(html?|js)$/, '');
+    const basename = path.basename(this.mainFile);
+    return capitalize(basename.replace(/\.(html?|js)$/, '')).replace(/[-_]/g, ' ');
+
+    function capitalize(str: string) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
   }
 
   get files() {

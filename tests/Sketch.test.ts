@@ -5,53 +5,59 @@ import { Sketch } from "../src/models/Sketch";
 
 const testfilesPath = './tests/testdata';
 
+/** Template tag to convert tf`foo/bar` to `${testfilesPath}/foo/bar` */
+function tf(strings: TemplateStringsArray) {
+  return path.join(testfilesPath, ...strings.flatMap(s => s.split('/')));
+}
+
+console.info('load', tf`a/b/c`);
 
 test('Sketch.fromHtmlFile', () => {
-  const sketch = Sketch.fromHtmlFile(`${testfilesPath}/directory-analysis/sketch.html`);
+  const sketch = Sketch.fromHtmlFile(tf`directory-analysis/sketch.html`);
   expect(sketch.name).toBe('HTML-based sketch');
-  expect(sketch.dirPath).toBe(`${testfilesPath}/directory-analysis`);
+  expect(sketch.dirPath).toBe(tf`directory-analysis`);
   expect(sketch.htmlPath).toBe('sketch.html');
   expect(sketch.mainFile).toBe('sketch.html');
   expect(sketch.scriptPath).toBe('script.js');
 });
 
 test('Sketch.fromJsFile', () => {
-  const sketch = Sketch.fromScriptFile(`${testfilesPath}/circles.js`);
+  const sketch = Sketch.fromScriptFile(tf`circles.js`);
   expect(sketch.name).toBe('circles');
-  expect(sketch.dirPath).toBe(testfilesPath);
+  expect(sketch.dirPath).toBe(tf``);
   expect(sketch.htmlPath).toBe(null);
   expect(sketch.mainFile).toBe('circles.js');
   expect(sketch.scriptPath).toBe('circles.js');
 });
 
 test('Sketch.isSketchHtmlFile', () => {
-  expect(Sketch.isSketchHtmlFile(`${testfilesPath}/directory-analysis/sketch.html`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(`${testfilesPath}/missing-file.html`)).toBe(false);
+  expect(Sketch.isSketchHtmlFile(tf`directory-analysis/sketch.html`)).toBe(true);
+  expect(Sketch.isSketchHtmlFile(tf`missing-file.html`)).toBe(false);
 
-  expect(fs.existsSync(`${testfilesPath}/circles.js`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(`${testfilesPath}/circles.js`)).toBe(false);
+  expect(fs.existsSync(tf`circles.js`)).toBe(true);
+  expect(Sketch.isSketchHtmlFile(tf`circles.js`)).toBe(false);
 
-  expect(fs.existsSync(`${testfilesPath}/non-sketch.html`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(`${testfilesPath}/non-sketch.html`)).toBe(false);
+  expect(fs.existsSync(tf`non-sketch.html`)).toBe(true);
+  expect(Sketch.isSketchHtmlFile(tf`non-sketch.html`)).toBe(false);
 });
 
 test('Sketch.isSketchScriptFile', () => {
-  expect(Sketch.isSketchScriptFile(`${testfilesPath}/circles.js`)).toBe(true);
-  expect(Sketch.isSketchScriptFile(`${testfilesPath}/missing-file.js`)).toBe(false);
+  expect(Sketch.isSketchScriptFile(tf`circles.js`)).toBe(true);
+  expect(Sketch.isSketchScriptFile(tf`missing-file.js`)).toBe(false);
 
-  expect(fs.existsSync(`${testfilesPath}/directory-analysis/loose.js`)).toBe(true);
-  expect(Sketch.isSketchScriptFile(`${testfilesPath}/directory-analysis/loose.js`)).toBe(false);
+  expect(fs.existsSync(tf`directory-analysis/loose.js`)).toBe(true);
+  expect(Sketch.isSketchScriptFile(tf`directory-analysis/loose.js`)).toBe(false);
 });
 
 test('Sketch.analyzeDirectory', () => {
-  const { sketches, allFiles, unaffiliatedFiles } = Sketch.analyzeDirectory(`${testfilesPath}/directory-analysis`);
+  const { sketches, allFiles, unaffiliatedFiles } = Sketch.analyzeDirectory(tf`directory-analysis`);
   expect(sketches.length).toBe(4);
   expect(allFiles.length).toBe(6);
   expect(unaffiliatedFiles).toEqual(['collection', 'loose.js']);
 });
 
 test('Sketch.isSketchDir', () => {
-  const testfileDir = path.join(testfilesPath, 'directory-analysis');
+  const testfileDir = tf`directory-analysis`;
   expect(Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))).toBeInstanceOf(Sketch);
   expect(Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).toBeInstanceOf(Sketch);
   expect(Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))).toBeFalsy();
@@ -59,13 +65,13 @@ test('Sketch.isSketchDir', () => {
 });
 
 test('Sketch.files', () => {
-  const sketch = Sketch.fromDirectory(`${testfilesPath}/html-includes`);
+  const sketch = Sketch.fromDirectory(tf`html-includes`);
   expect(sketch.files.sort()).toEqual(
     ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort());
 });
 
 test('Sketch.description', () => {
-  const testfileDir = path.join(testfilesPath, 'descriptions');
+  const testfileDir = tf`descriptions`;
   expect(Sketch.fromFile(path.join(testfileDir, 'single-line-description.js')).description).toBe('sketch description');
   expect(Sketch.fromFile(path.join(testfileDir, 'multi-line-description.js')).description!.replace(/\s+/g, ' ')).toBe('sketch description');
   expect(Sketch.fromFile(path.join(testfileDir, 'single-line-block-description.js')).description).toBe('sketch description');
@@ -74,7 +80,7 @@ test('Sketch.description', () => {
 });
 
 describe('Sketch.generation', () => {
-  const testfileDir = path.join(testfilesPath, 'generation');
+  const testfileDir = tf`generation`;
   const outputDir = path.join(testfileDir, 'output');
 
   beforeEach(() => {
@@ -104,10 +110,10 @@ describe('Sketch.generation', () => {
     testSketchGenerate('test.html', {}, 'html');
   });
 
-  function testSketchGenerate(outputName: string, options: Record<string, boolean>, golden: string) {
+  function testSketchGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
     const sketch = Sketch.create(`${outputDir}/${outputName}`);
     sketch.generate(false, options);
-    expectDirectoriesEqual(outputDir, path.join(testfileDir, 'golden', golden));
+    expectDirectoriesEqual(outputDir, path.join(testfileDir, 'snapshots', snapshotName));
   }
 });
 
@@ -162,7 +168,7 @@ describe('Sketch.conversion', () => {
 
   function testSketchConvert(filePath: string | string[], options: any, expectation: string | { exception: string | RegExp }) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;
-    let snapshotRelDir = path.join('golden',
+    let snapshotRelDir = path.join('snapshots',
       typeof expectation === 'string' ? expectation : path.dirname(mainFile));
     if (filePath instanceof Array) {
       filePath.forEach(file => {

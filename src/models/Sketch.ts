@@ -340,12 +340,43 @@ export class Sketch {
           throw new Error(`${htmlPath} already exists`);
         }
         this.writeGeneratedFile('index.html', htmlName, false, {});
-      }
         break;
+      }
       case 'javascript': {
         if (!this.htmlPath) {
           return;
         }
+
+        const htmlPath = path.join(this.dirPath, this.htmlPath);
+
+        // there must be only one script file, and no inline scripts
+        const content = fs.readFileSync(htmlPath, 'utf-8');
+        const htmlRoot = parse(content);
+        const scriptSrcs = htmlRoot.querySelectorAll('script')
+          .map(e => e.attributes.src);
+        // if scriptSrcs contains a null, it means there's an inline script
+        if (scriptSrcs.some(s => !s)) {
+          throw new Error(`${htmlPath} contains an inline script`);
+        }
+        const localScripts = scriptSrcs.filter(s => !/^https?:/.test(s));
+        switch (localScripts.length) {
+          case 0:
+            throw new Error(`${htmlPath} does not contain any local scripts`);
+          case 1:
+            if (!localScripts[0].endsWith('.js')) {
+              throw new Error(`${htmlPath} refers to a script file with the wrong extension`);
+            }
+            if (!fs.existsSync(path.join(this.dirPath, localScripts[0]))) {
+              throw new Error(`${htmlPath} refers to a script file that does not exist`);
+            }
+            break;
+          default:
+            if (localScripts.length > 1) {
+              throw new Error(`${htmlPath} contains multiple script tags`);
+            }
+        }
+
+        // check that explicit and inferred libraries match
         const htmlLibs = this.explicitLibraries();
         const scriptLibs = this.impliedLibraries();
         const htmlNotScript = htmlLibs.filter(lib => !scriptLibs.some(s => s.name === lib.name));
@@ -357,7 +388,6 @@ export class Sketch {
           throw new Error(`${path.join(this.dirPath, this.scriptPath)} implies libraries that are not in ${this.htmlPath}: ${scriptNotHtml.map(lib => lib.name)}`);
         }
 
-        const htmlPath = path.join(this.dirPath, this.htmlPath);
         fs.unlinkSync(htmlPath);
       }
     }

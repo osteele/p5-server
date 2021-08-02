@@ -76,6 +76,9 @@ test('Sketch.libraries', () => {
 
   sketch = Sketch.fromFile(tf`Sketch.convert/uninferred-library/index.html`);
   expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
+
+  sketch = Sketch.fromFile(tf`Sketch.convert/explicit-imports.html`);
+  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound', 'ml5.js', 'Rita']);
 });
 
 test('Sketch.description', () => {
@@ -170,12 +173,19 @@ describe('Sketch.convert', () => {
         { exception: "sketch.js implies libraries that are not in index.html" });
     });
 
-    // TODO: error if html file includes an inline script
-    // TODO: error if html file includes multiple scripts
-    // TODO: error if html file includes custom css
-    // TODO: error if html file includes extra structure
-    test.skip('multiple scripts', () => {
-      testSketchConvert('multiple-scripts/index.html', { type: 'javascript' }, { exception: /multiple scripts/ });
+    // TODO: error if html file includes custom css?
+    // TODO: error if html file includes extra structure?
+
+    test('inline scripts', () => {
+      testSketchConvert('inline-script.html', { type: 'javascript' }, { exception: /contains an inline script/ });
+    });
+
+    test('multiple scripts', () => {
+      testSketchConvert('multiple-scripts.html', { type: 'javascript' }, { exception: /contains multiple script tags/ });
+    });
+
+    test('multiple scripts', () => {
+      testSketchConvert('missing-script.html', { type: 'javascript' }, { exception: /refers to a script file that does not exist/ });
     });
   });
 
@@ -196,7 +206,6 @@ describe('Sketch.convert', () => {
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
-      // mainFile = filePath;
     }
     const convert = () => Sketch.fromFile(path.join(outputDir, mainFile!)).convert(options);
     if (expectation instanceof Object) {
@@ -204,7 +213,9 @@ describe('Sketch.convert', () => {
     } else {
       convert();
     }
-    expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotRelDir));
+    if (snapshotRelDir !== 'snapshots') {
+      expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotRelDir));
+    }
   }
 });
 
@@ -241,7 +252,7 @@ function getDirectoryJson(dir: string): DirectoryJson {
     .map(name => {
       const file = path.join(dir, name);
       return [name, fs.statSync(file).isDirectory()
-        ? getDirectoryJson(dir)
+        ? getDirectoryJson(file)
         : fs.readFileSync(file, 'utf-8')];
     });
 }

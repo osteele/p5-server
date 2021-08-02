@@ -59,7 +59,8 @@ export class Library implements LibraryProperties {
     let libs: LibraryArray = new LibraryArray();
     const content = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(content);
-    const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
+    const scriptSrcs = htmlRoot.querySelectorAll('script[src]')
+      .map(node => node.attributes.src);
     const inferredLibs = libs;
     libs = new LibraryArray();
     scriptSrcs.forEach(src => {
@@ -86,6 +87,7 @@ export class Library implements LibraryProperties {
   }
 
   matchesPath(path: string) {
+    if (!this.path) return false;
     return this.path === path || this.packageName && getPackageName(path) === this.packageName;
     function getPackageName(s: string) {
       const m = s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/)

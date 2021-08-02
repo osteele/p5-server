@@ -15,10 +15,12 @@ import http = require('http');
 export type ServerConfig = {
   root: string;
   port?: number;
+  scanPorts: boolean;
   sketchPath: string | null;
 };
 
 export type ServerOptions = Partial<ServerConfig>;
+const serverOptionDefaults = { root: '.', scanPorts: true, sketchPath: null }
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
@@ -159,14 +161,14 @@ function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Respon
 }
 
 async function startServer(options: ServerOptions) {
-  const derivedOptions: ServerConfig = { root: '.', sketchPath: null, ...options };
+  const derivedOptions: ServerConfig = { ...serverOptionDefaults, ...options };
   Object.assign(app.locals, options);
   let port = options.port || 3000;
 
   app.use('/', express.static(derivedOptions.root));
 
-  // do this at startup, for effect only, in order to provide errors and
-  // diagnostics immediately
+  // For effect only, in order to provide errors and diagnostics before waiting
+  // for a browser request
   createDirectoryListing('', derivedOptions.root);
 
   let server: http.Server;
@@ -175,10 +177,10 @@ async function startServer(options: ServerOptions) {
       server = await listenSync(p);
       break;
     } catch (e) {
-      if (e.code !== 'EADDRINUSE') {
+      if (e.code !== 'EADDRINUSE' || !derivedOptions.scanPorts) {
         throw e;
       }
-      console.warn('Address in use, retrying...');
+      console.log(`Port ${p} is in use, retrying...`);
     }
   }
   server ||= await listenSync();

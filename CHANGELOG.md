@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 - Added svg files to distr
-- Remove src
+- Remove src from distribution
+- Added scanPorts server option. This defaults true (the previous behavior)
 - Sketch API changes (see commit descriptions)
 
 ## [0.2.2]

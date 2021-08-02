@@ -56,17 +56,22 @@ export class Sketch {
     const title = htmlRoot.querySelector('head title')?.text.trim();
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
-    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { title, description });
+    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { description, title });
   }
 
   static fromScriptFile(filePath: string) {
     const dirPath = path.dirname(filePath);
     let description;
+    const title = capitalize(path.basename(filePath, '.js').replace(/[-_]/g, ' '));
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
       description = this.getDescriptionFromScript(content);
     }
-    return new Sketch(dirPath, null, path.basename(filePath), { description });
+    return new Sketch(dirPath, null, path.basename(filePath), { description, title });
+
+    function capitalize(str: string) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
   }
 
   static fromFile(filePath: string) {
@@ -334,6 +339,7 @@ export class Sketch {
     }
     switch (options.type) {
       case 'html': {
+        // html -> javascript
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
         const htmlPath = path.join(this.dirPath, htmlName);
         if (fs.existsSync(htmlPath)) {
@@ -347,6 +353,7 @@ export class Sketch {
           return;
         }
 
+        // html -> javascript
         const htmlPath = path.join(this.dirPath, this.htmlPath);
 
         // there must be only one script file, and no inline scripts

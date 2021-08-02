@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import convert from '../commands/convert';
 import create from '../commands/create';
 import serve from '../commands/serve';
 
@@ -23,9 +24,17 @@ program
   .action(create);
 
 program
+  .command('convert')
+  .argument('file')
+  .description('Convert an HTML sketch to JavaScript-only or vice versa')
+  .option('--to <type>', 'output type: html or javascript')
+  .action(convert);
+
+program
   .command('serve [directory]')
   .description('Create a p5.js sketch')
-  .alias('s')
+  .alias('server')
+  .alias('r')
   .alias('run')
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')

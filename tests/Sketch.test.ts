@@ -18,16 +18,18 @@ test('Sketch.fromHtmlFile', () => {
   expect(sketch.htmlPath).toBe('sketch.html');
   expect(sketch.mainFile).toBe('sketch.html');
   expect(sketch.scriptPath).toBe('script.js');
+  expect(sketch.title).toBe('HTML-based sketch');
 });
 
 test('Sketch.fromJsFile', () => {
   const sketch = Sketch.fromScriptFile(tf`circles.js`);
   expect(sketch.sketchType === 'javascript');
-  expect(sketch.name).toBe('circles');
+  expect(sketch.name).toBe('Circles');
   expect(sketch.dirPath).toBe(tf``);
   expect(sketch.htmlPath).toBe(null);
   expect(sketch.mainFile).toBe('circles.js');
   expect(sketch.scriptPath).toBe('circles.js');
+  expect(sketch.title).toBe('Circles');
 });
 
 test('Sketch.isSketchHtmlFile', () => {

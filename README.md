@@ -24,19 +24,7 @@ extension](https://github.com/osteele/vscode-p5server#readme).
   sketches, folders, other files in that directory.
 * **Sketch generation**. `p5 generate` creates an `index.html` / `sketch.js` pair of files.
 
-## Installation and Quick Start
-
-### Installation
-
-1. Install [Node.js](https://nodejs.org/).
-
-2. In a terminal window, enter:
-
-    ```sh
-    npm install p5-server
-    ```
-
-### Usage
+## Usage
 
 In a terminal window:
 
@@ -49,7 +37,54 @@ Any of these will display a URL that can be entered into a browser. (In some
 terminal programs, you can command-click on the URL instead of copying and
 pasting it.)
 
-## Commands
+### Create a sketch
+
+`p5 create  --html` creates a sketch named `sketch.js` in the current directory.
+
+This is a **JavaScript-only sketch**. The server (below) can run this, and you can
+paste it into online editors such as the P5 web editor and OpenProcessing.org.
+
+`p5 create my-sketch` creates an HTML file named `my-sketch.html` and a
+JavaScript file named `my-sketch.js`.
+
+The default generated script contains `setup()` and `draw()` functions. The
+`setup()` functions creates a canvas, and the `draw()` functions draws circles
+that follow the mouse. `--options` can be used to customize this script.
+See the reference, below.
+
+### Start the server
+
+`p5 serve` starts a server, that serves files from the current directory.
+
+`p5 serve directory` starts a server that serves files from another directory.
+
+By default, the server runs on port 3000. You can open it in a browser by
+visiting <http://localhost:3000>. The `--open` option will do this
+automatically.
+
+If another server is already running on port 3000, the server will choose
+another port.
+
+### Convert JavaScript <-> HTML sketches
+
+`p5 convert sketch.html` converts an HTML sketch to a JavaScript-only sketch, by
+deleting the HTML file. It first inspects this file, to insure that the sketch
+contains only a single script file, and that all the information necessary to
+run the sketch is in the script.
+
+`p5 convert sketch.js` creates an HTML file that can be used to run the sketch.
+
+## Installation
+
+1. Install [Node.js](https://nodejs.org/).
+
+2. In a terminal window, enter:
+
+    ```sh
+    npm install p5-server
+    ```
+
+## Reference
 
 Run `p5 --help` to see a list of commands.
 
@@ -92,6 +127,22 @@ or the `filename` subdirectory of the current directory.
 * If `filename` is a directory, the browser displays a list of sketches and files in that directory.
 * If `filename` is not supplied, the browser displays sketches and files in the
   current directory. (This is the same as `p5 serve .`.)
+
+### `p5 convert filename --to html | javascript`
+
+Converts between HTML and JavaScript-only sketches.
+
+Converting a JavaScript-only sketch is simple. An HTML file with the same base name is created.
+This will only fail if the directory already contains a HTML file with this name.
+
+Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that
+includes the script. This potentially looses some information. Before the file is deleted,
+the following checks are made:
+
+* The HTML file should include only a single script file.
+* The libraries that the HTML file includes (via `<script>` tags) should be the
+  same as the libraries that will be inferred from the script file. (See
+  “Library inference”, below.)
 
 ## API
 

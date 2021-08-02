@@ -11,6 +11,8 @@ const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true }
 const defaultDirectoryExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
 
+export type SketchType = 'html' | 'javascript';
+
 export class DirectoryExistsError extends Error {
   constructor(msg: string) {
     super(msg);
@@ -195,6 +197,8 @@ export class Sketch {
     }
   }
 
+  get sketchType(): SketchType { return this.htmlPath ? 'html' : 'javascript'; }
+
   get mainFile() {
     return this.htmlPath || this.scriptPath || path.basename(this.dirPath);
   }
@@ -324,13 +328,12 @@ export class Sketch {
     return this.getGeneratedFileContent('index.html', {});
   }
 
-  convert(options: { type: 'html' | 'javascript' }) {
+  convert(options: { type: SketchType }) {
+    if (this.sketchType === options.type) {
+      return;
+    }
     switch (options.type) {
       case 'html': {
-        if (this.htmlPath) {
-          // it's already an HTML sketch
-          return;
-        }
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
         const htmlPath = path.join(this.dirPath, htmlName);
         if (fs.existsSync(htmlPath)) {
@@ -341,7 +344,6 @@ export class Sketch {
         break;
       case 'javascript': {
         if (!this.htmlPath) {
-          // it's already a JavaScript sketch
           return;
         }
         const htmlLibs = this.explicitLibraries();

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import rimraf from "rimraf";
-import { Sketch } from "../src/models/Sketch";
+import { Sketch, SketchType } from "../src/models/Sketch";
 
 const testfilesPath = './tests/testdata';
 
@@ -12,6 +12,7 @@ function tf(strings: TemplateStringsArray) {
 
 test('Sketch.fromHtmlFile', () => {
   const sketch = Sketch.fromHtmlFile(tf`Sketch.analyzeDirectory/sketch.html`);
+  expect(sketch.sketchType === 'html');
   expect(sketch.name).toBe('HTML-based sketch');
   expect(sketch.dirPath).toBe(tf`Sketch.analyzeDirectory`);
   expect(sketch.htmlPath).toBe('sketch.html');
@@ -21,6 +22,7 @@ test('Sketch.fromHtmlFile', () => {
 
 test('Sketch.fromJsFile', () => {
   const sketch = Sketch.fromScriptFile(tf`circles.js`);
+  expect(sketch.sketchType === 'javascript');
   expect(sketch.name).toBe('circles');
   expect(sketch.dirPath).toBe(tf``);
   expect(sketch.htmlPath).toBe(null);
@@ -177,7 +179,7 @@ describe('Sketch.convert', () => {
     });
   });
 
-  function testSketchConvert(filePath: string | string[], options: any, expectation: string | { exception: string | RegExp }) {
+  function testSketchConvert(filePath: string | string[], options: { type: SketchType }, expectation: string | { exception: string | RegExp }) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;
     let snapshotRelDir = path.join('snapshots',
       typeof expectation === 'string' ? expectation : path.dirname(mainFile));

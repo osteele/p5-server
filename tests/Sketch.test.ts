@@ -68,6 +68,14 @@ test('Sketch.files', () => {
     ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort());
 });
 
+test('Sketch.libraries', () => {
+  let sketch = Sketch.fromScriptFile(tf`implicit-imports/speech.js`);
+  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.speech']);
+
+  sketch = Sketch.fromFile(tf`Sketch.convert/uninferred-library/index.html`);
+  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
+});
+
 test('Sketch.description', () => {
   const testfileDir = tf`descriptions`;
   expect(Sketch.fromFile(path.join(testfileDir, 'single-line-description.js')).description).toBe('sketch description');
@@ -148,6 +156,16 @@ describe('Sketch.convert', () => {
 
     test('library', () => {
       testSketchConvert('use-sound-library/index.html', { type: 'javascript' }, 'use-sound-library-js');
+    });
+
+    test('uninferred library', () => {
+      testSketchConvert('uninferred-library/index.html', { type: 'javascript' },
+        { exception: "index.html contains libraries that are not implied by sketch.js: p5.sound" });
+    });
+
+    test('added inferred library', () => {
+      testSketchConvert('add-implied-library/index.html', { type: 'javascript' },
+        { exception: "sketch.js implies libraries that are not in index.html" });
     });
 
     // TODO: error if html file includes an inline script

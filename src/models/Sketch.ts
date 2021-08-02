@@ -53,7 +53,7 @@ export class Sketch {
     const htmlRoot = parse(htmlContent);
     const title = htmlRoot.querySelector('head title')?.text.trim();
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
-    const scripts = this.getScriptFiles(htmlRoot, '');
+    const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
     return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { title, description });
   }
 
@@ -62,7 +62,7 @@ export class Sketch {
     let description;
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
-      description = this.getJsDescription(content);
+      description = this.getDescriptionFromScript(content);
     }
     return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
@@ -172,14 +172,14 @@ export class Sketch {
       : null;
   }
 
-  private static getScriptFiles(htmlRoot: HTMLElement, dir: string) {
+  private static getLocalScriptFilesFromHtml(htmlRoot: HTMLElement, dir: string) {
     return htmlRoot.querySelectorAll('script[src]')
       .map(e => e.attributes.src.replace(/^\.\//, ''))
       .filter(s => !s.match(/https?:/))
       .map(s => path.join(dir, s));
   }
 
-  private static getJsDescription(content: string) {
+  private static getDescriptionFromScript(content: string) {
     let text;
     let m = content.match(/\n*((?:\/\/.*\n)+)/);
     if (m) {
@@ -234,7 +234,7 @@ export class Sketch {
         const dir = path.dirname(this.htmlPath);
         files = [
           ...files,
-          ...Sketch.getScriptFiles(htmlRoot, dir),
+          ...Sketch.getLocalScriptFilesFromHtml(htmlRoot, dir),
           ...htmlRoot.querySelectorAll('head link[href]')
             .map(e => e.attributes.href.replace(/^\.\//, ''))
             .filter(s => !s.match(/https?:/))
@@ -285,11 +285,23 @@ export class Sketch {
   }
 
   get libraries(): Library[] {
-    return Library.inferLibraries(
+    return this.htmlPath
+      ? this.explicitLibraries()
+      : this.impliedLibraries();
+  }
+
+  private explicitLibraries(): Library[] {
+    const htmlPath = this.htmlPath && path.join(this.dirPath, this.htmlPath);
+    return htmlPath && fs.existsSync(htmlPath)
+      ? Library.findLibrariesInHtml(htmlPath)
+      : [];
+  }
+
+  private impliedLibraries(): Library[] {
+    return Library.inferLibrariesFromScripts(
       this.files
         .filter(f => f.endsWith('.js'))
-        .map(f => path.join(this.dirPath, f)),
-      this.htmlPath && path.join(this.dirPath, this.htmlPath));
+        .map(f => path.join(this.dirPath, f)));
   }
 
   protected getGeneratedFileContent(base: string, options: Record<string, unknown>) {
@@ -316,6 +328,7 @@ export class Sketch {
     switch (options.type) {
       case 'html': {
         if (this.htmlPath) {
+          // it's already an HTML sketch
           return;
         }
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
@@ -328,8 +341,20 @@ export class Sketch {
         break;
       case 'javascript': {
         if (!this.htmlPath) {
+          // it's already a JavaScript sketch
           return;
         }
+        const htmlLibs = this.explicitLibraries();
+        const scriptLibs = this.impliedLibraries();
+        const htmlNotScript = htmlLibs.filter(lib => !scriptLibs.some(s => s.name === lib.name));
+        const scriptNotHtml = scriptLibs.filter(lib => !htmlLibs.some(h => h.name === lib.name));
+        if (htmlNotScript.length) {
+          throw new Error(`${path.join(this.dirPath, this.htmlPath)} contains libraries that are not implied by ${this.scriptPath}: ${htmlLibs.map(lib => lib.name)}`);
+        }
+        if (scriptNotHtml.length) {
+          throw new Error(`${path.join(this.dirPath, this.scriptPath)} implies libraries that are not in ${this.htmlPath}: ${scriptNotHtml.map(lib => lib.name)}`);
+        }
+
         const htmlPath = path.join(this.dirPath, this.htmlPath);
         fs.unlinkSync(htmlPath);
       }

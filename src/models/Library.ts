@@ -6,7 +6,7 @@ import { JavascriptSyntaxError } from './script-analysis';
 
 export const p5Version = '1.4.0';
 
-type LibrarySpec = {
+type LibraryProperties = {
   name: string;
   homepage: string;
   packageName?: string;
@@ -15,7 +15,7 @@ type LibrarySpec = {
   props?: string[];
 };
 
-export class Library implements LibrarySpec {
+export class Library implements LibraryProperties {
   public readonly name: string;
   public readonly homepage: string;
   public readonly packageName?: string;
@@ -23,18 +23,18 @@ export class Library implements LibrarySpec {
   public readonly props?: string[];
   private _path?: string;
 
-  constructor(spec: LibrarySpec) {
+  constructor(spec: LibraryProperties) {
     this.name = spec.name;
     this.homepage = spec.homepage;
     this._path = spec.path;
     Object.assign(this, spec);
   }
 
-  static fromSpec(spec: LibrarySpec): Library {
+  static fromSpec(spec: LibraryProperties): Library {
     return new Library(spec);
   }
 
-  static inferLibraries(scriptPaths: string[], htmlPath?: string | null): LibraryArray {
+  static inferLibrariesFromScripts(scriptPaths: string[]): LibraryArray {
     let libs: LibraryArray = new LibraryArray();
     for (const scriptFile of scriptPaths) {
       if (fs.existsSync(scriptFile)) {
@@ -52,20 +52,23 @@ export class Library implements LibrarySpec {
         }
       }
     }
-    if (htmlPath && fs.existsSync(htmlPath)) {
-      const content = fs.readFileSync(htmlPath, 'utf-8');
-      const htmlRoot = parse(content);
-      const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
-      const inferredLibs = libs;
-      libs = new LibraryArray();
-      scriptSrcs.forEach(src => {
-        const lib = libraries.find(lib => lib.matchesPath(src));
-        if (lib) {
-          libs.push(lib);
-        }
-      });
-      libs.inferredFromScripts = inferredLibs.filter(lib => !libs.includes(lib));
-    }
+    return libs;
+  }
+
+  static findLibrariesInHtml(htmlPath: string): LibraryArray {
+    let libs: LibraryArray = new LibraryArray();
+    const content = fs.readFileSync(htmlPath, 'utf-8');
+    const htmlRoot = parse(content);
+    const scriptSrcs = htmlRoot.querySelectorAll('script').map(node => node.attributes.src);
+    const inferredLibs = libs;
+    libs = new LibraryArray();
+    scriptSrcs.forEach(src => {
+      const lib = libraries.find(lib => lib.matchesPath(src));
+      if (lib) {
+        libs.push(lib);
+      }
+    });
+    libs.inferredFromScripts = inferredLibs.filter(lib => !libs.includes(lib));
     return libs;
   }
 
@@ -104,7 +107,7 @@ class LibraryArray extends Array<Library> {
 }
 
 
-const librarySpecs: LibrarySpec[] =
+const librarySpecs: LibraryProperties[] =
   JSON.parse(fs.readFileSync(path.join(__dirname, '../libraries.json'), 'utf-8'))
 
 export const libraries: Library[] =

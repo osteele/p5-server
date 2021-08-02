@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "CLI to create and serve p5.js sketches and collections, and infer required libraries",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "homepage": "https://github.com/osteele/p5-server#readme",

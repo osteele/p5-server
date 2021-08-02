@@ -1,7 +1,8 @@
 # Change Log
 
-## [Unreleased]
+## [0.3.0]
 
+- Add a command an API to convert between HTML and JavaScript-only sketches
 - Added svg files to distr
 - Remove src from distribution
 - Added scanPorts server option. This defaults true (the previous behavior)

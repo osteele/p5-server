@@ -1,5 +1,7 @@
 # P5.js Server
 
+[![npm version](https://badge.fury.io/js/p5-server.svg)](https://badge.fury.io/js/p5-server)
+
 This project is a command-line interface for [p5.js](https://p5js.org/).
 
 It is also available as a [Visual Studio Code

@@ -1,0 +1,357 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>p5-server</title>
+	<meta name="description" content="Documentation for p5-server">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">p5-server</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>p5-server</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#p5js-server" id="p5js-server" style="color: inherit; text-decoration: none;">
+					<h1>P5.js Server</h1>
+				</a>
+				<p><a href="https://badge.fury.io/js/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version"></a></p>
+				<p>This project is a command-line interface for <a href="https://p5js.org/">p5.js</a>.</p>
+				<p>It is also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code
+				extension</a>.</p>
+				<p><img src="docs/screenshot.png" alt="screenshot"></p>
+				<a href="#features" id="features" style="color: inherit; text-decoration: none;">
+					<h2>Features</h2>
+				</a>
+				<ul>
+					<li><strong>Live reload</strong>. The browser reloads the page, when any file in its directory is
+					modified.</li>
+					<li><strong>JavaScript-only sketches</strong>. Run a sketch that&#39;s just a JavaScript file (e.g.
+					<code>p5 serve sketch.js</code>). You don&#39;t need to create an HTML wrapper.</li>
+					<li><strong>Automatic library includes</strong>. If the server detects that a JavaScript-only
+						sketch requires a <a href="https://p5js.org/libraries/">p5.js library</a>, it will
+						automatically include it. (See
+						<a href="https://github.com/osteele/p5-server#automatic-library-inclusion">here</a> for
+					how this works.)</li>
+					<li><strong>In-Page syntax errors</strong>. If a JavaScript file has a syntax error, it is
+					displayed in the body of the page (you don&#39;t have to check the console).</li>
+					<li><strong>P5-aware directory listings</strong>. Viewing a directory in the browser lists the
+					sketches, folders, other files in that directory.</li>
+					<li><strong>Sketch generation</strong>. <code>p5 generate</code> creates an <code>index.html</code> / <code>sketch.js</code> pair of files.</li>
+				</ul>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<p>In a terminal window:</p>
+				<ul>
+					<li><code>p5 serve</code> starts a server in the current directory</li>
+					<li><code>p5 serve &lt;directory&gt;</code> to serve a different directory</li>
+					<li><code>p5 serve sketch.html</code> or <code>p5 serve sketch.js</code> serve a specific file.</li>
+					<li><code>p5 serve [directory] --open</code> runs the server and opens the URL in the browser.</li>
+				</ul>
+				<p>Any of these will display a URL that can be entered into a browser. (In some
+					terminal programs, you can command-click on the URL instead of copying and
+				pasting it.)</p>
+				<a href="#create-a-sketch" id="create-a-sketch" style="color: inherit; text-decoration: none;">
+					<h3>Create a sketch</h3>
+				</a>
+				<p><code>p5 create  --html</code> creates a sketch named <code>sketch.js</code> in the current directory.</p>
+				<p>This is a <strong>JavaScript-only sketch</strong>. The server (below) can run this, and you can
+				paste it into online editors such as the P5 web editor and OpenProcessing.org.</p>
+				<p><code>p5 create my-sketch</code> creates an HTML file named <code>my-sketch.html</code> and a
+				JavaScript file named <code>my-sketch.js</code>.</p>
+				<p>The default generated script contains <code>setup()</code> and <code>draw()</code> functions. The
+					<code>setup()</code> functions creates a canvas, and the <code>draw()</code> functions draws circles
+					that follow the mouse. <code>--options</code> can be used to customize this script.
+				See the reference, below.</p>
+				<a href="#start-the-server" id="start-the-server" style="color: inherit; text-decoration: none;">
+					<h3>Start the server</h3>
+				</a>
+				<p><code>p5 serve</code> starts a server, that serves files from the current directory.</p>
+				<p><code>p5 serve directory</code> starts a server that serves files from another directory.</p>
+				<p>By default, the server runs on port 3000. You can open it in a browser by
+					visiting <a href="http://localhost:3000">http://localhost:3000</a>. The <code>--open</code> option will do this
+				automatically.</p>
+				<p>If another server is already running on port 3000, the server will choose
+				another port.</p>
+				<a href="#convert-javascript-lt-gt-html-sketches" id="convert-javascript-lt-gt-html-sketches" style="color: inherit; text-decoration: none;">
+					<h3>Convert JavaScript &lt;-&gt; HTML sketches</h3>
+				</a>
+				<p><code>p5 convert sketch.html</code> converts an HTML sketch to a JavaScript-only sketch, by
+					deleting the HTML file. It first inspects this file, to insure that the sketch
+					contains only a single script file, and that all the information necessary to
+				run the sketch is in the script.</p>
+				<p><code>p5 convert sketch.js</code> creates an HTML file that can be used to run the sketch.</p>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h2>Installation</h2>
+				</a>
+				<ol>
+					<li><p>Install <a href="https://nodejs.org/">Node.js</a>.</p>
+					</li>
+					<li><p>In a terminal window, enter:</p>
+						<pre><code class="language-sh"><span style="color: #000000">npm install p5-server</span>
+</code></pre>
+					</li>
+				</ol>
+				<a href="#reference" id="reference" style="color: inherit; text-decoration: none;">
+					<h2>Reference</h2>
+				</a>
+				<p>Run <code>p5 --help</code> to see a list of commands.</p>
+				<p>Run <code>p5 &lt;command&gt; --help</code> to see command-line options.</p>
+				<a href="#p5-create-sketch-name" id="p5-create-sketch-name" style="color: inherit; text-decoration: none;">
+					<h3><code>p5 create [sketch-name]</code></h3>
+				</a>
+				<p>Creates a folder named <code>sketch-name</code> (default <code>sketch</code>), that contains an
+				<code>index.html</code> file and a <code>sketch.js</code> file.</p>
+				<a href="#p5-create-sketch-name---no-html" id="p5-create-sketch-name---no-html" style="color: inherit; text-decoration: none;">
+					<h3><code>p5 create [sketch-name] --no-html</code></h3>
+				</a>
+				<p>Creates a file named <code>sketch-name.js</code> in the current directory.</p>
+				<p>Use <code>-options &lt;options&gt;</code> to configure the JavaScript file. <code>&lt;options&gt;</code> is a
+					comma-separate list of script configuration options, such as <code>resizeCanvas</code> or
+				<code>preload,static</code>.</p>
+				<p>The script configuration options are:</p>
+				<ul>
+					<li><code>comments</code> – include comments (e.g. <code>// put setup code here</code>) inside the
+					functions</li>
+					<li><code>preload</code> – include an (empty) <code>preload()</code> function</li>
+					<li><code>windowResized</code> – include a <code>windowResized()</code> function, that resizes the
+					canvas when the window is resized</li>
+					<li><code>no-draw</code> – omit the <code>draw()</code> function, in order to create a &quot;static&quot; sketch</li>
+					<li><code>no-examples</code> – omit the example call inside of <code>draw()</code></li>
+				</ul>
+				<a href="#p5-serve-filename" id="p5-serve-filename" style="color: inherit; text-decoration: none;">
+					<h3><code>p5 serve [filename]</code></h3>
+				</a>
+				<p>Runs a web server that serves the current directory (if there is no argument),
+				or the <code>filename</code> subdirectory of the current directory.</p>
+				<p><code>p5 serve filename</code> runs a sketch in the browser.</p>
+				<ul>
+					<li>If <code>filename</code> is an HTML file (for example, <code>index.html</code>), this command serves
+					that page.</li>
+					<li>If <code>filename</code> is a JavaScript file that contains a p5.js sketch (for example,
+					<code>sketch.js</code>), the server serves a page that runs the sketch.</li>
+					<li>If <code>filename</code> is a directory, the browser displays a list of sketches and files in that directory.</li>
+					<li>If <code>filename</code> is not supplied, the browser displays sketches and files in the
+					current directory. (This is the same as <code>p5 serve .</code>.)</li>
+				</ul>
+				<a href="#p5-convert-filename---to-html--javascript" id="p5-convert-filename---to-html--javascript" style="color: inherit; text-decoration: none;">
+					<h3><code>p5 convert filename --to html | javascript</code></h3>
+				</a>
+				<p>Converts between HTML and JavaScript-only sketches.</p>
+				<p>Converting a JavaScript-only sketch is simple. An HTML file with the same base name is created.
+				This will only fail if the directory already contains a HTML file with this name.</p>
+				<p>Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that
+					includes the script. This potentially looses some information. Before the file is deleted,
+				the following checks are made:</p>
+				<ul>
+					<li>The HTML file should include only a single script file.</li>
+					<li>The libraries that the HTML file includes (via <code>&lt;script&gt;</code> tags) should be the
+						same as the libraries that will be inferred from the script file. (See
+					“Library inference”, below.)</li>
+				</ul>
+				<a href="#api" id="api" style="color: inherit; text-decoration: none;">
+					<h2>API</h2>
+				</a>
+				<p>This packages makes the following APIs available. They are currently used by the
+					<a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code
+					extension</a>. These APIs are
+				not stable until this package reaches version 1.0.</p>
+				<ul>
+					<li><code>Server</code> – a web server with p5.js-aware directory listings, that serves
+						JavaScript-only sketches with automatic library includes, and that has live
+					reload.</li>
+					<li><code>Sketch</code> – the interface to generate sketch files, find associated files,
+					infer libraries, and scan directories for sketches that they contain.</li>
+				</ul>
+				<a href="#implementation-notes" id="implementation-notes" style="color: inherit; text-decoration: none;">
+					<h2>Implementation Notes</h2>
+				</a>
+				<a href="#sketch-recognition" id="sketch-recognition" style="color: inherit; text-decoration: none;">
+					<h3>Sketch recognition</h3>
+				</a>
+				<p>A “JavaScript-only sketch file” is a JavaScript file that includes a function
+					definition for <code>setup()</code> function, and a call to <code>createCanvas()</code> (and does not
+				itself define <code>createCanvas</code>).</p>
+				<p>An HTML sketch file is an HTML file that includes a <code>&lt;script&gt;</code> element with a
+				<code>src</code> attribute that ends in <code>p5.js</code> or <code>p5.min.js</code>.</p>
+				<p>A directory is recognized as a sketch if it contains a single sketch and either
+				no loose files, or the only loose file is a README.</p>
+				<a href="#sketch-descriptions" id="sketch-descriptions" style="color: inherit; text-decoration: none;">
+					<h3>Sketch descriptions</h3>
+				</a>
+				<p>The directory listing displays the sketch description. For an HTML sketch, this
+					is the value of the <code>content</code> attribute of the <code>&lt;meta name=&quot;description&quot;&gt;</code>
+					element. For a JavaScript sketch that begins with a block comment, this is the
+				paragraph that begins with &quot;<code>Description:</code> &quot; in that block.</p>
+				<a href="#automatic-library-inclusion" id="automatic-library-inclusion" style="color: inherit; text-decoration: none;">
+					<h3>Automatic library inclusion</h3>
+				</a>
+				<p>JavaScript-only sketches automatically include many of the libraries that are
+					listed on the <a href="https://p5js.org/libraries/">p5.js Libraries page</a>, as well as
+					<a href="https://github.com/dataarts/dat.gui">dat.gui</a>. For example, if the sketch calls
+					<code>loadSound</code>, it will include the p5.sound library. If it refers to <code>ml5</code>, it
+				will include the ml5.js library.</p>
+				<p>Automatic library loading is done by examining the free variables, and
+				references to <code>p5.prop</code> where <code>prop</code> is any property name, in the JavaScript source.</p>
+				<p>A list of libraries, and the global variables that trigger including a library,
+					is in <code>./src/libraries.json</code>. In order to qualify for automatic inclusion, an
+				entry in this list must have either a <code>path</code> or <code>npmPackage</code> key.</p>
+				<a href="#associated-files" id="associated-files" style="color: inherit; text-decoration: none;">
+					<h3>Associated files</h3>
+				</a>
+				<p>The directory listing groups the files that are associated with a project into
+				the card for that project.</p>
+				<p>The files that are associated with an HTML file are just the local script files
+					that are included via the <code>&lt;script&gt;</code> tag and <code>&lt;link&gt;</code> tags. The server does not
+					inspect <code>&lt;img&gt;</code> tags,
+				etc., and it does not inspect CSS files.</p>
+				<p>The files that are associated with a script file are the string literal
+					arguments to functions whose names begin with <code>load</code>, such as <code>loadImage()</code> and
+					<code>loadModel()</code>. The server will recognize <code>cat.png</code> as an associated file in the
+				call <code>loadImage(&quot;cat.png&quot;)</code>, but not in the following snippets:</p>
+				<pre><code class="language-js"><span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">name</span><span style="color: #000000"> = </span><span style="color: #A31515">&quot;cat.png&quot;</span><span style="color: #000000">;</span>
+<span style="color: #795E26">loadImage</span><span style="color: #000000">(</span><span style="color: #001080">name</span><span style="color: #000000">);</span>
+</code></pre>
+				<pre><code class="language-js"><span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">name</span><span style="color: #000000"> = </span><span style="color: #A31515">&quot;cat&quot;</span><span style="color: #000000">;</span>
+<span style="color: #795E26">loadImage</span><span style="color: #000000">(</span><span style="color: #A31515">`</span><span style="color: #0000FF">${</span><span style="color: #001080">name</span><span style="color: #0000FF">}</span><span style="color: #A31515">.png`</span><span style="color: #000000">);</span>
+</code></pre>
+				<pre><code class="language-js"><span style="color: #AF00DB">for</span><span style="color: #000000"> (</span><span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">name</span><span style="color: #000000"> </span><span style="color: #0000FF">of</span><span style="color: #000000"> [</span><span style="color: #A31515">&#039;dog.png&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;cat.png&#039;</span><span style="color: #000000">]) {</span>
+<span style="color: #000000">  </span><span style="color: #795E26">loadImage</span><span style="color: #000000">(</span><span style="color: #001080">name</span><span style="color: #000000">);</span>
+<span style="color: #000000">}</span>
+</code></pre>
+				<pre><code class="language-js"><span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">loader</span><span style="color: #000000"> = </span><span style="color: #001080">loadImage</span><span style="color: #000000">;</span>
+<span style="color: #795E26">loader</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;cat.png&quot;</span><span style="color: #000000">);</span>
+</code></pre>
+				<a href="#limitations" id="limitations" style="color: inherit; text-decoration: none;">
+					<h2>Limitations</h2>
+				</a>
+				<ul>
+					<li>This code hasn&#39;t been tested on Windows.</li>
+					<li>Generated sketches require an internet connection to run. They load the p5.js
+						and other libraries from a content delivery network (“CDN”). Browsers cache
+						these files, so reloading a page or running other sketches that use the same
+						(or no) libraries do not require additional internet access, but you will need
+						internet access the first time you use this extension or after the browser
+					cache has expired.</li>
+					<li>The server requires an internet connection in order to display sketches and
+					directory listings. (It loads the Semantic UI CSS framework from a CDN.)</li>
+					<li>This code hasn&#39;t been tested with
+						<a href="https://github.com/processing/p5.js/wiki/Global-and-instance-mode">instance-mode</a>
+					sketches.</li>
+					<li>Library inference hasn&#39;t been tested with sketches that are written as
+					<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>.</li>
+					<li>See the implementation notes for limitations on the recognition of associated
+					files.</li>
+				</ul>
+				<a href="#acknowledgements" id="acknowledgements" style="color: inherit; text-decoration: none;">
+					<h2>Acknowledgements</h2>
+				</a>
+				<p>This project builds on these libraries and frameworks:</p>
+				<ul>
+					<li>commander, for parsing command-line arguments</li>
+					<li>esprima and node-html-parser for parsing JavaScript and HTML, respectively</li>
+					<li>expressjs for the web server</li>
+					<li>livereload for the live reload functionality</li>
+					<li>marked for converting Markdown to HTML</li>
+					<li>nunjucks and pug for template generation</li>
+					<li>The Semantic UI CSS framework</li>
+				</ul>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h2>License</h2>
+				</a>
+				<p><a href="LICENSE">MIT</a></p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/Server.html" class="tsd-kind-icon">Server</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/Sketch.html" class="tsd-kind-icon">Sketch</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#ServerOptions" class="tsd-kind-icon">Server<wbr>Options</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

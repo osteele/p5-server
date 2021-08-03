@@ -1,0 +1,21 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: npm install
+
+      - name: Lint and Test
+        run: |
+          npm run lint
+          npm run test

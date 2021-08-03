@@ -49,6 +49,7 @@ export class Sketch {
     }
   }
 
+  /** Create a sketch from an HTML file. */
   static fromHtmlFile(htmlPath: string) {
     const dirPath = path.dirname(htmlPath);
     const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
@@ -58,6 +59,7 @@ export class Sketch {
     return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { description });
   }
 
+  /** Create a sketch from a JavaScript file. */
   static fromScriptFile(filePath: string) {
     const dirPath = path.dirname(filePath);
     let description;
@@ -68,6 +70,19 @@ export class Sketch {
     return new Sketch(dirPath, null, path.basename(filePath), { description });
   }
 
+  /** Create a sketch from a directory. This method throws an exception if the
+   * directory does not contain exactly one sketch file. */
+  static fromDirectory(dirPath: string, options?: { exclusions?: string[] }) {
+    const sketch = Sketch.isSketchDir(dirPath, options);
+    if (!sketch) {
+      throw new Error(`Directory ${dirPath} is not a sketch directory`);
+    }
+    return sketch;
+  }
+
+  /** Create a sketch from a file. `filePath` should be path to an HTML sketch
+   * file, a JavaScript sketch file, or a directory that contains exactly one
+   * sketch file. */
   static fromFile(filePath: string) {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
@@ -80,14 +95,8 @@ export class Sketch {
     }
   }
 
-  static fromDirectory(dirPath: string, options?: { exclusions?: string[] }) {
-    const sketch = Sketch.isSketchDir(dirPath, options);
-    if (!sketch) {
-      throw new Error(`Directory ${dirPath} is not a sketch directory`);
-    }
-    return sketch;
-  }
-
+  /** Analyze the directory for sketch files. Returns a list of sketches, and
+   * files that aren't associated with any sketch. */
   static analyzeDirectory(dir: string, options?: { exclusions?: string[] }) {
     const sketches: Sketch[] = [];
 
@@ -135,6 +144,9 @@ export class Sketch {
     }
   }
 
+  /** Tests whether the file is an HTML sketch file. It is a sketch file if it includes
+   * the `p5.min.js` or `p5.js` script.
+  */
   static isSketchHtmlFile(filePath: string) {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
@@ -147,6 +159,9 @@ export class Sketch {
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
 
+  /** Tests whether the file is a JavaScript sketch file. It is a sketch file if it includes
+   * a definition of the `set()` function and a call to `createCanvas()`.
+   */
   static isSketchScriptFile(filePath: string) {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
     if (!filePath.endsWith('.js')) {
@@ -164,6 +179,10 @@ export class Sketch {
     }
   }
 
+  /** Tests whether the directory is a sketch directory. It is a sketch
+   * directory if it contains a single JavaScript sketch file or a single HTML
+   * sketch file that includes this file, and if all non-README files in the
+   * directory are associated with these files. */
   static isSketchDir(dirPath: string, options?: { exclusions?: string[] }): Sketch | null {
     if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) { return null; }
     const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dirPath, options);
@@ -198,19 +217,20 @@ export class Sketch {
 
   get sketchType(): SketchType { return this.htmlPath ? 'html' : 'javascript'; }
 
+  /** For an HTML sketch, this is the HTML file. For a JavaScript sketch, this is
+   * the JavaScript file. */
   get mainFile() {
     return this.htmlPath || this.scriptPath || path.basename(this.dirPath);
   }
 
   get name() {
-    // otherwise, return the basename of either the HTML file or the JavaScript
-    // file
     return this.mainFile.replace(/\.(html?|js)$/, '');
   }
 
+  /** For an HTML sketch, this is the <title> element. Otherwise it is the base
+   * name of the main file. */
   get title() {
     if (this._title) return this._title;
-    // if there's an index file with a <title> element, read the name from that
     if (this.htmlPath) {
       const filePath = path.join(this.dirPath, this.htmlPath);
       if (fs.existsSync(filePath)) {
@@ -231,6 +251,9 @@ export class Sketch {
     }
   }
 
+  /** The HTML file (for an HTML sketch); any JavaScript files; any files that
+   * the HTML file includes; and any files that the JavaScript files include,
+   * to the extent that this can be determined by static inspection. */
   get files() {
     let files: string[] = [];
     if (this.htmlPath) {
@@ -269,6 +292,8 @@ export class Sketch {
     return [...new Set(files)];
   }
 
+  /** Create and save the files for this sketch. This includes the script file;
+   * for an HTML sketch, this also includes the HTML file. */
   generate(force = false, options: Record<string, unknown> = {}) {
     const dirPath = this.dirPath;
     try {

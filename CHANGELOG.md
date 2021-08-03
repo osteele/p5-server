@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.1]
+
+- Fix filename case inconsistency that caused error on Linux.
+
 ## [0.3.0]
 
 - Add a command an API to convert between HTML and JavaScript-only sketches

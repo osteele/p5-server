@@ -169,7 +169,7 @@ async function startServer(options: ServerOptions) {
 
   // For effect only, in order to provide errors and diagnostics before waiting
   // for a browser request
-  createDirectoryListing('', derivedOptions.root);
+  createDirectoryListing('/', derivedOptions.root);
 
   let server: http.Server;
   for (let p = port; p < port + 10; p++) {

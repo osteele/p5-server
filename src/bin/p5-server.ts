@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import convert from '../commands/convert';
 import create from '../commands/create';
+import reportLibraries from '../commands/report-libraries';
 import serve from '../commands/serve';
 
 const program = new Command()
@@ -29,6 +30,12 @@ program
   .description('Convert an HTML sketch to JavaScript-only or vice versa')
   .option('--to <type>', 'output type: html or javascript')
   .action(convert);
+
+
+program
+  .command('libraries', { hidden: true })
+  .description('List the libraries')
+  .action(reportLibraries);
 
 program
   .command('serve [directory]')

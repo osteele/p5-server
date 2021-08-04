@@ -97,6 +97,17 @@ export class Library implements LibraryProperties {
     return libs;
   }
 
+  get globals() {
+    return Object.entries(this.defines || {}).flatMap(([key, symbols]) =>
+      key === 'globals'
+        ? symbols
+        : symbols.map(s => `${key}.${s}`));
+    // return [
+    //   ...this.defines?.globals || [],
+    //   ...this.defines?.p5?.map(s => `p5.${s}`) || []
+    // ];
+  }
+
   get importPath() {
     if (this._importPath) {
       return this._importPath.replace("$(P5Version)", p5Version);

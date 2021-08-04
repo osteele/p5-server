@@ -26,6 +26,7 @@ export class Sketch {
   public readonly scriptPath: string;
   public readonly description?: string;
   protected readonly _title?: string;
+  protected _name?: string;
 
   protected constructor(dirPath: string, htmlPath: string | null = 'index.html', scriptPath: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
@@ -104,22 +105,15 @@ export class Sketch {
     let files = fs.readdirSync(dir)
       .filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
 
+    // collect directory sketches, and remove them from the list of files
     files = files.filter(name => {
       const dirPath = path.join(dir, name);
-      const project = Sketch.isSketchDir(dirPath, { exclusions });
-      if (project) {
-        // Re-create the project so that all the file names are relative to this
-        // directory, not the project directory; and name it after the directory
-        // so that it can be distinguished from other directory sketches (which
-        // all tend to have the same name).
-
-        // FIXME: the following works but is terrible code.
-        sketches.push(new Sketch(dir,
-          project.htmlPath && path.join(name, project.htmlPath),
-          project.scriptPath && path.join(name, project.scriptPath),
-          { title: name + '/', description: project.description }));
+      const sketch = Sketch.isSketchDir(dirPath, { exclusions });
+      if (sketch) {
+        sketch.name = name;
+        sketches.push(sketch);
       }
-      return !project;
+      return !sketch;
     });
 
     // collect HTML sketches
@@ -140,7 +134,7 @@ export class Sketch {
     return { sketches, allFiles: files, unaffiliatedFiles: removeProjectFiles(files) };
 
     function removeProjectFiles(files: string[]) {
-      return files.filter(f => !sketches.some(p => p.files.includes(f)));
+      return files.filter(f => !sketches.some(s => s.files.includes(f)));
     }
   }
 
@@ -224,13 +218,18 @@ export class Sketch {
   }
 
   get name() {
-    return this.mainFile.replace(/\.(html?|js)$/, '');
+    return this._name || this.mainFile.replace(/\.(html?|js)$/, '');
   }
+
+  set name(value: string) { this._name = value; }
 
   /** For an HTML sketch, this is the <title> element. Otherwise it is the base
    * name of the main file. */
   get title() {
-    if (this._title) return this._title;
+    if (this._title) {
+      return this._title;
+    }
+
     if (this.htmlPath) {
       const filePath = path.join(this.dirPath, this.htmlPath);
       if (fs.existsSync(filePath)) {
@@ -322,6 +321,10 @@ export class Sketch {
     fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
   }
 
+  /** The list of libraries. For a JavaScript sketch, this is the list of
+   * libraries inferred from the undefined global variables that it references.
+   * For an HTML sketch, this is the list of libraries named in the HTML file.
+   */
   get libraries(): LibraryArray {
     return this.htmlPath
       ? this.explicitLibraries()
@@ -343,12 +346,10 @@ export class Sketch {
   }
 
   protected getGeneratedFileContent(base: string, options: Record<string, unknown>) {
-    // Don't cache the template. It's not important to performance in this context,
-    // and leaving it uncached makes development easier.
     const templatePath = path.join(templateDir, base);
     const libraries = this.libraries;
     const data = {
-      title: this.title || this.mainFile?.replace(/_/g, ' ') || 'Sketch',
+      title: this.title,
       sketchPath: `./${this.scriptPath}`,
       libraries,
       p5Version,
@@ -362,6 +363,13 @@ export class Sketch {
     return this.getGeneratedFileContent('index.html', {});
   }
 
+  /** Convert an HTML sketch to a JavaScript-only sketch (by removing the HTML file),
+   * or a JavaScript sketch to an HTML sketch (by adding the HTML file).
+   *
+   * Before modifying the file system, this method verifies that the set of libraries
+   * will remain the same. Before removing an HTML file, it also verifies that the file
+   * included only the single script file, and no other non-library files.
+   */
   convert(options: { type: SketchType }) {
     if (this.sketchType === options.type) {
       return;

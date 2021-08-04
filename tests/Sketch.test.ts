@@ -73,8 +73,8 @@ test('Sketch.files', () => {
 });
 
 test('Sketch.libraries', () => {
-  let sketch = Sketch.fromScriptFile(tf`implicit-imports/speech.js`);
-  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.speech']);
+  let sketch = Sketch.fromScriptFile(tf`library-inference/loadSound.js`);
+  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
 
   sketch = Sketch.fromFile(tf`Sketch.convert/uninferred-library/index.html`);
   expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);

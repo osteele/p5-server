@@ -2,417 +2,547 @@
   {
     "name": "p5.sound",
     "homepage": "https://p5js.org/reference/#/libraries/p5.sound",
-    "path": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
-    "globals": [
-      "createConvolver",
-      "freqToMidi",
-      "getAudioContext",
-      "getOutputVolume",
-      "loadSound",
-      "midiToFreq",
-      "outputVolume",
-      "sampleRate",
-      "saveSound",
-      "setBPM",
-      "soundFormats",
-      "soundOut",
-      "userStartAudio"
-    ],
-    "props": [
-      "Amplitude",
-      "AudioIn",
-      "Convolver",
-      "Delay",
-      "Envelope",
-      "FFT",
-      "Filter",
-      "MonoSynth",
-      "Noise",
-      "Oscillator",
-      "Part",
-      "Phrase",
-      "PolySynth",
-      "Pulse",
-      "Reverb",
-      "Score",
-      "SoundFile",
-      "SoundLop",
-      "SoundRecorder"
-    ]
+    "description": "p5.sound extends p5 with Web Audio functionality including audio input, playback, analysis and synthesis.",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
+    "defines": {
+      "globals": [
+        "createConvolver",
+        "freqToMidi",
+        "getAudioContext",
+        "getOutputVolume",
+        "loadSound",
+        "midiToFreq",
+        "outputVolume",
+        "sampleRate",
+        "saveSound",
+        "setBPM",
+        "soundFormats",
+        "soundOut",
+        "userStartAudio"
+      ],
+      "p5": [
+        "Amplitude",
+        "AudioIn",
+        "Convolver",
+        "Delay",
+        "Envelope",
+        "FFT",
+        "Filter",
+        "MonoSynth",
+        "Noise",
+        "Oscillator",
+        "Part",
+        "Phrase",
+        "PolySynth",
+        "Pulse",
+        "Reverb",
+        "Score",
+        "SoundFile",
+        "SoundLop",
+        "SoundRecorder"
+      ]
+    }
   },
   {
     "name": "ml5.js",
+    "homepage": "https://ml5js.org/",
+    "description": "ml5.js aims to make machine learning approachable for a broad audience of artists, creative coders, and students. The library provides access to machine learning algorithms and models in the browser.",
     "packageName": "ml5",
-    "homepage": "https://learn.ml5js.org/",
-    "path": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
-    "globals": [
-      "ml5"
-    ]
+    "importPath": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
+    "defines": {
+      "globals": [
+        "ml5"
+      ]
+    }
   },
   {
     "name": "ASCII Art",
     "homepage": "https://www.tetoki.eu/asciiart/",
-    "path": "https://www.tetoki.eu/asciiart/asciiart/p5.asciiart.min.js",
-    "globals": [
-      "AsciiArt"
-    ]
+    "description": "p5.asciiart is a simple and easy to use image-to-ASCII art converter for p5js.",
+    "importPath": "https://www.tetoki.eu/asciiart/asciiart/p5.asciiart.min.js",
+    "defines": {
+      "globals": [
+        "AsciiArt"
+      ]
+    }
   },
   {
     "name": "p5.ble.js",
-    "packageName": "p5ble",
     "homepage": "https://itpnyu.github.io/p5ble-website/",
-    "path": "https://unpkg.com/p5ble@0.0.4/dist/p5.ble.js",
-    "globals": [
-      "p5ble"
-    ]
+    "description": "A Javascript library that enables communication between BLE devices and p5 sketches.",
+    "packageName": "p5ble",
+    "importPath": "https://unpkg.com/p5ble@0.0.4/dist/p5.ble.js",
+    "defines": {
+      "globals": [
+        "p5ble"
+      ]
+    }
   },
   {
     "name": "p5bots",
-    "packageName": "p5bots",
     "homepage": "https://github.com/sarahgp/p5bots",
-    "props": [
-      "board",
-      "serial"
-    ]
+    "description": "With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!",
+    "packageName": "p5bots",
+    "defines": {
+      "p5": [
+        "board",
+        "serial"
+      ]
+    }
   },
   {
     "name": "p5.clickable",
     "homepage": "https://github.com/Lartu/p5.clickable",
-    "globals": [
-      "Clickable"
-    ]
+    "description": "Event driven, easy-to-use button library.",
+    "defines": {
+      "globals": [
+        "Clickable"
+      ]
+    }
   },
   {
     "name": "p5.cmyk.js",
     "homepage": "https://github.com/jtnimoy/p5.cmyk.js",
-    "globals": [
-      "Cmyk"
-    ]
+    "description": "CMYK color space for p5.js",
+    "defines": {
+      "globals": [
+        "Cmyk"
+      ]
+    }
   },
   {
     "name": "p5.collide2D",
-    "packageName": "p5.collide2d",
     "homepage": "https://github.com/bmoren/p5.collide2D",
-    "path": "https://unpkg.com/p5.collide2d",
-    "globals": [
-      "collideDebug",
-      "collidePointPoint",
-      "collidePointCircle",
-      "collidePointEllipse",
-      "collidePointRect",
-      "collidePointLine",
-      "collidePointArc",
-      "collideRectRect",
-      "collideCircleCircle",
-      "collideRectCircle",
-      "collideLineLine",
-      "collideLineCircle",
-      "collideLineRect",
-      "collidePointPoly",
-      "collideCirclePoly",
-      "collideRectPoly",
-      "collideLinePoly",
-      "collidePolyPoly",
-      "collidePointTriangle"
-    ]
+    "description": "p5.collide2D provides tools for calculating collision detection for 2D geometry with p5.js.",
+    "packageName": "p5.collide2d",
+    "importPath": "https://unpkg.com/p5.collide2d",
+    "defines": {
+      "globals": [
+        "collideDebug",
+        "collidePointPoint",
+        "collidePointCircle",
+        "collidePointEllipse",
+        "collidePointRect",
+        "collidePointLine",
+        "collidePointArc",
+        "collideRectRect",
+        "collideCircleCircle",
+        "collideRectCircle",
+        "collideLineLine",
+        "collideLineCircle",
+        "collideLineRect",
+        "collidePointPoly",
+        "collideCirclePoly",
+        "collideRectPoly",
+        "collideLinePoly",
+        "collidePolyPoly",
+        "collidePointTriangle"
+      ]
+    }
   },
   {
     "name": "p5.createloop",
-    "packageName": "createloop",
     "homepage": "https://www.npmjs.com/package/p5.createloop",
-    "path": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
-    "globals": [
-      "createloop"
-    ]
+    "description": "Create animation loops with noise and GIF exports in one line of code",
+    "packageName": "createloop",
+    "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
+    "defines": {
+      "globals": [
+        "createloop"
+      ]
+    }
   },
   {
     "name": "p5.dimensions.js",
     "homepage": "https://github.com/Smilebags/p5.dimensions.js",
-    "path": "https://raw.githubusercontent.com/Smilebags/p5.dimensions.js/master/libraries/p5.dimensions.js",
-    "globals": [
-      "nDist",
-      "nDistSq",
-      "nDot",
-      "nLerp",
-      "nAdd",
-      "nSub",
-      "nMul",
-      "nDiv",
-      "nSetMag",
-      "nCross",
-      "nEqual",
-      "nNormalize",
-      "nMag",
-      "nMagSq"
-    ]
+    "description": "p5.dimensions extends p5.js’ vector functions to work in any number of dimensions.",
+    "importPath": "https://raw.githubusercontent.com/Smilebags/p5.dimensions.js/master/libraries/p5.dimensions.js",
+    "defines": {
+      "globals": [
+        "nDist",
+        "nDistSq",
+        "nDot",
+        "nLerp",
+        "nAdd",
+        "nSub",
+        "nMul",
+        "nDiv",
+        "nSetMag",
+        "nCross",
+        "nEqual",
+        "nNormalize",
+        "nMag",
+        "nMagSq"
+      ]
+    }
   },
   {
     "name": "p5.EasyCam",
     "homepage": "https://github.com/freshfork/p5.EasyCam",
-    "path": "https://freshfork.github.io/p5.EasyCam/p5.easycam.js",
-    "globals": [
-      "Dw",
-      "createEasyCam"
-    ],
-    "props": [
-      "RoverCam"
-    ]
+    "description": "Simple 3D camera control with inertial pan, zoom, and rotate",
+    "importPath": "https://freshfork.github.io/p5.EasyCam/p5.easycam.js",
+    "defines": {
+      "globals": [
+        "Dw",
+        "createEasyCam"
+      ],
+      "p5": [
+        "RoverCam"
+      ]
+    }
   },
   {
     "name": "p5.experience.js",
     "homepage": "https://github.com/loneboarder/p5.experience.js",
-    "globals": [
-      "uxRect",
-      "uxSquare",
-      "uxTriangle",
-      "uxCircle",
-      "uxEllipse",
-      "uxFillColor",
-      "uxnoFill",
-      "uxStroke",
-      "uxNoStroke",
-      "uxStrokeWeight"
-    ]
+    "description": "Extensive library for p5.js that adds additional event-listening functionality for creating canvas-based web applications",
+    "defines": {
+      "globals": [
+        "uxRect",
+        "uxSquare",
+        "uxTriangle",
+        "uxCircle",
+        "uxEllipse",
+        "uxFillColor",
+        "uxnoFill",
+        "uxStroke",
+        "uxNoStroke",
+        "uxStrokeWeight"
+      ]
+    }
   },
   {
     "name": "p5.func",
     "homepage": "https://idmnyu.github.io/p5.js-func/",
-    "globals": [
-      "AsciiArt"
-    ],
-    "props": [
-      "Gen",
-      "Ease",
-      "ArrayEval",
-      "Filt",
-      "FastFourierTransform"
-    ]
+    "description": "p5.func is a p5 extension that provides new objects and utilities for function generation in the time, frequency, and spatial domains",
+    "defines": {
+      "globals": [
+        "imap",
+        "wrap",
+        "createArray",
+        "normalizeArray",
+        "resizeArray",
+        "multiplyArray",
+        "addArray",
+        "subtractArray",
+        "divideArray",
+        "moduloArray",
+        "sumArray",
+        "f2ib",
+        "ib2f",
+        "sinc",
+        "besselI0",
+        "fplot"
+      ],
+      "p5": [
+        "Gen",
+        "Ease",
+        "ArrayEval",
+        "Filt",
+        "FastFourierTransform"
+      ]
+    }
   },
   {
     "name": "p5.geolocation",
-    "packageName": "p5.geolocation",
     "homepage": "https://github.com/bmoren/p5.geolocation",
-    "globals": [
-      "geoCheck",
-      "getCurrentPosition",
-      "watchPosition",
-      "clearWatch",
-      "intervalCurrentPosition",
-      "clearIntervalPos",
-      "calcGeoDistance",
-      "geoFenceCircle",
-      "geoFencePolygon"
-    ]
+    "description": "p5.geolocation provides techniques for acquiring, watching, calculating, and geofencing user locations for p5.js",
+    "packageName": "p5.geolocation",
+    "defines": {
+      "globals": [
+        "geoCheck",
+        "getCurrentPosition",
+        "watchPosition",
+        "clearWatch",
+        "intervalCurrentPosition",
+        "clearIntervalPos",
+        "calcGeoDistance",
+        "geoFenceCircle",
+        "geoFencePolygon"
+      ]
+    }
   },
   {
     "name": "grafica.js",
     "homepage": "https://github.com/jagracar/grafica.js",
-    "globals": [
-      "GPlot"
-    ]
+    "description": "grafica.js lets you add simple but highly configurable 2D plots to your p5.js sketches.",
+    "defines": {
+      "globals": [
+        "GPlot"
+      ]
+    }
   },
   {
     "name": "p5.gui",
     "homepage": "https://github.com/bitcraftlab/p5.gui",
-    "globals": [
-      "createGui"
-    ]
+    "description": "p5.gui generates a graphical user interface for your p5.js sketches.",
+    "defines": {
+      "globals": [
+        "createGui"
+      ]
+    }
   },
   {
     "name": "p5.localmessage",
     "homepage": "https://github.com/bmoren/p5.localmessage",
-    "globals": [
-      "registerServiceWorker",
-      "sendMessage",
-      "listenMessage"
-    ]
+    "description": "p5.localmessage provides a simple interface to send messages locally from one sketch to another for easy multi-window sketching",
+    "defines": {
+      "globals": [
+        "registerServiceWorker",
+        "sendMessage",
+        "listenMessage"
+      ]
+    }
   },
   {
     "name": "marching",
     "homepage": "https://github.com/jtnimoy/marching",
-    "globals": [
-      "marchingSquares"
-    ]
+    "description": "Raster to vector conversion, isosurfaces",
+    "defines": {
+      "globals": [
+        "marchingSquares"
+      ]
+    }
   },
   {
     "name": "Mappa",
-    "packageName": "mappa-mundi",
     "homepage": "https://github.com/cvalenzuela/Mappa",
-    "path": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
-    "globals": [
-      "Mappa"
-    ]
+    "description": "Mappa provides a set of tools for working with static maps, tile maps, and geo-data. Useful when building geolocation-based visual representations",
+    "packageName": "mappa-mundi",
+    "importPath": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
+    "defines": {
+      "globals": [
+        "Mappa"
+      ]
+    }
   },
   {
     "name": "p5.play",
     "homepage": "http://molleindustria.github.io/p5.play/",
-    "globals": [
-      "createSprite",
-      "loadAnimation"
-    ]
+    "description": "p5.play provides sprites, animations, input and collision functions for games and gamelike applications",
+    "defines": {
+      "globals": [
+        "createSprite",
+        "loadAnimation"
+      ]
+    }
   },
   {
     "name": "p5.particle",
     "homepage": "https://github.com/bobcgausa/cook-js",
-    "globals": [
-      "Particle",
-      "Fountain"
-    ]
+    "description": "The Particle and Fountain objects can be used to create data-driven effects that are defined through user structures or JSON input and user-draw functions",
+    "defines": {
+      "globals": [
+        "Particle",
+        "Fountain"
+      ]
+    }
   },
   {
     "name": "p5.Riso",
     "homepage": "https://antiboredom.github.io/p5.riso/",
-    "globals": [
-      "drawRiso"
-    ]
+    "description": "p5.Riso is a library for generating files suitable for Risograph printing. It helps turn your sketches into multi-color prints",
+    "defines": {
+      "globals": [
+        "drawRiso"
+      ]
+    }
   },
   {
     "name": "Rita",
-    "packageName": "rita",
     "homepage": "https://rednoise.org/rita/",
-    "path": "https://unpkg.com/rita",
-    "globals": [
-      "RiTa"
-    ]
+    "description": "RiTa.js provides a set of natural language processing objects for generative literature",
+    "packageName": "rita",
+    "importPath": "https://unpkg.com/rita",
+    "defines": {
+      "globals": [
+        "RiTa"
+      ]
+    }
   },
   {
     "name": "Rotating Knobs",
     "homepage": "http://codeforartists.com/RotatingKnobMaker/",
-    "globals": [
-      "MakeKnob"
-    ]
+    "description": "Make knobs you can rotate with custom graphics and return value ranges",
+    "defines": {
+      "globals": [
+        "MakeKnob"
+      ]
+    }
   },
   {
     "name": "p5.SceneManager",
-    "packageName": "p5.scenemanager",
     "homepage": "https://github.com/mveteanu/p5.SceneManager",
-    "globals": [
-      "SceneManager"
-    ]
+    "description": "p5.SceneManager is a library for managing multiple p5.js scenes in a single sketch",
+    "packageName": "p5.scenemanager",
+    "defines": {
+      "globals": [
+        "SceneManager"
+      ]
+    }
   },
   {
     "name": "p5js.screenPosition",
     "homepage": "https://github.com/bohnacker/p5js-screenPosition",
-    "globals": [
-      "addScreenPositionFunction"
-    ]
+    "description": "p5js.screenPosition is a library that provides a function for getting the position of the mouse on the screen",
+    "defines": {
+      "globals": [
+        "addScreenPositionFunction"
+      ]
+    }
   },
   {
     "name": "p5.scribble",
     "homepage": "https://github.com/generative-light/p5.scribble.js",
-    "globals": [
-      "Scribble"
-    ]
+    "description": "Draw 2D primitives in a sketchy look",
+    "defines": {
+      "globals": [
+        "Scribble"
+      ]
+    }
   },
   {
     "name": "p5.serial",
-    "packageName": "p5.serialserver",
     "homepage": "https://github.com/p5-serial/p5.serialport",
-    "path": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
-    "props": [
-      "SerialPort"
-    ]
+    "description": "p5.serial enables serial communication between devices that support serial (RS-232) and p5 sketches running in the browser",
+    "packageName": "p5.serialserver",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
+    "defines": {
+      "p5": [
+        "SerialPort"
+      ]
+    }
   },
   {
     "name": "Shape5",
     "homepage": "https://github.com/pfe1223/Shape5js",
-    "globals": [
-      "Circle",
-      "Square",
-      "Triangle",
-      "Polygon",
-      "Oval",
-      "Rectangle",
-      "Semicircle",
-      "Rhombus",
-      "RightTriangle",
-      "IsoscelesTriangle",
-      "Stripe"
-    ]
+    "description": "Shape5 is a library for creating and manipulating shapes in p5.js",
+    "defines": {
+      "globals": [
+        "Circle",
+        "Square",
+        "Triangle",
+        "Polygon",
+        "Oval",
+        "Rectangle",
+        "Semicircle",
+        "Rhombus",
+        "RightTriangle",
+        "IsoscelesTriangle",
+        "Stripe"
+      ]
+    }
   },
   {
     "name": "p5.shape.js",
     "homepage": "https://github.com/gaba5/p5.shape.js",
-    "globals": [
-      "tri",
-      "pent",
-      "hexagon",
-      "hept",
-      "octo",
-      "nona",
-      "heart",
-      "center",
-      "deca",
-      "trap",
-      "rightTri"
-    ]
+    "description": "A library built to add more simple shapes to the p5.js framework.",
+    "defines": {
+      "globals": [
+        "tri",
+        "pent",
+        "hexagon",
+        "hept",
+        "octo",
+        "nona",
+        "heart",
+        "center",
+        "deca",
+        "trap",
+        "rightTri"
+      ]
+    }
   },
   {
     "name": "p5.speech",
     "homepage": "https://idmnyu.github.io/p5.js-speech/",
-    "props": [
-      "Speech",
-      "SpeechRec"
-    ]
+    "description": "p5.speech provides simple, clear access to the Web Speech and Speech Recognition APIs, allowing for the easy creation of sketches that can talk and listen",
+    "defines": {
+      "p5": [
+        "Speech",
+        "SpeechRec"
+      ]
+    }
   },
   {
     "name": "p5.start2d.js",
-    "homepage": "https://github.com/eltapir/p5.start2d.js"
+    "homepage": "https://github.com/eltapir/p5.start2d.js",
+    "description": "p5 extension for 2D static art using px, mm, cm or inches"
   },
   {
     "name": "p5.tiledmap",
-    "packageName": "p5.tiledmap",
     "homepage": "https://github.com/linux-man/p5.tiledmap",
-    "globals": [
-      "loadTiledMap"
-    ]
+    "description": "p5.tiledmap provides drawing and helper functions to include maps in your sketches",
+    "packageName": "p5.tiledmap",
+    "defines": {
+      "globals": [
+        "loadTiledMap"
+      ]
+    }
   },
   {
     "name": "p5.touchgui",
-    "packageName": "p5.touchgui",
     "homepage": "https://github.com/L05/p5.touchgui",
-    "path": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
-    "globals": [
-      "createGui"
-    ]
+    "description": "A multi-touch and mouse GUI Library for p5.js",
+    "packageName": "p5.touchgui",
+    "importPath": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
+    "defines": {
+      "globals": [
+        "createGui"
+      ]
+    }
   },
   {
     "name": "vida",
     "homepage": "https://www.tetoki.eu/vida/",
-    "globals": [
-      "Vida"
-    ]
+    "description": "Vida is a simple library that adds camera (or video) based motion detection and blob tracking functionality to p5js",
+    "defines": {
+      "globals": [
+        "Vida"
+      ]
+    }
   },
   {
     "name": "p5.voronoi",
     "homepage": "https://github.com/Dozed12/p5.voronoi",
-    "globals": [
-      "voronoi",
-      "voronoiGetDiagram"
-    ]
+    "description": "p5.voronoi is a library for creating Voronoi diagrams in p5.js",
+    "defines": {
+      "globals": [
+        "voronoi",
+        "voronoiGetDiagram"
+      ]
+    }
   },
   {
     "name": "p5xr",
     "homepage": "http://p5xr.org/",
-    "globals": [
-      "createVRCanvas"
-    ]
+    "description": "A library for creating VR and AR sketches with p5",
+    "defines": {
+      "globals": [
+        "createVRCanvas"
+      ]
+    }
   },
   {
     "name": "p5.3D",
     "homepage": "https://github.com/FreddieRa/p5.3D",
-    "globals": [
-      "createWord3D",
-      "createPicture3D",
-      "createCanvas3D"
-    ]
+    "description": "p5.3D is a library for creating 3D graphics 3D Text and Images in WebGL",
+    "defines": {
+      "globals": [
+        "createWord3D",
+        "createPicture3D",
+        "createCanvas3D"
+      ]
+    }
   },
   {
     "name": "dat.gui",
-    "packageName": "dat.gui",
     "homepage": "https://github.com/dataarts/dat.gui",
-    "globals": [
-      "dat"
-    ]
+    "description": "dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.",
+    "packageName": "dat.gui",
+    "defines": {
+      "globals": [
+        "dat"
+      ]
+    }
   }
 ]

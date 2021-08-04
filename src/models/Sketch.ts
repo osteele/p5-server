@@ -3,7 +3,7 @@ import minimatch from 'minimatch';
 import { HTMLElement, parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import { Library, p5Version } from './Library';
+import { Library, LibraryArray, p5Version } from './Library';
 import { Script } from './Script';
 import { JavascriptSyntaxError } from './script-analysis';
 
@@ -322,21 +322,21 @@ export class Sketch {
     fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
   }
 
-  get libraries(): Library[] {
+  get libraries(): LibraryArray {
     return this.htmlPath
       ? this.explicitLibraries()
       : this.impliedLibraries();
   }
 
-  private explicitLibraries(): Library[] {
+  private explicitLibraries(): LibraryArray {
     const htmlPath = this.htmlPath && path.join(this.dirPath, this.htmlPath);
     return htmlPath && fs.existsSync(htmlPath)
-      ? Library.findLibrariesInHtml(htmlPath)
-      : [];
+      ? Library.inHtml(htmlPath)
+      : new LibraryArray();
   }
 
-  private impliedLibraries(): Library[] {
-    return Library.inferLibrariesFromScripts(
+  private impliedLibraries(): LibraryArray {
+    return Library.inferFromScripts(
       this.files
         .filter(f => f.endsWith('.js'))
         .map(f => path.join(this.dirPath, f)));

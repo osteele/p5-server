@@ -16,7 +16,11 @@
         "description": "The library's home page",
         "type": "string"
       },
-      "path": {
+      "description": {
+        "description": "A short description of the library",
+        "type": "string"
+      },
+      "importPath": {
         "description": "A CDN URL that loads the library",
         "type": "string"
       },
@@ -24,24 +28,28 @@
         "description": "NPM package name",
         "type": "string"
       },
-      "globals": {
-        "description": "Global variables defined by the library",
-        "type": "array",
+      "defines": {
+        "description": "Functions and property values",
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "globals|p5": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
         "items": {
-          "type": "string"
-        }
-      },
-      "props": {
-        "description": "p5 properties added by the library",
-        "type": "array",
-        "items": {
-          "type": "string"
+          "type": "object"
         }
       }
     },
     "required": [
       "name",
-      "homepage"
-    ]
+      "homepage",
+      "description"
+    ],
+    "additionalProperties": false
   }
 }

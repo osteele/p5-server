@@ -21,27 +21,28 @@ export class DirectoryExistsError extends Error {
 }
 
 export class Sketch {
-  public readonly dirPath: string;
-  public readonly htmlPath: string | null;
-  public readonly scriptPath: string;
+  /** The sketch directory. */
+  public readonly dir: string;
+  public readonly htmlFile: string | null;
+  public readonly scriptFile: string;
   public readonly description?: string;
   protected readonly _title?: string;
   protected _name?: string;
 
-  protected constructor(dirPath: string, htmlPath: string | null = 'index.html', scriptPath: string = 'sketch.js',
+  protected constructor(dir: string, htmlFile: string | null = 'index.html', scriptFile: string = 'sketch.js',
     options: { title?: string, description?: string } = {}) {
-    this.dirPath = dirPath;
-    this.htmlPath = htmlPath;
-    this.scriptPath = scriptPath;
+    this.dir = dir;
+    this.htmlFile = htmlFile;
+    this.scriptFile = scriptFile;
     this._title = options.title;
     this.description = options.description;
   }
 
-  static create(mainFile: string, options: { title?: string, description?: string, scriptPath?: string } = {}) {
+  static create(mainFile: string, options: { title?: string, description?: string, scriptFile?: string } = {}) {
     if (mainFile.endsWith('.html') || mainFile.endsWith('.htm')) {
-      return new Sketch(path.dirname(mainFile), path.basename(mainFile), options.scriptPath, options);
+      return new Sketch(path.dirname(mainFile), path.basename(mainFile), options.scriptFile, options);
     } else if (mainFile.endsWith('.js')) {
-      if (mainFile && options.scriptPath) {
+      if (mainFile && options.scriptFile) {
         throw new Error(`Cannot specify both a .js file and a scriptPath`);
       }
       return new Sketch(path.dirname(mainFile), null, path.basename(mainFile), options);
@@ -51,32 +52,32 @@ export class Sketch {
   }
 
   /** Create a sketch from an HTML file. */
-  static fromHtmlFile(htmlPath: string) {
-    const dirPath = path.dirname(htmlPath);
-    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+  static fromHtmlFile(htmlFile: string) {
+    const dir = path.dirname(htmlFile);
+    const htmlContent = fs.readFileSync(htmlFile, 'utf-8');
     const htmlRoot = parse(htmlContent);
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
-    return new Sketch(dirPath, path.basename(htmlPath), scripts[0], { description });
+    return new Sketch(dir, path.basename(htmlFile), scripts[0], { description });
   }
 
   /** Create a sketch from a JavaScript file. */
-  static fromScriptFile(filePath: string) {
-    const dirPath = path.dirname(filePath);
+  static fromScriptFile(scriptFile: string) {
+    const dir = path.dirname(scriptFile);
     let description;
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, 'utf-8');
+    if (fs.existsSync(scriptFile)) {
+      const content = fs.readFileSync(scriptFile, 'utf-8');
       description = this.getDescriptionFromScript(content);
     }
-    return new Sketch(dirPath, null, path.basename(filePath), { description });
+    return new Sketch(dir, null, path.basename(scriptFile), { description });
   }
 
   /** Create a sketch from a directory. This method throws an exception if the
    * directory does not contain exactly one sketch file. */
-  static fromDirectory(dirPath: string, options?: { exclusions?: string[] }) {
-    const sketch = Sketch.isSketchDir(dirPath, options);
+  static fromDirectory(dir: string, options?: { exclusions?: string[] }) {
+    const sketch = Sketch.isSketchDir(dir, options);
     if (!sketch) {
-      throw new Error(`Directory ${dirPath} is not a sketch directory`);
+      throw new Error(`Directory ${dir} is not a sketch directory`);
     }
     return sketch;
   }
@@ -141,13 +142,13 @@ export class Sketch {
   /** Tests whether the file is an HTML sketch file. It is a sketch file if it includes
    * the `p5.min.js` or `p5.js` script.
   */
-  static isSketchHtmlFile(filePath: string) {
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
-    if (!filePath.endsWith('.htm') && !filePath.endsWith('.html')) {
+  static isSketchHtmlFile(htmlFile: string) {
+    if (!fs.existsSync(htmlFile) || fs.statSync(htmlFile).isDirectory()) { return false; }
+    if (!htmlFile.endsWith('.htm') && !htmlFile.endsWith('.html')) {
       return false;
     }
 
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(htmlFile, 'utf-8');
     const htmlRoot = parse(content);
     const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
@@ -177,9 +178,9 @@ export class Sketch {
    * directory if it contains a single JavaScript sketch file or a single HTML
    * sketch file that includes this file, and if all non-README files in the
    * directory are associated with these files. */
-  static isSketchDir(dirPath: string, options?: { exclusions?: string[] }): Sketch | null {
-    if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) { return null; }
-    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dirPath, options);
+  static isSketchDir(dir: string, options?: { exclusions?: string[] }): Sketch | null {
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) { return null; }
+    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dir, options);
     return (sketches.length === 1 &&
       unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)))
       ? sketches[0]
@@ -209,12 +210,12 @@ export class Sketch {
     }
   }
 
-  get sketchType(): SketchType { return this.htmlPath ? 'html' : 'javascript'; }
+  get sketchType(): SketchType { return this.htmlFile ? 'html' : 'javascript'; }
 
   /** For an HTML sketch, this is the HTML file. For a JavaScript sketch, this is
    * the JavaScript file. */
   get mainFile() {
-    return this.htmlPath || this.scriptPath || path.basename(this.dirPath);
+    return this.htmlFile || this.scriptFile || path.basename(this.dir);
   }
 
   get name() {
@@ -230,8 +231,8 @@ export class Sketch {
       return this._title;
     }
 
-    if (this.htmlPath) {
-      const filePath = path.join(this.dirPath, this.htmlPath);
+    if (this.htmlFile) {
+      const filePath = path.join(this.dir, this.htmlFile);
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
         const htmlRoot = parse(htmlContent);
@@ -252,21 +253,23 @@ export class Sketch {
 
   /** The HTML file (for an HTML sketch); any JavaScript files; any files that
    * the HTML file includes; and any files that the JavaScript files include,
-   * to the extent that this can be determined by static inspection. */
+   * to the extent that this can be determined by static inspection.
+   *
+   * File names are relative to sketch.dirPath. */
   get files() {
     let files: string[] = [];
-    if (this.htmlPath) {
-      files.push(this.htmlPath);
+    if (this.htmlFile) {
+      files.push(this.htmlFile);
     }
-    if (this.scriptPath) {
-      files.push(this.scriptPath);
+    if (this.scriptFile) {
+      files.push(this.scriptFile);
     }
-    if (this.htmlPath) {
-      const filePath = path.join(this.dirPath, this.htmlPath);
+    if (this.htmlFile) {
+      const filePath = path.join(this.dir, this.htmlFile);
       if (fs.existsSync(filePath)) {
         const htmlContent = fs.readFileSync(filePath, 'utf-8');
         const htmlRoot = parse(htmlContent);
-        const dir = path.dirname(this.htmlPath);
+        const dir = path.dirname(this.htmlFile);
         files = [
           ...files,
           ...Sketch.getLocalScriptFilesFromHtml(htmlRoot, dir),
@@ -277,9 +280,9 @@ export class Sketch {
         ];
       }
     }
-    if (this.scriptPath && fs.existsSync(path.join(this.dirPath, this.scriptPath))) {
+    if (this.scriptFile && fs.existsSync(path.join(this.dir, this.scriptFile))) {
       try {
-        const { loadCallArguments } = Script.fromFile(path.join(this.dirPath, this.scriptPath));
+        const { loadCallArguments } = Script.fromFile(path.join(this.dir, this.scriptFile));
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
@@ -294,7 +297,7 @@ export class Sketch {
   /** Create and save the files for this sketch. This includes the script file;
    * for an HTML sketch, this also includes the HTML file. */
   generate(force = false, options: Record<string, unknown> = {}) {
-    const dirPath = this.dirPath;
+    const dirPath = this.dir;
     try {
       fs.mkdirSync(dirPath);
     } catch (e) {
@@ -304,17 +307,17 @@ export class Sketch {
       if (!fs.statSync(dirPath).isDirectory()) {
         throw new DirectoryExistsError(`${dirPath} already exists and is not a directory`);
       }
-      if (fs.readdirSync(dirPath).length && !force && this.htmlPath) {
+      if (fs.readdirSync(dirPath).length && !force && this.htmlFile) {
         throw new DirectoryExistsError(`${dirPath} already exists and is not empty`);
       }
     }
 
-    if (this.htmlPath) { this.writeGeneratedFile('index.html', this.htmlPath, force, options) }
-    this.writeGeneratedFile('sketch.js.njk', this.scriptPath, force, options);
+    if (this.htmlFile) { this.writeGeneratedFile('index.html', this.htmlFile, force, options) }
+    this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options);
   }
 
   private writeGeneratedFile(templateName: string, relPath: string, force: boolean, options: Record<string, unknown>) {
-    const filePath = path.join(this.dirPath, relPath);
+    const filePath = path.join(this.dir, relPath);
     if (!force && fs.existsSync(filePath)) {
       throw new Error(`${filePath} already exists`);
     }
@@ -326,13 +329,13 @@ export class Sketch {
    * For an HTML sketch, this is the list of libraries named in the HTML file.
    */
   get libraries(): LibraryArray {
-    return this.htmlPath
+    return this.htmlFile
       ? this.explicitLibraries()
       : this.impliedLibraries();
   }
 
   private explicitLibraries(): LibraryArray {
-    const htmlPath = this.htmlPath && path.join(this.dirPath, this.htmlPath);
+    const htmlPath = this.htmlFile && path.join(this.dir, this.htmlFile);
     return htmlPath && fs.existsSync(htmlPath)
       ? Library.inHtml(htmlPath)
       : new LibraryArray();
@@ -342,7 +345,7 @@ export class Sketch {
     return Library.inferFromScripts(
       this.files
         .filter(f => f.endsWith('.js'))
-        .map(f => path.join(this.dirPath, f)));
+        .map(f => path.join(this.dir, f)));
   }
 
   protected getGeneratedFileContent(base: string, options: Record<string, unknown>) {
@@ -350,9 +353,9 @@ export class Sketch {
     const libraries = this.libraries;
     const data = {
       title: this.title,
-      sketchPath: `./${this.scriptPath}`,
       libraries,
       p5Version,
+      scriptFile: this.scriptFile,
       ...defaultGenerationOptions,
       ...options
     };
@@ -378,7 +381,7 @@ export class Sketch {
       case 'html': {
         // html -> javascript
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
-        const htmlPath = path.join(this.dirPath, htmlName);
+        const htmlPath = path.join(this.dir, htmlName);
         if (fs.existsSync(htmlPath)) {
           throw new Error(`${htmlPath} already exists`);
         }
@@ -386,12 +389,12 @@ export class Sketch {
         break;
       }
       case 'javascript': {
-        if (!this.htmlPath) {
+        if (!this.htmlFile) {
           return;
         }
 
         // html -> javascript
-        const htmlPath = path.join(this.dirPath, this.htmlPath);
+        const htmlPath = path.join(this.dir, this.htmlFile);
 
         // there must be only one script file, and no inline scripts
         const content = fs.readFileSync(htmlPath, 'utf-8');
@@ -410,7 +413,7 @@ export class Sketch {
             if (!localScripts[0].endsWith('.js')) {
               throw new Error(`${htmlPath} refers to a script file with the wrong extension`);
             }
-            if (!fs.existsSync(path.join(this.dirPath, localScripts[0]))) {
+            if (!fs.existsSync(path.join(this.dir, localScripts[0]))) {
               throw new Error(`${htmlPath} refers to a script file that does not exist`);
             }
             break;
@@ -426,10 +429,10 @@ export class Sketch {
         const htmlNotScript = htmlLibs.filter(lib => !scriptLibs.some(s => s.name === lib.name));
         const scriptNotHtml = scriptLibs.filter(lib => !htmlLibs.some(h => h.name === lib.name));
         if (htmlNotScript.length) {
-          throw new Error(`${path.join(this.dirPath, this.htmlPath)} contains libraries that are not implied by ${this.scriptPath}: ${htmlLibs.map(lib => lib.name)}`);
+          throw new Error(`${path.join(this.dir, this.htmlFile)} contains libraries that are not implied by ${this.scriptFile}: ${htmlLibs.map(lib => lib.name)}`);
         }
         if (scriptNotHtml.length) {
-          throw new Error(`${path.join(this.dirPath, this.scriptPath)} implies libraries that are not in ${this.htmlPath}: ${scriptNotHtml.map(lib => lib.name)}`);
+          throw new Error(`${path.join(this.dir, this.scriptFile)} implies libraries that are not in ${this.htmlFile}: ${scriptNotHtml.map(lib => lib.name)}`);
         }
 
         fs.unlinkSync(htmlPath);

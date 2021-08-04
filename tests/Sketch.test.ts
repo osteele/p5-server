@@ -15,10 +15,10 @@ test('Sketch.fromHtmlFile', () => {
   expect(sketch.sketchType === 'html');
   expect(sketch.name).toBe('sketch');
   expect(sketch.title).toBe('HTML-based sketch');
-  expect(sketch.dirPath).toBe(tf`Sketch.analyzeDirectory`);
-  expect(sketch.htmlPath).toBe('sketch.html');
+  expect(sketch.dir).toBe(tf`Sketch.analyzeDirectory`);
+  expect(sketch.htmlFile).toBe('sketch.html');
   expect(sketch.mainFile).toBe('sketch.html');
-  expect(sketch.scriptPath).toBe('script.js');
+  expect(sketch.scriptFile).toBe('script.js');
 });
 
 test('Sketch.fromScriptFile', () => {
@@ -26,10 +26,10 @@ test('Sketch.fromScriptFile', () => {
   expect(sketch.sketchType === 'javascript');
   expect(sketch.name).toBe('circles');
   expect(sketch.title).toBe('Circles');
-  expect(sketch.dirPath).toBe(tf``);
-  expect(sketch.htmlPath).toBe(null);
+  expect(sketch.dir).toBe(tf``);
+  expect(sketch.htmlFile).toBe(null);
   expect(sketch.mainFile).toBe('circles.js');
-  expect(sketch.scriptPath).toBe('circles.js');
+  expect(sketch.scriptFile).toBe('circles.js');
 });
 
 test('Sketch.isSketchHtmlFile', () => {

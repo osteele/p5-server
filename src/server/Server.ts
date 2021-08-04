@@ -81,8 +81,8 @@ app.get('/*.js', (req, res, next) => {
     const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath));
     const sketch = sketches.find(sketch => sketch.files.includes(path.basename(filePath)));
     if (sketch) {
-      if (sketch.htmlPath) {
-        res.redirect(path.dirname(req.path).replace(/\/$/, '') + '/' + sketch.htmlPath);
+      if (sketch.htmlFile) {
+        res.redirect(path.dirname(req.path).replace(/\/$/, '') + '/' + sketch.htmlFile);
         return;
       } else {
         const content = sketch.generateHtmlContent();

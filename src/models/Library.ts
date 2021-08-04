@@ -23,6 +23,7 @@ type LibraryProperties = {
 };
 
 export class Library implements LibraryProperties {
+  static all: Library[] = [];
   public readonly name: string;
   public readonly homepage: string;
   public readonly packageName?: string;
@@ -42,6 +43,15 @@ export class Library implements LibraryProperties {
     return new Library(spec);
   }
 
+  static add(spec: LibraryProperties) {
+    Library.all.push(new Library(spec));
+  }
+
+  static addFromJson(jsonPath: string) {
+    const json = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+    json.forEach(Library.add);
+  }
+
   static inferFromScripts(scriptPaths: string[]): LibraryArray {
     let libs: LibraryArray = new LibraryArray();
     // TODO: remove each script's global from other scripts' free variables.
@@ -53,7 +63,7 @@ export class Library implements LibraryProperties {
       if (fs.existsSync(scriptFile)) {
         try {
           const { freeVariables, p5properties } = Script.fromFile(scriptFile);
-          for (const lib of libraries) {
+          for (const lib of this.all) {
             if (lib.defines?.globals?.some(name => freeVariables!.has(name))
               || lib.defines?.p5?.some(name => p5properties!.has(name))) {
               libs.push(lib);
@@ -78,7 +88,7 @@ export class Library implements LibraryProperties {
     const inferredLibs = libs;
     libs = new LibraryArray();
     scriptSrcs.forEach(src => {
-      const lib = libraries.find(lib => lib.matchesPath(src));
+      const lib = this.all.find(lib => lib.matchesPath(src));
       if (lib) {
         libs.push(lib);
       }
@@ -128,8 +138,4 @@ export class LibraryArray extends Array<Library> {
   }
 }
 
-const librarySpecs: LibraryProperties[] =
-  JSON.parse(fs.readFileSync(path.join(__dirname, '../libraries.json'), 'utf-8'))
-
-export const libraries: Library[] =
-  librarySpecs.map(Library.fromSpec);
+Library.addFromJson(path.join(__dirname, '../libraries.json'));

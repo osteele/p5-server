@@ -348,7 +348,7 @@ export class Sketch {
         .map(f => path.join(this.dir, f)));
   }
 
-  protected getGeneratedFileContent(base: string, options: Record<string, unknown>) {
+  private getGeneratedFileContent(base: string, options: Record<string, unknown>) {
     const templatePath = path.join(templateDir, base);
     const libraries = this.libraries;
     const data = {
@@ -362,7 +362,7 @@ export class Sketch {
     return nunjucks.render(templatePath, data).trim() + '\n';
   }
 
-  generateHtmlContent() {
+  public getHtmlContent() {
     return this.getGeneratedFileContent('index.html', {});
   }
 
@@ -373,7 +373,7 @@ export class Sketch {
    * will remain the same. Before removing an HTML file, it also verifies that the file
    * included only the single script file, and no other non-library files.
    */
-  convert(options: { type: SketchType }) {
+  public convert(options: { type: SketchType }) {
     if (this.sketchType === options.type) {
       return;
     }
@@ -439,9 +439,4 @@ export class Sketch {
       }
     }
   }
-}
-
-export function createSketchHtml(scriptPath: string) {
-  const sketch = Sketch.fromFile(scriptPath);
-  return sketch.generateHtmlContent();
 }

@@ -3,7 +3,7 @@ import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
-import { createSketchHtml, Script, Sketch } from 'p5-analysis';
+import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
     if (Sketch.isSketchScriptFile(filePath)) {
-      const content = createSketchHtml(filePath);
+      const content = Sketch.fromFile(filePath).getHtmlContent();
       res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
     } else if (filePath.match(/.*\.html?$/)) {
       const content = fs.readFileSync(filePath, 'utf8');
@@ -86,7 +86,7 @@ app.get('/*.js', (req, res, next) => {
         res.redirect(path.dirname(req.path).replace(/\/$/, '') + '/' + sketch.htmlFile);
         return;
       } else {
-        const content = sketch.generateHtmlContent();
+        const content = sketch.getHtmlContent();
         res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
         return;
       }

@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Export Script; add Script.getErrors(); remove checkParseScript
+- Export Script; add Script.getErrors(); remove checkParseScript, generateHtmlContent
 
 ## [0.3.1]
 

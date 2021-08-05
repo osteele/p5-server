@@ -3,6 +3,7 @@
 ## [0.3.2]
 
 - Factored out [p5-analysis](https://www.npmjs.com/package/p5-analysis) package
+- Updated to p5-analysis 0.3.2; adapted to API changes
 
 ## [0.3.1]
 

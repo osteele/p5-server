@@ -1,5 +1,5 @@
 import path from "path";
-import { Library } from "../src/models/Library";
+import { Library } from "../src/Library";
 
 const testfilesPath = './tests/testdata';
 

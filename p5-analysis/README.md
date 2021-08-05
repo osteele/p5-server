@@ -1,9 +1,12 @@
-# API
+# P5 Analysis
 
-[p5-server](https://github.com/osteele/p5-server) is a command-line tool, but it
-doubles as a library for programmatic use.
+This library provides functionality for finding, analyzing, and generating [P5.js sketches](https://p5js.org).
+It is used by [p5-server](https://github.com/osteele/p5-server) and
+the [P5 Server Visual Studio Code
+extension](https://github.com/osteele/vscode-p5server#readme). These APIs are
+not stable until this package reaches version 1.0.
 
-As a library, it provides three classes:
+The API consists of three classes:
 
 * [Server](./classes/Server.html) is a web server with live reload, sketch-aware
   directory listings, and library inference for JavaScript-only sketches.
@@ -11,11 +14,6 @@ As a library, it provides three classes:
   infer libraries, and scan directories for sketches that they contain.
 * [Library](./classes/Library.html) represents a [p5.js
   library](https://p5js.org/libraries/).
-
-These APIs are currently used by the
-[Visual Studio Code
-extension](https://github.com/osteele/vscode-p5server#readme). These APIs are
-not stable until this package reaches version 1.0.
 
 ## Installation
 

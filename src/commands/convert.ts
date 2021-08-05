@@ -1,4 +1,4 @@
-import { Sketch, SketchType } from '../models/Sketch';
+import { Sketch, SketchType } from 'p5-analysis';
 import { die } from '../utils';
 
 const sketchTypes: SketchType[] = ['html', 'javascript']

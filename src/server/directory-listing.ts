@@ -2,7 +2,7 @@ import fs from 'fs';
 import marked from 'marked';
 import path from 'path';
 import pug from 'pug';
-import { Sketch } from '../models/Sketch';
+import { Sketch } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 

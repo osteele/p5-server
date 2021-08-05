@@ -152,4 +152,4 @@ export class LibraryArray extends Array<Library> {
   }
 }
 
-Library.addFromJson(path.join(__dirname, '../libraries.json'));
+Library.addFromJson(path.join(__dirname, './libraries.json'));

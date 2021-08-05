@@ -15,10 +15,11 @@ jobs:
         run: npm install
 
       - name: Build Docs
-        run: npm run build:docs
+        run: >
+          | (cd p5-analysis && npm run build:docs)
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: build/docs
+          folder: p5-analysis/build/docs

@@ -1,3 +1,3 @@
-export { Library } from './models/Library';
-export { Sketch } from './models/Sketch';
+export { Library } from 'p5-analysis';
+export { Sketch, SketchType } from 'p5-analysis';
 export { Server } from './server/Server';

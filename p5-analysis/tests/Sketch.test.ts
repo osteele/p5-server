@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import rimraf from "rimraf";
-import { Sketch, SketchType } from "../src/models/Sketch";
+import { Sketch, SketchType } from "../src/Sketch";
 
 const testfilesPath = './tests/testdata';
 

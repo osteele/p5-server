@@ -9,7 +9,8 @@ sketches and figure out which libraries a sketch needs  in order to run.
 It is also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
 
-Finally, the directory and script analysis tools that make this possible are available via a [programmatic API](https://osteele.github.io/p5-server/).
+The directory and script analysis tools that make this possible are available
+via a [programmatic API](https://osteele.github.io/p5-server/).
 
 ![screenshot](docs/screenshot.png)
 

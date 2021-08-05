@@ -1,0 +1,63 @@
+{
+  "name": "p5-analysis",
+  "version": "0.3.1",
+  "description": "API to find, create. and analyze p5.js sketch files.",
+  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
+  "homepage": "https://osteele.github.io/p5-server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osteele/p5-server.git"
+  },
+  "keywords": [
+    "p5",
+    "p5.js"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/osteele/p5-server/issues"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run copy-files && tsc --declaration",
+    "build:docs": "typedoc src/index.ts",
+    "clean": "rimraf dist/",
+    "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js,json,svg} dist/",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "esprima": "^4.0.1",
+    "jstransformer-marked": "^1.0.3",
+    "node-html-parser": "^4.1.0",
+    "nunjucks": "^3.2.3",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
+    "@types/esprima": "^4.0.3",
+    "@types/jest": "^26.0.24",
+    "copyfiles": "^2.4.1",
+    "eslint": "^7.31.0",
+    "ts-jest": "^27.0.4",
+    "typedoc": "^0.21.5",
+    "typescript": "^4.3.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "modulePathIgnorePatterns": [
+      "tests/testdata/.*/output/.*"
+    ],
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.ts"
+    ]
+  }
+}

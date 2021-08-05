@@ -1,4 +1,4 @@
-import { Script } from "../src/models/Script";
+import { Script } from "../src/Script";
 
 test('Script.findGlobals', () => {
     expect(Script.fromSource('function f() {}').globals).toEqual(

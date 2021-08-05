@@ -1,4 +1,4 @@
-import { DirectoryExistsError, Sketch } from '../models/Sketch';
+import { DirectoryExistsError, Sketch } from 'p5-analysis';
 import { die } from '../utils';
 
 export default function create(name: string = 'sketch', options: { force: boolean, html: boolean, title: string, options: string }) {

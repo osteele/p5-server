@@ -6,23 +6,26 @@ import { JavascriptSyntaxError } from './script-analysis';
 
 export const p5Version = '1.4.0';
 
-type LibraryProperties = {
-  /** The human-readable name of the library. */
-  name: string;
-  /** The human-readable description of the library. */
-  description: string;
-  /**  The library's home page. */
-  homepage: string;
-  /** The npm package name of the library. */
-  packageName?: string;
-  /** A path that can be used to load the library. */
-  importPath?: string;
-  /** Global variables (functions and classes) and p5.* properties that the
-   * library defines. */
-  defines?: Record<'globals' | 'p5', string[]>;
-};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Library {
+  export type Properties = {
+    /** The human-readable name of the library. */
+    name: string;
+    /** The human-readable description of the library. */
+    description: string;
+    /**  The library's home page. */
+    homepage: string;
+    /** The npm package name of the library. */
+    packageName?: string;
+    /** A path that can be used to load the library. */
+    importPath?: string;
+    /** Global variables (functions and classes) and p5.* properties that the
+     * library defines. */
+    defines?: Record<'globals' | 'p5', string[]>;
+  };
+}
 
-export class Library implements LibraryProperties {
+export class Library implements Library.Properties {
   static all: Library[] = [];
   public readonly name: string;
   public readonly homepage: string;
@@ -31,7 +34,7 @@ export class Library implements LibraryProperties {
   public readonly defines?: Record<'globals' | 'p5', string[]>;
   private _importPath?: string;
 
-  constructor(spec: LibraryProperties) {
+  constructor(spec: Library.Properties) {
     this.name = spec.name;
     this.description = spec.description;
     this.homepage = spec.homepage;
@@ -39,11 +42,11 @@ export class Library implements LibraryProperties {
     Object.assign(this, spec);
   }
 
-  static fromSpec(spec: LibraryProperties): Library {
+  static fromSpec(spec: Library.Properties): Library {
     return new Library(spec);
   }
 
-  static add(spec: LibraryProperties) {
+  static add(spec: Library.Properties) {
     Library.all.push(new Library(spec));
   }
 

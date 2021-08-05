@@ -12,14 +12,16 @@ import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
 
-export type ServerConfig = {
-  root: string;
-  port?: number;
-  scanPorts: boolean;
-  sketchPath: string | null;
-};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Server {
+  export type Options = {
+    root: string;
+    port?: number;
+    scanPorts: boolean;
+    sketchPath: string | null;
+  };
+}
 
-export type ServerOptions = Partial<ServerConfig>;
 const serverOptionDefaults = { root: '.', scanPorts: true, sketchPath: null }
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
@@ -28,7 +30,7 @@ jsTemplateEnv.addFilter('quote', JSON.stringify);
 const app = express();
 
 app.get('/', (req, res) => {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+  const serverOptions: Server.Options = req.app.locals as Server.Options;
   if (serverOptions.sketchPath) {
     const filePath = path.join(serverOptions.root, serverOptions.sketchPath);
     if (Sketch.isSketchScriptFile(filePath)) {
@@ -51,7 +53,7 @@ app.get('/__p5_server_static/:path(*)', (req, res) => {
 });
 
 app.get('/*.html?', (req, res, next) => {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+  const serverOptions: Server.Options = req.app.locals as Server.Options;
   const filePath = path.join(serverOptions.root, req.path);
   try {
     if (req.query.fmt === 'view') {
@@ -75,7 +77,7 @@ app.get('/*.html?', (req, res, next) => {
 // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
 // A request for the HTML of a main sketch js file redirects to the sketch's index page.
 app.get('/*.js', (req, res, next) => {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+  const serverOptions: Server.Options = req.app.locals as Server.Options;
   const filePath = path.join(serverOptions.root, req.path);
   if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(filePath)) {
     const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath));
@@ -110,7 +112,7 @@ app.get('/*.js', (req, res, next) => {
 
 app.get('/*.md', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+    const serverOptions: Server.Options = req.app.locals as Server.Options;
     const filePath = path.join(serverOptions.root, req.path);
     if (!fs.existsSync(filePath)) {
       return next();
@@ -123,7 +125,7 @@ app.get('/*.md', (req, res, next) => {
 
 app.get('*', (req, res, next) => {
   if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+    const serverOptions: Server.Options = req.app.locals as Server.Options;
     const filePath = path.join(serverOptions.root, req.path);
     if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
       sendDirectoryListing(req, res);
@@ -135,7 +137,7 @@ app.get('*', (req, res, next) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Response<any, any>) {
-  const serverOptions: ServerConfig = req.app.locals as ServerConfig;
+  const serverOptions: Server.Options = req.app.locals as Server.Options;
   const relPath = req.path;
   let fileData: string;
   let singleProject = false;
@@ -160,8 +162,8 @@ function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Respon
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-async function startServer(options: ServerOptions) {
-  const derivedOptions: ServerConfig = { ...serverOptionDefaults, ...options };
+async function startServer(options: Partial<Server.Options>) {
+  const derivedOptions: Server.Options = { ...serverOptionDefaults, ...options };
   Object.assign(app.locals, options);
   let port = options.port || 3000;
 
@@ -234,13 +236,13 @@ export class Server {
   public server: http.Server | null = null;
   public url?: string;
   protected liveReloadServer: WebSocket.Server | null = null;
-  private readonly options: ServerOptions;
+  private readonly options: Partial<Server.Options>;
 
-  constructor(options: ServerOptions) {
+  constructor(options: Partial<Server.Options>) {
     this.options = options;
   }
 
-  static async start(options: ServerOptions) {
+  static async start(options: Partial<Server.Options>) {
     return new Server(options).start();
   }
 

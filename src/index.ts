@@ -1,5 +1,3 @@
-import { Library } from './models/Library';
-import { Sketch } from './models/Sketch';
-import { Server, ServerConfig } from './server/Server';
-
-export { Library, Sketch, Server, ServerConfig as ServerOptions };
+export { Library } from './models/Library';
+export { Sketch } from './models/Sketch';
+export { Server } from './server/Server';

@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run copy-files && tsc --declaration",
-    "build:docs": "typedoc src/index.ts --excludePrivate --excludeProtected --out docs/build",
+    "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js,json,svg} dist/",
     "dev": "ts-node src/bin/p5-server.ts",

@@ -19,7 +19,7 @@ program
   .alias('g')
   .description('Create a new p5.js sketch')
   .option('--no-html', 'only create a JavaScript file')
-  .option('-f, --force', 'force overwite of existing files')
+  .option('-f, --force', 'force overwrite of existing files')
   .option('-o, --options [options]', 'comma-separated list of options')
   .option('-t, --title [title]', 'sketch title')
   .action(create);

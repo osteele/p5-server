@@ -2,10 +2,14 @@
 
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://badge.fury.io/js/p5-server)
 
-This project is a command-line interface for [p5.js](https://p5js.org/).
+This project is a command-line interface for [p5.js](https://p5js.org/). It
+provides a web server with live reload, that knows how to server JavaScript-only
+sketches and figure out which libraries a sketch needs  in order to run.
 
 It is also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
+
+Finally, the directory and script analysis tools that make this possible are available via a [programmatic API](https://osteele.github.io/p5-server/).
 
 ![screenshot](docs/screenshot.png)
 
@@ -145,19 +149,6 @@ the following checks are made:
 * The libraries that the HTML file includes (via `<script>` tags) should be the
   same as the libraries that will be inferred from the script file. (See
   “Library inference”, below.)
-
-## API
-
-This packages makes the following APIs available. They are currently used by the
-[Visual Studio Code
-extension](https://github.com/osteele/vscode-p5server#readme). These APIs are
-not stable until this package reaches version 1.0.
-
-* `Server` – a web server with p5.js-aware directory listings, that serves
-  JavaScript-only sketches with automatic library includes, and that has live
-  reload.
-* `Sketch` – the interface to generate sketch files, find associated files,
-  infer libraries, and scan directories for sketches that they contain.
 
 ## Implementation Notes
 

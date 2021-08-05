@@ -3,7 +3,7 @@ import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
-import { checkedParseScript, createSketchHtml, JavascriptSyntaxError, Sketch } from 'p5-analysis';
+import { createSketchHtml, Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import { createDirectoryListing } from './directory-listing';
 import { templateDir } from './globals';
@@ -93,15 +93,15 @@ app.get('/*.js', (req, res, next) => {
     }
   }
   try {
-    checkedParseScript(filePath);
-  } catch (e) {
-    if (e instanceof JavascriptSyntaxError) {
+    const errs = Script.fromFile(filePath).getErrors();
+    if (errs.length) {
       const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
       return res.send(jsTemplateEnv.renderString(template, {
-        fileName: path.basename(e.fileName!), // TODO: relative to referer
-        message: e.message,
+        fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
+        message: errs[0].message,
       }));
     }
+  } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }

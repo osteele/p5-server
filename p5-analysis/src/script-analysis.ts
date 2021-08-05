@@ -1,12 +1,12 @@
-import { parseScript, parseModule, Program } from 'esprima';
-import { ArrowFunctionExpression, Expression, PropertyDefinition, MethodDefinition, FunctionDeclaration, FunctionExpression, Identifier, Pattern, Statement } from 'estree';
+import { parseModule, parseScript, Program } from 'esprima';
+import { ArrowFunctionExpression, Expression, FunctionDeclaration, FunctionExpression, Identifier, MethodDefinition, Pattern, PropertyDefinition, Statement } from 'estree';
 import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
-export class JavascriptSyntaxError extends Error {
+export class JavaScriptSyntaxError extends Error {
   constructor(msg: string, public readonly fileName: string | null = null, public readonly code: string) {
     super(msg);
-    Object.setPrototypeOf(this, JavascriptSyntaxError.prototype);
+    Object.setPrototypeOf(this, JavaScriptSyntaxError.prototype);
     this.fileName = fileName;
     this.code = code;
   }
@@ -22,7 +22,7 @@ export function checkedParseScript(filePath: string): Program {
   try {
     return parseModule(code);
   } catch (e) {
-    throw new JavascriptSyntaxError(e.message, filePath, code);
+    throw new JavaScriptSyntaxError(e.message, filePath, code);
   }
 }
 

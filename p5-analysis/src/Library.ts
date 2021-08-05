@@ -2,7 +2,7 @@ import fs from 'fs';
 import { parse } from 'node-html-parser';
 import path from 'path';
 import { Script } from './Script';
-import { JavascriptSyntaxError } from './script-analysis';
+import { JavaScriptSyntaxError } from './script-analysis';
 
 export const p5Version = '1.4.0';
 
@@ -73,7 +73,7 @@ export class Library implements Library.Properties {
             }
           }
         } catch (e) {
-          if (!(e instanceof JavascriptSyntaxError)) {
+          if (!(e instanceof JavaScriptSyntaxError)) {
             throw e;
           }
         }

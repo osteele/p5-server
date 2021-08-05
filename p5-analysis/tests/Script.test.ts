@@ -1,5 +1,20 @@
 import { Script } from "../src/Script";
 
+test('Script.fromFile', () => {
+    const filePath = './tests/testdata/circles.js';
+    const script: Script = Script.fromFile(filePath);
+    expect(script).toBeInstanceOf(Script);
+    expect(script.filePath).toBe(filePath);
+});
+
+test('Script.getErrors', () => {
+    expect(() => Script.fromSource('const const;').globals).toThrow(/^Line 1:/)
+    expect(Script.fromSource('let a;').getErrors()).toEqual([]);
+    expect(Script.fromSource('const const;').getErrors()).toHaveLength(1);
+    const err = Script.fromSource('const const;').getErrors()[0];
+    expect(err.message).toMatch(/^Line/);
+});
+
 test('Script.findGlobals', () => {
     expect(Script.fromSource('function f() {}').globals).toEqual(
         new Map([['f', 'FunctionDeclaration']]));

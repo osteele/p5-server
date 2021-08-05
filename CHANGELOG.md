@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.2]
+
+- Factored out [p5-analysis](https://www.npmjs.com/package/p5-analysis) package
+
 ## [0.3.1]
 
 - Fix filename case inconsistency that caused error on Linux.

@@ -1,6 +1,7 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
-import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavascriptSyntaxError } from './script-analysis';
+import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavaScriptSyntaxError } from './script-analysis';
+export { JavaScriptSyntaxError } from './script-analysis';
 
 interface ScriptAnalysis {
   globals: Map<string, string>;
@@ -10,21 +11,10 @@ interface ScriptAnalysis {
 }
 
 export class Script implements ScriptAnalysis {
-  protected readonly program: Program;
+  private _program?: Program;
   private readonly analysis: Partial<ScriptAnalysis> = {};
 
-  constructor(public readonly source: string, public readonly filePath?: string) {
-    try {
-      this.program = parseScript(this.source);
-    } catch {
-      // eslint-disable-next-line no-empty
-    }
-    try {
-      this.program = parseModule(this.source);
-    } catch (e) {
-      throw new JavascriptSyntaxError(e.message, this.filePath, this.source);
-    }
-  }
+  constructor(public readonly source: string, public readonly filePath?: string) { }
 
   static fromSource(source: string, filePath?: string) {
     return new Script(source, filePath);
@@ -32,6 +22,23 @@ export class Script implements ScriptAnalysis {
 
   static fromFile(filePath: string) {
     return new Script(fs.readFileSync(filePath, 'utf8'), filePath);
+  }
+
+  private get program() {
+    if (this._program) {
+      return this._program;
+    }
+    try {
+      this._program = parseScript(this.source);
+    } catch {
+      // eslint-disable-next-line no-empty
+    }
+    try {
+      this._program = parseModule(this.source);
+    } catch (e) {
+      throw new JavaScriptSyntaxError(e.message, this.filePath, this.source);
+    }
+    return this._program;
   }
 
   get globals() {
@@ -60,5 +67,17 @@ export class Script implements ScriptAnalysis {
       this.analysis.p5properties = findP5PropertyReferences(this.program);
     }
     return this.analysis.p5properties;
+  }
+
+  getErrors() {
+    try {
+      this.program;
+    } catch (e) {
+      if (e instanceof JavaScriptSyntaxError) {
+        return [e];
+      }
+      throw e;
+    }
+    return [];
   }
 }

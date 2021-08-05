@@ -1,5 +1,7 @@
 # P5 Analysis
 
+[![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://badge.fury.io/js/p5-analysis)
+
 This library provides functionality for finding, analyzing, and generating [P5.js sketches](https://p5js.org).
 It is used by [p5-server](https://github.com/osteele/p5-server) and
 the [P5 Server Visual Studio Code

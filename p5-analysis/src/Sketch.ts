@@ -5,7 +5,7 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { Library, LibraryArray, p5Version } from './Library';
 import { Script } from './Script';
-import { JavascriptSyntaxError } from './script-analysis';
+import { JavaScriptSyntaxError } from './script-analysis';
 
 const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true }
@@ -167,7 +167,7 @@ export class Sketch {
       const { globals, freeVariables } = Script.fromFile(filePath);
       return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
     } catch (e) {
-      if (e instanceof JavascriptSyntaxError) {
+      if (e instanceof JavaScriptSyntaxError) {
         return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);
       }
       throw e;
@@ -286,7 +286,7 @@ export class Sketch {
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
-        if (!(e instanceof JavascriptSyntaxError)) {
+        if (!(e instanceof JavaScriptSyntaxError)) {
           throw e;
         }
       }

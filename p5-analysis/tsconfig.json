@@ -8,14 +8,13 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": ["dist", "build", "tests", "node_modules"],
+  "exclude": ["dist", "build", "node_modules", "tests"],
   "typedocOptions": {
-    "name": "p5-server API documentation",
+    "name": "p5-analysis API documentation",
     "theme": "minimal",
     "out": "build/docs",
     "excludePrivate": true,
     "excludeProtected": true,
-    "readme": "docs/api-index.md",
     "sort": ["static-first", "alphabetical"]
   }
 }

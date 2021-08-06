@@ -178,7 +178,7 @@ async function startServer(options: Partial<Server.Options>) {
   // for a browser request
   createDirectoryListing('/', derivedOptions.root);
 
-  let server: http.Server;
+  let server: http.Server | null = null;
   for (let p = port; p < port + 10; p++) {
     try {
       server = await listenSync(p);

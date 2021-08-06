@@ -14,13 +14,10 @@
     },
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "typescript.tsc.autoDetect": "off"
   },
   "extensions": {
-    "recommendations": [
-      "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode",
-      "davidanson.vscode-markdownlint"
-    ]
+    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "davidanson.vscode-markdownlint"]
   }
 }

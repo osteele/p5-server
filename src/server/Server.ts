@@ -21,7 +21,7 @@ export namespace Server {
   };
 }
 
-const serverOptionDefaults = { root: '.', scanPorts: true, sketchPath: null }
+const serverOptionDefaults = { root: '.', scanPorts: true, sketchPath: null };
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
@@ -78,7 +78,11 @@ app.get('/*.html?', (req, res, next) => {
 app.get('/*.js', (req, res, next) => {
   const serverOptions: Server.Options = req.app.locals as Server.Options;
   const filePath = path.join(serverOptions.root, req.path);
-  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(filePath)) {
+  if (
+    req.headers['accept']?.match(/\btext\/html\b/) &&
+    req.query.fmt !== 'view' &&
+    Sketch.isSketchScriptFile(filePath)
+  ) {
     const { sketches } = Sketch.analyzeDirectory(path.dirname(filePath));
     const sketch = sketches.find(sketch => sketch.files.includes(path.basename(filePath)));
     if (sketch) {
@@ -96,10 +100,12 @@ app.get('/*.js', (req, res, next) => {
     const errs = Script.fromFile(filePath).getErrors();
     if (errs.length) {
       const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
-      return res.send(jsTemplateEnv.renderString(template, {
-        fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
-        message: errs[0].message,
-      }));
+      return res.send(
+        jsTemplateEnv.renderString(template, {
+          fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
+          message: errs[0].message
+        })
+      );
     }
   } catch (e) {
     if (e.code !== 'ENOENT') {
@@ -184,7 +190,9 @@ async function startServer(options: Partial<Server.Options>) {
       console.log(`Port ${p} is in use, retrying...`);
     }
   }
-  server ||= await listenSync();
+  if (!server) {
+    server = await listenSync();
+  }
 
   const address = server.address();
   if (!address || typeof address === 'string') {

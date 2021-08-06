@@ -10,14 +10,16 @@ export default function reportLibraries() {
     library.globals.forEach(name => {
       let libs = definitions.get(name);
       if (!libs) {
-        definitions.set(name, libs = []);
+        definitions.set(name, (libs = []));
       }
       libs.push(library);
     });
   });
 
-  console.log(nunjucks.render(templatePath, {
-    definitions,
-    libraries: Library.all
-  }));
+  console.log(
+    nunjucks.render(templatePath, {
+      definitions,
+      libraries: Library.all
+    })
+  );
 }

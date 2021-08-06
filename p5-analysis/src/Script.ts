@@ -1,6 +1,12 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
-import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences, JavaScriptSyntaxError } from './script-analysis';
+import {
+  findFreeVariables,
+  findGlobals,
+  findLoadCalls,
+  findP5PropertyReferences,
+  JavaScriptSyntaxError
+} from './script-analysis';
 export { JavaScriptSyntaxError } from './script-analysis';
 
 interface ScriptAnalysis {
@@ -14,7 +20,7 @@ export class Script implements ScriptAnalysis {
   private _program?: Program;
   private readonly analysis: Partial<ScriptAnalysis> = {};
 
-  constructor(public readonly source: string, public readonly filePath?: string) { }
+  constructor(public readonly source: string, public readonly filePath?: string) {}
 
   static fromSource(source: string, filePath?: string) {
     return new Script(source, filePath);

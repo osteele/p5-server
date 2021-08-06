@@ -7,7 +7,7 @@ import { Library, LibraryArray, p5Version } from './Library';
 import { JavaScriptSyntaxError, Script } from './Script';
 
 const templateDir = path.join(__dirname, './templates');
-const defaultGenerationOptions = { draw: true, examples: true }
+const defaultGenerationOptions = { draw: true, examples: true };
 const defaultDirectoryExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
 
 export type SketchType = 'html' | 'javascript';
@@ -21,10 +21,10 @@ export class DirectoryExistsError extends Error {
 
 /** Sketch represents a p5.js Sketch. Is an interface to generate sketch files,
  *  find associated files, infer libraries, and scan directories for sketches that
-  * they contain.
-  *
-  * A sketch can be an HTML sketch, or a script sketch.
-  */
+ * they contain.
+ *
+ * A sketch can be an HTML sketch, or a script sketch.
+ */
 export class Sketch {
   /** The sketch directory. */
   public readonly dir: string;
@@ -34,8 +34,12 @@ export class Sketch {
   protected readonly _title?: string;
   protected _name?: string;
 
-  protected constructor(dir: string, htmlFile: string | null = 'index.html', scriptFile: string = 'sketch.js',
-    options: { title?: string, description?: string } = {}) {
+  protected constructor(
+    dir: string,
+    htmlFile: string | null = 'index.html',
+    scriptFile: string = 'sketch.js',
+    options: { title?: string; description?: string } = {}
+  ) {
     this.dir = dir;
     this.htmlFile = htmlFile;
     this.scriptFile = scriptFile;
@@ -46,7 +50,7 @@ export class Sketch {
   /**
    * @category Sketch creation
    */
-  static create(mainFile: string, options: { title?: string, description?: string, scriptFile?: string } = {}) {
+  static create(mainFile: string, options: { title?: string; description?: string; scriptFile?: string } = {}) {
     if (mainFile.endsWith('.html') || mainFile.endsWith('.htm')) {
       return new Sketch(path.dirname(mainFile), path.basename(mainFile), options.scriptFile, options);
     } else if (mainFile.endsWith('.js')) {
@@ -69,7 +73,9 @@ export class Sketch {
     const htmlRoot = parse(htmlContent);
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
-    return new Sketch(dir, path.basename(htmlFile), scripts[0], { description });
+    return new Sketch(dir, path.basename(htmlFile), scripts[0], {
+      description
+    });
   }
 
   /** Create a sketch from a JavaScript file.
@@ -126,8 +132,7 @@ export class Sketch {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
-    let files = fs.readdirSync(dir)
-      .filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
+    let files = fs.readdirSync(dir).filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
 
     // collect directory sketches, and remove them from the list of files
     files = files.filter(name => {
@@ -155,7 +160,11 @@ export class Sketch {
         sketches.push(Sketch.fromScriptFile(filePath));
       }
     }
-    return { sketches, allFiles: files, unaffiliatedFiles: removeProjectFiles(files) };
+    return {
+      sketches,
+      allFiles: files,
+      unaffiliatedFiles: removeProjectFiles(files)
+    };
 
     function removeProjectFiles(files: string[]) {
       return files.filter(f => !sketches.some(s => s.files.includes(f)));
@@ -168,7 +177,9 @@ export class Sketch {
    * @category Sketch detection
    */
   static isSketchHtmlFile(htmlFile: string) {
-    if (!fs.existsSync(htmlFile) || fs.statSync(htmlFile).isDirectory()) { return false; }
+    if (!fs.existsSync(htmlFile) || fs.statSync(htmlFile).isDirectory()) {
+      return false;
+    }
     if (!htmlFile.endsWith('.htm') && !htmlFile.endsWith('.html')) {
       return false;
     }
@@ -185,7 +196,9 @@ export class Sketch {
    * @category Sketch detection
    */
   static isSketchScriptFile(filePath: string) {
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { return false; }
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      return false;
+    }
     if (!filePath.endsWith('.js')) {
       return false;
     }
@@ -209,16 +222,16 @@ export class Sketch {
    * @category Sketch detection
    */
   static isSketchDir(dir: string, options?: { exclusions?: string[] }): Sketch | null {
-    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) { return null; }
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+      return null;
+    }
     const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dir, options);
-    return (sketches.length === 1 &&
-      unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)))
-      ? sketches[0]
-      : null;
+    return sketches.length === 1 && unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)) ? sketches[0] : null;
   }
 
   private static getLocalScriptFilesFromHtml(htmlRoot: HTMLElement, dir: string) {
-    return htmlRoot.querySelectorAll('script[src]')
+    return htmlRoot
+      .querySelectorAll('script[src]')
       .map(e => e.attributes.src.replace(/^\.\//, ''))
       .filter(s => !s.match(/https?:/))
       .map(s => path.join(dir, s));
@@ -240,7 +253,9 @@ export class Sketch {
     }
   }
 
-  get sketchType(): SketchType { return this.htmlFile ? 'html' : 'javascript'; }
+  get sketchType(): SketchType {
+    return this.htmlFile ? 'html' : 'javascript';
+  }
 
   /** For an HTML sketch, this is the HTML file. For a JavaScript sketch, this is
    * the JavaScript file. */
@@ -252,7 +267,9 @@ export class Sketch {
     return this._name || this.mainFile.replace(/\.(html?|js)$/, '');
   }
 
-  set name(value: string) { this._name = value; }
+  set name(value: string) {
+    this._name = value;
+  }
 
   /** For an HTML sketch, this is the <title> element. Otherwise it is the base
    * name of the main file. */
@@ -303,10 +320,11 @@ export class Sketch {
         files = [
           ...files,
           ...Sketch.getLocalScriptFilesFromHtml(htmlRoot, dir),
-          ...htmlRoot.querySelectorAll('head link[href]')
+          ...htmlRoot
+            .querySelectorAll('head link[href]')
             .map(e => e.attributes.href.replace(/^\.\//, ''))
             .filter(s => !s.match(/https?:/))
-            .map(s => dir != '' ? path.join(dir, s) : s)
+            .map(s => (dir != '' ? path.join(dir, s) : s))
         ];
       }
     }
@@ -342,7 +360,9 @@ export class Sketch {
       }
     }
 
-    if (this.htmlFile) { this.writeGeneratedFile('index.html', this.htmlFile, force, options) }
+    if (this.htmlFile) {
+      this.writeGeneratedFile('index.html', this.htmlFile, force, options);
+    }
     this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options);
   }
 
@@ -359,23 +379,16 @@ export class Sketch {
    * For an HTML sketch, this is the list of libraries named in the HTML file.
    */
   get libraries(): LibraryArray {
-    return this.htmlFile
-      ? this.explicitLibraries()
-      : this.impliedLibraries();
+    return this.htmlFile ? this.explicitLibraries() : this.impliedLibraries();
   }
 
   private explicitLibraries(): LibraryArray {
     const htmlPath = this.htmlFile && path.join(this.dir, this.htmlFile);
-    return htmlPath && fs.existsSync(htmlPath)
-      ? Library.inHtml(htmlPath)
-      : new LibraryArray();
+    return htmlPath && fs.existsSync(htmlPath) ? Library.inHtml(htmlPath) : new LibraryArray();
   }
 
   private impliedLibraries(): LibraryArray {
-    return Library.inferFromScripts(
-      this.files
-        .filter(f => f.endsWith('.js'))
-        .map(f => path.join(this.dir, f)));
+    return Library.inferFromScripts(this.files.filter(f => f.endsWith('.js')).map(f => path.join(this.dir, f)));
   }
 
   private getGeneratedFileContent(base: string, options: Record<string, unknown>) {
@@ -431,8 +444,7 @@ export class Sketch {
         // there must be only one script file, and no inline scripts
         const content = fs.readFileSync(htmlPath, 'utf-8');
         const htmlRoot = parse(content);
-        const scriptSrcs = htmlRoot.querySelectorAll('script')
-          .map(e => e.attributes.src);
+        const scriptSrcs = htmlRoot.querySelectorAll('script').map(e => e.attributes.src);
         // if scriptSrcs contains a null, it means there's an inline script
         if (scriptSrcs.some(s => !s)) {
           throw new Error(`${htmlPath} contains an inline script`);
@@ -461,10 +473,18 @@ export class Sketch {
         const htmlNotScript = htmlLibs.filter(lib => !scriptLibs.some(s => s.name === lib.name));
         const scriptNotHtml = scriptLibs.filter(lib => !htmlLibs.some(h => h.name === lib.name));
         if (htmlNotScript.length) {
-          throw new Error(`${path.join(this.dir, this.htmlFile)} contains libraries that are not implied by ${this.scriptFile}: ${htmlLibs.map(lib => lib.name)}`);
+          throw new Error(
+            `${path.join(this.dir, this.htmlFile)} contains libraries that are not implied by ${
+              this.scriptFile
+            }: ${htmlLibs.map(lib => lib.name)}`
+          );
         }
         if (scriptNotHtml.length) {
-          throw new Error(`${path.join(this.dir, this.scriptFile)} implies libraries that are not in ${this.htmlFile}: ${scriptNotHtml.map(lib => lib.name)}`);
+          throw new Error(
+            `${path.join(this.dir, this.scriptFile)} implies libraries that are not in ${
+              this.htmlFile
+            }: ${scriptNotHtml.map(lib => lib.name)}`
+          );
         }
 
         fs.unlinkSync(htmlPath);

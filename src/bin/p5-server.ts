@@ -7,7 +7,7 @@ import create from '../commands/create';
 import reportLibraries from '../commands/report-libraries';
 import serve from '../commands/serve';
 
-const program = new Command()
+const program = new Command();
 
 const appVersion = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')).version;
 program.version(appVersion);
@@ -30,7 +30,6 @@ program
   .description('Convert an HTML sketch to JavaScript-only or vice versa')
   .option('--to <type>', 'output type: html or javascript')
   .action(convert);
-
 
 program
   .command('libraries', { hidden: true })

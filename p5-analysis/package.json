@@ -27,6 +27,7 @@
     "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 src/**/*.{css,html,njk,pug,png,js,json,svg} dist/",
+    "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepublishOnly": "npm run build",
     "test": "jest",
@@ -40,12 +41,13 @@
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.28.5",
-    "@typescript-eslint/parser": "^4.28.5",
     "@types/esprima": "^4.0.3",
     "@types/jest": "^26.0.24",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
     "copyfiles": "^2.4.1",
     "eslint": "^7.31.0",
+    "prettier-eslint-cli": "^5.0.1",
     "ts-jest": "^27.0.4",
     "typedoc": "^0.21.5",
     "typescript": "^4.3.5"

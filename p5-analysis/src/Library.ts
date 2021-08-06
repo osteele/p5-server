@@ -67,8 +67,10 @@ export class Library implements Library.Properties {
         try {
           const { freeVariables, p5properties } = Script.fromFile(scriptFile);
           for (const lib of this.all) {
-            if (lib.defines?.globals?.some(name => freeVariables!.has(name))
-              || lib.defines?.p5?.some(name => p5properties!.has(name))) {
+            if (
+              lib.defines?.globals?.some(name => freeVariables!.has(name)) ||
+              lib.defines?.p5?.some(name => p5properties!.has(name))
+            ) {
               libs.push(lib);
             }
           }
@@ -86,8 +88,7 @@ export class Library implements Library.Properties {
     let libs: LibraryArray = new LibraryArray();
     const content = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(content);
-    const scriptSrcs = htmlRoot.querySelectorAll('script[src]')
-      .map(node => node.attributes.src);
+    const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
     const inferredLibs = libs;
     libs = new LibraryArray();
     scriptSrcs.forEach(src => {
@@ -102,9 +103,8 @@ export class Library implements Library.Properties {
 
   get globals() {
     return Object.entries(this.defines || {}).flatMap(([key, symbols]) =>
-      key === 'globals'
-        ? symbols
-        : symbols.map(s => `${key}.${s}`));
+      key === 'globals' ? symbols : symbols.map(s => `${key}.${s}`)
+    );
     // return [
     //   ...this.defines?.globals || [],
     //   ...this.defines?.p5?.map(s => `p5.${s}`) || []
@@ -113,10 +113,10 @@ export class Library implements Library.Properties {
 
   get importPath() {
     if (this._importPath) {
-      return this._importPath.replace("$(P5Version)", p5Version);
+      return this._importPath.replace('$(P5Version)', p5Version);
     }
     if (this.packageName) {
-      return `https://unpkg.com/${this.packageName}`
+      return `https://unpkg.com/${this.packageName}`;
     }
   }
 
@@ -126,12 +126,10 @@ export class Library implements Library.Properties {
 
   protected matchesPath(path: string) {
     if (!this.importPath) return false;
-    return this.importPath === path || this.packageName && getPackageName(path) === this.packageName;
+    return this.importPath === path || (this.packageName && getPackageName(path) === this.packageName);
 
     function getPackageName(s: string) {
-      const m =
-        s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
-        s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
+      const m = s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) || s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
       return m ? m[1] : undefined;
     }
   }

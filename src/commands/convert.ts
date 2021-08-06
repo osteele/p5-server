@@ -1,7 +1,7 @@
 import { Sketch, SketchType } from 'p5-analysis';
 import { die } from '../utils';
 
-const sketchTypes: SketchType[] = ['html', 'javascript']
+const sketchTypes: SketchType[] = ['html', 'javascript'];
 
 export default function convert(sketchPath: string, options: { to?: SketchType }) {
   const sketch = Sketch.fromFile(sketchPath);
@@ -12,7 +12,7 @@ export default function convert(sketchPath: string, options: { to?: SketchType }
   }
 
   if (sketch.sketchType === options.to) {
-    console.log("Nothing to do");
+    console.log('Nothing to do');
     return;
   }
   try {

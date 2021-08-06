@@ -16,7 +16,7 @@ export function createDirectoryListing(relPath: string, root: string) {
   const readmeName = unaffiliatedFiles.find(s => s.toLowerCase() === 'readme.md');
   const readme = readmeName && {
     name: readmeName,
-    html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf8')),
+    html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf-8'))
   };
 
   const directories = unaffiliatedFiles.filter(s => fs.statSync(path.join(dir, s)).isDirectory());

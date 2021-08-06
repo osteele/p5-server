@@ -15,13 +15,13 @@ export default async function serve(name: string, options = { open: false, port:
       sketchPath = path.basename(name);
     }
   } else {
-    root = process.cwd()
+    root = process.cwd();
   }
 
   const serverOptions = {
     root,
     port: Number(options.port),
-    sketchPath,
+    sketchPath
   };
   const server = await Server.start(serverOptions);
   console.log(`Serving ${name} at ${server.url}`);

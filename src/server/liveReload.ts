@@ -12,7 +12,7 @@ export function injectLiveReloadScript(content: string, liveReloadServer: WebSoc
   if (!liveReloadServer) return content;
   const address = liveReloadServer.address();
   if (typeof address === 'string') {
-    throw new Error("liveReloadServer.address is a string, not a WebSocket.AddressInfo");
+    throw new Error('liveReloadServer.address is a string, not a WebSocket.AddressInfo');
   }
   const liveReloadString = liveReloadTemplate.replace('$(port)', address.port.toString());
   return content.replace(/(?=<\/head>)/, liveReloadString);

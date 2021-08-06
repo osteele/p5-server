@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
-import rimraf from "rimraf";
-import { Sketch, SketchType } from "../src/Sketch";
+import fs from 'fs';
+import path from 'path';
+import rimraf from 'rimraf';
+import { Sketch, SketchType } from '../src/Sketch';
 
 const testfilesPath = './tests/testdata';
 
@@ -68,8 +68,7 @@ test('Sketch.isSketchDir', () => {
 
 test('Sketch.files', () => {
   const sketch = Sketch.fromDirectory(tf`html-includes`);
-  expect(sketch.files.sort()).toEqual(
-    ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort());
+  expect(sketch.files.sort()).toEqual(['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort());
 });
 
 test('Sketch.libraries', () => {
@@ -86,9 +85,15 @@ test('Sketch.libraries', () => {
 test('Sketch.description', () => {
   const testfileDir = tf`descriptions`;
   expect(Sketch.fromFile(path.join(testfileDir, 'single-line-description.js')).description).toBe('sketch description');
-  expect(Sketch.fromFile(path.join(testfileDir, 'multi-line-description.js')).description!.replace(/\s+/g, ' ')).toBe('sketch description');
-  expect(Sketch.fromFile(path.join(testfileDir, 'single-line-block-description.js')).description).toBe('sketch description');
-  expect(Sketch.fromFile(path.join(testfileDir, 'multi-line-block-description.js')).description!.replace(/\s+/g, ' ')).toBe('sketch description');
+  expect(Sketch.fromFile(path.join(testfileDir, 'multi-line-description.js')).description!.replace(/\s+/g, ' ')).toBe(
+    'sketch description'
+  );
+  expect(Sketch.fromFile(path.join(testfileDir, 'single-line-block-description.js')).description).toBe(
+    'sketch description'
+  );
+  expect(
+    Sketch.fromFile(path.join(testfileDir, 'multi-line-block-description.js')).description!.replace(/\s+/g, ' ')
+  ).toBe('sketch description');
   expect(Sketch.fromFile(path.join(testfileDir, 'html-description.html')).description).toBe('sketch description');
 });
 
@@ -166,13 +171,21 @@ describe('Sketch.convert', () => {
     });
 
     test('uninferred library', () => {
-      testSketchConvert('uninferred-library/index.html', { type: 'javascript' },
-        { exception: "index.html contains libraries that are not implied by sketch.js: p5.sound" });
+      testSketchConvert(
+        'uninferred-library/index.html',
+        { type: 'javascript' },
+        {
+          exception: 'index.html contains libraries that are not implied by sketch.js: p5.sound'
+        }
+      );
     });
 
     test('added inferred library', () => {
-      testSketchConvert('add-implied-library/index.html', { type: 'javascript' },
-        { exception: "sketch.js implies libraries that are not in index.html" });
+      testSketchConvert(
+        'add-implied-library/index.html',
+        { type: 'javascript' },
+        { exception: 'sketch.js implies libraries that are not in index.html' }
+      );
     });
 
     // TODO: error if html file includes custom css?
@@ -183,18 +196,29 @@ describe('Sketch.convert', () => {
     });
 
     test('multiple scripts', () => {
-      testSketchConvert('multiple-scripts.html', { type: 'javascript' }, { exception: /contains multiple script tags/ });
+      testSketchConvert(
+        'multiple-scripts.html',
+        { type: 'javascript' },
+        { exception: /contains multiple script tags/ }
+      );
     });
 
     test('multiple scripts', () => {
-      testSketchConvert('missing-script.html', { type: 'javascript' }, { exception: /refers to a script file that does not exist/ });
+      testSketchConvert(
+        'missing-script.html',
+        { type: 'javascript' },
+        { exception: /refers to a script file that does not exist/ }
+      );
     });
   });
 
-  function testSketchConvert(filePath: string | string[], options: { type: SketchType }, expectation: string | { exception: string | RegExp }) {
+  function testSketchConvert(
+    filePath: string | string[],
+    options: { type: SketchType },
+    expectation: string | { exception: string | RegExp }
+  ) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;
-    let snapshotRelDir = path.join('snapshots',
-      typeof expectation === 'string' ? expectation : path.dirname(mainFile));
+    let snapshotRelDir = path.join('snapshots', typeof expectation === 'string' ? expectation : path.dirname(mainFile));
     if (filePath instanceof Array) {
       filePath.forEach(file => {
         fs.copyFileSync(path.join(testfileDir, file), path.join(outputDir, file));
@@ -204,7 +228,10 @@ describe('Sketch.convert', () => {
     } else if (filePath.indexOf(path.sep) !== -1) {
       const srcDir = filePath.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
-      mainFile = filePath.split(path.sep).slice(1).join(path.sep);
+      mainFile = filePath
+        .split(path.sep)
+        .slice(1)
+        .join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
@@ -249,12 +276,11 @@ type DirectoryJson = ValueOrArray<string>;
 
 function getDirectoryJson(dir: string): DirectoryJson {
   expect(fs.statSync(dir).isDirectory()).toBe(true);
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter(name => !name.startsWith('.'))
     .map(name => {
       const file = path.join(dir, name);
-      return [name, fs.statSync(file).isDirectory()
-        ? getDirectoryJson(file)
-        : fs.readFileSync(file, 'utf-8')];
+      return [name, fs.statSync(file).isDirectory() ? getDirectoryJson(file) : fs.readFileSync(file, 'utf-8')];
     });
 }

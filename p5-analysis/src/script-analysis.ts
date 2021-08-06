@@ -1,5 +1,15 @@
 import { parseModule, parseScript, Program } from 'esprima';
-import { ArrowFunctionExpression, Expression, FunctionDeclaration, FunctionExpression, Identifier, MethodDefinition, Pattern, PropertyDefinition, Statement } from 'estree';
+import {
+  ArrowFunctionExpression,
+  Expression,
+  FunctionDeclaration,
+  FunctionExpression,
+  Identifier,
+  MethodDefinition,
+  Pattern,
+  PropertyDefinition,
+  Statement
+} from 'estree';
 import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
@@ -44,9 +54,15 @@ export function findFreeVariables(program: Program): Set<string> {
 
 // This does not recurse inside function bodies. It only collects the
 // top-level ids.
-type DeclarationIteratorIterationType = Iterable<{ name: string, nodeType: string }>;
-class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string }> {
-  * iterProgram(program: Program): DeclarationIteratorIterationType {
+type DeclarationIteratorIterationType = Iterable<{
+  name: string;
+  nodeType: string;
+}>;
+class DeclarationIterator extends ESTreeVisitor<{
+  name: string;
+  nodeType: string;
+}> {
+  *iterProgram(program: Program): DeclarationIteratorIterationType {
     for (const stmt of program.body) {
       switch (stmt.type) {
         case 'ClassDeclaration':
@@ -60,7 +76,7 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
     }
   }
 
-  * visitStatement(node: Statement): DeclarationIteratorIterationType {
+  *visitStatement(node: Statement): DeclarationIteratorIterationType {
     switch (node.type) {
       case 'ClassDeclaration':
       case 'FunctionDeclaration':
@@ -80,7 +96,7 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
     }
   }
 
-  * visitPattern(node: Pattern) {
+  *visitPattern(node: Pattern) {
     switch (node.type) {
       case 'Identifier':
         yield { name: node.name, nodeType: node.type };
@@ -93,7 +109,7 @@ class DeclarationIterator extends ESTreeVisitor<{ name: string, nodeType: string
 }
 
 class FreeVariableIterator extends ESTreeVisitor<string> {
-  * visitProgram(program: Program): Iterable<string> {
+  *visitProgram(program: Program): Iterable<string> {
     const globalVariables = new Set(findGlobals(program).keys());
     for (const name of ESTreeVisitor.prototype.visitProgram.call(this, program)) {
       if (!globalVariables.has(name)) {
@@ -102,7 +118,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     }
   }
 
-  * visitStatement(node: Statement): Iterable<string> {
+  *visitStatement(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
         yield* this.visitBaseFunction(node, node.id);
@@ -122,11 +138,15 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
           }
         }
         const that = this;
-        yield* this.filterLocals(locals, function* () {
-          if (node.test) { yield* that.visitExpression(node.test); }
-          if (node.update) { yield* that.visitExpression(node.update); }
+        yield* this.filterLocals(locals, function*() {
+          if (node.test) {
+            yield* that.visitExpression(node.test);
+          }
+          if (node.update) {
+            yield* that.visitExpression(node.update);
+          }
           yield* that.visitStatement(node.body);
-        })
+        });
         break;
       }
       case 'ForInStatement':
@@ -156,7 +176,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     // TODO: note binding in TryStatement
   }
 
-  * visitExpression(node: Expression): Iterable<string> {
+  *visitExpression(node: Expression): Iterable<string> {
     switch (node.type) {
       case 'ArrowFunctionExpression':
         yield* this.visitBaseFunction(node);
@@ -173,7 +193,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     }
   }
 
-  * iterDeclaredNames(node: Statement): Iterable<string> {
+  *iterDeclaredNames(node: Statement): Iterable<string> {
     switch (node.type) {
       case 'FunctionDeclaration':
         if (node.id) {
@@ -196,7 +216,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     }
   }
 
-  * visitPattern(node: Pattern): Iterable<string> {
+  *visitPattern(node: Pattern): Iterable<string> {
     switch (node.type) {
       case 'Identifier':
         yield node.name;
@@ -207,7 +227,10 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     }
   }
 
-  * visitBaseFunction(node: FunctionDeclaration | FunctionExpression | ArrowFunctionExpression, id?: Identifier | null): Iterable<string> {
+  *visitBaseFunction(
+    node: FunctionDeclaration | FunctionExpression | ArrowFunctionExpression,
+    id?: Identifier | null
+  ): Iterable<string> {
     const locals = new Set<string>();
     if (id) {
       locals.add(id.name);
@@ -218,7 +241,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
       }
     }
     const that = this;
-    yield* this.filterLocals(locals, function* () {
+    yield* this.filterLocals(locals, function*() {
       if (node.body.type === 'BlockStatement') {
         for (const block of node.body.body) {
           for (const name of that.iterDeclaredNames(block)) {
@@ -232,7 +255,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
     });
   }
 
-  * filterLocals(locals: Set<string>, iter: () => Iterable<string>): Iterable<string> {
+  *filterLocals(locals: Set<string>, iter: () => Iterable<string>): Iterable<string> {
     for (const name of iter()) {
       if (!locals.has(name)) {
         yield name;
@@ -250,10 +273,9 @@ export function findP5PropertyReferences(program: Program): Set<string> {
 }
 
 class PropertyMemberIterator extends ESTreeVisitor<string> {
-  * visitExpression(node: Expression): Iterable<string> {
+  *visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'MemberExpression') {
-      if (node.object.type === 'Identifier' && node.object.name === 'p5'
-        && node.property.type === 'Identifier') {
+      if (node.object.type === 'Identifier' && node.object.name === 'p5' && node.property.type === 'Identifier') {
         yield node.property.name;
       }
     }
@@ -269,12 +291,10 @@ export function findLoadCalls(program: Program) {
   }
 }
 
-
 class LoadCallIterator extends ESTreeVisitor<string> {
-  * visitExpression(node: Expression): Iterable<string> {
+  *visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'CallExpression') {
-      if (node.callee.type === 'Identifier' && node.callee.name.startsWith('load')
-        && node.arguments.length >= 1) {
+      if (node.callee.type === 'Identifier' && node.callee.name.startsWith('load') && node.arguments.length >= 1) {
         const arg = node.arguments[0];
         if (arg.type === 'Literal' && typeof arg.value === 'string') {
           yield arg.value;

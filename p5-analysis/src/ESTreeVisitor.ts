@@ -2,7 +2,7 @@ import { Program } from 'esprima';
 import { Expression, MethodDefinition, Pattern, PropertyDefinition, Statement, SwitchCase } from 'estree';
 
 export class ESTreeVisitor<T> {
-  constructor(public readonly program: Program) { }
+  constructor(public readonly program: Program) {}
 
   *visit() {
     yield* this.visitProgram(this.program);
@@ -54,8 +54,12 @@ export class ESTreeVisitor<T> {
         break;
       case 'ForStatement':
         // TODO: if (node.init) { yield* this.iterExpression(node.init); }
-        if (node.test) { yield* this.visitExpression(node.test); }
-        if (node.update) { yield* this.visitExpression(node.update); }
+        if (node.test) {
+          yield* this.visitExpression(node.test);
+        }
+        if (node.update) {
+          yield* this.visitExpression(node.update);
+        }
         yield* this.visitStatement(node.body);
         break;
       case 'ForInStatement':
@@ -245,11 +249,15 @@ export class ESTreeVisitor<T> {
   }
 
   *visitDefinition(node: MethodDefinition | PropertyDefinition) {
-    if (node.key.type !== 'PrivateIdentifier') { yield* this.visitExpression(node.key); }
-    if (node.value) { yield* this.visitExpression(node.value); }
+    if (node.key.type !== 'PrivateIdentifier') {
+      yield* this.visitExpression(node.key);
+    }
+    if (node.value) {
+      yield* this.visitExpression(node.value);
+    }
   }
 
-  * visitPattern(node: Pattern): Iterable<T> {
+  *visitPattern(node: Pattern): Iterable<T> {
     switch (node.type) {
       case 'ObjectPattern':
         for (const prop of node.properties) {
@@ -281,7 +289,7 @@ export class ESTreeVisitor<T> {
     }
   }
 
-  * visitSwitchCase(switchCase: SwitchCase) {
+  *visitSwitchCase(switchCase: SwitchCase) {
     if (switchCase.test) {
       yield* this.visitExpression(switchCase.test);
     }

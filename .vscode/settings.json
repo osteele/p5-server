@@ -1,0 +1,11 @@
+{
+  "files.exclude": {
+    "p5-analysis": true
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["src/libraries.json"],
+      "url": "./p5-analysis/src/schemas/libraries.json"
+    }
+  ]
+}

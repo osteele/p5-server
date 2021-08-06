@@ -1,0 +1,23 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "p5-analysis"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "build": true,
+      "dist": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "davidanson.vscode-markdownlint"
+    ]
+  }
+}

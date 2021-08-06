@@ -153,75 +153,9 @@ the following checks are made:
 
 ## Implementation Notes
 
-### Sketch recognition
-
-A “JavaScript-only sketch file” is a JavaScript file that includes a function
-definition for `setup()` function, and a call to `createCanvas()` (and does not
-itself define `createCanvas`).
-
-An HTML sketch file is an HTML file that includes a `<script>` element with a
-`src` attribute that ends in `p5.js` or `p5.min.js`.
-
-A directory is recognized as a sketch if it contains a single sketch and either
-no loose files, or the only loose file is a README.
-
-### Sketch descriptions
-
-The directory listing displays the sketch description. For an HTML sketch, this
-is the value of the `content` attribute of the `<meta name="description">`
-element. For a JavaScript sketch that begins with a block comment, this is the
-paragraph that begins with "`Description:` " in that block.
-
-### Automatic library inclusion
-
-JavaScript-only sketches automatically include many of the libraries that are
-listed on the [p5.js Libraries page](https://p5js.org/libraries/), as well as
-[dat.gui](https://github.com/dataarts/dat.gui). For example, if the sketch calls
-`loadSound`, it will include the p5.sound library. If it refers to `ml5`, it
-will include the ml5.js library.
-
-Automatic library loading is done by examining the free variables, and
-references to `p5.prop` where `prop` is any property name, in the JavaScript source.
-
-A list of libraries, and the global variables that trigger including a library,
-is in `./src/libraries.json`. In order to qualify for automatic inclusion, an
-entry in this list must have either a `path` or `npmPackage` key.
-
-### Associated files
-
-The directory listing groups the files that are associated with a project into
-the card for that project.
-
-The files that are associated with an HTML file are just the local script files
-that are included via the `<script>` tag and `<link>` tags. The server does not
-inspect `<img>` tags,
-etc., and it does not inspect CSS files.
-
-The files that are associated with a script file are the string literal
-arguments to functions whose names begin with `load`, such as `loadImage()` and
-`loadModel()`. The server will recognize `cat.png` as an associated file in the
-call `loadImage("cat.png")`, but not in the following snippets:
-
-```js
-let name = "cat.png";
-loadImage(name);
-```
-
-```js
-let name = "cat";
-loadImage(`${name}.png`);
-```
-
-```js
-for (let name of ['dog.png', 'cat.png']) {
-  loadImage(name);
-}
-```
-
-```js
-let loader = loadImage;
-loader("cat.png");
-```
+The [p5-analysis implementation
+notes](./p5-analysis/README.md#implementation-notes) describe sketch detection,
+automatic library inclusion, and other details of the implementation.
 
 ## Limitations
 
@@ -242,6 +176,25 @@ loader("cat.png");
 * See the implementation notes for limitations on the recognition of associated
   files.
 
+## API
+
+The server can be invoked programmatically. In a JavaScript or TypeScript project:
+
+```sh
+npm install --save p5-server
+```
+
+```js
+import { Server } from "p5-server";
+
+let server = await Server.start();
+console.log(`Open ${server.url} in a browser`);
+```
+
+For convenience, this package also re-exports the `Sketch`, `Script`, and
+`Library` classes that it imports from
+[p5-analysis](https://www.npmjs.com/package/p5-analysis).
+
 ## Acknowledgements
 
 This project builds on these libraries and frameworks:
@@ -256,4 +209,4 @@ This project builds on these libraries and frameworks:
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © by Oliver Steele

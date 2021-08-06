@@ -231,6 +231,9 @@ function listenSync(port?: number) {
 
 // This API is misleading. There can be only one server instance.
 // TODO: warn on multiple instances, or, wrap the code above in a function
+/** Server is a web server with live reload, sketch-aware directory listings,
+ * and library inference for JavaScript-only sketches.
+ */
 export class Server {
   public server: http.Server | null = null;
   public url?: string;

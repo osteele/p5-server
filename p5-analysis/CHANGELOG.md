@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Export Script; add Script.getErrors(); remove checkParseScript, generateHtmlContent
+- Import libraries from raw.githubusercontent.com, where possible
 
 ## [0.3.1]
 

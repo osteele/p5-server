@@ -36,19 +36,22 @@
   "dependencies": {
     "esprima": "^4.0.1",
     "jstransformer-marked": "^1.0.3",
-    "node-html-parser": "^4.1.0",
     "minimatch": "^3.0.4",
-    "nunjucks": "^3.2.3"
+    "node-html-parser": "^4.1.0",
+    "nunjucks": "^3.2.3",
+    "save-dev": "^0.0.1-security"
   },
   "devDependencies": {
     "@types/esprima": "^4.0.3",
     "@types/jest": "^26.0.24",
+    "@types/node-fetch": "^2.5.12",
     "@types/rimraf": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "copyfiles": "^2.4.1",
     "eslint": "^7.31.0",
     "jest": "^27.0.6",
+    "node-fetch": "^2.6.1",
     "prettier-eslint-cli": "^5.0.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.4",

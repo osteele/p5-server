@@ -9,28 +9,28 @@ export const p5Version = '1.4.0';
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Library {
   export type Properties = {
-    /** The human-readable name of the library. */
     name: string;
-    /** The human-readable description of the library. */
     description: string;
-    /**  The library's home page. */
     homepage: string;
-    /** The npm package name of the library. */
     packageName?: string;
-    /** A path that can be used to load the library. */
     importPath?: string;
-    /** Global variables (functions and classes) and p5.* properties that the
-     * library defines. */
     defines?: Record<'globals' | 'p5', string[]>;
   };
 }
 
+/** A library that can be used with p5.js sketches. */
 export class Library implements Library.Properties {
   static all: Library[] = [];
+  /** The human-readable name of the library. */
   public readonly name: string;
-  public readonly homepage: string;
-  public readonly packageName?: string;
+  /** The human-readable description of the library. */
   public readonly description: string;
+  /**  The library's home page. */
+  public readonly homepage: string;
+  /** The npm package name of the library. */
+  public readonly packageName?: string;
+  /** Global variables (functions and classes) and p5.* properties that the
+   * library defines. */
   public readonly defines?: Record<'globals' | 'p5', string[]>;
   private _importPath?: string;
 
@@ -46,13 +46,21 @@ export class Library implements Library.Properties {
     return new Library(spec);
   }
 
+  /** Adds a library from a record in a library.json file. */
   static add(spec: Library.Properties) {
     Library.all.push(new Library(spec));
   }
 
+  /** Adds all the libraries in the given library specification JSON file to the
+   * global library array in Library.all. */
   static addFromJson(jsonPath: string) {
     const json = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
     json.forEach(Library.add);
+  }
+
+  /** Finds a library by its name. */
+  static find(name: string): Library | null {
+    return this.all.find(lib => lib.name === name) || null;
   }
 
   static inferFromScripts(scriptPaths: string[]): LibraryArray {
@@ -111,13 +119,25 @@ export class Library implements Library.Properties {
     // ];
   }
 
+  /** A path that can be used to load the library. */
   get importPath() {
-    if (this._importPath) {
-      return this._importPath.replace('$(P5Version)', p5Version);
+    let path = this._importPath;
+    if (path) {
+      if (path.startsWith('/')) {
+        let homepage = this.homepage;
+        // if it's a GitHub Pages page, derive the corresponding repo URL
+        homepage = homepage.replace(/^https:\/\/([^.]+)\.github\.io\/([^/]+).*/, 'https://github.com/$1/$2');
+        path = `${homepage.replace(/\/$/, '')}${path}`;
+      }
+      // If it's a repo file, derive the corresponding raw location. This is
+      // outside the above conditional because it should apply to absolute paths
+      // too.
+      path = path.replace(/^https:\/\/github.com\//, 'https://raw.githubusercontent.com/');
+      path = path.replace('$(P5Version)', p5Version);
+    } else if (this.packageName) {
+      path = `https://unpkg.com/${this.packageName}`;
     }
-    if (this.packageName) {
-      return `https://unpkg.com/${this.packageName}`;
-    }
+    return path;
   }
 
   private set importPath(value: string | undefined) {

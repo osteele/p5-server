@@ -34,7 +34,7 @@
     "dev:serve": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "dev:serve:examples": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve examples",
     "dev:serve:testdata": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve tests/testdata",
-    "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
+    "format": "prettier-eslint --write \"{,!(node_modules,p5-analysis)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepare": "husky install",
     "prepublishOnly": "npm run build",

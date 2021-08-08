@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.3]
+
+- Fixes to package distr
+
 ## [0.3.2]
 
 - Factored out [p5-analysis](https://www.npmjs.com/package/p5-analysis) package

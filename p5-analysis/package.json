@@ -1,6 +1,6 @@
 {
   "name": "p5-analysis",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "API to find, create. and analyze p5.js sketch files.",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "homepage": "https://osteele.github.io/p5-server",

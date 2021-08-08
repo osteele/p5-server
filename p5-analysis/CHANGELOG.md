@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.3]
+
+- Use p5-analysis from separate package
+
 ## [0.3.2]
 
 - Export Script; add Script.getErrors(); remove checkParseScript, generateHtmlContent

@@ -195,20 +195,21 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static isSketchScriptFile(filePath: string) {
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+  static isSketchScriptFile(file: string) {
+    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       return false;
     }
-    if (!filePath.endsWith('.js')) {
+    if (!file.endsWith('.js')) {
       return false;
     }
 
     try {
-      const { globals, freeVariables } = Script.fromFile(filePath);
+      const { globals, freeVariables } = Script.fromFile(file);
       return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
     } catch (e) {
       if (e instanceof JavaScriptSyntaxError) {
-        return /function\s+(setup)\b/.test(e.code) && /\bcreateCanvas\s*\(/.test(e.code);
+        const source = fs.readFileSync(file, 'utf-8');
+        return /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source);
       }
       throw e;
     }

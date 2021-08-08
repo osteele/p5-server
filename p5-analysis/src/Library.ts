@@ -1,8 +1,7 @@
 import fs from 'fs';
 import { parse } from 'node-html-parser';
 import path from 'path';
-import { Script } from './Script';
-import { JavaScriptSyntaxError } from './script-analysis';
+import { JavaScriptSyntaxError, Script } from './Script';
 
 export const p5Version = '1.4.0';
 

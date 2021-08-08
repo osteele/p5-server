@@ -1,4 +1,4 @@
-import { parseModule, parseScript, Program } from 'esprima';
+import { Program } from 'esprima';
 import {
   ArrowFunctionExpression,
   Expression,
@@ -10,31 +10,7 @@ import {
   PropertyDefinition,
   Statement
 } from 'estree';
-import fs from 'fs';
 import { ESTreeVisitor } from './ESTreeVisitor';
-
-export class JavaScriptSyntaxError extends Error {
-  constructor(msg: string, public readonly fileName: string | null = null, public readonly code: string) {
-    super(msg);
-    Object.setPrototypeOf(this, JavaScriptSyntaxError.prototype);
-    this.fileName = fileName;
-    this.code = code;
-  }
-}
-
-export function checkedParseScript(filePath: string): Program {
-  const code = fs.readFileSync(filePath, 'utf-8');
-  try {
-    return parseScript(code);
-  } catch {
-    // eslint-disable-next-line no-empty
-  }
-  try {
-    return parseModule(code);
-  } catch (e) {
-    throw new JavaScriptSyntaxError(e.message, filePath, code);
-  }
-}
 
 export function findGlobals(program: Program) {
   return new Map<string, string>(iterProgram());

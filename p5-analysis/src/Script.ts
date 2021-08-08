@@ -1,13 +1,14 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
-import {
-  findFreeVariables,
-  findGlobals,
-  findLoadCalls,
-  findP5PropertyReferences,
-  JavaScriptSyntaxError
-} from './script-analysis';
-export { JavaScriptSyntaxError } from './script-analysis';
+import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences } from './script-analysis';
+
+export class JavaScriptSyntaxError extends Error {
+  constructor(msg: string, public readonly fileName: string | null = null) {
+    super(msg);
+    Object.setPrototypeOf(this, JavaScriptSyntaxError.prototype);
+    this.fileName = fileName;
+  }
+}
 
 interface ScriptAnalysis {
   globals: Map<string, string>;
@@ -42,7 +43,7 @@ export class Script implements ScriptAnalysis {
     try {
       this._program = parseModule(this.source);
     } catch (e) {
-      throw new JavaScriptSyntaxError(e.message, this.filePath, this.source);
+      throw new JavaScriptSyntaxError(e.message, this.filePath);
     }
     return this._program;
   }

@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.4]
+
+- Remove use of unexported @types/esprima
+
 ## [0.3.3]
 
 - Use p5-analysis from separate package

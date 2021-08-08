@@ -1,6 +1,7 @@
 {
   "files.exclude": {
-    "p5-analysis": true
+    "p5-analysis": true,
+    "p5-server": true
   },
   "json.schemas": [
     {

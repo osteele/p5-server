@@ -4,9 +4,10 @@
 npm run lint --workspaces
 npm test --workspaces
 
-npm run lint
-npm test
-
 if [[ $(grep -r --include \*.ts 'console.info' src p5-analysis/src | wc -l) -gt 0 ]]; then exit 1; fi
 if [[ $(grep -r --include \*.ts 'test.only' tests p5-analysis/tests | wc -l) -gt 0 ]]; then exit 1; fi
 if [[ $(grep -r --include \*.ts 'describe.only' tests p5-analysis/tests | wc -l) -gt 0 ]]; then exit 1; fi
+
+if [[ $(grep -r --include \*.ts 'console.info' src p5-server/src | wc -l) -gt 0 ]]; then exit 1; fi
+if [[ $(grep -r --include \*.ts 'test.only' tests p5-server/tests | wc -l) -gt 0 ]]; then exit 1; fi
+if [[ $(grep -r --include \*.ts 'describe.only' tests p5-server/tests | wc -l) -gt 0 ]]; then exit 1; fi

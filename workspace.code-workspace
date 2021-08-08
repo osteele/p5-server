@@ -1,10 +1,16 @@
 {
   "folders": [
     {
-      "path": "."
+      "path": ".",
+      "name": "p5-server (root)"
     },
     {
-      "path": "p5-analysis"
+      "path": "p5-analysis",
+      "name": "p5-analysis (package)"
+    },
+    {
+      "path": "p5-server",
+      "name": "p5-server (package)"
     }
   ],
   "settings": {

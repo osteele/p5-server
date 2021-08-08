@@ -37,7 +37,8 @@ program
   .action(reportLibraries);
 
 program
-  .command('serve [directory]')
+  .command('serve')
+  .argument('[directory]', 'the directory to serve', '.')
   .description('Create a p5.js sketch')
   .alias('server')
   .alias('r')

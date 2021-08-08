@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.4]
+
+- `p5 serve` report default directory name as '.'
+
 ## [0.3.3]
 
 - Fixes to package distr

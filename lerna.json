@@ -1,0 +1,15 @@
+{
+  "packages": [
+    "p5-analysis",
+    "p5-server"
+  ],
+  "version": "independent",
+  "command": {
+    "publish": {
+      "ignoreChanges": [
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    }
+  }
+}

@@ -17,7 +17,9 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "husky": "^7.0.0"
+    "eslint": "^7.32.0",
+    "husky": "^7.0.0",
+    "lerna": "^4.0.0"
   },
   "workspaces": [
     "p5-analysis",

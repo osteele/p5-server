@@ -392,7 +392,6 @@ export class Sketch {
   }
 
   private getGeneratedFileContent(base: string, options: Record<string, unknown>) {
-    const templatePath = path.join(templateDir, base);
     const libraries = this.libraries;
     const data = {
       title: this.title,
@@ -402,7 +401,11 @@ export class Sketch {
       ...defaultGenerationOptions,
       ...options
     };
-    return nunjucks.render(templatePath, data).trim() + '\n';
+    const templatePath = path.join(templateDir, base);
+    // replacing the following two lines by `nunjucks.render` passes the test
+    // suite by fails to find the file when imported from another package
+    const template = nunjucks.compile(fs.readFileSync(templatePath, 'utf-8'));
+    return template.render(data).trim() + '\n';
   }
 
   public getHtmlContent() {

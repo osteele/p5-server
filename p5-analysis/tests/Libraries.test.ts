@@ -3,7 +3,7 @@ import { Library } from '../src/Library';
 
 const testfilesPath = './tests/testdata';
 
-test.only('Library.inferLibrariesFromScripts', () => {
+test('Library.inferLibrariesFromScripts', () => {
   const dir = path.join(testfilesPath, 'library-inference');
 
   expect(Library.inferFromScripts([`${dir}/no-libraries.js`]).map(l => l.name)).toEqual([]);
@@ -19,6 +19,6 @@ test('Script.findLibrariesInHtml', () => {
   expect(Library.inHtml(`${testfilesPath}/explicit-imports.html`).map(l => l.name)).toEqual([
     'p5.sound',
     'ml5.js',
-    'Rita',
+    'Rita'
   ]);
 });

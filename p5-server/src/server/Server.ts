@@ -10,6 +10,7 @@ import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
+import { closeSync, listenSync } from './http-server-sync';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -29,7 +30,7 @@ const defaultOptions = { root: '.', port: 3000, scanPorts: true, sketchPath: nul
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
 
-const app = express();
+export const app = express();
 
 app.get('/', (req, res) => {
   const config = req.app.locals as Config;
@@ -183,7 +184,7 @@ async function startServer(options: Partial<Server.Options>) {
   let server: http.Server | null = null;
   for (let p = port; p < port + 10; p++) {
     try {
-      server = await listenSync(p);
+      server = await listenSync(app, p);
       break;
     } catch (e) {
       if (e.code !== 'EADDRINUSE' || !config.scanPorts) {
@@ -193,7 +194,7 @@ async function startServer(options: Partial<Server.Options>) {
     }
   }
   if (!server) {
-    server = await listenSync();
+    server = await listenSync(app);
   }
 
   const address = server.address();
@@ -211,34 +212,6 @@ async function startServer(options: Partial<Server.Options>) {
   }
 }
 
-function listenSync(port?: number) {
-  return new Promise<http.Server>((resolve, reject) => {
-    const server = app.listen(port);
-    server.on('error', e => {
-      clearTimeout(timeoutTimer);
-      clearInterval(intervalTimer);
-      reject(e);
-    });
-    const timeoutTimer = setTimeout(() => {
-      const address = server.address();
-      clearInterval(intervalTimer);
-      if (address) {
-        resolve(server);
-      } else {
-        reject(new Error('Failed to start server'));
-      }
-    }, 1000);
-    const intervalTimer = setInterval(() => {
-      const address = server.address();
-      if (address) {
-        clearInterval(intervalTimer);
-        clearTimeout(timeoutTimer);
-        resolve(server);
-      }
-    }, 50);
-  });
-}
-
 // This API is misleading. There can be only one server instance.
 // TODO: warn on multiple instances, or, wrap the code above in a function
 /** Server is a web server with live reload, sketch-aware directory listings,
@@ -250,11 +223,11 @@ export class Server {
   protected liveReloadServer: WebSocket.Server | null = null;
   private readonly options: Partial<Server.Options>;
 
-  constructor(options: Partial<Server.Options>) {
+  constructor(options: Partial<Server.Options> = {}) {
     this.options = options;
   }
 
-  static async start(options: Partial<Server.Options>) {
+  static async start(options: Partial<Server.Options> = {}) {
     return new Server(options).start();
   }
 
@@ -266,10 +239,12 @@ export class Server {
     return this;
   }
 
-  stop() {
-    this.server?.close();
-    this.liveReloadServer?.close();
+  async stop() {
+    if (this.server) {
+      await closeSync(this.server);
+    }
     this.server = null;
+    this.liveReloadServer?.close();
     this.liveReloadServer = null;
     this.url = undefined;
   }

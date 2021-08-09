@@ -66,6 +66,7 @@
     "@typescript-eslint/parser": "^4.28.5",
     "copyfiles": "^2.4.1",
     "eslint": "^7.31.0",
+    "fetch": "^1.1.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.12",
     "prettier-eslint-cli": "^5.0.1",

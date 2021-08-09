@@ -1,6 +1,6 @@
 # P5 Analysis
 
-[![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://badge.fury.io/js/p5-analysis)
+[![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
 
 This library provides functionality for finding, analyzing, and generating
 [P5.js sketches](https://p5js.org). It is used by the

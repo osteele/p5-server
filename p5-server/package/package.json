@@ -34,8 +34,8 @@
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepublishOnly": "npm run build",
-    "prepack": "cp ../README.md .",
-    "postpack": "rm README.md",
+    "prepack": "cp ../README.md . && copyfiles '../docs/**/*.*' docs",
+    "postpack": "rm README.md && echo rm -rf docs",
     "test": "jest",
     "test:watch": "jest --watch"
   },

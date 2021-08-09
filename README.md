@@ -10,7 +10,7 @@ It is also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
 
 The directory and script analysis tools that make this possible are available
-via a [programmatic API](https://osteele.github.io/p5-server/).
+via a [programmatic API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 
 ![screenshot](docs/screenshot.png)
 

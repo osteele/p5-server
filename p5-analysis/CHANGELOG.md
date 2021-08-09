@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.3.5]
 
 - Use library .min.js where available
 

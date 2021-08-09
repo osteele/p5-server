@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.3.5]
 
 - Server.close is async
 - Multiple concurrent servers can be instantiated

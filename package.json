@@ -17,6 +17,7 @@
     "test": "lerna run test"
   },
   "devDependencies": {
+    "@types/node-fetch": "^2.5.12",
     "@typescript-eslint/eslint-plugin": "^4.29.0",
     "@typescript-eslint/parser": "^4.29.0",
     "copyfiles": "^2.4.1",

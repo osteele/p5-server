@@ -12,7 +12,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install
-        run: npx lerna install
+        run: |
+          npm install
+          npx lerna install
 
       - name: Build Docs
         run: npm run build:docs

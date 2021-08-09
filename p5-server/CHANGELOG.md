@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+- Server.close is async
+- Multiple concurrent servers can be instantiated
+
 ## [0.3.4]
 
 - `p5 serve` report default directory name as '.'

@@ -30,128 +30,116 @@ const defaultOptions = { root: '.', port: 3000, scanPorts: true, sketchPath: nul
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
 
-export const app = express();
+function createRouter(config: Config): express.Router {
+  const router = express.Router();
 
-app.get('/', (req, res) => {
-  const config = req.app.locals as Config;
-  const file = config.sketchFile;
-  if (file) {
-    if (Sketch.isSketchScriptFile(file)) {
-      const sketch = Sketch.fromFile(file);
-      res.send(injectLiveReloadScript(sketch.getHtmlContent(), req.app.locals.liveReloadServer));
-    } else {
-      res.sendFile(file);
-    }
-  } else {
-    sendDirectoryListing(req, res);
-  }
-});
-
-app.get('/__p5_server_static/:path(*)', (req, res) => {
-  const file = path.join(__dirname, 'static', req.params.path);
-  res.sendFile(file);
-});
-
-app.get('/*.html?', (req, res, next) => {
-  const config = req.app.locals as Config;
-  const file = path.join(config.root, req.path);
-  try {
-    if (req.query.fmt === 'view') {
-      res.set('Content-Type', 'text/plain');
-      res.sendFile(req.path, { root: config.root });
-      return;
-    }
-    if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      const content = fs.readFileSync(file, 'utf-8');
-      res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
-      return;
-    }
-  } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
-    }
-  }
-  next();
-});
-
-// A request for the HTML of a JavaScript file returns HTML that includes the sketch.
-// A request for the HTML of a main sketch js file redirects to the sketch's index page.
-app.get('/*.js', (req, res, next) => {
-  const config = req.app.locals as Config;
-  const file = path.join(config.root, req.path);
-  if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(file)) {
-    const { sketches } = Sketch.analyzeDirectory(path.dirname(file));
-    const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
-    if (sketch) {
-      if (sketch.htmlFile) {
-        res.redirect(path.dirname(req.path).replace(/\/$/, '') + '/' + sketch.htmlFile);
-        return;
+  router.get('/', (req, res) => {
+    const file = config.sketchFile;
+    if (file) {
+      if (Sketch.isSketchScriptFile(file)) {
+        const sketch = Sketch.fromFile(file);
+        res.send(injectLiveReloadScript(sketch.getHtmlContent(), req.app.locals.liveReloadServer));
       } else {
+        res.sendFile(file);
+      }
+    } else {
+      sendDirectoryListing(config.root, req, res);
+    }
+  });
+
+  router.get('/*.html?', (req, res, next) => {
+    const file = path.join(config.root, req.path);
+    try {
+      if (req.query.fmt === 'view') {
+        res.set('Content-Type', 'text/plain');
+        res.sendFile(req.path, { root: config.root });
+        return;
+      }
+      if (req.headers['accept']?.match(/\btext\/html\b/)) {
+        const content = fs.readFileSync(file, 'utf-8');
+        res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
+        return;
+      }
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
+    }
+    next();
+  });
+
+  // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
+  // A request for the HTML of a main sketch js file redirects to the sketch's index page.
+  router.get('/*.js', (req, res, next) => {
+    const file = path.join(config.root, req.path);
+    if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(file)) {
+      const { sketches } = Sketch.analyzeDirectory(path.dirname(file));
+      const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
+      if (sketch) {
         const content = sketch.getHtmlContent();
         res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
         return;
       }
     }
-  }
-  try {
-    const errs = Script.fromFile(file).getErrors();
-    if (errs.length) {
-      const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
-      return res.send(
-        jsTemplateEnv.renderString(template, {
-          fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
-          message: errs[0].message
-        })
-      );
+    try {
+      const errs = Script.fromFile(file).getErrors();
+      if (errs.length) {
+        const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
+        return res.send(
+          jsTemplateEnv.renderString(template, {
+            fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
+            message: errs[0].message
+          })
+        );
+      }
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
     }
-  } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
-    }
-  }
-  next();
-});
+    next();
+  });
 
-app.get('/*.md', (req, res, next) => {
-  if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const config = req.app.locals as Config;
-    const file = path.join(config.root, req.path);
-    if (!fs.existsSync(file)) {
-      return next();
+  router.get('/*.md', (req, res, next) => {
+    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+      const file = path.join(config.root, req.path);
+      if (!fs.existsSync(file)) {
+        return next();
+      }
+      const fileData = fs.readFileSync(file, 'utf-8');
+      res.send(marked(fileData));
     }
-    const fileData = fs.readFileSync(file, 'utf-8');
-    res.send(marked(fileData));
-  }
-  return next();
-});
+    return next();
+  });
 
-app.get('*', (req, res, next) => {
-  if (req.headers['accept']?.match(/\btext\/html\b/)) {
-    const config = req.app.locals as Config;
-    const file = path.join(config.root, req.path);
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-      sendDirectoryListing(req, res);
-      return;
+  router.get('*', (req, res, next) => {
+    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+      const file = path.join(config.root, req.path);
+      if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
+        sendDirectoryListing(config.root, req, res);
+        return;
+      }
     }
-  }
-  next();
-});
+    next();
+  });
+
+  return router;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendDirectoryListing(req: Request<any, any, any, any, any>, res: Response<any, any>) {
-  const config = req.app.locals as Config;
+function sendDirectoryListing(root: string, req: Request<any, any, any, any, any>, res: Response<any, any>) {
   const relPath = req.path;
   let fileData: string;
   let isSingleSketch = false;
   try {
-    const absPath = path.join(config.root, relPath);
+    const absPath = path.join(root, relPath);
     fileData = fs.readFileSync(path.join(absPath, 'index.html'), 'utf-8');
     isSingleSketch = true;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }
-    fileData = createDirectoryListing(relPath, config.root);
+    fileData = createDirectoryListing(relPath, root);
   }
 
   if (isSingleSketch && !relPath.endsWith('/')) {
@@ -171,8 +159,10 @@ async function startServer(options: Partial<Server.Options>) {
     config.root = path.dirname(config.root);
   }
   const { root, port } = config;
-  Object.assign(app.locals, config);
 
+  const app = express();
+  app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
+  app.use(createRouter(config));
   app.use('/', express.static(root));
 
   // For effect only. This provide errors and diagnostics before waiting for a
@@ -212,8 +202,6 @@ async function startServer(options: Partial<Server.Options>) {
   }
 }
 
-// This API is misleading. There can be only one server instance.
-// TODO: warn on multiple instances, or, wrap the code above in a function
 /** Server is a web server with live reload, sketch-aware directory listings,
  * and library inference for JavaScript-only sketches.
  */

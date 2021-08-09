@@ -4,8 +4,6 @@ on:
   push:
     branches: [docs, release]
   workflow_dispatch:
-    tags:
-      description: 'Publish API docs to GitHub Pages'
 
 jobs:
   build:

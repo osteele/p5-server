@@ -1,8 +1,8 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-npx lerna run lint
-npx lerna run test
+npm run lint
+npm test
 
 if [[ $(grep -r --include \*.ts 'console.info' src p5-analysis/src | wc -l) -gt 0 ]]; then exit 1; fi
 if [[ $(grep -r --include \*.ts 'test.only' tests p5-analysis/tests | wc -l) -gt 0 ]]; then exit 1; fi

@@ -1,0 +1,21 @@
+name: Test Cross-Platform
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+        matrix:
+          os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: npm install
+
+      - name: Lint and Test
+        run: |
+          npm run lint
+          npm test

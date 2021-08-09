@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
         matrix:
-          os: [ubuntu-latest] #, macos-latest, windows-latest]
+          os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -20,7 +20,5 @@ jobs:
 
       - name: Lint and Test
         run: |
-          npm run lint --workspaces
-          npm run test --workspaces
           npm run lint
-          npm run test
+          npm test

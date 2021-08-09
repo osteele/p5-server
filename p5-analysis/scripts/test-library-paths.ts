@@ -25,14 +25,14 @@ async function testPaths() {
   const errorLibraries = responses.filter(res => res[2]);
   if (errorLibraries.length) {
     console.log(`These libraries failed to fetch:`);
-    errorLibraries.forEach(library => console.log(`  ${library[0].name}`));
+    errorLibraries.forEach(library => console.log(`  ${library[0].name}: ${library[2]}`));
     console.log();
   }
 
-  const scriptErrors = responses
+  const libraryScripts = responses
     .filter(res => res[1])
-    .map(([library, text]): [Library, Script] => [library, Script.fromSource(text!)])
-    .filter(([, script]) => script.getErrors().length > 0);
+    .map(([library, text]): [Library, Script] => [library, Script.fromSource(text!)]);
+  const scriptErrors = libraryScripts.filter(([, script]) => script.getErrors().length > 0);
 
   for (const [library, script] of scriptErrors) {
     console.log(`${library.name}:`, library.importPath);
@@ -40,6 +40,15 @@ async function testPaths() {
       console.log(' ', err.message);
     }
   }
+
+  // for (const [library, script] of libraryScripts.filter(([, script]) => !script.getErrors().length)) {
+  //   const globals = Array.from(script.globals.keys());
+  //   if (globals.length > 0) {
+  //     console.log(library.name + ':', globals.join(', '));
+  //   } else {
+  //     console.log(library.name + ':', 'none');
+  //   }
+  // }
 }
 
 async function findMinimizedReplacements() {

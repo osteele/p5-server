@@ -10,7 +10,8 @@ export default function reportLibraries() {
     library.globals.forEach(name => {
       let libs = definitions.get(name);
       if (!libs) {
-        definitions.set(name, (libs = []));
+        libs = [];
+        definitions.set(name, libs);
       }
       libs.push(library);
     });

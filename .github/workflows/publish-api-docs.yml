@@ -16,7 +16,8 @@ jobs:
 
       - name: Build Docs
         run: >
-          | (cd p5-analysis && npm run build:docs)
+          | cd p5-analysis
+          | npm run build:docs
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4

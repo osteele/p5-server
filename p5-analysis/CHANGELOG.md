@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+- Use library .min.js where available
+
 ## [0.3.4]
 
 - Remove use of unexported @types/esprima

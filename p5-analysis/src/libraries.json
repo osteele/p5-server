@@ -71,7 +71,6 @@
     "description": "A Javascript library that enables communication between BLE devices and p5 sketches.",
     "homepage": "https://itpnyu.github.io/p5ble-website/",
     "packageName": "p5ble",
-    "importPath": "https://unpkg.com/p5ble@0.0.4/dist/p5.ble.js",
     "defines": {
       "globals": [
         "p5ble"
@@ -82,7 +81,7 @@
     "name": "p5bots",
     "description": "With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!",
     "homepage": "https://github.com/sarahgp/p5bots",
-    "importPath": "/master/lib/p5bots.js",
+    "importPath": "/master/lib/p5bots.min.js",
     "defines": {
       "p5": [
         "board",
@@ -94,7 +93,7 @@
     "name": "p5.clickable",
     "description": "Event driven, easy-to-use button library.",
     "homepage": "https://github.com/Lartu/p5.clickable",
-    "importPath": "/master/library/p5.clickable.js",
+    "importPath": "/master/library/p5.clickable.min.js",
     "defines": {
       "globals": [
         "Clickable"
@@ -182,7 +181,7 @@
     "name": "p5.EasyCam",
     "description": "Simple 3D camera control with inertial pan, zoom, and rotate",
     "homepage": "https://github.com/freshfork/p5.EasyCam",
-    "importPath": "https://freshfork.github.io/p5.EasyCam/p5.easycam.js",
+    "importPath": "https://freshfork.github.io/p5.EasyCam/p5.easycam.min.js",
     "defines": {
       "globals": [
         "Dw",
@@ -197,7 +196,7 @@
     "name": "p5.experience.js",
     "description": "Extensive library for p5.js that adds additional event-listening functionality for creating canvas-based web applications",
     "homepage": "https://github.com/loneboarder/p5.experience.js",
-    "importPath": "/master/p5.experience.js",
+    "importPath": "/master/p5.experience.min.js",
     "defines": {
       "globals": [
         "uxRect",
@@ -217,7 +216,7 @@
     "name": "p5.func",
     "description": "p5.func is a p5 extension that provides new objects and utilities for function generation in the time, frequency, and spatial domains",
     "homepage": "https://idmnyu.github.io/p5.js-func/",
-    "importPath": "https://raw.githubusercontent.com/IDMNYU/p5.js-func/master/lib/p5.func.js",
+    "importPath": "/master/lib/p5.func.min.js",
     "defines": {
       "globals": [
         "imap",
@@ -290,7 +289,7 @@
     "name": "p5.localmessage",
     "description": "p5.localmessage provides a simple interface to send messages locally from one sketch to another for easy multi-window sketching",
     "homepage": "https://github.com/bmoren/p5.localmessage",
-    "importPath": "/master/p5.localmessage.js",
+    "importPath": "/master/p5.localmessage.min.js",
     "defines": {
       "globals": [
         "registerServiceWorker",
@@ -303,7 +302,7 @@
     "name": "marching",
     "description": "Raster to vector conversion, isosurfaces",
     "homepage": "https://github.com/jtnimoy/marching",
-    "importPath": "/master/lib/p5.marching.js",
+    "importPath": "/master/lib/p5.marching.min.js",
     "defines": {
       "globals": [
         "marchingSquares"
@@ -418,7 +417,6 @@
     "description": "p5.serial enables serial communication between devices that support serial (RS-232) and p5 sketches running in the browser",
     "homepage": "https://github.com/p5-serial/p5.serialport",
     "packageName": "p5.serialserver",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.serialserver@0.0.28/lib/p5.serialport.js",
     "defines": {
       "p5": [
         "SerialPort"
@@ -512,6 +510,7 @@
     "name": "vida",
     "description": "Vida is a simple library that adds camera (or video) based motion detection and blob tracking functionality to p5js",
     "homepage": "https://www.tetoki.eu/vida/",
+    "importPath": "https://www.tetoki.eu/vida/vida/p5.vida.min.js",
     "defines": {
       "globals": [
         "Vida"
@@ -522,7 +521,7 @@
     "name": "p5.voronoi",
     "description": "p5.voronoi is a library for creating Voronoi diagrams in p5.js",
     "homepage": "https://github.com/Dozed12/p5.voronoi",
-    "importPath": "/master/library/p5.voronoi.js",
+    "importPath": "/master/library/p5.voronoi.min.js",
     "defines": {
       "globals": [
         "voronoi",
@@ -534,6 +533,7 @@
     "name": "p5xr",
     "description": "A library for creating VR and AR sketches with p5",
     "homepage": "http://p5xr.org/",
+    "importPath": "https://github.com/stalgiag/p5.xr/releases/download/v0.4.0/p5xr.min.js",
     "defines": {
       "globals": [
         "createVRCanvas"

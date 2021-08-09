@@ -1,37 +1,113 @@
 #!/usr/bin/env ts-node
-// import fetch = require('node-fetch');
 import fetch from 'node-fetch';
+import crypto from 'crypto';
+import fs from 'fs';
 import { Library, Script } from '../src';
 
 async function testPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
-    console.log(`The following libraries don't have an import path:`);
-    missingImportPaths.forEach(library => console.log(library.name));
+    console.log(`These libraries are missing import paths:`);
+    missingImportPaths.forEach(library => console.log(' ', library.name));
     console.log();
   }
 
-  console.info('Fetching sources...');
+  console.log('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
-  const responses = Object.fromEntries(
-    await Promise.all(
-      librariesWithPaths.map(async function(library) {
-        const res = await fetch(library.importPath!);
-        if (!res.ok) {
-          console.error(`Failed to retrieve ${library.importPath} for ${library.name}`, res.status, res.statusText);
-        }
-        return [library.name, res.ok ? await res.text() : null];
-      })
-    )
+  const responses = await Promise.all(
+    librariesWithPaths.map(async function(library): Promise<[Library, string, null] | [Library, null, string]> {
+      const res = await cachedFetch(library.importPath!);
+      return res.ok ? [library, await res.text(), null] : [library, null, res.statusText];
+    })
   );
-  for (const library of librariesWithPaths) {
-    const text = responses[library.name];
-    if (!text) continue;
+  console.log('done.\n');
+
+  const errorLibraries = responses.filter(res => res[2]);
+  if (errorLibraries.length) {
+    console.log(`These libraries failed to fetch:`);
+    errorLibraries.forEach(library => console.log(`  ${library[0].name}`));
+    console.log();
+  }
+
+  const scriptErrors = responses
+    .filter(res => res[1])
+    .map(([library, text]): [Library, Script] => [library, Script.fromSource(text!)])
+    .filter(([, script]) => script.getErrors().length > 0);
+
+  for (const [library, script] of scriptErrors) {
     console.log(`${library.name}:`, library.importPath);
-    for (const err of Script.fromSource(text).getErrors()) {
+    for (const err of script.getErrors()) {
       console.log(' ', err.message);
     }
   }
 }
 
+async function findMinimizedReplacements() {
+  const candidates = Library.all.filter(
+    library => library.importPath && library.importPath.endsWith('.js') && !library.importPath.endsWith('.min.js')
+  );
+  const found = (
+    await Promise.all(
+      candidates.map(async function(library): Promise<[Library, string] | null> {
+        const url = library.importPath!.replace(/\.js$/, '.min.js');
+        const res = await cachedFetch(url);
+        return res.ok ? [library, url] : null;
+      })
+    )
+  ).filter(Boolean) as [Library, string][];
+  if (found.length) {
+    console.log('These libraries have minimized versions:');
+    found.forEach(([library, replacement]) =>
+      console.log(`${library.name}\n  ${library.importPath} -> ${replacement}`)
+    );
+  }
+}
+
+/** Wrapper for node-fetch that looks in a cache directory before fetching from
+ * the network. If the cache is missing, it will be created. If the file is
+ * missing, it will be fetched from the network and saved to the cache. If the
+ * file is present, it will be read from the cache.
+ *
+ * Usage: const fetch = require('node-fetch-cache'); const res = await
+ *  fetch('https://example.com/file.json'); console.log(res.text());
+ *
+ *  const fetch = require('node-fetch-cache')('/path/to/cache/dir'); const res =
+ *  await fetch('https://example.com/file.json'); console.log(res.text());
+ */
+async function cachedFetch(url: string) {
+  const cacheDir = '/tmp/node-fetch-cache';
+  // compute the md5 of url
+  const hash = crypto
+    .createHash('md5')
+    .update(url)
+    .digest('hex');
+  const cachePath = `${cacheDir}/${hash}`;
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir);
+  }
+  // if the file is less than a day old, read it from the cache
+  if (fs.existsSync(cachePath) && fs.statSync(cachePath).mtime.getTime() > Date.now() - 86400000) {
+    const text = fs.readFileSync(cachePath, 'utf-8');
+    return {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: () => Promise.resolve(text)
+    };
+  }
+  const res = await fetch(url);
+  if (res.ok) {
+    const text = await res.text();
+    fs.writeFileSync(cachePath, text);
+  }
+  return res;
+  /*{
+    ok: res.ok,
+    status: res.status,
+    statusText: res.statusText,
+    text: res.text.bind(res)
+    }*/
+}
+
 testPaths();
+// findMinimizedReplacements();

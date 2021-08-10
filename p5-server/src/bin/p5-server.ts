@@ -13,13 +13,14 @@ const appVersion = JSON.parse(fs.readFileSync(path.join(__dirname, '../../packag
 program.version(appVersion);
 
 program
-  .command('create [name]')
+  .command('create')
   .alias('c')
   .alias('generate')
   .alias('g')
   .description('Create a new p5.js sketch')
-  .option('--no-html', 'only create a JavaScript file')
-  .option('-f, --force', 'force overwrite of existing files')
+  .argument('[sketch]', 'the filename of the sketch', 'sketch.js')
+  .option('--type <type>', 'place the new files in a folder')
+  .option('--force', 'force overwrite of existing files')
   .option('-o, --options [options]', 'comma-separated list of options')
   .option('-t, --title [title]', 'sketch title')
   .action(create);

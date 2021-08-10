@@ -46,13 +46,21 @@ pasting it.)
 
 ### Create a sketch
 
-`p5 create  --html` creates a sketch named `sketch.js` in the current directory.
+`p5 create` creates a sketch file named `sketch.js` in the current directory.
 
-This is a **JavaScript-only sketch**. The server (below) can run this, and you can
-paste it into online editors such as the P5 web editor and OpenProcessing.org.
+This is a **JavaScript-only sketch**. The server (below) can run this, and you
+can paste it into online editors such as the [P5 web
+editor](https://editor.p5js.org) and
+[OpenProcessing.org](https://openprocessing.org).
 
-`p5 create my-sketch` creates an HTML file named `my-sketch.html` and a
+`p5 create my-sketch` and `p5 create my-sketch.js` create a sketch file named
+`my-sketch.js`.
+
+`p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
 JavaScript file named `my-sketch.js`.
+
+`p5 create my-sketch --folder` creates a folder named `my-sketch`, and creates
+`index.html` and `sketch.js` files inside this folder.
 
 The default generated script contains `setup()` and `draw()` functions. The
 `setup()` functions creates a canvas, and the `draw()` functions draws circles
@@ -61,9 +69,10 @@ See the reference, below.
 
 ### Start the server
 
-`p5 serve` starts a server, that serves files from the current directory.
+`p5 server` starts a sketch-aware server. The server is set to serve files from
+the current directory.
 
-`p5 serve directory` starts a server that serves files from another directory.
+`p5 server DIR` starts a server that serves files from the directory at DIR.
 
 By default, the server runs on port 3000. You can open it in a browser by
 visiting <http://localhost:3000>. The `--open` option will do this
@@ -97,20 +106,16 @@ Run `p5 --help` to see a list of commands.
 
 Run `p5 <command> --help` to see command-line options.
 
-### `p5 create [sketch-name]`
+### `p5 create [NAME]`
 
-Creates a folder named `sketch-name` (default `sketch`), that contains an
-`index.html` file and a `sketch.js` file.
+* `p5 create` – creates `sketch.js`
+* `p5 create my-sketch.js` – creates just the JavaScript file
+* `p5 create my-sketch.html` – creates `my-sketch.html` and `my-sketch.js`
+* `p5 create my-sketch --type folder` – creates a folder named `my-sketch`, that
+  contains files `index.html` and `sketch.js`.
 
-### `p5 create [sketch-name] --no-html`
-
-Creates a file named `sketch-name.js` in the current directory.
-
-Use `-options <options>` to configure the JavaScript file. `<options>` is a
-comma-separate list of script configuration options, such as `resizeCanvas` or
-`preload,static`.
-
-The script configuration options are:
+`p5 create --options comments,preload` specifies a comma-separated set of
+template options. The options are:
 
 * `comments` – include comments (e.g. `// put setup code here`) inside the
   functions

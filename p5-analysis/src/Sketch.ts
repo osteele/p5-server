@@ -12,13 +12,6 @@ const defaultDirectoryExclusions = ['.*', '*~', 'node_modules', 'package.json', 
 
 export type SketchType = 'html' | 'javascript';
 
-export class DirectoryExistsError extends Error {
-  constructor(msg: string) {
-    super(msg);
-    Object.setPrototypeOf(this, DirectoryExistsError.prototype);
-  }
-}
-
 /** Sketch represents a p5.js Sketch. Is an interface to generate sketch files,
  *  find associated files, infer libraries, and scan directories for sketches that
  * they contain.
@@ -346,33 +339,22 @@ export class Sketch {
   /** Create and save the files for this sketch. This includes the script file;
    * for an HTML sketch, this also includes the HTML file. */
   generate(force = false, options: Record<string, unknown> = {}) {
-    const dirPath = this.dir;
-    try {
-      fs.mkdirSync(dirPath);
-    } catch (e) {
-      if (e.code !== 'EEXIST') {
-        throw e;
-      }
-      if (!fs.statSync(dirPath).isDirectory()) {
-        throw new DirectoryExistsError(`${dirPath} already exists and is not a directory`);
-      }
-      if (fs.readdirSync(dirPath).length && !force && this.htmlFile) {
-        throw new DirectoryExistsError(`${dirPath} already exists and is not empty`);
-      }
-    }
-
     if (this.htmlFile) {
       this.writeGeneratedFile('index.html', this.htmlFile, force, options);
     }
     this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options);
   }
 
-  private writeGeneratedFile(templateName: string, relPath: string, force: boolean, options: Record<string, unknown>) {
-    const filePath = path.join(this.dir, relPath);
-    if (!force && fs.existsSync(filePath)) {
-      throw new Error(`${filePath} already exists`);
-    }
-    fs.writeFileSync(filePath, this.getGeneratedFileContent(templateName, options));
+  private writeGeneratedFile(
+    templateName: string,
+    relPath: string,
+    force: boolean,
+    templateOptions: Record<string, unknown>
+  ) {
+    const file = path.join(this.dir, relPath);
+    const content = this.getGeneratedFileContent(templateName, templateOptions);
+    fs.writeFileSync(file, content, force ? {} : { flag: 'wx' });
+    console.log(`Created ${file}`);
   }
 
   /** The list of libraries. For a JavaScript sketch, this is the list of

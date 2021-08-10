@@ -1,26 +1,51 @@
-import { DirectoryExistsError, Sketch } from 'p5-analysis';
+import { Sketch } from 'p5-analysis';
 import { die } from '../utils';
+import fs from 'fs';
+import path from 'path';
 
 export default function create(
-  name: string = 'sketch',
-  options: { force: boolean; html: boolean; title: string; options: string }
+  file: string,
+  options: { force: boolean; title: string; options: string; type?: 'folder' }
 ) {
-  const generationOptions = Object.fromEntries(
-    (options.options || '').split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
-  );
-
-  const sketch = options.html
-    ? Sketch.create(/\.html?$/i.test(name) ? name : `${name}.html`, options)
-    : Sketch.create(name.endsWith('.js') ? name : `${name}.js`, options);
-
-  try {
-    sketch.generate(options.force, generationOptions);
-  } catch (err) {
-    if (err instanceof DirectoryExistsError) {
-      die(err.message);
-    } else {
-      throw err;
-    }
+  let scriptFile: string | undefined;
+  if (options.type && !options.type.match(/folder|file/)) {
+    die('create: type must be "folder" or "file"');
   }
-  console.log(`Created ${name}`);
+  if (options.type === 'folder' || !/\.(js|html?)$/i.test(file)) {
+    try {
+      fs.mkdirSync(file);
+    } catch (e) {
+      if (e.code !== 'EEXIST') {
+        throw e;
+      }
+      if (!fs.statSync(file).isDirectory()) {
+        die(`The ${file} folder already exists and is not a directory`);
+      }
+      // TODO: ignore .DS_Store and Thumbs.db
+      if (fs.readdirSync(file).length && !options.force) {
+        die(`The ${file} folder already exists and is not empty`);
+      }
+    }
+    file = path.join(file, 'index.html');
+  } else if (/\.html?$/i.test(file)) {
+    scriptFile = path.basename(file).replace(/\.html?$/i, '.js');
+  }
+
+  const templateOptions = options.options
+    ? Object.fromEntries<boolean>(
+        options.options.split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
+      )
+    : {};
+
+  const sketchOptions = { scriptFile, ...options };
+  const sketch = Sketch.create(file, sketchOptions);
+  try {
+    sketch.generate(options.force, templateOptions);
+  } catch (err) {
+    if (err.code === 'EEXIST') {
+      die(`${file} already exists. Try again with --force.`);
+    }
+    console.error(Object.entries(err));
+    throw err;
+  }
 }

@@ -33,7 +33,7 @@
   "dependencies": {
     "@babel/core": "^7.15.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.14.7",
-    "esprima-master": "^4.2.0",
+    "esprima": "^4.0.1",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
     "node-html-parser": "^4.1.0",

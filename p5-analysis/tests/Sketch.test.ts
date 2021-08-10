@@ -128,9 +128,9 @@ describe('Sketch.generate', () => {
     testSketchGenerate('test.html', {}, 'html');
   });
 
-  function testSketchGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
+  async function testSketchGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
     const sketch = Sketch.create(`${outputDir}/${outputName}`);
-    sketch.generate(false, options);
+    await sketch.generate(false, options);
     expectDirectoriesEqual(outputDir, path.join(testfileDir, 'snapshots', snapshotName));
   }
 });

@@ -2,7 +2,7 @@ name: Publish API Docs
 
 on:
   push:
-    branches: [docs, release]
+    branches: [test-workflow]
   workflow_dispatch:
 
 jobs:

@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Change options to `p5 create`
+- Set the title for the default directory
 
 ## [0.3.5]
 

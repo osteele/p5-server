@@ -21,18 +21,19 @@ export function createDirectoryListing(relPath: string, root: string) {
 
   const directories = unaffiliatedFiles.filter(s => fs.statSync(path.join(dir, s)).isDirectory());
   const files = unaffiliatedFiles.filter(s => !directories.includes(s) && s !== readmeName);
+  const title = dir === './' ? 'P5 Server' : path.basename(dir);
 
   const pathComponents = pathComponentsForBreadcrumbs(relPath);
   return directoryListingTmpl({
     pathComponents,
-    title: path.basename(dir),
+    title,
     directories,
     files,
     sketches,
     readme,
     // functions
     path_to,
-    path_to_src_view: path_to_src_view
+    path_to_src_view
   });
 
   function path_to(f: string, sk: Sketch) {

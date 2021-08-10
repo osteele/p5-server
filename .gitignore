@@ -3,3 +3,5 @@ dist
 examples.zip
 *.tgz
 *.log
+p5-analysis/package/
+p5-server/package/

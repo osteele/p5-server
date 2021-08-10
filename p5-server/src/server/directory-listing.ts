@@ -42,7 +42,7 @@ export function createDirectoryListing(relPath: string, root: string) {
 
   function path_to_src_view(s: string, sk: Sketch) {
     let p = path_to(s, sk);
-    if (p.match(/.*\.(html?|js)$/)) {
+    if (p.match(/.*\.(html?|js)$/i)) {
       p += '?fmt = view';
     }
     return p;

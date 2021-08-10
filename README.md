@@ -46,20 +46,20 @@ pasting it.)
 
 ### Create a sketch
 
-`p5 create` creates a sketch file named `sketch.js` in the current directory.
+`p5 create` creates a JavaScript sketch file named `sketch.js` in the current
+directory.
 
 This is a **JavaScript-only sketch**. The server (below) can run this, and you
 can paste it into online editors such as the [P5 web
 editor](https://editor.p5js.org) and
 [OpenProcessing.org](https://openprocessing.org).
 
-`p5 create my-sketch` and `p5 create my-sketch.js` create a sketch file named
-`my-sketch.js`.
+`p5 create my-sketch.js` creates a JavaScript sketch file named `my-sketch.js`.
 
 `p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
 JavaScript file named `my-sketch.js`.
 
-`p5 create my-sketch --folder` creates a folder named `my-sketch`, and creates
+`p5 create my-sketch` creates a folder named `my-sketch`, and creates
 `index.html` and `sketch.js` files inside this folder.
 
 The default generated script contains `setup()` and `draw()` functions. The

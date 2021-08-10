@@ -44,9 +44,9 @@ export class Sketch {
    * @category Sketch creation
    */
   static create(mainFile: string, options: { title?: string; description?: string; scriptFile?: string } = {}) {
-    if (mainFile.endsWith('.html') || mainFile.endsWith('.htm')) {
+    if (/\.html?/i.test(mainFile)) {
       return new Sketch(path.dirname(mainFile), path.basename(mainFile), options.scriptFile, options);
-    } else if (mainFile.endsWith('.js')) {
+    } else if (/\.js$/i.test(mainFile)) {
       if (mainFile && options.scriptFile) {
         throw new Error(`Cannot specify both a .js file and a scriptPath`);
       }
@@ -173,7 +173,7 @@ export class Sketch {
     if (!fs.existsSync(htmlFile) || fs.statSync(htmlFile).isDirectory()) {
       return false;
     }
-    if (!htmlFile.endsWith('.htm') && !htmlFile.endsWith('.html')) {
+    if (!/\.html?$/i.test(htmlFile)) {
       return false;
     }
 
@@ -192,7 +192,7 @@ export class Sketch {
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       return false;
     }
-    if (!file.endsWith('.js')) {
+    if (!/\.js/i.test(file)) {
       return false;
     }
 
@@ -258,7 +258,7 @@ export class Sketch {
   }
 
   get name() {
-    return this._name || this.mainFile.replace(/\.(html?|js)$/, '');
+    return this._name || this.mainFile.replace(/\.(html?|js)$/i, '');
   }
 
   set name(value: string) {
@@ -285,7 +285,7 @@ export class Sketch {
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
     const basename = path.basename(this.mainFile);
-    return capitalize(basename.replace(/\.(html?|js)$/, '')).replace(/[-_]/g, ' ');
+    return capitalize(basename.replace(/\.(html?|js)$/i, '')).replace(/[-_]/g, ' ');
 
     function capitalize(str: string) {
       return str.charAt(0).toUpperCase() + str.slice(1);
@@ -371,7 +371,7 @@ export class Sketch {
   }
 
   private impliedLibraries(): LibraryArray {
-    return Library.inferFromScripts(this.files.filter(f => f.endsWith('.js')).map(f => path.join(this.dir, f)));
+    return Library.inferFromScripts(this.files.filter(f => /\.js$/i.test(f)).map(f => path.join(this.dir, f)));
   }
 
   private getGeneratedFileContent(base: string, options: Record<string, unknown>) {
@@ -440,7 +440,7 @@ export class Sketch {
           case 0:
             throw new Error(`${htmlPath} does not contain any local scripts`);
           case 1:
-            if (!localScripts[0].endsWith('.js')) {
+            if (!/\.js$/i.test(localScripts[0])) {
               throw new Error(`${htmlPath} refers to a script file with the wrong extension`);
             }
             if (!fs.existsSync(path.join(this.dir, localScripts[0]))) {

@@ -31,6 +31,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.14.7",
     "esprima-master": "^4.2.0",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
@@ -39,6 +41,7 @@
     "save-dev": "^0.0.1-security"
   },
   "devDependencies": {
+    "@types/babel-core": "^6.25.7",
     "@types/esprima": "^4.0.3",
     "@types/jest": "^26.0.24",
     "@types/node-fetch": "^2.5.12",

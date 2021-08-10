@@ -1,5 +1,12 @@
 # Change Log
 
+## [Unreleased]
+
+- Parse scripts that use the spread operator
+- Sketch.generate doesn't create directories
+- Sketch.generate uses the nodejs fs error when the file exists and force is not set
+- Remove DirectoryExistsError
+
 ## [0.3.5]
 
 - Use library .min.js where available

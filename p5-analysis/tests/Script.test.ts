@@ -4,15 +4,15 @@ test('Script.fromFile', () => {
   const filePath = './tests/testdata/circles.js';
   const script: Script = Script.fromFile(filePath);
   expect(script).toBeInstanceOf(Script);
-  expect(script.filePath).toBe(filePath);
+  expect(script.filename).toBe(filePath);
 });
 
 test('Script.getErrors', () => {
-  expect(() => Script.fromSource('const const;').globals).toThrow(/^Line 1:/);
+  expect(() => Script.fromSource('const const;').globals).toThrow(/Unexpected keyword 'const'/);
   expect(Script.fromSource('let a;').getErrors()).toEqual([]);
-  expect(Script.fromSource('const const;').getErrors()).toHaveLength(1);
-  const err = Script.fromSource('const const;').getErrors()[0];
-  expect(err.message).toMatch(/^Line/);
+  const errs = Script.fromSource('const const;').getErrors();
+  expect(errs).toHaveLength(1);
+  expect(errs[0].message).toMatch(/Unexpected keyword 'const'/);
 });
 
 test('Script.findGlobals', () => {
@@ -94,20 +94,23 @@ describe('Script.freeVariables', () => {
   });
 
   test('template literals', () => {
-    // eslint-disable-next-line no-useless-escape
     expect(free('let a = `${b+c} ${d}}`')).toEqual(['b', 'c', 'd']);
     expect(free('let a = f`${b+c} ${d}`')).toEqual(['b', 'c', 'd', 'f']);
   });
 
-  test('spread', () => {
+  test('array spread', () => {
     expect(free('let a = [b, ...c, ...d]')).toEqual(['b', 'c', 'd']);
-    // expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
+  });
+  test.skip('object spread', () => {
+    expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
   });
 
-  // FIXME: should not include lf1
-  expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
-    new Set(['gf1', 'gf2', 'gv1', 'l3', 'lf1'])
-  );
+  test('kitchen sink', () => {
+    // FIXME: should not include lf1
+    expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
+      new Set(['gf1', 'gf2', 'gv1', 'l3', 'lf1'])
+    );
+  });
 });
 
 test('Script.p5properties', () => {

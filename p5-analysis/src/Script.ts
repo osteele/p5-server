@@ -1,6 +1,7 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
 import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences } from './script-analysis';
+import babel = require('@babel/core');
 
 export class JavaScriptSyntaxError extends Error {
   constructor(msg: string, public readonly fileName: string | null = null) {
@@ -21,7 +22,7 @@ export class Script implements ScriptAnalysis {
   private _program?: Program;
   private readonly analysis: Partial<ScriptAnalysis> = {};
 
-  constructor(public readonly source: string, public readonly filePath?: string) {}
+  constructor(public readonly source: string, public readonly filename?: string) {}
 
   static fromSource(source: string, filePath?: string) {
     return new Script(source, filePath);
@@ -32,18 +33,28 @@ export class Script implements ScriptAnalysis {
   }
 
   private get program() {
+    // TODO: use the babel AST, instead of re-parsing with esprima
+    const result = babel.transform(this.source, {
+      ast: false,
+      babelrc: false,
+      configFile: false,
+      filename: this.filename,
+      highlightCode: false,
+      plugins: ['@babel/plugin-proposal-object-rest-spread']
+    });
+    const source = result!.code!;
     if (this._program) {
       return this._program;
     }
     try {
-      this._program = parseScript(this.source);
+      this._program = parseScript(source);
     } catch {
       // eslint-disable-next-line no-empty
     }
     try {
-      this._program = parseModule(this.source);
+      this._program = parseModule(source);
     } catch (e) {
-      throw new JavaScriptSyntaxError(e.message, this.filePath);
+      throw new JavaScriptSyntaxError(e.message, this.filename);
     }
     return this._program;
   }
@@ -80,7 +91,7 @@ export class Script implements ScriptAnalysis {
     try {
       this.program;
     } catch (e) {
-      if (e instanceof JavaScriptSyntaxError) {
+      if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
         return [e];
       }
       throw e;

@@ -87,7 +87,7 @@ function createRouter(config: Config): express.Router {
         const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
         return res.send(
           jsTemplateEnv.renderString(template, {
-            fileName: path.basename(errs[0].fileName!), // TODO: relative to referer
+            fileName: path.basename(file), // TODO: relative to referer
             message: errs[0].message
           })
         );

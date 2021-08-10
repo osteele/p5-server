@@ -27,10 +27,10 @@
     "build": "npm run clean && npm run copy-files && tsc --declaration",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
-    "dev": "ts-node src/bin/p5-server.ts",
-    "dev:serve": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
-    "dev:serve:examples": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve examples",
-    "dev:serve:testdata": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve tests/testdata",
+    "start": "ts-node src/bin/p5-server.ts",
+    "server": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
+    "serve:examples": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve examples",
+    "serve:testdata": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve tests/testdata",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepublishOnly": "npm run build",
@@ -40,6 +40,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@babel/plugin-proposal-object-rest-spread": "^7.14.7",
     "@types/ws": "^7.4.7",
     "chalk": "^4.1.1",
     "commander": "^8.0.0",

@@ -82,7 +82,7 @@ export class Library implements Library.Properties {
             }
           }
         } catch (e) {
-          if (!(e instanceof JavaScriptSyntaxError)) {
+          if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
             throw e;
           }
         }

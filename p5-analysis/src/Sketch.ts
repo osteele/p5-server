@@ -207,7 +207,7 @@ export class Sketch {
       const { globals, freeVariables } = Script.fromFile(file);
       return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
     } catch (e) {
-      if (e instanceof JavaScriptSyntaxError) {
+      if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
         const source = fs.readFileSync(file, 'utf-8');
         return /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source);
       }
@@ -335,7 +335,7 @@ export class Sketch {
         const paths = [...loadCallArguments!].map(s => s.replace(/^\.\//, ''));
         files = [...files, ...paths];
       } catch (e) {
-        if (!(e instanceof JavaScriptSyntaxError)) {
+        if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
           throw e;
         }
       }

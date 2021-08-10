@@ -6,11 +6,15 @@ import convert from '../commands/convert';
 import create from '../commands/create';
 import reportLibraries from '../commands/report-libraries';
 import serve from '../commands/serve';
+import updateNotifier from 'update-notifier';
 
 const program = new Command();
 
-const appVersion = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')).version;
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const appVersion = pkg.version;
 program.version(appVersion);
+
+updateNotifier({ pkg }).notify();
 
 program
   .command('create')

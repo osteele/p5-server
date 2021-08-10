@@ -338,14 +338,17 @@ export class Sketch {
 
   /** Create and save the files for this sketch. This includes the script file;
    * for an HTML sketch, this also includes the HTML file. */
-  generate(force = false, options: Record<string, unknown> = {}) {
+  async generate(force = false, options: Record<string, unknown> = {}) {
+    const files = [];
+    // TODO: preflight this so we don't create some files unless we can create them all
     if (this.htmlFile) {
-      this.writeGeneratedFile('index.html', this.htmlFile, force, options);
+      files.push(await this.writeGeneratedFile('index.html', this.htmlFile, force, options));
     }
-    this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options);
+    files.push(await this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options));
+    return files;
   }
 
-  private writeGeneratedFile(
+  private async writeGeneratedFile(
     templateName: string,
     relPath: string,
     force: boolean,
@@ -354,7 +357,7 @@ export class Sketch {
     const file = path.join(this.dir, relPath);
     const content = this.getGeneratedFileContent(templateName, templateOptions);
     fs.writeFileSync(file, content, force ? {} : { flag: 'wx' });
-    console.log(`Created ${file}`);
+    return file;
   }
 
   /** The list of libraries. For a JavaScript sketch, this is the list of

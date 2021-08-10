@@ -106,29 +106,15 @@ describe('Sketch.generate', () => {
     fs.mkdirSync(outputDir);
   });
 
-  test('default options', () => {
-    testSketchGenerate('test.js', {}, 'default');
-  });
-  test('comments', () => {
-    testSketchGenerate('test.js', { comments: true }, 'comments');
-  });
-  test('preload', () => {
-    testSketchGenerate('test.js', { preload: true }, 'preload');
-  });
-  test('windowResized', () => {
-    testSketchGenerate('test.js', { windowResized: true }, 'windowResized');
-  });
-  test('no-draw', () => {
-    testSketchGenerate('test.js', { draw: false }, 'no-draw');
-  });
-  test('no-examples', () => {
-    testSketchGenerate('test.js', { examples: false }, 'no-examples');
-  });
-  test('html', () => {
-    testSketchGenerate('test.html', {}, 'html');
-  });
+  test('default options', () => testGenerate('test.js', {}, 'default'));
+  test('comments', () => testGenerate('test.js', { comments: true }, 'comments'));
+  test('preload', () => testGenerate('test.js', { preload: true }, 'preload'));
+  test('windowResized', () => testGenerate('test.js', { windowResized: true }, 'windowResized'));
+  test('no-draw', () => testGenerate('test.js', { draw: false }, 'no-draw'));
+  test('no-examples', () => testGenerate('test.js', { examples: false }, 'no-examples'));
+  test('html', () => testGenerate('test.html', {}, 'html'));
 
-  async function testSketchGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
+  async function testGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
     const sketch = Sketch.create(`${outputDir}/${outputName}`);
     await sketch.generate(false, options);
     expectDirectoriesEqual(outputDir, path.join(testfileDir, 'snapshots', snapshotName));

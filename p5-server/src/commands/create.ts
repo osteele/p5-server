@@ -3,7 +3,7 @@ import { die } from '../utils';
 import fs from 'fs';
 import path from 'path';
 
-export default function create(
+export default async function create(
   file: string,
   options: { force: boolean; title: string; options: string; type?: 'folder' }
 ) {
@@ -39,8 +39,9 @@ export default function create(
 
   const sketchOptions = { scriptFile, ...options };
   const sketch = Sketch.create(file, sketchOptions);
+  let files: string[] | undefined;
   try {
-    sketch.generate(options.force, templateOptions);
+    files = await sketch.generate(options.force, templateOptions);
   } catch (err) {
     if (err.code === 'EEXIST') {
       die(`${file} already exists. Try again with --force.`);
@@ -48,4 +49,5 @@ export default function create(
     console.error(Object.entries(err));
     throw err;
   }
+  files.forEach(file => console.log(`Created ${file}`));
 }

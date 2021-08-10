@@ -31,7 +31,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "esprima": "^4.0.1",
+    "esprima-master": "^4.2.0",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
     "node-html-parser": "^4.1.0",

@@ -34,6 +34,7 @@ type DeclarationIteratorIterationType = Iterable<{
   name: string;
   nodeType: string;
 }>;
+
 class DeclarationIterator extends ESTreeVisitor<{
   name: string;
   nodeType: string;

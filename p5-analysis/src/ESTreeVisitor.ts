@@ -133,7 +133,9 @@ export class ESTreeVisitor<T> {
     switch (node.type) {
       case 'ArrayExpression':
         for (const elt of node.elements) {
-          if (elt && elt.type !== 'SpreadElement') {
+          if (elt?.type === 'SpreadElement') {
+            yield* this.visitExpression(elt.argument);
+          } else if (elt) {
             yield* this.visitExpression(elt);
           }
         }

@@ -35,56 +35,74 @@ test('Script.findGlobals', () => {
   expect(Script.fromSource('class A {}').globals).toEqual(new Map([['A', 'ClassDeclaration']]));
 });
 
-test('Script.freeVariables', () => {
-  expect(Script.fromSource('function f() {}').freeVariables).toEqual(new Set());
-  expect(Script.fromSource('function f(a) {a}').freeVariables).toEqual(new Set());
-  expect(Script.fromSource('function f(a) {b}').freeVariables).toEqual(new Set('b'));
-  expect(Script.fromSource('function f() {g}').freeVariables).toEqual(new Set('g'));
-  expect(Script.fromSource('function f() {g}; function g() {}').freeVariables).toEqual(new Set());
+describe('Script.freeVariables', () => {
+  const free = (code: string) => Array.from(Script.fromSource(code).freeVariables).sort();
+  // const free = (code: string) => Script.fromSource(code).freeVariables;
 
-  // local variables
-  expect(Script.fromSource('function f(a) {let b; b}').freeVariables).toEqual(new Set());
-  expect(Script.fromSource('function f(a) {let b; c}').freeVariables).toEqual(new Set('c'));
-  expect(Script.fromSource('function f(a) {let b=c}').freeVariables).toEqual(new Set('c'));
-  expect(Script.fromSource('function f(a) {let b=a; let c=b}').freeVariables).toEqual(new Set());
-  expect(Script.fromSource('function f() {let b=c; let c=b}').freeVariables).toEqual(new Set('c'));
+  test('basics', () => {
+    expect(free('function f() {}')).toEqual([]);
+    expect(free('function f(a) {a}')).toEqual([]);
+    expect(free('function f(a) {b}')).toEqual(['b']);
+    expect(free('function f() {g}')).toEqual(['g']);
+    expect(free('function f() {g}; function g() {}')).toEqual([]);
+  });
 
-  // expressions
-  expect(Script.fromSource('function f() {a + b}').freeVariables).toEqual(new Set('ab'));
-  expect(Script.fromSource('function f() {a ? b : c}').freeVariables).toEqual(new Set('abc'));
+  test('local variables', () => {
+    expect(free('function f(a) {let b; b}')).toEqual([]);
+    expect(free('function f(a) {let b; c}')).toEqual(['c']);
+    expect(free('function f(a) {let b=c}')).toEqual(['c']);
+    expect(free('function f(a) {let b=a; let c=b}')).toEqual([]);
+    expect(free('function f() {let b=c; let c=b}')).toEqual(['c']);
+  });
 
-  expect(Script.fromSource('function f() {let a = b + c}').freeVariables).toEqual(new Set('bc'));
-  expect(Script.fromSource('let a = b + c').freeVariables).toEqual(new Set('bc'));
+  test('expressions', () => {
+    expect(free('function f() {a + b}')).toEqual(['a', 'b']);
+    expect(free('function f() {a ? b : c}')).toEqual(['a', 'b', 'c']);
 
-  // function calls and nested functions
-  expect(Script.fromSource('function f(a) {g()}').freeVariables).toEqual(new Set('g'));
-  expect(Script.fromSource('function f(a) {f(a); g(b)}').freeVariables).toEqual(new Set('gb'));
-  expect(Script.fromSource('function f(a) {let b; function g(c) {a+b+c+d}}').freeVariables).toEqual(new Set('d'));
+    expect(free('function f() {let a = b + c}')).toEqual(['b', 'c']);
+    expect(free('let a = b + c')).toEqual(['b', 'c']);
+  });
 
-  // function expressions
-  expect(Script.fromSource('let f = function(a) {a + b}').freeVariables).toEqual(new Set('b'));
-  expect(Script.fromSource('let f = a => a + b').freeVariables).toEqual(new Set('b'));
+  test('function calls and nested functions', () => {
+    expect(free('function f(a) {g()}')).toEqual(['g']);
+    expect(free('function f(a) {f(a); g(b)}')).toEqual(['b', 'g']);
+    expect(free('function f(a) {let b; function g(c) {a+b+c+d}}')).toEqual(['d']);
+  });
 
-  // control structures
-  expect(Script.fromSource('function f() {for (i=a; i<b; i+=c) d;}').freeVariables).toEqual(new Set('iabcd'));
-  expect(Script.fromSource('function f() {for (let i=a; i<b; i+=c) d;}').freeVariables).toEqual(new Set('abcd'));
-  expect(Script.fromSource('function f() {for (p of obj) p, a;}').freeVariables).toEqual(new Set(['obj', 'a', 'p']));
-  // expect(Script.fromSource('function f() {for (const p of obj) p, a;}').freeVariables).toEqual(new Set(['obj', 'a']));
-  expect(Script.fromSource('function f() {if(a)b;else c}').freeVariables).toEqual(new Set('abc'));
+  test('function expressions', () => {
+    expect(free('let f = function(a) {a + b}')).toEqual(['b']);
+    expect(free('let f = a => a + b')).toEqual(['b']);
+  });
 
-  // classes
-  expect(Script.fromSource('class A { constructor() { this.a = b; A} }').freeVariables).toEqual(new Set('b'));
-  expect(Script.fromSource('class A { m(a) { a,b; } }').freeVariables).toEqual(new Set('b'));
-  expect(Script.fromSource('class A extends B {}').freeVariables).toEqual(new Set('B'));
-  expect(Script.fromSource('class A {}; class B extends A {}').freeVariables).toEqual(new Set());
+  test('control structures', () => {
+    expect(free('function f() {for (i=a; i<b; i+=c) d;}')).toEqual(['a', 'b', 'c', 'd', 'i']);
+    expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual(['a', 'b', 'c', 'd']);
+    expect(free('function f() {for (p of obj) p, a;}')).toEqual(['a', 'obj', 'p']);
+    // expect(free('function f() {for (const p of obj) p, a;}')).toEqual(['a', 'obj']);
+    expect(free('function f() {if(a)b;else c}')).toEqual(['a', 'b', 'c']);
+  });
 
-  // class expressions
-  expect(Script.fromSource('const A = class { constructor() { this.a = b; A}}').freeVariables).toEqual(new Set('b'));
+  test('classes', () => {
+    expect(free('class A { constructor() { this.a = b; A} }')).toEqual(['b']);
+    expect(free('class A { m(a) { a,b; } }')).toEqual(['b']);
+    expect(free('class A extends B {}')).toEqual(['B']);
+    expect(free('class A {}; class B extends A {}')).toEqual([]);
+  });
 
-  // template literals
-  // eslint-disable-next-line no-useless-escape
-  expect(Script.fromSource('let a = `${b+c} ${d}}`').freeVariables).toEqual(new Set('bcd'));
-  expect(Script.fromSource('let a = f`${b+c} ${d}`').freeVariables).toEqual(new Set('fbcd'));
+  test('class expressions', () => {
+    expect(free('const A = class { constructor() { this.a = b; A}}')).toEqual(['b']);
+  });
+
+  test('template literals', () => {
+    // eslint-disable-next-line no-useless-escape
+    expect(free('let a = `${b+c} ${d}}`')).toEqual(['b', 'c', 'd']);
+    expect(free('let a = f`${b+c} ${d}`')).toEqual(['b', 'c', 'd', 'f']);
+  });
+
+  test('spread', () => {
+    expect(free('let a = [b, ...c, ...d]')).toEqual(['b', 'c', 'd']);
+    // expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
+  });
 
   // FIXME: should not include lf1
   expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
@@ -93,22 +111,26 @@ test('Script.freeVariables', () => {
 });
 
 test('Script.p5properties', () => {
-  expect(Script.fromSource('function f() {}').p5properties).toEqual(new Set());
-  expect(Script.fromSource('function f() {p5.p}').p5properties).toEqual(new Set('p'));
-  expect(Script.fromSource('function f() {p5.m()}').p5properties).toEqual(new Set('m'));
-  expect(Script.fromSource('function f() {new p5.c}').p5properties).toEqual(new Set('c'));
-  expect(Script.fromSource('function f() {new p5.c()}').p5properties).toEqual(new Set('c'));
+  const props = (source: string) => Array.from(Script.fromSource(source).p5properties).sort();
+
+  expect(props('function f() {}')).toEqual([]);
+  expect(props('function f() {p5.p}')).toEqual(['p']);
+  expect(props('function f() {p5.m()}')).toEqual(['m']);
+  expect(props('function f() {new p5.c}')).toEqual(['c']);
+  expect(props('function f() {new p5.c()}')).toEqual(['c']);
 
   // function expressions
-  expect(Script.fromSource('let f = function() {p5.c}').p5properties).toEqual(new Set('c'));
-  expect(Script.fromSource('let f = () => p5.c').p5properties).toEqual(new Set('c'));
+  expect(props('let f = function() {p5.c}')).toEqual(['c']);
+  expect(props('let f = () => p5.c')).toEqual(['c']);
 });
 
-test('Script.loadalls', () => {
-  expect(Script.fromSource('function f() {}').loadCallArguments).toEqual(new Set());
-  expect(Script.fromSource('function f() {loadImage("s")}').loadCallArguments).toEqual(new Set('s'));
+test('Script.loadCallArguments', () => {
+  const calls = (source: string) => Array.from(Script.fromSource(source).loadCallArguments).sort();
+
+  expect(calls('function f() {}')).toEqual([]);
+  expect(calls('function f() {loadImage("s")}')).toEqual(['s']);
 
   // function expressions
-  expect(Script.fromSource('let f = function() {loadImage("s")}').loadCallArguments).toEqual(new Set('s'));
-  expect(Script.fromSource('let f = () => loadImage("s")').loadCallArguments).toEqual(new Set('s'));
+  expect(calls('let f = function() {loadImage("s")}')).toEqual(['s']);
+  expect(calls('let f = () => loadImage("s")')).toEqual(['s']);
 });

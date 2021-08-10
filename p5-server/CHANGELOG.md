@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.4.1]
 
 - Change options to `p5 create`
 - Set the title for the default directory

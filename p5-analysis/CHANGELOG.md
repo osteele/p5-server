@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.4.0]
 
 - Parse scripts that use the spread operator
 - Sketch.generate doesn't create directories

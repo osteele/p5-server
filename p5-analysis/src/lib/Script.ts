@@ -38,6 +38,7 @@ export class Script implements ScriptAnalysis {
       ast: false,
       babelrc: false,
       configFile: false,
+      compact: true,
       filename: this.filename,
       highlightCode: false,
       plugins: ['@babel/plugin-proposal-object-rest-spread']

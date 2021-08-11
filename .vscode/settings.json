@@ -8,5 +8,9 @@
       "fileMatch": ["src/libraries.json"],
       "url": "./p5-analysis/src/schemas/libraries.json"
     }
-  ]
+  ],
+  "search.exclude": {
+    "p5-analysis": true,
+    "p5-server": true
+  }
 }

@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import checkCollisions from '../commands/check-library-collisions';
-import { testLibraryPaths, findMinimizedAlternatives } from '../commands/test-library-paths';
+import { findMinimizedAlternatives, listLibraries, checkLibraryPaths } from '../commands/library-commands';
 
 const program = new Command();
 
@@ -15,6 +15,7 @@ const libraries = program.command('libraries');
 
 libraries.command('check-collisions').action(checkCollisions);
 libraries.command('find-minimized-alternatives').action(findMinimizedAlternatives);
-libraries.command('test-import-paths').action(testLibraryPaths);
+libraries.command('test-import-paths').action(checkLibraryPaths);
+libraries.command('list').action(listLibraries);
 
 program.parse(process.argv);

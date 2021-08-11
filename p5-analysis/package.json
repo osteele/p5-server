@@ -29,17 +29,18 @@
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
-    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@babel/core": "^7.15.0",
+    "@babel/core": "^7.14.8",
     "@babel/plugin-proposal-object-rest-spread": "^7.14.7",
     "commander": "^8.0.0",
     "esprima": "^4.0.1",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
+    "node-fetch": "^2.6.1",
     "node-html-parser": "^4.1.0",
     "nunjucks": "^3.2.3"
   },
@@ -51,7 +52,6 @@
     "@types/nunjucks": "^3.1.5",
     "@types/rimraf": "^3.0.1",
     "@typescript-eslint/parser": "^4.29.0",
-    "node-fetch": "^2.6.1",
     "typedoc": "^0.21.5"
   },
   "jest": {

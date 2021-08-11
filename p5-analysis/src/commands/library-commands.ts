@@ -1,10 +1,21 @@
 #!/usr/bin/env ts-node
-import fetch from 'node-fetch';
 import crypto from 'crypto';
 import fs from 'fs';
+import fetch from 'node-fetch';
 import { Library, Script } from '..';
+import nunjucks from 'nunjucks';
+import path from 'path';
 
-export async function testLibraryPaths() {
+export function listLibraries() {
+  const templatePath = path.join(__dirname, './templates/list-libraries.njk');
+  console.log(
+    nunjucks.render(templatePath, {
+      libraries: Library.all
+    })
+  );
+}
+
+export async function checkLibraryPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
@@ -106,11 +117,15 @@ async function cachedFetch(url: string) {
       statusText: 'OK',
       text: () => Promise.resolve(text)
     };
-  }
-  const res = await fetch(url);
-  if (res.ok) {
+  } else {
+    const res = await fetch(url);
     const text = await res.text();
-    fs.writeFileSync(cachePath, text);
+    if (res.ok) {
+      fs.writeFileSync(cachePath, text);
+    }
+    return {
+      ...res,
+      text: () => Promise.resolve(text)
+    };
   }
-  return res;
 }

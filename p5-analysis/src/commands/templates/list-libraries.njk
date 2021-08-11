@@ -1,0 +1,6 @@
+Libraries:
+{% for lib in libraries -%}
+    - {{ lib.name }} ({{ lib.homepage }})
+  {{ lib.description }}
+
+{% endfor %}

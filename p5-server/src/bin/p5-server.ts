@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import convert from '../commands/convert';
 import create from '../commands/create';
-import reportLibraries from '../commands/report-libraries';
 import serve from '../commands/serve';
 import updateNotifier from 'update-notifier';
 
@@ -36,10 +35,7 @@ program
   .option('--to <type>', 'output type: html or javascript')
   .action(convert);
 
-program
-  .command('libraries', { hidden: true })
-  .description('List the libraries')
-  .action(reportLibraries);
+program.command('libraries', 'List the libraries', { hidden: true, executableFile: 'p5-analyze' });
 
 program
   .command('serve')

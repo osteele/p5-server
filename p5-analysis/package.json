@@ -1,10 +1,10 @@
 {
   "name": "p5-analysis",
-  "version": "0.4.0",
-  "description": "API to find, create. and analyze p5.js sketch files.",
+  "version": "0.4.2",
+  "description": "API to find, create, and analyze p5.js sketch files.",
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "homepage": "https://osteele.github.io/p5-server",
-  "repository": "osteele/p5-server",
+  "repository": "github:osteele/p5-server",
   "keywords": [
     "p5",
     "p5.js"
@@ -16,8 +16,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "scripts": {
     "build": "npm run clean && npm run copy-files && tsc --declaration",
@@ -37,8 +36,7 @@
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
     "node-html-parser": "^4.1.0",
-    "nunjucks": "^3.2.3",
-    "save-dev": "^0.0.1-security"
+    "nunjucks": "^3.2.3"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.7",
@@ -47,7 +45,9 @@
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.1.5",
     "@types/rimraf": "^3.0.1",
-    "node-fetch": "^2.6.1"
+    "@typescript-eslint/parser": "^4.29.0",
+    "node-fetch": "^2.6.1",
+    "typedoc": "^0.21.5"
   },
   "jest": {
     "preset": "ts-jest",

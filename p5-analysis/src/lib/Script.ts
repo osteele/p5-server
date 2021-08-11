@@ -2,6 +2,9 @@ import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
 import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences } from './script-analysis';
 import babel = require('@babel/core');
+import objectRestSpreadPlugin = require('@babel/plugin-proposal-object-rest-spread');
+
+const objectRestSpreadConfigItem = babel.createConfigItem(objectRestSpreadPlugin);
 
 export class JavaScriptSyntaxError extends Error {
   constructor(msg: string, public readonly fileName: string | null = null) {
@@ -41,7 +44,8 @@ export class Script implements ScriptAnalysis {
       compact: true,
       filename: this.filename,
       highlightCode: false,
-      plugins: ['@babel/plugin-proposal-object-rest-spread']
+      plugins: [objectRestSpreadConfigItem]
+      // plugins: ['@babel/plugin-proposal-object-rest-spread']
     });
     const source = result!.code!;
     if (this._program) {

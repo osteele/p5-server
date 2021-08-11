@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.4.2]
+
+- Jump through hoops to make babel plugins work in a distribution
+
 ## [0.4.0]
 
 - Parse scripts that use the spread operator

@@ -2,9 +2,9 @@
 import fetch from 'node-fetch';
 import crypto from 'crypto';
 import fs from 'fs';
-import { Library, Script } from '../src';
+import { Library, Script } from '..';
 
-async function testPaths() {
+export async function testLibraryPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
@@ -51,7 +51,7 @@ async function testPaths() {
   // }
 }
 
-async function findMinimizedReplacements() {
+export async function findMinimizedAlternatives() {
   const candidates = Library.all.filter(
     library => library.importPath && library.importPath.endsWith('.js') && !library.importPath.endsWith('.min.js')
   );
@@ -64,11 +64,14 @@ async function findMinimizedReplacements() {
       })
     )
   ).filter(Boolean) as [Library, string][];
+
   if (found.length) {
-    console.log('These libraries have minimized versions:');
+    console.log('These libraries have minimized alternatives:');
     found.forEach(([library, replacement]) =>
       console.log(`${library.name}\n  ${library.importPath} -> ${replacement}`)
     );
+  } else {
+    console.log('No libraries have minimized alternatives.');
   }
 }
 
@@ -110,13 +113,4 @@ async function cachedFetch(url: string) {
     fs.writeFileSync(cachePath, text);
   }
   return res;
-  /*{
-    ok: res.ok,
-    status: res.status,
-    statusText: res.statusText,
-    text: res.text.bind(res)
-    }*/
 }
-
-testPaths();
-// findMinimizedReplacements();

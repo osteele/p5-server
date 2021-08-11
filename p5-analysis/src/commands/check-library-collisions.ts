@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
-import { Library } from '../src';
+import { Library } from '..';
 
-function checkCollisions() {
+export default function checkCollisions() {
   const definitions = new Map<string, Library[]>();
   Library.all.forEach(library => {
     library.globals.forEach(name => {
@@ -35,5 +35,3 @@ function checkCollisions() {
     });
   }
 }
-
-checkCollisions();

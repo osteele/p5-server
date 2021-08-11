@@ -1,5 +1,5 @@
 import path from 'path';
-import { Library } from '../src/Library';
+import { Library } from '../src/lib/Library';
 
 const testfilesPath = './tests/testdata';
 

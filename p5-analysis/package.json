@@ -18,10 +18,14 @@
   "files": [
     "dist"
   ],
+  "bin": {
+    "p5-analyze": "dist/bin/p5-analyze.js"
+  },
   "scripts": {
     "build": "npm run clean && npm run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
+    "cli": "ts-node src/bin/p5-analyze.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
@@ -32,6 +36,7 @@
   "dependencies": {
     "@babel/core": "^7.15.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.14.7",
+    "commander": "^8.0.0",
     "esprima": "^4.0.1",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",

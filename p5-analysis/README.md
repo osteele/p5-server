@@ -1,11 +1,12 @@
 # P5 Analysis
 
 [![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
+![CI workflow](https://github.com/osteele/p5-server/actions/workflows/test.yml/badge.svg)
 
-This library provides functionality for finding, analyzing, and generating
-[P5.js sketches](https://p5js.org). It is used by the
+This library provides a programmatic API for finding, analyzing, and generating
+[P5.js sketches](https://p5js.org). It was created for the
 [p5-server](https://github.com/osteele/p5-server#p5js-server) command-line tool,
-and by the [P5 Server Visual Studio Code
+and the [P5 Server Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
 
 The API consists of three classes:

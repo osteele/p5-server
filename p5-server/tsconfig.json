@@ -8,5 +8,5 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": ["dist", "build", "node_modules", "tests", "p5-analysis", "p5-analysis/**/*.ts"]
+  "exclude": ["dist", "build", "node_modules", "tests"]
 }

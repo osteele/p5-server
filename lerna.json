@@ -3,6 +3,8 @@
     "p5-analysis",
     "p5-server"
   ],
+  "npmClient": "yarn",
+  "useWorkspaces": true,
   "version": "independent",
   "command": {
     "publish": {

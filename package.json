@@ -11,7 +11,6 @@
   },
   "homepage": "https://github.com/osteele/p5-server#readme",
   "scripts": {
-    "build:docs": "yarn workspace p5-analysis run build:docs",
     "prepare": "husky install",
     "lint": "yarn workspaces foreach run lint",
     "test": "yarn workspace p5-analysis run build && yarn workspaces foreach run test"

@@ -31,3 +31,4 @@ jobs:
         with:
           branch: gh-pages
           folder: p5-analysis/build/docs
+          target-folder: p5-analysis

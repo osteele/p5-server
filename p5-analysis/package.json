@@ -51,7 +51,6 @@
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.1.5",
     "@types/rimraf": "^3.0.1",
-    "@typescript-eslint/parser": "^4.29.0",
     "typedoc": "^0.21.5"
   },
   "jest": {

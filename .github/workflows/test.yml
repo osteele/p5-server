@@ -1,4 +1,4 @@
-name: unit-tests
+name: "unit tests"
 
 on:
   push:
@@ -35,3 +35,6 @@ jobs:
 
       - name: Test
         run: yarn test
+
+      - name: Build
+        run: yarn build

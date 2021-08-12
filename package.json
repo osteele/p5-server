@@ -12,6 +12,9 @@
   "homepage": "https://github.com/osteele/p5-server#readme",
   "scripts": {
     "prepare": "husky install",
+    "clean": "yarn workspaces foreach run clean:dist",
+    "clean:dist": "cd $INIT_CWD && rimraf dist",
+    "build": "yarn workspaces foreach -t run build",
     "lint": "yarn workspaces foreach run lint",
     "test": "yarn workspace p5-analysis run build && yarn workspaces foreach run test"
   },

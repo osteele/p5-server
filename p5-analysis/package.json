@@ -7,14 +7,18 @@
   "repository": "github:osteele/p5-server",
   "keywords": [
     "p5",
-    "p5.js"
+    "p5.js",
+    "creative coding"
   ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "main": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
@@ -25,7 +29,7 @@
     "build": "npm run clean && npm run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
-    "cli": "ts-node src/bin/p5-analyze.ts",
+    "cli": "ts-node --files src/bin/p5-analyze.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",

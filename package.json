@@ -1,9 +1,12 @@
 {
   "name": "@osteele/p5-tools",
-  "version": "0.3.2",
   "description": "Workspace for p5-analysis and p5-server",
   "repository": "github:osteele/p5-server",
-  "keywords": [],
+  "keywords": [
+    "p5",
+    "p5.js",
+    "creative coding"
+  ],
   "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "license": "MIT",
   "bugs": {
@@ -12,11 +15,11 @@
   "homepage": "https://github.com/osteele/p5-server#readme",
   "scripts": {
     "prepare": "husky install",
-    "clean": "yarn workspaces foreach run clean:dist",
-    "clean:dist": "cd $INIT_CWD && rimraf dist",
+    "clean": "yarn workspaces foreach run clean:ws",
+    "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "build": "yarn workspaces foreach -t run build",
     "lint": "yarn workspaces foreach run lint",
-    "test": "yarn workspace p5-analysis run build && yarn workspaces foreach run test"
+    "test": "yarn workspaces foreach -t run test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.29.1",

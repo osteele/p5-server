@@ -8,15 +8,19 @@
   "keywords": [
     "p5",
     "p5.js",
-    "web server",
-    "live reload"
+    "creative coding",
+    "live reload",
+    "web server"
   ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "main": "./dist/index.js"
+  },
   "bin": {
     "p5": "dist/bin/p5-server.js"
   },

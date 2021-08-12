@@ -12,10 +12,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install
-        run: npm install
+        run: |
+          npm install -g yarn
+          yarn install
 
       - name: Build Docs
-        run: npm run build:docs
+        run: yarn run build:docs
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4

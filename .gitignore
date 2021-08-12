@@ -1,7 +1,16 @@
 node_modules
 dist
-examples.zip
+
 *.tgz
 *.log
+
 p5-analysis/package/
 p5-server/package/
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

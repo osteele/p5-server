@@ -1,5 +1,5 @@
 {
-  "name": "@p5-tools/root",
+  "name": "@osteele/p5-tools",
   "version": "0.3.2",
   "description": "Workspace for p5-analysis and p5-server",
   "repository": "github:osteele/p5-server",
@@ -11,10 +11,10 @@
   },
   "homepage": "https://github.com/osteele/p5-server#readme",
   "scripts": {
-    "build:docs": "lerna run --scope p5-analysis build:docs",
+    "build:docs": "yarn workspace p5-analysis run build:docs",
     "prepare": "husky install",
-    "lint": "lerna run lint",
-    "test": "lerna run test"
+    "lint": "yarn workspaces foreach run lint",
+    "test": "yarn workspace p5-analysis run build && yarn workspaces foreach run test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.29.1",
@@ -33,5 +33,6 @@
   "workspaces": [
     "p5-analysis",
     "p5-server"
-  ]
+  ],
+  "packageManager": "yarn@3.0.0"
 }

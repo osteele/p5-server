@@ -14,11 +14,8 @@
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "publishConfig": {
-    "main": "./dist/index.js"
-  },
   "files": [
     "dist"
   ],

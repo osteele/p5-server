@@ -14,3 +14,4 @@ p5-server/package/
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+*.tsbuildinfo

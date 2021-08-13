@@ -1,14 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "target": "ES2019",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": ["dist", "build", "node_modules", "scripts", "tests"],
+  "exclude": ["build", "dist", "node_modules", "tests"],
+  "extends": "..",
   "typedocOptions": {
     "name": "p5-analysis API documentation",
     "theme": "minimal",

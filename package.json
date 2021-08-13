@@ -22,6 +22,7 @@
     "test": "yarn workspace p5-analysis build && yarn workspaces foreach -t run test"
   },
   "devDependencies": {
+    "@tsconfig/node16": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^4.29.1",
     "@typescript-eslint/parser": "^4.29.0",
     "copyfiles": "^2.4.1",

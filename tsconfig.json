@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "removeComments": true
+  },
+  "extends": "@tsconfig/node16/tsconfig.json"
+}

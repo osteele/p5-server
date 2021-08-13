@@ -20,18 +20,21 @@ The API consists of three classes:
 * {@link Library} represents a [p5.js
   library](https://p5js.org/libraries/).
 
+The API reference is [here](https://osteele.github.io/p5-server/p5-analysis/).
+
 These APIs are not stable until this package reaches version 1.0.
 
 ## Installation
 
 ```sh
-npm install --save p5-server
+npm install --save p5-analysis
+yard add p5-analysis
 ```
 
 ## Usage
 
 ```js
-import { Sketch } from "p5-server";
+import { Sketch } from "p5-analysis";
 
 let { sketches } = Sketch.analyzeDirectory(); // find all the sketches in a directory
 

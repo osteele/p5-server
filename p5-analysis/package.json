@@ -47,15 +47,17 @@
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.7",
+    "@types/eslint": "^7",
     "@types/esprima": "^4.0.3",
     "@types/jest": "^26.0.24",
     "@types/node": "^16.6.0",
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.1.5",
     "@types/rimraf": "^3.0.1",
+    "eslint": "^7.32.0",
     "jest": "^27.0.6",
-    "typedoc": "^0.21.5",
-    "typescript": "^4.3.5"
+    "ts-node": "^10.2.0",
+    "typedoc": "^0.21.5"
   },
   "jest": {
     "preset": "ts-jest",

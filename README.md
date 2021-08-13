@@ -184,22 +184,7 @@ automatic library inclusion, and other details of the implementation.
 
 ## API
 
-The server can be invoked programmatically. In a JavaScript or TypeScript project:
-
-```sh
-npm install --save p5-server
-```
-
-```js
-import { Server } from "p5-server";
-
-let server = await Server.start();
-console.log(`Open ${server.url} in a browser`);
-```
-
-For convenience, this package also re-exports the `Sketch`, `Script`, and
-`Library` classes that it imports from
-[p5-analysis](https://www.npmjs.com/package/p5-analysis).
+The server can be invoked programmatically. See the [API Reference](https://osteele.github.io/p5-server/p5-analysis/) for installation instructions and reference documentation for this use.
 
 ## Acknowledgements
 

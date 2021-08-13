@@ -16,7 +16,8 @@
   "settings": {
     "files.exclude": {
       "build": true,
-      "dist": true
+      "dist": true,
+      "node_modules": true
     },
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"

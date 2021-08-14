@@ -63,7 +63,7 @@ export class Library implements Library.Properties {
   }
 
   static inferFromScripts(scriptPaths: string[]): LibraryArray {
-    let libs: LibraryArray = new LibraryArray();
+    const libs: LibraryArray = new LibraryArray();
     // TODO: remove each script's global from other scripts' free variables.
     //
     // This doesn't make a functional difference with the current usage, because

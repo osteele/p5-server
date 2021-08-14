@@ -16,6 +16,15 @@
     "no-console": ["error", { "allow": ["warn", "error", "log"] }],
     "no-constant-condition": "off",
     "no-debugger": "error",
-    "prefer-const": "off"
-  }
+    "prefer-const": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/tests/*.test.ts"],
+      "rules": {
+        "no-explicit-any": "off",
+        "prefer-const": "off"
+      }
+    }
+  ]
 }

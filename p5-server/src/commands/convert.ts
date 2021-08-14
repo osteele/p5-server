@@ -5,7 +5,7 @@ const sketchTypes: SketchType[] = ['html', 'javascript'];
 
 export default function convert(sketchPath: string, options: { to?: SketchType }) {
   const sketch = Sketch.fromFile(sketchPath);
-  let targetType = options.to || (sketch.sketchType === 'html' ? 'javascript' : 'html');
+  const targetType = options.to || (sketch.sketchType === 'html' ? 'javascript' : 'html');
 
   if (!sketchTypes.includes(targetType)) {
     die(`Invalid option --to ${options.to}; must be `);

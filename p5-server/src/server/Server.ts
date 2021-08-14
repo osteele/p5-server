@@ -33,17 +33,17 @@ jsTemplateEnv.addFilter('quote', JSON.stringify);
 function createRouter(config: Config): express.Router {
   const router = express.Router();
 
-  router.get('/', (req, res) => {
+  router.get('/', async (req, res) => {
     const file = config.sketchFile;
     if (file) {
       if (Sketch.isSketchScriptFile(file)) {
-        const sketch = Sketch.fromFile(file);
+        const sketch = await Sketch.fromFile(file);
         res.send(injectLiveReloadScript(sketch.getHtmlContent(), req.app.locals.liveReloadServer));
       } else {
         res.sendFile(file);
       }
     } else {
-      sendDirectoryListing(config.root, req, res);
+      await sendDirectoryListing(config.root, req, res);
     }
   });
 
@@ -70,10 +70,10 @@ function createRouter(config: Config): express.Router {
 
   // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
-  router.get('/*.js', (req, res, next) => {
+  router.get('/*.js', async (req, res, next) => {
     const file = path.join(config.root, req.path);
     if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(file)) {
-      const { sketches } = Sketch.analyzeDirectory(path.dirname(file));
+      const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
       const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
       if (sketch) {
         const content = sketch.getHtmlContent();
@@ -112,11 +112,11 @@ function createRouter(config: Config): express.Router {
     return next();
   });
 
-  router.get('*', (req, res, next) => {
+  router.get('*', async (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
       const file = path.join(config.root, req.path);
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-        sendDirectoryListing(config.root, req, res);
+        await sendDirectoryListing(config.root, req, res);
         return;
       }
     }
@@ -127,7 +127,7 @@ function createRouter(config: Config): express.Router {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendDirectoryListing(root: string, req: Request<any, any, any, any, any>, res: Response<any, any>) {
+async function sendDirectoryListing(root: string, req: Request<any, any, any, any, any>, res: Response<any, any>) {
   const relPath = req.path;
   let fileData: string;
   let isSingleSketch = false;
@@ -139,7 +139,7 @@ function sendDirectoryListing(root: string, req: Request<any, any, any, any, any
     if (e.code !== 'ENOENT') {
       throw e;
     }
-    fileData = createDirectoryListing(relPath, root);
+    fileData = await createDirectoryListing(relPath, root);
   }
 
   if (isSingleSketch && !relPath.endsWith('/')) {

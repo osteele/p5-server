@@ -1,5 +1,9 @@
 # Change Log
 
+## [unreleased]
+
+- Sketch.fromDirectory, fromFile, analyzeDirectory, isSketchDir are now async
+
 ## [0.4.2]
 
 - Jump through hoops to make babel plugins work in a distribution

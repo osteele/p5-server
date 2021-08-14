@@ -90,8 +90,8 @@ export class Sketch {
    *
    * @category Sketch creation
    */
-  static fromDirectory(dir: string, options?: { exclusions?: string[] }) {
-    const sketch = Sketch.isSketchDir(dir, options);
+  static async fromDirectory(dir: string, options?: { exclusions?: string[] }) {
+    const sketch = await Sketch.isSketchDir(dir, options);
     if (!sketch) {
       throw new Error(`Directory ${dir} is not a sketch directory`);
     }
@@ -108,9 +108,9 @@ export class Sketch {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
     } else if (/\.js$/.test(filePath)) {
-      return Sketch.fromScriptFile(filePath);
+      return Promise.resolve(Sketch.fromScriptFile(filePath));
     } else if (/\.html$/.test(filePath)) {
-      return Sketch.fromHtmlFile(filePath);
+      return Promise.resolve(Sketch.fromHtmlFile(filePath));
     } else {
       throw new Error(`Unrecognized file type: ${filePath}`);
     }
@@ -121,22 +121,30 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static analyzeDirectory(dir: string, options?: { exclusions?: string[] }) {
+  static async analyzeDirectory(dir: string, options?: { exclusions?: string[] }) {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
     let files = fs.readdirSync(dir).filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
 
     // collect directory sketches, and remove them from the list of files
-    files = files.filter(name => {
+    files = await asyncFilter(files, async name => {
       const dirPath = path.join(dir, name);
-      const sketch = Sketch.isSketchDir(dirPath, { exclusions });
+      const sketch = await Sketch.isSketchDir(dirPath, { exclusions });
       if (sketch) {
         sketch.name = name;
         sketches.push(sketch);
       }
       return !sketch;
     });
+
+    async function asyncFilter<T>(
+      array: T[],
+      predicate: (value: T, index: number, array: T[]) => Promise<boolean>
+    ): Promise<T[]> {
+      const keys = await Promise.all(array.map(predicate));
+      return array.filter((value, index) => keys[index]);
+    }
 
     // collect HTML sketches
     for (const file of files) {
@@ -215,11 +223,11 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static isSketchDir(dir: string, options?: { exclusions?: string[] }): Sketch | null {
+  static async isSketchDir(dir: string, options?: { exclusions?: string[] }): Promise<Sketch | null> {
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
       return null;
     }
-    const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dir, options);
+    const { sketches, unaffiliatedFiles } = await Sketch.analyzeDirectory(dir, options);
     return sketches.length === 1 && unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)) ? sketches[0] : null;
   }
 

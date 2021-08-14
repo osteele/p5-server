@@ -3,8 +3,8 @@ import { die } from '../utils';
 
 const sketchTypes: SketchType[] = ['html', 'javascript'];
 
-export default function convert(sketchPath: string, options: { to?: SketchType }) {
-  const sketch = Sketch.fromFile(sketchPath);
+export default async function convert(sketchPath: string, options: { to?: SketchType }) {
+  const sketch = await Sketch.fromFile(sketchPath);
   const targetType = options.to || (sketch.sketchType === 'html' ? 'javascript' : 'html');
 
   if (!sketchTypes.includes(targetType)) {

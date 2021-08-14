@@ -8,9 +8,9 @@ import { templateDir } from './globals';
 
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
-export function createDirectoryListing(relPath: string, root: string) {
+export async function createDirectoryListing(relPath: string, root: string) {
   const dir = path.join(root, relPath);
-  const { sketches, unaffiliatedFiles } = Sketch.analyzeDirectory(dir);
+  const { sketches, unaffiliatedFiles } = await Sketch.analyzeDirectory(dir);
   unaffiliatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
   const readmeName = unaffiliatedFiles.find(s => s.toLowerCase() === 'readme.md');

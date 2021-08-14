@@ -37,6 +37,9 @@ export class Script implements ScriptAnalysis {
 
   private get program() {
     // TODO: use the babel AST, instead of re-parsing with esprima
+    if (this._program) {
+      return this._program;
+    }
     const result = babel.transform(this.source, {
       ast: false,
       babelrc: false,
@@ -45,12 +48,10 @@ export class Script implements ScriptAnalysis {
       filename: this.filename,
       highlightCode: false,
       plugins: [objectRestSpreadConfigItem]
-      // plugins: ['@babel/plugin-proposal-object-rest-spread']
     });
+
+    // this._program = (result!.ast!.program as unknown) as Program;
     const source = result!.code!;
-    if (this._program) {
-      return this._program;
-    }
     try {
       this._program = parseScript(source);
     } catch {

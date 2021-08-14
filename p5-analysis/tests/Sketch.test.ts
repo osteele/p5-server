@@ -12,7 +12,7 @@ function f(strings: TemplateStringsArray) {
 
 test('Sketch.fromHtmlFile', () => {
   const sketch = Sketch.fromHtmlFile(f`Sketch.analyzeDirectory/sketch.html`);
-  expect(sketch.sketchType === 'html');
+  expect(sketch.sketchType).toBe('html');
   expect(sketch.name).toBe('sketch');
   expect(sketch.title).toBe('HTML-based sketch');
   expect(sketch.dir).toBe(f`Sketch.analyzeDirectory`);
@@ -23,7 +23,7 @@ test('Sketch.fromHtmlFile', () => {
 
 test('Sketch.fromScriptFile', () => {
   const sketch = Sketch.fromScriptFile(f`circles.js`);
-  expect(sketch.sketchType === 'javascript');
+  expect(sketch.sketchType).toBe('javascript');
   expect(sketch.name).toBe('circles');
   expect(sketch.title).toBe('Circles');
   expect(sketch.dir).toBe(f``);
@@ -169,7 +169,7 @@ describe('Sketch.convert', () => {
     test('multiple scripts', () =>
       testConvert('multiple-scripts.html', { type: 'javascript' }, { exception: /contains multiple script tags/ }));
 
-    test('multiple scripts', () =>
+    test('missing scripts', () =>
       testConvert(
         'missing-script.html',
         { type: 'javascript' },

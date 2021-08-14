@@ -1,11 +1,5 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn run lint
+yarn lint
 yarn test
-
-if [[ $(grep -r --include \*.ts 'test.only' tests p5-analysis/tests | wc -l) -gt 0 ]]; then exit 1; fi
-if [[ $(grep -r --include \*.ts 'describe.only' tests p5-analysis/tests | wc -l) -gt 0 ]]; then exit 1; fi
-
-if [[ $(grep -r --include \*.ts 'test.only' tests p5-server/tests | wc -l) -gt 0 ]]; then exit 1; fi
-if [[ $(grep -r --include \*.ts 'describe.only' tests p5-server/tests | wc -l) -gt 0 ]]; then exit 1; fi

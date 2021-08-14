@@ -1,11 +1,12 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "jest"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended"
   ],
   "ignorePatterns": ["dist", "node_modules", "examples", "testdata"],
   "rules": {
@@ -13,6 +14,8 @@
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-this-alias": "off",
+    "jest/expect-expect": "off",
+    "jest/no-disabled-tests": "off",
     "no-console": ["error", { "allow": ["warn", "error", "log"] }],
     "no-constant-condition": "off",
     "no-debugger": "error",

@@ -11,7 +11,7 @@ export default async function build(
   options: { output?: string; dryRun?: boolean; verbose?: boolean }
 ): Promise<void> {
   const output = options.output || 'build';
-  function verbose(...args: any[]) {
+  function verbose(...args: unknown[]) {
     if (options.verbose || options.dryRun) console.log(...args);
   }
 
@@ -35,7 +35,7 @@ export default async function build(
         verbose('Generate index', outputFile);
         if (!options.dryRun) {
           fs.rmSync(outputFile, { force: true });
-          const html = await createDirectoryListing(path.basename(src), path.dirname(src));
+          const html = await createDirectoryListing(src, path.basename(src));
           fs.writeFileSync(outputFile, html);
         }
         break;

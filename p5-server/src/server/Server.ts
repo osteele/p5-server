@@ -133,25 +133,23 @@ async function sendDirectoryListing<T>(
 ) {
   const reqPath = req.path;
   let fileData: string;
-  let isSingleSketch = false;
-  try {
-    const absPath = path.join(root, relPath);
-    fileData = fs.readFileSync(path.join(absPath, 'index.html'), 'utf-8');
-    isSingleSketch = true;
-  } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
+  const absPath = path.join(root, reqPath);
+  // read the directory contents
+  const indexFile = fs.readdirSync(absPath).find(file => /^index\.html?$/i.test(file));
+  if (indexFile) {
+    // This is needed for linked files to work.
+    if (!reqPath.endsWith('/')) {
+      res.redirect(reqPath + '/');
+      return;
     }
-    fileData = await createDirectoryListing(relPath, root);
+    fileData = fs.readFileSync(path.join(absPath, indexFile), 'utf-8');
+  } else {
+    fileData = await createDirectoryListing(absPath, reqPath);
   }
 
-  if (isSingleSketch && !relPath.endsWith('/')) {
-    res.redirect(relPath + '/');
-    return;
-  }
-
-  // Note:  this injects the reload script into the generated index pages too.
-  // This is helpful when the directory contents change.
+  // Note: This injects the reload script into the generated index pages too.
+  // This assures that the index page reloads when the directory contents
+  // change.
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
@@ -171,7 +169,7 @@ async function startServer(options: Partial<Server.Options>) {
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.
   if (fs.statSync(root).isDirectory()) {
-    createDirectoryListing('/', root);
+    createDirectoryListing(root, '/');
   }
 
   let server: http.Server | null = null;

@@ -8,8 +8,7 @@ import { templateDir } from './globals';
 
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
-export async function createDirectoryListing(relPath: string, root: string): Promise<string> {
-  const dir = path.join(root, relPath);
+export async function createDirectoryListing(dir: string, breadcrumbPath?: string): Promise<string> {
   const { sketches, unaffiliatedFiles } = await Sketch.analyzeDirectory(dir);
   unaffiliatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
@@ -23,7 +22,7 @@ export async function createDirectoryListing(relPath: string, root: string): Pro
   const files = unaffiliatedFiles.filter(s => !directories.includes(s) && s !== readmeName);
   const title = dir === './' ? 'P5 Server' : path.basename(dir);
 
-  const pathComponents = pathComponentsForBreadcrumbs(relPath);
+  const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);
   return directoryListingTmpl({
     pathComponents,
     title,
@@ -36,12 +35,12 @@ export async function createDirectoryListing(relPath: string, root: string): Pro
     path_to_src_view
   });
 
-  function path_to(f: string, sk: Sketch) {
-    return path.relative(dir, path.join(sk.dir, f));
+  function path_to(file: string, sk: Sketch) {
+    return path.relative(dir, path.join(sk.dir, file));
   }
 
-  function path_to_src_view(s: string, sk: Sketch) {
-    let p = path_to(s, sk);
+  function path_to_src_view(file: string, sk: Sketch) {
+    let p = path_to(file, sk);
     if (p.match(/.*\.(html?|js)$/i)) {
       p += '?fmt = view';
     }

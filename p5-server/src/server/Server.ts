@@ -126,9 +126,12 @@ function createRouter(config: Config): express.Router {
   return router;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function sendDirectoryListing(root: string, req: Request<any, any, any, any, any>, res: Response<any, any>) {
-  const relPath = req.path;
+async function sendDirectoryListing<T>(
+  root: string,
+  req: Request<unknown, unknown, unknown, unknown, T>,
+  res: Response<string, T>
+) {
+  const reqPath = req.path;
   let fileData: string;
   let isSingleSketch = false;
   try {

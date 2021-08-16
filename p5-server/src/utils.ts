@@ -2,7 +2,7 @@ import chalk from 'chalk';
 
 /** Print the message to standard output; then exit with status code 1.
  */
-export function die(message: string) {
+export function die(message: string): never {
   console.error(chalk.red('Error:', message));
   process.exit(1);
 }

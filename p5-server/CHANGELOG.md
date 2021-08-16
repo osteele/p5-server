@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+- added `p5 tree`
+- more functionality is async behind the scenes
+
 ## [0.4.2]
 
 - Change options to `p5 create`

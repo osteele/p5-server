@@ -1775,6 +1775,7 @@ __metadata:
     "@typescript-eslint/parser": ^4.29.0
     copyfiles: ^2.4.1
     eslint: ^7.32.0
+    eslint-plugin-jest: ^24.4.0
     husky: ^7.0.1
     jest: ^27.0.6
     lerna: ^4.0.0

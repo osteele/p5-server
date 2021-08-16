@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - added `p5 tree`
+- added `p5 build`
 - more functionality is async behind the scenes
 
 ## [0.4.2]

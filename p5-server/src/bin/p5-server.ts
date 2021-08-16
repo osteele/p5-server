@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import build from '../commands/build';
 import convert from '../commands/convert';
 import create from '../commands/create';
 import serve from '../commands/serve';
@@ -28,6 +29,15 @@ program
   .option('-o, --options [OPTIONS]', 'comma-separated list of options')
   .option('-t, --title [TITLE]', 'sketch title')
   .action(create);
+
+program
+  .command('build', { hidden: true })
+  .alias('b')
+  .argument('[SOURCE]', 'the filename of the sketch', '.')
+  .option('-o, --output [OUTPUT]', 'the filename of the sketch', 'build')
+  .option('-v, --verbose', 'verbose output')
+  .option('--dry-run', 'dry run')
+  .action(build);
 
 program
   .command('convert')

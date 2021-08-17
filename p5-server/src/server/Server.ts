@@ -38,7 +38,7 @@ function createRouter(config: Config): express.Router {
     if (file) {
       if (await Sketch.isSketchScriptFile(file)) {
         const sketch = await Sketch.fromFile(file);
-        res.send(injectLiveReloadScript(sketch.getHtmlContent(), req.app.locals.liveReloadServer));
+        res.send(injectLiveReloadScript(await sketch.getHtmlContent(), req.app.locals.liveReloadServer));
       } else {
         res.sendFile(file);
       }
@@ -56,8 +56,8 @@ function createRouter(config: Config): express.Router {
         return;
       }
       if (req.headers['accept']?.match(/\btext\/html\b/)) {
-        const content = fs.readFileSync(file, 'utf-8');
-        res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
+        const html = fs.readFileSync(file, 'utf-8');
+        res.send(injectLiveReloadScript(html, req.app.locals.liveReloadServer));
         return;
       }
     } catch (e) {
@@ -80,8 +80,8 @@ function createRouter(config: Config): express.Router {
       const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
       const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
       if (sketch) {
-        const content = sketch.getHtmlContent();
-        res.send(injectLiveReloadScript(content, req.app.locals.liveReloadServer));
+        const html = await sketch.getHtmlContent();
+        res.send(injectLiveReloadScript(html, req.app.locals.liveReloadServer));
         return;
       }
     }

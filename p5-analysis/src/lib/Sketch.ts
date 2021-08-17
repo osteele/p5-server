@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { readdir, readFile, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
 import { HTMLElement, parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
@@ -62,13 +63,11 @@ export class Sketch {
    */
   static async fromHtmlFile(htmlFile: string): Promise<Sketch> {
     const dir = path.dirname(htmlFile);
-    const htmlContent = fs.readFileSync(htmlFile, 'utf-8');
+    const htmlContent = await readFile(htmlFile, 'utf-8');
     const htmlRoot = parse(htmlContent);
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFilesFromHtml(htmlRoot, '');
-    return new Sketch(dir, path.basename(htmlFile), scripts[0], {
-      description
-    });
+    return new Sketch(dir, path.basename(htmlFile), scripts[0], { description });
   }
 
   /** Create a sketch from a JavaScript file.
@@ -79,8 +78,8 @@ export class Sketch {
     const dir = path.dirname(scriptFile);
     let description;
     if (fs.existsSync(scriptFile)) {
-      const content = fs.readFileSync(scriptFile, 'utf-8');
-      description = this.getDescriptionFromScript(content);
+      const source = await readFile(scriptFile, 'utf-8');
+      description = this.getDescriptionFromScript(source);
     }
     return new Sketch(dir, null, path.basename(scriptFile), { description });
   }
@@ -128,7 +127,7 @@ export class Sketch {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
-    let files = fs.readdirSync(dir).filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
+    let files = (await readdir(dir)).filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
 
     // collect directory sketches, and remove them from the list of files
     files = await asyncFilter(files, async name => {
@@ -188,7 +187,7 @@ export class Sketch {
       return false;
     }
 
-    const html = fs.readFileSync(htmlFile, 'utf-8');
+    const html = await readFile(htmlFile, 'utf-8');
     const htmlRoot = parse(html);
     const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
     // TODO: also require that a script contains setup()
@@ -213,7 +212,7 @@ export class Sketch {
       return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
     } catch (e) {
       if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
-        const source = fs.readFileSync(file, 'utf-8');
+        const source = await readFile(file, 'utf-8');
         return /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source);
       }
       throw e;
@@ -328,8 +327,8 @@ export class Sketch {
     if (this.htmlFile) {
       const filePath = path.join(this.dir, this.htmlFile);
       if (fs.existsSync(filePath)) {
-        const htmlContent = fs.readFileSync(filePath, 'utf-8');
-        const htmlRoot = parse(htmlContent);
+        const html = fs.readFileSync(filePath, 'utf-8');
+        const htmlRoot = parse(html);
         const dir = path.dirname(this.htmlFile);
         files = [
           ...files,
@@ -375,8 +374,8 @@ export class Sketch {
     templateOptions: Record<string, unknown>
   ) {
     const file = path.join(this.dir, relPath);
-    const content = this.getGeneratedFileContent(templateName, templateOptions);
-    fs.writeFileSync(file, content, force ? {} : { flag: 'wx' });
+    const content = await this.getGeneratedFileContent(templateName, templateOptions);
+    await writeFile(file, content, force ? {} : { flag: 'wx' });
     return file;
   }
 
@@ -397,7 +396,7 @@ export class Sketch {
     return Library.inferFromScripts(this.files.filter(f => /\.js$/i.test(f)).map(f => path.join(this.dir, f)));
   }
 
-  private getGeneratedFileContent(base: string, options: Record<string, unknown>) {
+  private async getGeneratedFileContent(base: string, options: Record<string, unknown>): Promise<string> {
     const libraries = this.libraries;
     const data = {
       title: this.title,
@@ -410,13 +409,13 @@ export class Sketch {
     const templatePath = path.join(templateDir, base);
     // replacing the following two lines by `nunjucks.render` passes the test
     // suite by fails to find the file when imported from another package
-    const template = nunjucks.compile(fs.readFileSync(templatePath, 'utf-8'));
+    const template = nunjucks.compile(await readFile(templatePath, 'utf-8'));
     return template.render(data).trim() + '\n';
   }
 
-  public getHtmlContent() {
+  public async getHtmlContent(): Promise<string> {
     return this.htmlFile
-      ? fs.readFileSync(path.join(this.dir, this.htmlFile), 'utf-8')
+      ? await readFile(path.join(this.dir, this.htmlFile), 'utf-8')
       : this.getGeneratedFileContent('index.html', {});
   }
 
@@ -427,19 +426,19 @@ export class Sketch {
    * will remain the same. Before removing an HTML file, it also verifies that the file
    * included only the single script file, and no other non-library files.
    */
-  public convert(options: { type: SketchType }) {
+  public async convert(options: { type: SketchType }) {
     if (this.sketchType === options.type) {
       return;
     }
     switch (options.type) {
       case 'html': {
-        // html -> javascript
+        // javascript -> html
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
         const htmlPath = path.join(this.dir, htmlName);
         if (fs.existsSync(htmlPath)) {
           throw new Error(`${htmlPath} already exists`);
         }
-        this.writeGeneratedFile('index.html', htmlName, false, {});
+        await this.writeGeneratedFile('index.html', htmlName, false, {});
         break;
       }
       case 'javascript': {
@@ -451,8 +450,8 @@ export class Sketch {
         const htmlPath = path.join(this.dir, this.htmlFile);
 
         // there must be only one script file, and no inline scripts
-        const content = fs.readFileSync(htmlPath, 'utf-8');
-        const htmlRoot = parse(content);
+        const html = await readFile(htmlPath, 'utf-8');
+        const htmlRoot = parse(html);
         const scriptSrcs = htmlRoot.querySelectorAll('script').map(e => e.attributes.src);
         // if scriptSrcs contains a null, it means there's an inline script
         if (scriptSrcs.some(s => !s)) {

@@ -1,6 +1,7 @@
 // TODO: copy the static icons into the build directory
 
 import fs from 'fs';
+import { writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
 import { createDirectoryListing } from '../server/directory-listing';
@@ -108,13 +109,13 @@ async function runActions(actions: ActionIterator, options: Options) {
         const { dir, path } = action;
         fs.rmSync(outputFile, { force: true });
         const html = await createDirectoryListing(dir, path);
-        fs.writeFileSync(outputFile, html);
+        await writeFile(outputFile, html);
         break;
       }
       case 'generateHtml': {
         const { sketch } = action;
-        const html = sketch.getHtmlContent();
-        fs.writeFileSync(outputFile, html);
+        const html = await sketch.getHtmlContent();
+        await writeFile(outputFile, html);
         break;
       }
       case 'mkdir':

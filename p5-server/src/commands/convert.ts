@@ -16,7 +16,7 @@ export default async function convert(sketchPath: string, options: { to?: Sketch
     return;
   }
   try {
-    sketch.convert({ type: targetType });
+    await sketch.convert({ type: targetType });
   } catch (err) {
     die(err.message);
   }

@@ -84,8 +84,10 @@ test('Sketch.libraries', async () => {
 
 test('Sketch.description', async () => {
   const testfileDir = f`descriptions`;
-  const description = (file: string) =>
-    Sketch.fromFile(path.join(testfileDir, file)).then(sketch => sketch.description?.replace(/\s+/g, ' '));
+  async function description(file: string) {
+    const sketch = await Sketch.fromFile(path.join(testfileDir, file));
+    return sketch.description?.replace(/\s+/g, ' ');
+  }
 
   await expect(description('single-line-description.js')).resolves.toBe('sketch description');
   await expect(description('multi-line-description.js')).resolves.toBe('sketch description');
@@ -204,7 +206,7 @@ describe('Sketch.convert', () => {
     async function convert() {
       const sketch = await Sketch.fromFile(path.join(outputDir, mainFile!));
       try {
-        sketch.convert(options);
+        await sketch.convert(options);
       } catch (e) {
         throw String(e);
       }

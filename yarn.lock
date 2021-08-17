@@ -1771,6 +1771,7 @@ __metadata:
   resolution: "@osteele/p5-tools@workspace:."
   dependencies:
     "@tsconfig/node16": ^1.0.2
+    "@types/node": ^16.6.1
     "@typescript-eslint/eslint-plugin": ^4.29.1
     "@typescript-eslint/parser": ^4.29.0
     copyfiles: ^2.4.1
@@ -2153,10 +2154,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^16.6.0":
+"@types/node@npm:*":
   version: 16.6.0
   resolution: "@types/node@npm:16.6.0"
   checksum: 72ab4b9fb47a64657d83336093867aba5bcf2f36facf3c18e9aeff802c078e44fa9f54025b02f2837eb0f2b19c1f551a5201fb4222766454c439de481dbf83d0
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^16.6.1":
+  version: 16.6.1
+  resolution: "@types/node@npm:16.6.1"
+  checksum: c13aa0da0c2bf9070e521d1b537ba38f64b213dd1b8aeec66c279fc21f8c0ccaf380364f6dc2ec8f84440c4cd1460b67dfe47de2cafcb6eaf4b648817cb27dc4
   languageName: node
   linkType: hard
 
@@ -8593,7 +8601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p5-analysis@workspace:0.4.2, p5-analysis@workspace:p5-analysis":
+"p5-analysis@workspace:0.5.0, p5-analysis@workspace:p5-analysis":
   version: 0.0.0-use.local
   resolution: "p5-analysis@workspace:p5-analysis"
   dependencies:
@@ -8603,7 +8611,7 @@ __metadata:
     "@types/eslint": ^7
     "@types/esprima": ^4.0.3
     "@types/jest": ^26.0.24
-    "@types/node": ^16.6.0
+    "@types/node": ^16.6.1
     "@types/node-fetch": ^2.5.12
     "@types/nunjucks": ^3.1.5
     "@types/rimraf": ^3.0.1
@@ -8635,7 +8643,7 @@ __metadata:
     "@types/livereload": ^0.9.1
     "@types/marked": ^2.0.4
     "@types/minimatch": ^3.0.5
-    "@types/node": ^16.6.0
+    "@types/node": ^16.6.1
     "@types/nunjucks": ^3.1.5
     "@types/pug": ^2.0.5
     "@types/update-notifier": ^5.1.0
@@ -8649,7 +8657,7 @@ __metadata:
     marked: ^2.1.3
     nodemon: ^2.0.12
     open: ^8.2.1
-    p5-analysis: "workspace:0.4.2"
+    p5-analysis: "workspace:0.5.0"
     pug: ^3.0.2
     ts-node: ^10.2.0
     typedoc: ^0.21.5

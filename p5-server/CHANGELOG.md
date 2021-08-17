@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.5.0]
 
 - added `p5 tree`
 - added `p5 build`

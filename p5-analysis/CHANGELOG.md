@@ -1,8 +1,8 @@
 # Change Log
 
-## [unreleased]
+## [0.5.0]
 
-- Sketch.fromDirectory, fromFile, analyzeDirectory, isSketchDir are now async
+- Many Sketch functions are now async
 - Rename unaffiliatedFiles -> unassociatedFiles
 
 ## [0.4.2]

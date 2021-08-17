@@ -104,4 +104,21 @@ export class Script implements ScriptAnalysis {
     }
     return [];
   }
+
+  getAssociatedFiles(): string[] {
+    return [...this.loadCallArguments].map(s => s.replace(/^\.\//, ''));
+  }
+
+  static getAssociatedFiles(file: string): string[] {
+    if (fs.existsSync(file)) {
+      try {
+        return Script.fromFile(file).getAssociatedFiles();
+      } catch (e) {
+        if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
+          throw e;
+        }
+      }
+    }
+    return [];
+  }
 }

@@ -32,23 +32,23 @@ test('Sketch.fromScriptFile', async () => {
   expect(sketch.scriptFile).toBe('circles.js');
 });
 
-test('Sketch.isSketchHtmlFile', () => {
-  expect(Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(f`missing-file.html`)).toBe(false);
+test('Sketch.isSketchHtmlFile', async () => {
+  expect(await Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)).toBe(true);
+  expect(await Sketch.isSketchHtmlFile(f`missing-file.html`)).toBe(false);
 
   expect(fs.existsSync(f`circles.js`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(f`circles.js`)).toBe(false);
+  expect(await Sketch.isSketchHtmlFile(f`circles.js`)).toBe(false);
 
   expect(fs.existsSync(f`non-sketch.html`)).toBe(true);
-  expect(Sketch.isSketchHtmlFile(f`non-sketch.html`)).toBe(false);
+  expect(await Sketch.isSketchHtmlFile(f`non-sketch.html`)).toBe(false);
 });
 
-test('Sketch.isSketchScriptFile', () => {
-  expect(Sketch.isSketchScriptFile(f`circles.js`)).toBe(true);
-  expect(Sketch.isSketchScriptFile(f`missing-file.js`)).toBe(false);
+test('Sketch.isSketchScriptFile', async () => {
+  expect(await Sketch.isSketchScriptFile(f`circles.js`)).toBe(true);
+  expect(await Sketch.isSketchScriptFile(f`missing-file.js`)).toBe(false);
 
   expect(fs.existsSync(f`Sketch.analyzeDirectory/loose.js`)).toBe(true);
-  expect(Sketch.isSketchScriptFile(f`Sketch.analyzeDirectory/loose.js`)).toBe(false);
+  expect(await Sketch.isSketchScriptFile(f`Sketch.analyzeDirectory/loose.js`)).toBe(false);
 });
 
 test('Sketch.analyzeDirectory', async () => {
@@ -60,10 +60,10 @@ test('Sketch.analyzeDirectory', async () => {
 
 test('Sketch.isSketchDir', async () => {
   const testfileDir = f`Sketch.analyzeDirectory`;
-  await expect(Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))).resolves.toBeInstanceOf(Sketch);
-  await expect(Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).resolves.toBeInstanceOf(Sketch);
-  await expect(Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))).resolves.toBeFalsy();
-  await expect(Sketch.isSketchDir(path.join(testfileDir, 'collection'))).resolves.toBeFalsy();
+  expect(await Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))).toBeInstanceOf(Sketch);
+  expect(await Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).toBeInstanceOf(Sketch);
+  expect(await Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))).toBeFalsy();
+  expect(await Sketch.isSketchDir(path.join(testfileDir, 'collection'))).toBeFalsy();
 });
 
 test('Sketch.files', async () => {

@@ -152,7 +152,7 @@ export class Sketch {
     // collect HTML sketches
     for (const file of files) {
       const filePath = path.join(dir, file);
-      if (Sketch.isSketchHtmlFile(filePath)) {
+      if (await Sketch.isSketchHtmlFile(filePath)) {
         sketches.push(await Sketch.fromHtmlFile(filePath));
       }
     }
@@ -160,7 +160,7 @@ export class Sketch {
     // collect JS sketches
     for (const file of removeProjectFiles(files)) {
       const filePath = path.join(dir, file);
-      if (Sketch.isSketchScriptFile(filePath)) {
+      if (await Sketch.isSketchScriptFile(filePath)) {
         sketches.push(await Sketch.fromScriptFile(filePath));
       }
     }
@@ -180,7 +180,7 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static isSketchHtmlFile(htmlFile: string) {
+  static async isSketchHtmlFile(htmlFile: string) {
     if (!fs.existsSync(htmlFile) || fs.statSync(htmlFile).isDirectory()) {
       return false;
     }
@@ -200,7 +200,7 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static isSketchScriptFile(file: string) {
+  static async isSketchScriptFile(file: string) {
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       return false;
     }
@@ -224,8 +224,8 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static isSketchFile(file: string) {
-    return Sketch.isSketchHtmlFile(file) || Sketch.isSketchScriptFile(file);
+  static async isSketchFile(file: string) {
+    return (await Sketch.isSketchHtmlFile(file)) || (await Sketch.isSketchScriptFile(file));
   }
 
   /** Tests whether the directory is a sketch directory. It is a sketch

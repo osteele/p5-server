@@ -42,7 +42,7 @@ export async function createDirectoryListing(dir: string, breadcrumbPath?: strin
   function path_to_src_view(file: string, sk: Sketch) {
     let p = path_to(file, sk);
     if (p.match(/.*\.(html?|js)$/i)) {
-      p += '?fmt = view';
+      p += '?fmt=view';
     }
     return p;
   }

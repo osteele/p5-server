@@ -36,7 +36,7 @@ function createRouter(config: Config): express.Router {
   router.get('/', async (req, res) => {
     const file = config.sketchFile;
     if (file) {
-      if (Sketch.isSketchScriptFile(file)) {
+      if (await Sketch.isSketchScriptFile(file)) {
         const sketch = await Sketch.fromFile(file);
         res.send(injectLiveReloadScript(sketch.getHtmlContent(), req.app.locals.liveReloadServer));
       } else {
@@ -72,7 +72,11 @@ function createRouter(config: Config): express.Router {
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
     const file = path.join(config.root, req.path);
-    if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt !== 'view' && Sketch.isSketchScriptFile(file)) {
+    if (
+      req.headers['accept']?.match(/\btext\/html\b/) &&
+      req.query.fmt !== 'view' &&
+      (await Sketch.isSketchScriptFile(file))
+    ) {
       const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
       const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
       if (sketch) {

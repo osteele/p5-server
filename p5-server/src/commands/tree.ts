@@ -26,13 +26,13 @@ function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<str
 
   // Recursively visit directory
   async function* visitDir(dir: string, depth: number): AsyncIterable<string | symbol> {
-    const { sketches, unaffiliatedFiles } = await Sketch.analyzeDirectory(dir);
+    const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
     yield* ['📁' + path.basename(dir), indentSymbol];
     if (depth >= 0) {
       for (const sketch of sketches.sort((a, b) => a.name.localeCompare(b.name))) {
         yield* visitSketch(sketch, depth - 1);
       }
-      const files = [...unaffiliatedFiles]
+      const files = [...unassociatedFiles]
         .map(f => path.join(dir, f))
         .sort((a, b) => a.localeCompare(b))
         .sort((a, b) => Number(fs.statSync(b).isDirectory()) - Number(fs.statSync(a).isDirectory()));

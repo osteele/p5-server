@@ -3,6 +3,7 @@
 ## [unreleased]
 
 - Sketch.fromDirectory, fromFile, analyzeDirectory, isSketchDir are now async
+- Rename unaffiliatedFiles -> unassociatedFiles
 
 ## [0.4.2]
 

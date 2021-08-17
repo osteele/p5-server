@@ -90,7 +90,7 @@ export class Sketch {
    *
    * @category Sketch creation
    */
-  static async fromDirectory(dir: string, options?: { exclusions?: string[] }) {
+  static async fromDirectory(dir: string, options?: { exclusions?: string[] }): Promise<Sketch> {
     const sketch = await Sketch.isSketchDir(dir, options);
     if (!sketch) {
       throw new Error(`Directory ${dir} is not a sketch directory`);
@@ -104,7 +104,7 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static fromFile(filePath: string) {
+  static fromFile(filePath: string): Promise<Sketch> {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
     } else if (/\.js$/.test(filePath)) {
@@ -121,7 +121,10 @@ export class Sketch {
    *
    * @category Sketch detection
    */
-  static async analyzeDirectory(dir: string, options?: { exclusions?: string[] }) {
+  static async analyzeDirectory(
+    dir: string,
+    options?: { exclusions?: string[] }
+  ): Promise<{ sketches: Sketch[]; allFiles: string[]; unassociatedFiles: string[] }> {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
@@ -164,7 +167,7 @@ export class Sketch {
     return {
       sketches,
       allFiles: files,
-      unaffiliatedFiles: removeProjectFiles(files)
+      unassociatedFiles: removeProjectFiles(files)
     };
 
     function removeProjectFiles(files: string[]) {
@@ -227,8 +230,8 @@ export class Sketch {
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
       return null;
     }
-    const { sketches, unaffiliatedFiles } = await Sketch.analyzeDirectory(dir, options);
-    return sketches.length === 1 && unaffiliatedFiles.every(file => /^readme($|\.)/i.test(file)) ? sketches[0] : null;
+    const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, options);
+    return sketches.length === 1 && unassociatedFiles.every(file => /^readme($|\.)/i.test(file)) ? sketches[0] : null;
   }
 
   private static getLocalScriptFilesFromHtml(htmlRoot: HTMLElement, dir: string) {

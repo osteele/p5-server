@@ -52,10 +52,10 @@ test('Sketch.isSketchScriptFile', () => {
 });
 
 test('Sketch.analyzeDirectory', async () => {
-  const { sketches, allFiles, unaffiliatedFiles } = await Sketch.analyzeDirectory(f`Sketch.analyzeDirectory`);
+  const { sketches, allFiles, unassociatedFiles } = await Sketch.analyzeDirectory(f`Sketch.analyzeDirectory`);
   expect(sketches.length).toBe(4);
   expect(allFiles.length).toBe(6);
-  expect(unaffiliatedFiles).toEqual(['collection', 'loose.js']);
+  expect(unassociatedFiles).toEqual(['collection', 'loose.js']);
 });
 
 test('Sketch.isSketchDir', async () => {

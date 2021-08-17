@@ -4,13 +4,14 @@ import path from 'path/posix';
 
 import { dedentSymbol, indentSymbol, printTree, AsyncTreeInputIterable } from '../printTree';
 
-export default async function tree(
-  file: string,
-  options: { level?: number; indent?: string; dedent?: string; print?: boolean } = {}
-) {
+export default async function tree(file: string, options: { level?: number }) {
   const depth = options.level || Infinity;
-  const items = visit(file, depth) as AsyncTreeInputIterable<string>;
-  await printTree(items);
+  const iter = sketchTreeIter(file, depth);
+  await printTree(iter);
+}
+
+function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<string> {
+  return visit(file, depth) as AsyncTreeInputIterable<string>;
 
   async function* visit(file: string, depth: number): AsyncIterable<string | symbol> {
     if (fs.statSync(file).isDirectory()) {

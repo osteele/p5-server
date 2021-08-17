@@ -60,7 +60,7 @@ export class Sketch {
    *
    * @category Sketch creation
    */
-  static fromHtmlFile(htmlFile: string) {
+  static async fromHtmlFile(htmlFile: string): Promise<Sketch> {
     const dir = path.dirname(htmlFile);
     const htmlContent = fs.readFileSync(htmlFile, 'utf-8');
     const htmlRoot = parse(htmlContent);
@@ -75,7 +75,7 @@ export class Sketch {
    *
    * @category Sketch creation
    */
-  static fromScriptFile(scriptFile: string) {
+  static async fromScriptFile(scriptFile: string): Promise<Sketch> {
     const dir = path.dirname(scriptFile);
     let description;
     if (fs.existsSync(scriptFile)) {
@@ -108,9 +108,9 @@ export class Sketch {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
     } else if (/\.js$/.test(filePath)) {
-      return Promise.resolve(Sketch.fromScriptFile(filePath));
+      return Sketch.fromScriptFile(filePath);
     } else if (/\.html$/.test(filePath)) {
-      return Promise.resolve(Sketch.fromHtmlFile(filePath));
+      return Sketch.fromHtmlFile(filePath);
     } else {
       throw new Error(`Unrecognized file type: ${filePath}`);
     }
@@ -153,7 +153,7 @@ export class Sketch {
     for (const file of files) {
       const filePath = path.join(dir, file);
       if (Sketch.isSketchHtmlFile(filePath)) {
-        sketches.push(Sketch.fromHtmlFile(filePath));
+        sketches.push(await Sketch.fromHtmlFile(filePath));
       }
     }
 
@@ -161,7 +161,7 @@ export class Sketch {
     for (const file of removeProjectFiles(files)) {
       const filePath = path.join(dir, file);
       if (Sketch.isSketchScriptFile(filePath)) {
-        sketches.push(Sketch.fromScriptFile(filePath));
+        sketches.push(await Sketch.fromScriptFile(filePath));
       }
     }
     return {
@@ -175,8 +175,8 @@ export class Sketch {
     }
   }
 
-  /** Tests whether the file is an HTML sketch file. It is a sketch file if it includes
-   * the `p5.min.js` or `p5.js` script.
+  /** Tests whether a file is an HTML sketch file. It is a sketch file if it
+   * includes the `p5.min.js` or `p5.js` script.
    *
    * @category Sketch detection
    */
@@ -188,13 +188,14 @@ export class Sketch {
       return false;
     }
 
-    const content = fs.readFileSync(htmlFile, 'utf-8');
-    const htmlRoot = parse(content);
+    const html = fs.readFileSync(htmlFile, 'utf-8');
+    const htmlRoot = parse(html);
     const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
+    // TODO: also require that a script contains setup()
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
 
-  /** Tests whether the file is a JavaScript sketch file. It is a sketch file if it includes
+  /** Tests whether a file is a JavaScript sketch file. It is a sketch file if it includes
    * a definition of the `set()` function and a call to `createCanvas()`.
    *
    * @category Sketch detection
@@ -217,6 +218,14 @@ export class Sketch {
       }
       throw e;
     }
+  }
+
+  /** Tests whether a file is an HTML or JavaScript sketch file.
+   *
+   * @category Sketch detection
+   */
+  static isSketchFile(file: string) {
+    return Sketch.isSketchHtmlFile(file) || Sketch.isSketchScriptFile(file);
   }
 
   /** Tests whether the directory is a sketch directory. It is a sketch

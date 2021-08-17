@@ -10,8 +10,8 @@ function f(strings: TemplateStringsArray) {
   return path.join(testfilesPath, ...strings.flatMap(s => s.split('/')));
 }
 
-test('Sketch.fromHtmlFile', () => {
-  const sketch = Sketch.fromHtmlFile(f`Sketch.analyzeDirectory/sketch.html`);
+test('Sketch.fromHtmlFile', async () => {
+  const sketch = await Sketch.fromHtmlFile(f`Sketch.analyzeDirectory/sketch.html`);
   expect(sketch.sketchType).toBe('html');
   expect(sketch.name).toBe('sketch');
   expect(sketch.title).toBe('HTML-based sketch');
@@ -21,8 +21,8 @@ test('Sketch.fromHtmlFile', () => {
   expect(sketch.scriptFile).toBe('script.js');
 });
 
-test('Sketch.fromScriptFile', () => {
-  const sketch = Sketch.fromScriptFile(f`circles.js`);
+test('Sketch.fromScriptFile', async () => {
+  const sketch = await Sketch.fromScriptFile(f`circles.js`);
   expect(sketch.sketchType).toBe('javascript');
   expect(sketch.name).toBe('circles');
   expect(sketch.title).toBe('Circles');
@@ -72,7 +72,7 @@ test('Sketch.files', async () => {
 });
 
 test('Sketch.libraries', async () => {
-  let sketch: Sketch | null = Sketch.fromScriptFile(f`library-inference/loadSound.js`);
+  let sketch = await Sketch.fromScriptFile(f`library-inference/loadSound.js`);
   expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
 
   sketch = await Sketch.fromFile(f`Sketch.convert/uninferred-library/index.html`);

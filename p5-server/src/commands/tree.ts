@@ -16,7 +16,7 @@ function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<str
   async function* visit(file: string, depth: number): AsyncIterable<string | symbol> {
     if (fs.statSync(file).isDirectory()) {
       yield* visitDir(file, depth - 1);
-    } else if (Sketch.isSketchHtmlFile(file) || Sketch.isSketchScriptFile(file)) {
+    } else if (Sketch.isSketchFile(file)) {
       const sketch = await Sketch.fromFile(file);
       yield* visitSketch(sketch, depth - 1);
     } else {

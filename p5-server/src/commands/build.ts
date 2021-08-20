@@ -3,7 +3,7 @@
 import fs from 'fs';
 import { writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
-import path from 'path/posix';
+import path from 'path';
 import { createDirectoryListing } from '../server/directory-listing';
 import { die } from '../utils';
 

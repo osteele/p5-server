@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Sketch } from 'p5-analysis';
-import path from 'path/posix';
+import path from 'path';
 
 import { dedentSymbol, indentSymbol, printTree, AsyncTreeInputIterable } from '../printTree';
 

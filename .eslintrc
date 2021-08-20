@@ -28,6 +28,18 @@
         "no-explicit-any": "off",
         "prefer-const": "off"
       }
+    },
+    {
+      "files": ["**/src/server/static/**/*.js"],
+      "globals": {
+        "callee": true,
+        "console": true,
+        "fetch": true,
+        "window": true
+      },
+      "rules": {
+        "no-console": "off"
+      }
     }
   ]
 }

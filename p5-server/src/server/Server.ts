@@ -11,6 +11,7 @@ import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
+import { EventEmitter } from 'stream';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -19,6 +20,9 @@ export namespace Server {
     port: number;
     /** If true, then if the specified port number is not available, find another port. Defaults to true. */
     scanPorts: boolean;
+    /** If true, relay console events from the sketch to an emitter on the server. */
+    relayConsoleMessages: boolean;
+    logConsoleEvents: boolean;
   } & (
     | {
         root: string;
@@ -32,7 +36,12 @@ type RouterConfig = Server.Options & {
   sketchFile?: string;
 };
 
-const defaultServerOptions = { port: 3000, scanPorts: true };
+const defaultServerOptions = {
+  port: 3000,
+  relayConsoleMessages: false,
+  logConsoleEvents: false,
+  scanPorts: true
+};
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
@@ -45,7 +54,7 @@ function createRouter(config: RouterConfig): express.Router {
     if (file) {
       if (await Sketch.isSketchScriptFile(file)) {
         const sketch = await Sketch.fromFile(file);
-        res.send(injectLiveReloadScript(await sketch.getHtmlContent(), req.app.locals.liveReloadServer));
+        sendHtml(req, res, await sketch.getHtmlContent());
       } else {
         res.sendFile(file);
       }
@@ -63,8 +72,7 @@ function createRouter(config: RouterConfig): express.Router {
         return;
       }
       if (req.headers['accept']?.match(/\btext\/html\b/)) {
-        const html = fs.readFileSync(file, 'utf-8');
-        res.send(injectLiveReloadScript(html, req.app.locals.liveReloadServer));
+        sendHtml(req, res, fs.readFileSync(file, 'utf-8'));
         return;
       }
     } catch (e) {
@@ -87,8 +95,7 @@ function createRouter(config: RouterConfig): express.Router {
       const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
       const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
       if (sketch) {
-        const html = await sketch.getHtmlContent();
-        res.send(injectLiveReloadScript(html, req.app.locals.liveReloadServer));
+        sendHtml(req, res, await sketch.getHtmlContent());
         return;
       }
     }
@@ -135,6 +142,14 @@ function createRouter(config: RouterConfig): express.Router {
   });
 
   return router;
+
+  function sendHtml<T>(req: Request<unknown, unknown, unknown, unknown, T>, res: Response<string, T>, html: string) {
+    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
+    if (config.relayConsoleMessages) {
+      html = html.replace(/(?=<\/head>)/, '<script src="/__p5_server_static/console-relay.js"></script>');
+    }
+    res.send(html);
+  }
 }
 
 async function sendDirectoryListing<T>(
@@ -164,7 +179,7 @@ async function sendDirectoryListing<T>(
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-async function startServer(options: Partial<Server.Options>) {
+async function startServer(options: Partial<Server.Options>, consoleEmitter: EventEmitter) {
   const config = { ...defaultServerOptions, ...options };
   const mounts =
     'mounts' in options && options.mounts
@@ -173,6 +188,11 @@ async function startServer(options: Partial<Server.Options>) {
 
   const app = express();
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
+  app.put('/__p5_server_console', express.json(), (req, res) => {
+    const { method, args } = req.body;
+    consoleEmitter.emit('console', { method, args });
+    res.sendStatus(200);
+  });
   // eslint-disable-next-line prefer-const
   for (let { mountPath, root } of mounts) {
     let sketchFile: string | undefined;
@@ -229,26 +249,30 @@ async function startServer(options: Partial<Server.Options>) {
 export class Server {
   public server: http.Server | null = null;
   public url?: string;
-  protected liveReloadServer: WebSocket.Server | null = null;
-  private readonly options: Partial<Server.Options>;
+  public readonly consoleEmitter = new EventEmitter();
+  private liveReloadServer: WebSocket.Server | null = null;
 
-  constructor(options: Partial<Server.Options> = {}) {
-    this.options = options;
+  constructor(private readonly options: Partial<Server.Options> = {}) {
+    if (options.logConsoleEvents) {
+      this.consoleEmitter.on('console', data => {
+        console.log.call(console, 'relay', data.method, ...data.arguments);
+      });
+    }
   }
 
-  static async start(options: Partial<Server.Options> = {}) {
+  public static async start(options: Partial<Server.Options> = {}) {
     return new Server(options).start();
   }
 
-  async start() {
-    const { server, liveReloadServer, url } = await startServer(this.options);
+  public async start() {
+    const { server, liveReloadServer, url } = await startServer(this.options, this.consoleEmitter);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;
     return this;
   }
 
-  async stop() {
+  public async stop() {
     if (this.server) {
       await closeSync(this.server);
     }

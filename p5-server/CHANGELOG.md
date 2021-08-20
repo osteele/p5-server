@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+- Add an API to support multiple mount points
+- Relay console.xxx messages to the server, and re-emit them
+
 ## [0.5.1]
 
 - fix `import "path/posix"` -> `import "path"`

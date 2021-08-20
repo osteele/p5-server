@@ -15,22 +15,29 @@ import { closeSync, listenSync } from './http-server-sync';
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
   export type Options = {
-    root: string;
+    /** The http port number. Defaults to 3000. */
     port: number;
+    /** If true, then if the specified port number is not available, find another port. Defaults to true. */
     scanPorts: boolean;
-  };
+  } & (
+    | {
+        root: string;
+      }
+    | { mounts: [{ mountPath: string; root: string }] }
+  );
 }
 
-type Config = Server.Options & {
+type RouterConfig = Server.Options & {
+  root: string;
   sketchFile?: string;
 };
 
-const defaultOptions = { root: '.', port: 3000, scanPorts: true, sketchPath: null };
+const defaultServerOptions = { port: 3000, scanPorts: true };
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
 
-function createRouter(config: Config): express.Router {
+function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
 
   router.get('/', async (req, res) => {
@@ -158,25 +165,34 @@ async function sendDirectoryListing<T>(
 }
 
 async function startServer(options: Partial<Server.Options>) {
-  const config: Config = { ...defaultOptions, ...options };
-  if (!fs.statSync(config.root).isDirectory()) {
-    config.sketchFile = config.root;
-    config.root = path.dirname(config.root);
-  }
-  const { root, port } = config;
+  const config = { ...defaultServerOptions, ...options };
+  const mounts =
+    'mounts' in options && options.mounts
+      ? options.mounts
+      : [{ mountPath: '', root: (options as { root: string }).root || '.' }];
 
   const app = express();
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.use(createRouter(config));
-  app.use('/', express.static(root));
+  // eslint-disable-next-line prefer-const
+  for (let { mountPath, root } of mounts) {
+    let sketchFile: string | undefined;
+    if (!fs.statSync(root).isDirectory()) {
+      sketchFile = root;
+      root = path.dirname(root);
+    }
+    const routerConfig: RouterConfig = { ...config, ...options, root, sketchFile };
+    app.use(mountPath, createRouter(routerConfig));
+    app.use('/', express.static(root));
+  }
 
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.
-  if (fs.statSync(root).isDirectory()) {
-    createDirectoryListing(root, '/');
+  if (fs.statSync(mounts[0].root).isDirectory()) {
+    createDirectoryListing(mounts[0].root, '/');
   }
 
   let server: http.Server | null = null;
+  const port = config.port;
   for (let p = port; p < port + 10; p++) {
     try {
       server = await listenSync(app, p);
@@ -197,7 +213,7 @@ async function startServer(options: Partial<Server.Options>) {
     throw new Error('Failed to start server 1');
   }
   try {
-    const liveReloadServer = createLiveReloadServer(root);
+    const liveReloadServer = createLiveReloadServer(mounts.map(mount => mount.root));
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://localhost:${address.port}`;
     return { server, liveReloadServer, url };

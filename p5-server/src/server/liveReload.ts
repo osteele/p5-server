@@ -18,8 +18,8 @@ export function injectLiveReloadScript(content: string, liveReloadServer: WebSoc
   return content.replace(/(?=<\/head>)/, liveReloadString);
 }
 
-export function createLiveReloadServer(watchDir: string) {
+export function createLiveReloadServer(watchDirs: string[]) {
   const server = livereload.createServer({ port: 0 });
-  server.watch(watchDir);
+  watchDirs.forEach(dir => server.watch(dir));
   return server.server;
 }

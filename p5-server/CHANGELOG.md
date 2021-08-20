@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.5.1]
+
+- fix `import "path/posix"` -> `import "path"`
+
 ## [0.5.0]
 
 - added `p5 tree`

@@ -188,9 +188,14 @@ async function startServer(options: Partial<Server.Options>, consoleEmitter: Eve
 
   const app = express();
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.put('/__p5_server_console', express.json(), (req, res) => {
+  app.post('/__p5_server_console', express.json(), (req, res) => {
     const { method, args } = req.body;
     consoleEmitter.emit('console', { method, args });
+    res.sendStatus(200);
+  });
+  app.post('/__p5_server_error', express.json(), (req, res) => {
+    const data = req.body;
+    consoleEmitter.emit('error', data);
     res.sendStatus(200);
   });
   // eslint-disable-next-line prefer-const
@@ -255,13 +260,16 @@ export class Server {
   constructor(private readonly options: Partial<Server.Options> = {}) {
     if (options.logConsoleEvents) {
       this.consoleEmitter.on('console', data => {
-        console.log.call(console, 'relay', data.method, ...data.arguments);
+        console.log.call(console, 'relay', data.method, ...data.args);
+      });
+      this.consoleEmitter.on('error', data => {
+        console.log.call(console, 'error', data);
       });
     }
   }
 
   public static async start(options: Partial<Server.Options> = {}) {
-    return new Server(options).start();
+    return new Server({ ...defaultServerOptions, ...options }).start();
   }
 
   public async start() {

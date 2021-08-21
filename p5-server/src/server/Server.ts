@@ -15,26 +15,30 @@ import { EventEmitter } from 'stream';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
-  export type Options = {
+  export type MountPointOption = string | { filePath: string; name?: string; urlPath?: string };
+
+  export type Options = Partial<{
     /** The http port number. Defaults to 3000. */
     port: number;
     /** If true, then if the specified port number is not available, find another port. Defaults to true. */
     scanPorts: boolean;
     /** If true, relay console events from the sketch to an emitter on the server. */
     relayConsoleMessages: boolean;
-    logConsoleEvents: boolean;
-  } & (
-    | {
-        root: string;
-      }
-    | { mounts: [{ mountPath: string; root: string }] }
-  );
+    /** The base directory. Defaults to the current working directory. */
+    root: string | null;
+    /** A list of base directories. If this is present, it overrides the root option. */
+    mountPoints: MountPointOption[];
+  }>;
 }
+
+type ServerConfig = Required<Server.Options>;
 
 type RouterConfig = Server.Options & {
   root: string;
   sketchFile?: string;
 };
+
+type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
   port: 3000,
@@ -179,41 +183,45 @@ async function sendDirectoryListing<T>(
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-async function startServer(options: Partial<Server.Options>, consoleEmitter: EventEmitter) {
-  const config = { ...defaultServerOptions, ...options };
-  const mounts =
-    'mounts' in options && options.mounts
-      ? options.mounts
-      : [{ mountPath: '', root: (options as { root: string }).root || '.' }];
+function consoleRelayRouter(consoleEmitter: EventEmitter): express.Router {
+  const router = express.Router();
 
-  const app = express();
-  app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.post('/__p5_server_console', express.json(), (req, res) => {
+  router.post('/__p5_server_console', express.json(), (req, res) => {
     const { method, args } = req.body;
-    consoleEmitter.emit('console', { method, args });
+    consoleEmitter.emit('console', { method, args, url: req.headers['referer'] });
     res.sendStatus(200);
   });
-  app.post('/__p5_server_error', express.json(), (req, res) => {
-    const data = req.body;
+
+  router.post('/__p5_server_error', express.json(), (req, res) => {
+    const data = { ...req.body, url: req.headers['referer'] };
     consoleEmitter.emit('error', data);
     res.sendStatus(200);
   });
-  // eslint-disable-next-line prefer-const
-  for (let { mountPath, root } of mounts) {
+
+  return router;
+}
+
+async function startServer(config: ServerConfig, consoleEmitter: EventEmitter) {
+  const mountPoints = config.mountPoints as MountPoint[];
+  const app = express();
+  app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
+  app.use(consoleRelayRouter(consoleEmitter));
+  for (const { filePath, urlPath } of mountPoints) {
+    let root = filePath;
     let sketchFile: string | undefined;
     if (!fs.statSync(root).isDirectory()) {
       sketchFile = root;
       root = path.dirname(root);
     }
-    const routerConfig: RouterConfig = { ...config, ...options, root, sketchFile };
-    app.use(mountPath, createRouter(routerConfig));
+    const routerConfig: RouterConfig = { ...config, root, sketchFile };
+    app.use(urlPath, createRouter(routerConfig));
     app.use('/', express.static(root));
   }
 
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.
-  if (fs.statSync(mounts[0].root).isDirectory()) {
-    createDirectoryListing(mounts[0].root, '/');
+  if (fs.statSync(mountPoints[0].filePath).isDirectory()) {
+    createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath);
   }
 
   let server: http.Server | null = null;
@@ -235,10 +243,10 @@ async function startServer(options: Partial<Server.Options>, consoleEmitter: Eve
 
   const address = server.address();
   if (!address || typeof address === 'string') {
-    throw new Error('Failed to start server 1');
+    throw new Error('Failed to start the server');
   }
   try {
-    const liveReloadServer = createLiveReloadServer(mounts.map(mount => mount.root));
+    const liveReloadServer = createLiveReloadServer(mountPoints.map(mount => mount.filePath));
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://localhost:${address.port}`;
     return { server, liveReloadServer, url };
@@ -254,26 +262,26 @@ async function startServer(options: Partial<Server.Options>, consoleEmitter: Eve
 export class Server {
   public server: http.Server | null = null;
   public url?: string;
-  public readonly consoleEmitter = new EventEmitter();
+  private readonly options: ServerConfig;
   private liveReloadServer: WebSocket.Server | null = null;
+  private readonly sketchEmitter = new EventEmitter();
+  public readonly onSketchEvent = this.sketchEmitter.on.bind(this.sketchEmitter);
 
-  constructor(private readonly options: Partial<Server.Options> = {}) {
-    if (options.logConsoleEvents) {
-      this.consoleEmitter.on('console', data => {
-        console.log.call(console, 'relay', data.method, ...data.args);
-      });
-      this.consoleEmitter.on('error', data => {
-        console.log.call(console, 'error', data);
-      });
-    }
+  constructor(options: Partial<Server.Options> = {}) {
+    const mountPoints =
+      options.mountPoints && options.mountPoints.length > 0
+        ? Server.normalizeMountPoints(options.mountPoints)
+        : [{ filePath: options.root || '.', urlPath: '/' }];
+    this.options = { ...defaultServerOptions, root: null, ...options, mountPoints };
   }
 
+  /** Create and start the server. Returns the instance. */
   public static async start(options: Partial<Server.Options> = {}) {
-    return new Server({ ...defaultServerOptions, ...options }).start();
+    return new Server(options).start();
   }
 
   public async start() {
-    const { server, liveReloadServer, url } = await startServer(this.options, this.consoleEmitter);
+    const { server, liveReloadServer, url } = await startServer(this.options, this.sketchEmitter);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;
@@ -288,5 +296,12 @@ export class Server {
     this.liveReloadServer?.close();
     this.liveReloadServer = null;
     this.url = undefined;
+  }
+
+  private static normalizeMountPoints(mountPoints: Server.MountPointOption[]): MountPoint[] {
+    const pts = mountPoints
+      .map(mount => (typeof mount === 'string' ? { filePath: mount } : mount))
+      .map(mount => ({ urlPath: '/' + (mount.name || path.basename(mount.filePath)), ...mount }));
+    return pts;
   }
 }

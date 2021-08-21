@@ -50,14 +50,15 @@ program.command('libraries', 'List the libraries', { hidden: true, executableFil
 
 program
   .command('serve')
-  .argument('[DIRECTORY]', 'the directory to serve', '.')
-  .description('Create a p5.js sketch')
+  .argument('[DIRECTORY...]', 'the directory to serve', '.')
+  .description('Start the web server')
   .alias('server')
   .alias('r')
   .alias('run')
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
+  .option('--console', 'Display messages from the sketch in the server output')
   .action(serve);
 
 program

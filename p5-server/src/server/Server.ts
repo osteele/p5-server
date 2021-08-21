@@ -1,3 +1,4 @@
+import pug from 'pug';
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
@@ -5,14 +6,18 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
-import { createDirectoryListing } from './directory-listing';
+import { createDirectoryListing } from './createDirectoryListing';
 import { templateDir } from './globals';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
 import { EventEmitter } from 'stream';
-import { SketchRelay, sketchEventRelayRouter } from './SketchEventRelay';
+import {
+  BrowserScriptRelay,
+  browserScriptEventRelayRouter,
+  injectScriptEventRelayScript
+} from './browserScriptEventRelay';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -151,7 +156,7 @@ function createRouter(config: RouterConfig): express.Router {
   function sendHtml<T>(req: Request<unknown, unknown, unknown, unknown, T>, res: Response<string, T>, html: string) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
     if (config.relayConsoleMessages) {
-      html = html.replace(/(?=<\/head>)/, '<script src="/__p5_server_static/console-relay.js"></script>');
+      html = injectScriptEventRelayScript(html);
     }
     res.send(html);
   }
@@ -184,11 +189,13 @@ async function sendDirectoryListing<T>(
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-async function startServer(config: ServerConfig, sketchRelay: SketchRelay) {
+async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay) {
   const mountPoints = config.mountPoints as MountPoint[];
   const app = express();
+
+  // add routes
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.use(sketchEventRelayRouter(sketchRelay));
+  app.use(browserScriptEventRelayRouter(sketchRelay));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -198,7 +205,11 @@ async function startServer(config: ServerConfig, sketchRelay: SketchRelay) {
     }
     const routerConfig: RouterConfig = { ...config, root, sketchFile };
     app.use(urlPath, createRouter(routerConfig));
-    app.use('/', express.static(root));
+    app.use(urlPath, express.static(root));
+  }
+  if (mountPoints.length > 0) {
+    const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
+    app.get('/', (_req, res) => res.send(mountListTmpl({ mountPoints })));
   }
 
   // For effect only. This provide errors and diagnostics before waiting for a
@@ -324,6 +335,8 @@ export class Server {
       .map(mount => (typeof mount === 'string' ? { filePath: mount } : mount))
       // default url paths from file paths
       .map(mount => ({ urlPath: '/' + (mount.name || path.basename(mount.filePath)), ...mount }))
+      // encode URL paths
+      .map(mount => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
       // normalize Windows paths
       .map(mount => ({ ...mount, filePath: mount.filePath.replaceAll('/', path.sep) }))
       // remove trailing slashes from file and url paths

@@ -2,17 +2,17 @@ import express from 'express';
 import { URL } from 'url';
 import { SketchConsoleEvent, ErrorMessageEvent, SketchErrorEvent } from './types';
 
-export interface SketchRelay {
+export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitSketchEvent(eventName: string | symbol, ...args: any[]): boolean;
   filePathToUrl(filePath: string): string | null;
   urlPathToFilePath(urlPath: string): string | null;
 }
 
-export function sketchEventRelayRouter(relay: SketchRelay): express.Router {
+export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): express.Router {
   const router = express.Router();
 
-  router.post('/__p5_server_console', express.json(), (req, res) => {
+  router.post('/__console_relay/console', express.json(), (req, res) => {
     const { method, args } = req.body;
     const url = req.headers['referer']!;
     const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };
@@ -20,7 +20,7 @@ export function sketchEventRelayRouter(relay: SketchRelay): express.Router {
     res.sendStatus(200);
   });
 
-  router.post('/__p5_server_error', express.json(), (req, res) => {
+  router.post('/__console_relay/error', express.json(), (req, res) => {
     const body = req.body as ErrorMessageEvent;
     const { url } = { url: req.headers['referer'], ...body };
     const data: SketchErrorEvent = {
@@ -44,4 +44,8 @@ export function sketchEventRelayRouter(relay: SketchRelay): express.Router {
       ? stack.replace(/\bhttps?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g, (s, p) => relay.urlPathToFilePath(p) || s)
       : stack;
   }
+}
+
+export function injectScriptEventRelayScript(html: string) {
+  return html.replace(/(?=<\/head>)/, '<script src="/__p5_server_static/console-relay.js"></script>');
 }

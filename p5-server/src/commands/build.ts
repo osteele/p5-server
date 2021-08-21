@@ -4,7 +4,7 @@ import fs from 'fs';
 import { writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
-import { createDirectoryListing } from '../server/directory-listing';
+import { createDirectoryListing } from '../server/createDirectoryListing';
 import { die } from '../utils';
 
 type Options = { output?: string; dryRun?: boolean; verbose?: boolean };

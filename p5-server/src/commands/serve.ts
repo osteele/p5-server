@@ -12,11 +12,10 @@ export default async function serve(files: string[], options = { open: false, po
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);
   /** If true, relay console events from the sketch to an emitter on the server. */
-  // logConsoleEvents: boolean;
   console.log(`Serving ${displayName} at ${server.url}`);
   if (options.console) {
     server.onSketchEvent('console', ({ method, args, url }) => {
-      console.log.call(console, `sketch ${method}:`, method, ...args, `(${url})`);
+      console.log.call(console, `sketch ${method}:`, method, ...args, `(${file})`);
     });
     server.onSketchEvent('error', data => {
       console.log(`sketch ${data.kind}:`, data);

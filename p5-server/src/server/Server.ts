@@ -12,6 +12,7 @@ import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
 import { EventEmitter } from 'stream';
+import { URL } from 'url';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -183,29 +184,73 @@ async function sendDirectoryListing<T>(
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-function consoleRelayRouter(consoleEmitter: EventEmitter): express.Router {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SketchConsoleEvent = {
+  method: 'log' | 'warn' | 'error' | 'info' | 'debug';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  args: any[];
+  url: string;
+  file?: string;
+};
+type SketchErrorEvent = ErrorMessageEvent & { url: string; file?: string };
+
+type ErrorMessageEvent = (
+  | { kind: 'error'; line: number; col: number; url: string }
+  | { kind: 'unhandledRejection' }
+) & {
+  message: string;
+  stack: string;
+};
+
+interface SketchRelay {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  emitSketchEvent(eventName: string | symbol, ...args: any[]): boolean;
+  filePathToUrl(filePath: string): string | null;
+  urlPathToFilePath(urlPath: string): string | null;
+}
+
+function consoleRelayRouter(relay: SketchRelay): express.Router {
   const router = express.Router();
 
   router.post('/__p5_server_console', express.json(), (req, res) => {
     const { method, args } = req.body;
-    consoleEmitter.emit('console', { method, args, url: req.headers['referer'] });
+    const url = req.headers['referer']!;
+    const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };
+    relay.emitSketchEvent('console', data);
     res.sendStatus(200);
   });
 
   router.post('/__p5_server_error', express.json(), (req, res) => {
-    const data = { ...req.body, url: req.headers['referer'] };
-    consoleEmitter.emit('error', data);
+    const body = req.body as ErrorMessageEvent;
+    const { url } = { url: req.headers['referer'], ...body };
+    const data: SketchErrorEvent = {
+      url,
+      file: urlToFilePath(url),
+      ...req.body,
+      stack: replaceUrlsInStack(req.body.stack)
+    };
+    relay.emitSketchEvent('error', data);
     res.sendStatus(200);
   });
 
   return router;
+
+  function urlToFilePath(url: string | undefined): string | undefined {
+    return (url && relay.urlPathToFilePath(new URL(url).pathname)) || undefined;
+  }
+
+  function replaceUrlsInStack(stack: string | undefined): string | undefined {
+    return stack
+      ? stack.replace(/\bhttps?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g, (s, p) => relay.urlPathToFilePath(p) || s)
+      : stack;
+  }
 }
 
-async function startServer(config: ServerConfig, consoleEmitter: EventEmitter) {
+async function startServer(config: ServerConfig, sketchRelay: SketchRelay) {
   const mountPoints = config.mountPoints as MountPoint[];
   const app = express();
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.use(consoleRelayRouter(consoleEmitter));
+  app.use(consoleRelayRouter(sketchRelay));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -259,12 +304,14 @@ async function startServer(config: ServerConfig, consoleEmitter: EventEmitter) {
 /** Server is a web server with live reload, sketch-aware directory listings,
  * and library inference for JavaScript-only sketches.
  */
-export class Server {
+export class Server implements SketchRelay {
   public server: http.Server | null = null;
   public url?: string;
+  public mountPoints: MountPoint[];
   private readonly options: ServerConfig;
   private liveReloadServer: WebSocket.Server | null = null;
   private readonly sketchEmitter = new EventEmitter();
+  public readonly emitSketchEvent = this.sketchEmitter.emit.bind(this.sketchEmitter);
   public readonly onSketchEvent = this.sketchEmitter.on.bind(this.sketchEmitter);
 
   constructor(options: Partial<Server.Options> = {}) {
@@ -272,6 +319,7 @@ export class Server {
       options.mountPoints && options.mountPoints.length > 0
         ? Server.normalizeMountPoints(options.mountPoints)
         : [{ filePath: options.root || '.', urlPath: '/' }];
+    this.mountPoints = mountPoints;
     this.options = { ...defaultServerOptions, root: null, ...options, mountPoints };
   }
 
@@ -281,7 +329,7 @@ export class Server {
   }
 
   public async start() {
-    const { server, liveReloadServer, url } = await startServer(this.options, this.sketchEmitter);
+    const { server, liveReloadServer, url } = await startServer(this.options, this);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;
@@ -298,10 +346,84 @@ export class Server {
     this.url = undefined;
   }
 
+  public filePathToUrl(filePath: string) {
+    const baseUrl = this.url || `http://localhost:${this.options.port}`;
+    for (const mountPoint of this.mountPoints) {
+      const filePrefix = mountPoint.filePath + path.sep;
+      const pathPrefix = (mountPoint.urlPath + '/').replace(/^\/\/$/, '/');
+      if (filePath.startsWith(filePrefix)) {
+        return baseUrl + filePath.replace(filePrefix, pathPrefix);
+      }
+    }
+    return null;
+  }
+
+  public urlPathToFilePath(urlPath: string) {
+    for (const mountPoint of this.mountPoints) {
+      const filePrefix = mountPoint.filePath + path.sep;
+      const pathPrefix = (mountPoint.urlPath + '/').replace(/^\/\/$/, '/');
+      if (urlPath.startsWith(pathPrefix)) {
+        return urlPath.replace(pathPrefix, filePrefix);
+      }
+    }
+    return null;
+  }
+
+  // public urlToFilePath(url: string) {
+  //   const baseUrl = this.url || `http://localhost:${this.options.port}`;
+  //   if (url.startsWith(baseUrl + '/')) {
+  //     return url.slice(baseUrl.length);
+  //     console.info(url.slice(baseUrl.length));
+  //     return this.urlPathToFilePath(url.slice(baseUrl.length));
+  //   }
+  //   return null;
+  // }
+
   private static normalizeMountPoints(mountPoints: Server.MountPointOption[]): MountPoint[] {
-    const pts = mountPoints
+    const finalPathSep = new RegExp(`${path.sep}$`);
+    const mounts = mountPoints
+      // normalize to records
       .map(mount => (typeof mount === 'string' ? { filePath: mount } : mount))
-      .map(mount => ({ urlPath: '/' + (mount.name || path.basename(mount.filePath)), ...mount }));
-    return pts;
+      // default url paths from file paths
+      .map(mount => ({ urlPath: '/' + (mount.name || path.basename(mount.filePath)), ...mount }))
+      // normalize Windows paths
+      .map(mount => ({ ...mount, filePath: mount.filePath.replaceAll('/', path.sep) }))
+      // remove trailing slashes from file and url paths
+      .map(mount => ({
+        ...mount,
+        filePath: mount.filePath.replace(finalPathSep, ''),
+        urlPath: mount.urlPath.replace(/\/$/, '')
+      }));
+    // modify url paths to ensure that they are all unique
+    for (let i = mounts.length; --i >= 0; ) {
+      const mount = mounts[i];
+      mount.urlPath = findUniqueName(
+        mount.urlPath,
+        mounts.slice(i + 1).map(mount => mount.urlPath)
+      );
+    }
+    return mounts;
+
+    function findUniqueName(base: string, exclude: string[]): string {
+      for (const name of generateNames(base)) {
+        if (!exclude.includes(name)) {
+          return name;
+        }
+      }
+      return null as never;
+    }
+
+    function* generateNames(base: string) {
+      yield base;
+      let ix = 2;
+      const m = base.match(/^(.*?)-(\d*)$/);
+      if (m) {
+        base = m[1];
+        ix = parseInt(m[2], 10) + 1;
+      }
+      while (true) {
+        yield `${base}-${ix++}`;
+      }
+    }
   }
 }

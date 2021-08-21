@@ -12,7 +12,7 @@ export interface BrowserScriptRelay {
 export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): express.Router {
   const router = express.Router();
 
-  router.post('/__console_relay/console', express.json(), (req, res) => {
+  router.post('/__script_event/console', express.json(), (req, res) => {
     const { method, args } = req.body;
     const url = req.headers['referer']!;
     const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };
@@ -20,7 +20,7 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
     res.sendStatus(200);
   });
 
-  router.post('/__console_relay/error', express.json(), (req, res) => {
+  router.post('/__script_event/error', express.json(), (req, res) => {
     const body = req.body as ErrorMessageEvent;
     const { url } = { url: req.headers['referer'], ...body };
     const data: SketchErrorEvent = {
@@ -30,6 +30,13 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
       stack: replaceUrlsInStack(req.body.stack)
     };
     relay.emitSketchEvent('error', data);
+    res.sendStatus(200);
+  });
+
+  router.post('/__script_event/window', express.json(), (req, res) => {
+    const url = req.headers['referer']!;
+    const data: SketchConsoleEvent = { ...req.body, url, file: urlToFilePath(url) };
+    relay.emitSketchEvent('window', data);
     res.sendStatus(200);
   });
 

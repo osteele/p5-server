@@ -288,7 +288,7 @@ export class Server {
     const baseUrl = this.url || `http://localhost:${this.options.port}`;
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
-      const pathPrefix = (mountPoint.urlPath + '/').replace(/^\/\/$/, '/');
+      const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
       if (filePath.startsWith(filePrefix)) {
         return baseUrl + filePath.replace(filePrefix, pathPrefix);
       }
@@ -299,7 +299,7 @@ export class Server {
   public urlPathToFilePath(urlPath: string) {
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
-      const pathPrefix = (mountPoint.urlPath + '/').replace(/^\/\/$/, '/');
+      const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
       if (urlPath.startsWith(pathPrefix)) {
         return urlPath.replace(pathPrefix, filePrefix);
       }
@@ -332,19 +332,19 @@ export class Server {
         filePath: mount.filePath.replace(finalPathSep, ''),
         urlPath: mount.urlPath.replace(/\/$/, '')
       }));
-    // modify url paths to ensure that they are all unique
-    for (let i = mounts.length; --i >= 0; ) {
-      const mount = mounts[i];
-      mount.urlPath = findUniqueName(
-        mount.urlPath,
-        mounts.slice(i + 1).map(mount => mount.urlPath)
-      );
+    // modify url paths to ensure that they are unique
+    const seen = new Set<string>();
+    for (const mount of mounts) {
+      if (seen.has(mount.urlPath)) {
+        mount.urlPath = findUniqueName(mount.urlPath, seen);
+      }
+      seen.add(mount.urlPath);
     }
     return mounts;
 
-    function findUniqueName(base: string, exclude: string[]): string {
+    function findUniqueName(base: string, exclude: Set<string>): string {
       for (const name of generateNames(base)) {
-        if (!exclude.includes(name)) {
+        if (!exclude.has(name)) {
           return name;
         }
       }

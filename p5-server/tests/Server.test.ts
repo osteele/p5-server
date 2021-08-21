@@ -29,16 +29,16 @@ describe('Server', () => {
       { name: 'b', filePath: 'f2', urlPath: '/b' }
     ]);
 
-    // server = new Server({
-    //   mountPoints: [
-    //     { name: 'a', filePath: 'f1' },
-    //     { name: 'a', filePath: 'f2' }
-    //   ]
-    // });
-    // expect(server.mountPoints).toEqual([
-    //   { name: 'a', filePath: 'f1', urlPath: '/a' },
-    //   { name: 'a', filePath: 'f2', urlPath: '/a-2' }
-    // ]);
+    server = new Server({
+      mountPoints: [
+        { name: 'a', filePath: 'f1' },
+        { name: 'a', filePath: 'f2' }
+      ]
+    });
+    expect(server.mountPoints).toEqual([
+      { name: 'a', filePath: 'f1', urlPath: '/a' },
+      { name: 'a', filePath: 'f2', urlPath: '/a-2' }
+    ]);
   });
 
   test('filePathToUrl', () => {

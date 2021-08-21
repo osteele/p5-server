@@ -12,7 +12,7 @@ import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
 import { EventEmitter } from 'stream';
-import { URL } from 'url';
+import { SketchRelay, sketchEventRelayRouter } from './SketchEventRelay';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -184,73 +184,11 @@ async function sendDirectoryListing<T>(
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SketchConsoleEvent = {
-  method: 'log' | 'warn' | 'error' | 'info' | 'debug';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  args: any[];
-  url: string;
-  file?: string;
-};
-type SketchErrorEvent = ErrorMessageEvent & { url: string; file?: string };
-
-type ErrorMessageEvent = (
-  | { kind: 'error'; line: number; col: number; url: string }
-  | { kind: 'unhandledRejection' }
-) & {
-  message: string;
-  stack: string;
-};
-
-interface SketchRelay {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitSketchEvent(eventName: string | symbol, ...args: any[]): boolean;
-  filePathToUrl(filePath: string): string | null;
-  urlPathToFilePath(urlPath: string): string | null;
-}
-
-function consoleRelayRouter(relay: SketchRelay): express.Router {
-  const router = express.Router();
-
-  router.post('/__p5_server_console', express.json(), (req, res) => {
-    const { method, args } = req.body;
-    const url = req.headers['referer']!;
-    const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };
-    relay.emitSketchEvent('console', data);
-    res.sendStatus(200);
-  });
-
-  router.post('/__p5_server_error', express.json(), (req, res) => {
-    const body = req.body as ErrorMessageEvent;
-    const { url } = { url: req.headers['referer'], ...body };
-    const data: SketchErrorEvent = {
-      url,
-      file: urlToFilePath(url),
-      ...req.body,
-      stack: replaceUrlsInStack(req.body.stack)
-    };
-    relay.emitSketchEvent('error', data);
-    res.sendStatus(200);
-  });
-
-  return router;
-
-  function urlToFilePath(url: string | undefined): string | undefined {
-    return (url && relay.urlPathToFilePath(new URL(url).pathname)) || undefined;
-  }
-
-  function replaceUrlsInStack(stack: string | undefined): string | undefined {
-    return stack
-      ? stack.replace(/\bhttps?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g, (s, p) => relay.urlPathToFilePath(p) || s)
-      : stack;
-  }
-}
-
 async function startServer(config: ServerConfig, sketchRelay: SketchRelay) {
   const mountPoints = config.mountPoints as MountPoint[];
   const app = express();
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.use(consoleRelayRouter(sketchRelay));
+  app.use(sketchEventRelayRouter(sketchRelay));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -304,7 +242,7 @@ async function startServer(config: ServerConfig, sketchRelay: SketchRelay) {
 /** Server is a web server with live reload, sketch-aware directory listings,
  * and library inference for JavaScript-only sketches.
  */
-export class Server implements SketchRelay {
+export class Server {
   public server: http.Server | null = null;
   public url?: string;
   public mountPoints: MountPoint[];

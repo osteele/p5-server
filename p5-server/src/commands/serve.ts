@@ -15,8 +15,9 @@ export default async function serve(files: string[], options = { open: false, po
   console.log(`Serving ${displayName} at ${server.url}`);
 
   if (options.console) {
-    server.onSketchEvent('console', ({ method, args, url }) => {
-      console.log.call(console, `sketch ${method}:`, method, ...args, `(${file})`);
+    server.onSketchEvent('console', data => {
+      const { method, args, file } = data;
+      console.log(`sketch ${method}:`, method, ...args, `(${file})`);
     });
     server.onSketchEvent('error', data => {
       console.log(`sketch ${data.kind}:`, data);

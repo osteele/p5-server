@@ -1,6 +1,7 @@
 import express from 'express';
 import { URL } from 'url';
 import { SketchConsoleEvent, ErrorMessageEvent, SketchErrorEvent } from './types';
+import { cyclicJsonBodyMiddleware } from './cyclicJsonMiddleware';
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,7 +13,7 @@ export interface BrowserScriptRelay {
 export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): express.Router {
   const router = express.Router();
 
-  router.post('/__script_event/console', express.json(), (req, res) => {
+  router.post('/__script_event/console', cyclicJsonBodyMiddleware(), (req, res) => {
     const { method, args } = req.body;
     const url = req.headers['referer']!;
     const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };

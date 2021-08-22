@@ -28,7 +28,8 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
     Object.entries(console).forEach(([method, savedFn]) => {
       savedConsole[method] = (...args) => savedFn.apply(console, args);
       console[method] = (...args) => {
-        send('/__script_event/console', { method, args });
+        let strings = args.map(value => value && typeof value === 'object' && typeof value.toString === 'function' ? value.toString() : null);
+        send('/__script_event/console', { method, args, strings });
         return savedFn.apply(console, args);
       };
     });

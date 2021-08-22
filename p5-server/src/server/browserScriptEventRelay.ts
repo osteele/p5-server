@@ -14,9 +14,13 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
   const router = express.Router();
 
   router.post('/__script_event/console', cyclicJsonBodyMiddleware(), (req, res) => {
-    const { method, args } = req.body;
+    const { method, args, strings }: SketchConsoleEvent = req.body;
     const url = req.headers['referer']!;
-    const data: SketchConsoleEvent = { method, args, url, file: urlToFilePath(url) };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    args.forEach((arg: any, i) => {
+      if (!strings[i]) strings[i] = arg;
+    });
+    const data: SketchConsoleEvent = { method, args, strings, url, file: urlToFilePath(url) };
     relay.emitSketchEvent('console', data);
     res.sendStatus(200);
   });

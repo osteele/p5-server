@@ -16,8 +16,8 @@ export default async function serve(files: string[], options = { open: false, po
 
   if (options.console) {
     server.onSketchEvent('console', data => {
-      const { method, args, file } = data;
-      console.log(`sketch ${method}:`, method, ...args, `(${file})`);
+      const { method, args, strings, file } = data;
+      console.log(`sketch ${method}:`, method, ...strings, `(${file})`);
     });
     server.onSketchEvent('error', data => {
       console.log(`sketch ${data.kind}:`, data);

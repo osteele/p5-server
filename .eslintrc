@@ -34,6 +34,7 @@
       "globals": {
         "callee": true,
         "console": true,
+        "document": true,
         "fetch": true,
         "window": true
       },

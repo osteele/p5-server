@@ -37,7 +37,10 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
       };
     });
 
-    window.addEventListener('load', () => send('/__script_event/window', { event: 'load' }));
+    document.addEventListener('visibilitychange', () => { send('/__script_event/window', { event: 'load', visibilityState: document.visibilityState }) });
+    window.addEventListener('DOMContentLoaded', () => { send('/__script_event/window', { event: 'DOMContentLoaded' }) });
+    window.addEventListener('load', () => { send('/__script_event/window', { event: 'load' }) });
+    window.addEventListener('pagehide', () => { send('/__script_event/window', { event: 'pagehide' }) }, false);
 
     function send(url, data) {
       data.sequenceId = sequenceId++;

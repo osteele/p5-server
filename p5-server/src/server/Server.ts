@@ -259,9 +259,9 @@ export class Server {
   public mountPoints: MountPoint[];
   private readonly options: ServerConfig;
   private liveReloadServer: WebSocket.Server | null = null;
-  private readonly sketchEmitter = new EventEmitter();
-  public readonly emitSketchEvent = this.sketchEmitter.emit.bind(this.sketchEmitter);
-  public readonly onSketchEvent = this.sketchEmitter.on.bind(this.sketchEmitter);
+  private readonly browserScriptEmitter = new EventEmitter();
+  public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(this.browserScriptEmitter);
+  public readonly onScriptEvent = this.browserScriptEmitter.on.bind(this.browserScriptEmitter);
 
   constructor(options: Partial<Server.Options> = {}) {
     const mountPoints =

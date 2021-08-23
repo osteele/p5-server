@@ -18,7 +18,7 @@ export default async function serve(files: string[], options: Options = { open: 
   console.log(`Serving ${displayName} at ${server.url}`);
 
   if (options.console) {
-    server.onSketchEvent('console', (data: SketchConsoleEvent) => {
+    server.onScriptEvent('console', (data: SketchConsoleEvent) => {
       if (options.console === 'json') {
         console.log('browser console:', data);
       } else {
@@ -27,10 +27,10 @@ export default async function serve(files: string[], options: Options = { open: 
         console.log(`browser console.${method}:`, ...argsOrStrings, `(${file || url})`);
       }
     });
-    server.onSketchEvent('error', (data: SketchErrorEvent) => {
+    server.onScriptEvent('error', (data: SketchErrorEvent) => {
       console.log(`browser ${data.kind}:`, data);
     });
-    server.onSketchEvent('window', data => {
+    server.onScriptEvent('window', data => {
       if (options.console === 'json') {
         console.log('browser window event:', data);
       } else {

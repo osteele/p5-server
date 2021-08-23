@@ -5,7 +5,7 @@ import { cyclicJsonBodyMiddleware } from './cyclicJsonMiddleware';
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitSketchEvent(eventName: string | symbol, ...args: any[]): boolean;
+  emitScriptEvent(eventName: string | symbol, ...args: any[]): boolean;
   filePathToUrl(filePath: string): string | null;
   urlPathToFilePath(urlPath: string): string | null;
 }
@@ -22,7 +22,7 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
       file: urlToFilePath(url),
       url
     };
-    relay.emitSketchEvent('console', data);
+    relay.emitScriptEvent('console', data);
     res.sendStatus(200);
   });
 
@@ -35,14 +35,14 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
       file: urlToFilePath(url),
       stack: replaceUrlsInStack(req.body.stack)
     };
-    relay.emitSketchEvent('error', data);
+    relay.emitScriptEvent('error', data);
     res.sendStatus(200);
   });
 
   router.post('/__script_event/window', express.json(), (req, res) => {
     const url = req.headers['referer']!;
     const data: SketchConsoleEvent = { ...req.body, url, file: urlToFilePath(url) };
-    relay.emitSketchEvent('window', data);
+    relay.emitScriptEvent('window', data);
     res.sendStatus(200);
   });
 

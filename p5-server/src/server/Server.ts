@@ -13,11 +13,7 @@ import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
 import { EventEmitter } from 'stream';
-import {
-  BrowserScriptRelay,
-  browserScriptEventRelayRouter,
-  injectScriptEventRelayScript
-} from './browserScriptEventRelay';
+import { BrowserScriptRelay, attachBrowserScriptRelay, injectScriptEventRelayScript } from './browserScriptEventRelay';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -195,7 +191,6 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
 
   // add routes
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
-  app.use(browserScriptEventRelayRouter(sketchRelay));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -231,14 +226,13 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
       console.log(`Port ${p} is in use, retrying...`);
     }
   }
-  if (!server) {
-    server = await listenSync(app);
-  }
+  if (!server) server = await listenSync(app);
 
   const address = server.address();
   if (!address || typeof address === 'string') {
     throw new Error('Failed to start the server');
   }
+  attachBrowserScriptRelay(server, sketchRelay);
   try {
     const liveReloadServer = createLiveReloadServer(mountPoints.map(mount => mount.filePath));
     app.locals.liveReloadServer = liveReloadServer;

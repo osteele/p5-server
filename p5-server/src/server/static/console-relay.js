@@ -1,11 +1,10 @@
 if (typeof window !== 'undefined' && typeof window.console === 'object') {
-  (function () {
-    let savedConsole = {};
+  (function (realConsole) {
+    let console = {};
     let savedOnError = window.onerror;
-    let sequenceId = 0;
 
     window.onerror = function (message, url, line, col, err) {
-      send('/__script_event/error', {
+      send('error', {
         kind: 'error',
         message,
         url,
@@ -18,37 +17,44 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
 
     window.addEventListener('unhandledrejection', event => {
       let reason = event.reason;
-      send('/__script_event/error', {
+      send('error', {
         kind: 'unhandledRejection',
         message: reason.message || String(reason),
         stack: reason.stack
       });
     });
 
-    Object.entries(console).forEach(([method, savedFn]) => {
-      savedConsole[method] = (...args) => savedFn.apply(console, args);
-      console[method] = (...args) => {
-        send('/__script_event/console', {
+    Object.entries(realConsole).forEach(([method, savedFn]) => {
+      console[method] = (...args) => savedFn.apply(realConsole, args);
+      realConsole[method] = (...args) => {
+        send('console', {
           method,
           args: args.map((value, i) => undefinedValueReplacer(i, value)),
           argStrings: args.map(value => value && typeof value === 'object' && typeof value.toString === 'function' ? value.toString() : null)
         });
-        return savedFn.apply(console, args);
+        return savedFn.apply(realConsole, args);
       };
     });
 
-    document.addEventListener('visibilitychange', () => { send('/__script_event/window', { event: 'load', visibilityState: document.visibilityState }) });
-    window.addEventListener('DOMContentLoaded', () => { send('/__script_event/window', { event: 'DOMContentLoaded' }) });
-    window.addEventListener('load', () => { send('/__script_event/window', { event: 'load' }) });
-    window.addEventListener('pagehide', () => { send('/__script_event/window', { event: 'pagehide' }) }, false);
+    document.addEventListener('visibilitychange', () => { send('window', { event: 'load', visibilityState: document.visibilityState }) });
+    window.addEventListener('DOMContentLoaded', () => { send('window', { event: 'DOMContentLoaded' }) });
+    window.addEventListener('load', () => { send('window', { event: 'load' }) });
+    window.addEventListener('pagehide', () => { send('window', { event: 'pagehide' }) }, false);
+
+    let ws = new WebSocket('ws://' + window.location.host);
+    let q = [];
+    ws.onopen = () => {
+      while (q.length) {
+        ws.send(q.shift());
+      }
+    };
 
     function send(url, data) {
-      data.sequenceId = sequenceId++;
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: stringify(data)
-      }).catch(savedConsole.error);
+      if (ws.readyState === 1) {
+        ws.send(stringify([url, document.documentURI, data]));
+      } else {
+        q.push(stringify([url, document.documentURI, data]));
+      }
     }
 
     function stringify(value) {
@@ -65,6 +71,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
 
     let serializationPrefix = '__p5_server_serialization_:';
     let unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
+
     function undefinedValueReplacer(_key, value) {
       return unserializablePrimitives.includes(value) ? serializationPrefix + value : value;
     }
@@ -108,5 +115,5 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
       }
     }
 
-  })();
+  })(window.console);
 }

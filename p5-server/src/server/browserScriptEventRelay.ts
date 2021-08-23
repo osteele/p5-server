@@ -1,7 +1,8 @@
-import express from 'express';
 import { URL } from 'url';
 import { SketchConsoleEvent, ErrorMessageEvent, SketchErrorEvent } from './types';
-import { cyclicJsonBodyMiddleware } from './cyclicJsonMiddleware';
+import { parseCyclicJson } from './cyclicJson';
+import ws from 'ws';
+import http from 'http';
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,12 +11,31 @@ export interface BrowserScriptRelay {
   urlPathToFilePath(urlPath: string): string | null;
 }
 
-export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): express.Router {
-  const router = express.Router();
+export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScriptRelay) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const routes = new Map<string, (url: string, body: Record<string, any>) => void>();
 
-  router.post('/__script_event/console', cyclicJsonBodyMiddleware(), (req, res) => {
-    const body: SketchConsoleEvent = req.body;
-    const url = req.headers['referer']!;
+  const wsServer = new ws.Server({ noServer: true });
+  wsServer.on('connection', socket => {
+    socket.on('message', message => {
+      const [route, url, data] = parseCyclicJson(message as string);
+      const handler = routes.get(route);
+      if (handler) handler(url, data);
+    });
+  });
+  server.on('upgrade', (request, socket, head) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    wsServer.handleUpgrade(request, socket as any, head, socket => {
+      wsServer.emit('connection', socket, request);
+    });
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function defineHandler(route: string, handler: (url: string, body: any) => void) {
+    routes.set(route, handler);
+  }
+
+  defineHandler('console', (url: string, body: SketchConsoleEvent) => {
     const data: SketchConsoleEvent = {
       ...body,
       args: body.args.map(decodeUnserializableValue),
@@ -23,30 +43,22 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
       url
     };
     relay.emitScriptEvent('console', data);
-    res.sendStatus(200);
   });
 
-  router.post('/__script_event/error', express.json(), (req, res) => {
-    const body: ErrorMessageEvent = req.body;
-    const url = req.headers['referer'] || req.body.url;
+  defineHandler('error', (url: string, body: ErrorMessageEvent) => {
     const data: SketchErrorEvent = {
       ...body,
       url,
       file: urlToFilePath(url),
-      stack: replaceUrlsInStack(req.body.stack)
+      stack: replaceUrlsInStack(body.stack)
     };
     relay.emitScriptEvent('error', data);
-    res.sendStatus(200);
   });
 
-  router.post('/__script_event/window', express.json(), (req, res) => {
-    const url = req.headers['referer']!;
-    const data: SketchConsoleEvent = { ...req.body, url, file: urlToFilePath(url) };
+  defineHandler('window', (url: string, body: SketchConsoleEvent) => {
+    const data: SketchConsoleEvent = { ...body, file: urlToFilePath(body.url) };
     relay.emitScriptEvent('window', data);
-    res.sendStatus(200);
   });
-
-  return router;
 
   function urlToFilePath(url: string | undefined): string | undefined {
     return (url && relay.urlPathToFilePath(new URL(url).pathname)) || undefined;

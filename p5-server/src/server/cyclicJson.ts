@@ -17,7 +17,7 @@ const defKey = '$__p5_server:def';
 const refKey = '$__p5_server:ref';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseCyclicJson(json: string) {
+export function parseCyclicJson(json: string) {
   const value = JSON.parse(json);
   if (!(typeof value === 'object' && hasOwnProperty.call(value, scopeKey))) return value;
 

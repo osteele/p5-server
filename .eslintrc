@@ -36,7 +36,8 @@
         "console": true,
         "document": true,
         "fetch": true,
-        "window": true
+        "window": true,
+        "WebSocket": true
       },
       "rules": {
         "no-console": "off",

@@ -14,24 +14,25 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
   const router = express.Router();
 
   router.post('/__script_event/console', cyclicJsonBodyMiddleware(), (req, res) => {
-    const { method, args, strings }: SketchConsoleEvent = req.body;
+    const body: SketchConsoleEvent = req.body;
     const url = req.headers['referer']!;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    args.forEach((arg: any, i) => {
-      if (!strings[i]) strings[i] = arg;
-    });
-    const data: SketchConsoleEvent = { method, args, strings, url, file: urlToFilePath(url) };
+    const data: SketchConsoleEvent = {
+      ...body,
+      args: body.args.map(decodeUnserializableValue),
+      file: urlToFilePath(url),
+      url
+    };
     relay.emitSketchEvent('console', data);
     res.sendStatus(200);
   });
 
   router.post('/__script_event/error', express.json(), (req, res) => {
-    const body = req.body as ErrorMessageEvent;
-    const { url } = { url: req.headers['referer'], ...body };
+    const body: ErrorMessageEvent = req.body;
+    const url = req.headers['referer'] || req.body.url;
     const data: SketchErrorEvent = {
+      ...body,
       url,
       file: urlToFilePath(url),
-      ...req.body,
       stack: replaceUrlsInStack(req.body.stack)
     };
     relay.emitSketchEvent('error', data);
@@ -60,4 +61,13 @@ export function browserScriptEventRelayRouter(relay: BrowserScriptRelay): expres
 
 export function injectScriptEventRelayScript(html: string) {
   return html.replace(/(?=<\/head>)/, '<script src="/__p5_server_static/console-relay.js"></script>');
+}
+
+const serializationPrefix = '__p5_server_serialization_:';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function decodeUnserializableValue(value: any) {
+  return typeof value === 'string' && value.startsWith(serializationPrefix)
+    ? eval(value.slice(serializationPrefix.length))
+    : value;
 }

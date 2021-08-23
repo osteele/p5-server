@@ -4,7 +4,7 @@ export type SketchConsoleEvent = {
   method: 'log' | 'warn' | 'error' | 'info' | 'debug';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[];
-  strings: (string | null)[];
+  argStrings: (string | null)[];
   url: string;
   file?: string;
 };
@@ -14,5 +14,5 @@ export type ErrorMessageEvent = (
   | { kind: 'unhandledRejection' }
 ) & {
   message: string;
-  stack: string;
+  stack?: string;
 };

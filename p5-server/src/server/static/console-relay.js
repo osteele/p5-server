@@ -28,8 +28,11 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
     Object.entries(console).forEach(([method, savedFn]) => {
       savedConsole[method] = (...args) => savedFn.apply(console, args);
       console[method] = (...args) => {
-        let strings = args.map(value => value && typeof value === 'object' && typeof value.toString === 'function' ? value.toString() : null);
-        send('/__script_event/console', { method, args, strings });
+        send('/__script_event/console', {
+          method,
+          args: args.map((value, i) => undefinedValueReplacer(i, value)),
+          argStrings: args.map(value => value && typeof value === 'object' && typeof value.toString === 'function' ? value.toString() : null)
+        });
         return savedFn.apply(console, args);
       };
     });
@@ -57,15 +60,21 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
       }
     }
 
-    function stringifyCycle(value) {
+    let serializationPrefix = '__p5_server_serialization_:';
+    let unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
+    function undefinedValueReplacer(_key, value) {
+      return unserializablePrimitives.includes(value) ? serializationPrefix + value : value;
+    }
+
+    function stringifyCycle(value, replacer) {
       let seen = new Set();
       let defs = new Map();
 
       JSON.stringify(value, collector);
       seen.clear();
       return defs.size === 0
-        ? JSON.stringify(value)
-        : JSON.stringify({ '$__p5_server:circular': value }, replacer);
+        ? JSON.stringify(value, replacer)
+        : JSON.stringify({ '$__p5_server:circular': value }, cycleReplacer);
 
       function collector(_key, value) {
         if (value && (typeof value === 'object' || Array.isArray(value))) {
@@ -81,7 +90,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
         return value;
       }
 
-      function replacer(key, value) {
+      function cycleReplacer(key, value) {
         if (value && (typeof value === 'object' || Array.isArray(value))) {
           if (key === '$__p5_server:def') {
             return value;
@@ -92,7 +101,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
             return { '$__p5_server:def': value };
           }
         }
-        return value;
+        return replacer ? replacer(key, value) : value;
       }
     }
 

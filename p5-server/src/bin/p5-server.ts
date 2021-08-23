@@ -58,7 +58,7 @@ program
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
-  .option('--console', 'Display messages from the sketch in the server output')
+  .option('--console [FORMAT]', 'Relay console messages and errors to sketch in the server console')
   .action(serve);
 
 program

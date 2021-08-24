@@ -1,5 +1,5 @@
 import open from 'open';
-import { BrowserConsoleEvent, BrowserErrorEvent } from 'src/server/types';
+import { BrowserConsoleEvent, BrowserErrorEvent, BrowserWindowEvent } from 'src/server/eventTypes';
 import { Server } from '../server/Server';
 
 type Options = { open: boolean; port: string; console: boolean | string };
@@ -28,14 +28,14 @@ export default async function serve(files: string[], options: Options = { open: 
       }
     });
     server.onScriptEvent('error', (data: BrowserErrorEvent) => {
-      console.log(`browser ${data.kind}:`, data);
+      console.log(`browser ${data.type}:`, data);
     });
-    server.onScriptEvent('window', data => {
+    server.onScriptEvent('window', (data: BrowserWindowEvent) => {
       if (options.console === 'json') {
         console.log('browser window event:', data);
       } else {
-        const { event, file, url } = data;
-        console.log('browser window event:', event, `(${file || url})`);
+        const { type, file, url } = data;
+        console.log('browser window event:', type, `(${file || url})`);
       }
     });
   }

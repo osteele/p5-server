@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import { BrowserConsoleEvent, BrowserErrorEvent } from './types';
+import { BrowserConsoleEvent, BrowserErrorEvent, BrowserWindowEvent } from './eventTypes';
 import { parseCyclicJson } from './cyclicJson';
 import ws from 'ws';
 import http from 'http';
@@ -51,7 +51,7 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
     relay.emitScriptEvent('error', data);
   });
 
-  defineHandler('window', (event: BrowserConsoleEvent) => {
+  defineHandler('window', (event: BrowserWindowEvent) => {
     relay.emitScriptEvent('window', event);
   });
 

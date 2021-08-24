@@ -5,7 +5,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
 
     window.onerror = function (message, url, line, col, err) {
       send('error', {
-        kind: 'error',
+        type: 'error',
         message,
         url,
         line,
@@ -18,7 +18,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
     window.addEventListener('unhandledrejection', event => {
       let reason = event.reason;
       send('error', {
-        kind: 'unhandledRejection',
+        type: 'unhandledRejection',
         message: reason.message || String(reason),
         stack: reason.stack
       });
@@ -36,10 +36,10 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
       };
     });
 
-    document.addEventListener('visibilitychange', () => { send('window', { event: 'load', visibilityState: document.visibilityState }) });
-    window.addEventListener('DOMContentLoaded', () => { send('window', { event: 'DOMContentLoaded' }) });
-    window.addEventListener('load', () => { send('window', { event: 'load' }) });
-    window.addEventListener('pagehide', () => { send('window', { event: 'pagehide' }) }, false);
+    document.addEventListener('visibilitychange', () => { send('window', { type: 'load', visibilityState: document.visibilityState }) });
+    window.addEventListener('DOMContentLoaded', () => { send('window', { type: 'DOMContentLoaded' }) });
+    window.addEventListener('load', () => { send('window', { type: 'load' }) });
+    window.addEventListener('pagehide', () => { send('window', { type: 'pagehide' }) }, false);
 
     let ws = new WebSocket('ws://' + window.location.host);
     let clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(16)).join('-');

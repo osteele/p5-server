@@ -9,17 +9,25 @@ export type BrowserConsoleEvent = {
   args: any[];
   argStrings: (string | null)[];
   clientId: string;
-  url: string;
   file?: string;
+  url: string;
 };
 
 export type BrowserErrorEvent = (
-  | { kind: 'error'; line: number; col: number; url: string }
-  | { kind: 'unhandledRejection' }
+  | { type: 'error'; line: number; col: number; url: string }
+  | { type: 'unhandledRejection' }
 ) & {
+  type: string;
+  clientId: string;
+  file?: string;
+  url: string;
   message: string;
   stack?: string;
+};
+
+export type BrowserWindowEvent = {
+  type: string;
   clientId: string;
-  url: string;
   file?: string;
+  url: string;
 };

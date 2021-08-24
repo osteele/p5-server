@@ -28,7 +28,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run copy-files && tsc --declaration",
+    "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
@@ -39,7 +39,7 @@
     "serve:testdata": "yarn server:watch examples tests/testdata",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
-    "prepack": "npm run build && cp ../README.md .",
+    "prepack": "yarn run build && cp ../README.md .",
     "postpack": "rm README.md",
     "test": "jest",
     "test:watch": "jest --watch"

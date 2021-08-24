@@ -1,5 +1,4 @@
 {
-  "name": "@osteele/p5-tools",
   "description": "Workspace for p5-analysis and p5-server",
   "repository": "github:osteele/p5-server",
   "keywords": [

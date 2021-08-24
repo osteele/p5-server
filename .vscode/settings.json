@@ -5,8 +5,8 @@
   },
   "json.schemas": [
     {
-      "fileMatch": ["src/libraries.json"],
-      "url": "./p5-analysis/src/schemas/libraries.json"
+      "fileMatch": ["p5-analysis/**/libraries/*.json"],
+      "url": "./p5-analysis/src/lib/schemas/libraries.json"
     }
   ],
   "search.exclude": {

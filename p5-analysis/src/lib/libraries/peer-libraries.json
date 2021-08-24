@@ -1,0 +1,13 @@
+[
+  {
+    "name": "dat.gui",
+    "description": "dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.",
+    "homepage": "https://github.com/dataarts/dat.gui",
+    "packageName": "dat.gui",
+    "defines": {
+      "globals": [
+        "dat"
+      ]
+    }
+  }
+]

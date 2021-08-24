@@ -1,0 +1,46 @@
+[
+  {
+    "name": "p5.sound",
+    "homepage": "https://p5js.org/reference/#/libraries/p5.sound",
+    "description": "p5.sound extends p5 with Web Audio functionality including audio input, playback, analysis and synthesis.",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
+    "defines": {
+      "globals": [
+        "createConvolver",
+        "freqToMidi",
+        "getAudioContext",
+        "getOutputVolume",
+        "loadSound",
+        "midiToFreq",
+        "outputVolume",
+        "sampleRate",
+        "saveSound",
+        "setBPM",
+        "soundFormats",
+        "soundOut",
+        "userStartAudio"
+      ],
+      "p5": [
+        "Amplitude",
+        "AudioIn",
+        "Convolver",
+        "Delay",
+        "Envelope",
+        "FFT",
+        "Filter",
+        "MonoSynth",
+        "Noise",
+        "Oscillator",
+        "Part",
+        "Phrase",
+        "PolySynth",
+        "Pulse",
+        "Reverb",
+        "Score",
+        "SoundFile",
+        "SoundLop",
+        "SoundRecorder"
+      ]
+    }
+  }
+]

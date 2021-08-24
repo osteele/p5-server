@@ -169,4 +169,7 @@ export class LibraryArray extends Array<Library> {
   }
 }
 
-Library.addFromJson(path.join(__dirname, './libraries.json'));
+Library.addFromJson(path.join(__dirname, 'libraries', '/core-libraries.json'));
+Library.addFromJson(path.join(__dirname, 'libraries', '/community-libraries.json'));
+Library.addFromJson(path.join(__dirname, 'libraries', '/peer-libraries.json'));
+Library.addFromJson(path.join(__dirname, 'libraries', '/osteele-libraries.json'));

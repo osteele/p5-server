@@ -79,7 +79,7 @@ test('Sketch.libraries', async () => {
   expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
 
   sketch = await Sketch.fromFile(f`Sketch.convert/explicit-imports.html`);
-  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound', 'ml5.js', 'Rita']);
+  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
 });
 
 test('Sketch.description', async () => {

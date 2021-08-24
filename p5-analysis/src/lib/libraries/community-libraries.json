@@ -1,61 +1,5 @@
 [
   {
-    "name": "p5.sound",
-    "homepage": "https://p5js.org/reference/#/libraries/p5.sound",
-    "description": "p5.sound extends p5 with Web Audio functionality including audio input, playback, analysis and synthesis.",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5@$(P5Version)/lib/addons/p5.sound.min.js",
-    "defines": {
-      "globals": [
-        "createConvolver",
-        "freqToMidi",
-        "getAudioContext",
-        "getOutputVolume",
-        "loadSound",
-        "midiToFreq",
-        "outputVolume",
-        "sampleRate",
-        "saveSound",
-        "setBPM",
-        "soundFormats",
-        "soundOut",
-        "userStartAudio"
-      ],
-      "p5": [
-        "Amplitude",
-        "AudioIn",
-        "Convolver",
-        "Delay",
-        "Envelope",
-        "FFT",
-        "Filter",
-        "MonoSynth",
-        "Noise",
-        "Oscillator",
-        "Part",
-        "Phrase",
-        "PolySynth",
-        "Pulse",
-        "Reverb",
-        "Score",
-        "SoundFile",
-        "SoundLop",
-        "SoundRecorder"
-      ]
-    }
-  },
-  {
-    "name": "ml5.js",
-    "description": "ml5.js aims to make machine learning approachable for a broad audience of artists, creative coders, and students. The library provides access to machine learning algorithms and models in the browser.",
-    "homepage": "https://ml5js.org/",
-    "packageName": "ml5",
-    "importPath": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
-    "defines": {
-      "globals": [
-        "ml5"
-      ]
-    }
-  },
-  {
     "name": "ASCII Art",
     "description": "p5.asciiart is a simple and easy to use image-to-ASCII art converter for p5js.",
     "homepage": "https://www.tetoki.eu/asciiart/",
@@ -78,7 +22,7 @@
     }
   },
   {
-    "name": "p5bots",
+    "name": "p5.bots",
     "description": "With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!",
     "homepage": "https://github.com/sarahgp/p5bots",
     "importPath": "/master/lib/p5bots.min.js",
@@ -116,7 +60,6 @@
     "description": "p5.collide2D provides tools for calculating collision detection for 2D geometry with p5.js.",
     "homepage": "https://github.com/bmoren/p5.collide2D",
     "packageName": "p5.collide2d",
-    "importPath": "https://unpkg.com/p5.collide2d",
     "defines": {
       "globals": [
         "collideDebug",
@@ -322,6 +265,18 @@
     }
   },
   {
+    "name": "ml5.js",
+    "description": "ml5.js aims to make machine learning approachable for a broad audience of artists, creative coders, and students. The library provides access to machine learning algorithms and models in the browser.",
+    "homepage": "https://ml5js.org/",
+    "packageName": "ml5",
+    "importPath": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
+    "defines": {
+      "globals": [
+        "ml5"
+      ]
+    }
+  },
+  {
     "name": "p5.play",
     "description": "p5.play provides sprites, animations, input and collision functions for games and gamelike applications",
     "homepage": "https://molleindustria.github.io/p5.play/",
@@ -357,11 +312,10 @@
     }
   },
   {
-    "name": "Rita",
+    "name": "RiTa",
     "description": "RiTa.js provides a set of natural language processing objects for generative literature",
     "homepage": "https://rednoise.org/rita/",
     "packageName": "rita",
-    "importPath": "https://unpkg.com/rita",
     "defines": {
       "globals": [
         "RiTa"
@@ -530,7 +484,7 @@
     }
   },
   {
-    "name": "p5xr",
+    "name": "p5.xr",
     "description": "A library for creating VR and AR sketches with p5",
     "homepage": "http://p5xr.org/",
     "importPath": "https://github.com/stalgiag/p5.xr/releases/download/v0.4.0/p5xr.min.js",
@@ -550,17 +504,6 @@
         "createWord3D",
         "createPicture3D",
         "createCanvas3D"
-      ]
-    }
-  },
-  {
-    "name": "dat.gui",
-    "description": "dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.",
-    "homepage": "https://github.com/dataarts/dat.gui",
-    "packageName": "dat.gui",
-    "defines": {
-      "globals": [
-        "dat"
       ]
     }
   }

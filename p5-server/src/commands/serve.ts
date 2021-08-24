@@ -1,5 +1,5 @@
 import open from 'open';
-import { SketchConsoleEvent, SketchErrorEvent } from 'src/server/types';
+import { BrowserConsoleEvent, BrowserErrorEvent } from 'src/server/types';
 import { Server } from '../server/Server';
 
 type Options = { open: boolean; port: string; console: boolean | string };
@@ -18,7 +18,7 @@ export default async function serve(files: string[], options: Options = { open: 
   console.log(`Serving ${displayName} at ${server.url}`);
 
   if (options.console) {
-    server.onScriptEvent('console', (data: SketchConsoleEvent) => {
+    server.onScriptEvent('console', (data: BrowserConsoleEvent) => {
       if (options.console === 'json') {
         console.log('browser console:', data);
       } else {
@@ -27,7 +27,7 @@ export default async function serve(files: string[], options: Options = { open: 
         console.log(`browser console.${method}:`, ...argsOrStrings, `(${file || url})`);
       }
     });
-    server.onScriptEvent('error', (data: SketchErrorEvent) => {
+    server.onScriptEvent('error', (data: BrowserErrorEvent) => {
       console.log(`browser ${data.kind}:`, data);
     });
     server.onScriptEvent('window', data => {

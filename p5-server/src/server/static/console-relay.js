@@ -49,11 +49,13 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
       }
     };
 
-    function send(url, data) {
-      if (ws.readyState === 1) {
-        ws.send(stringify([url, document.documentURI, data]));
+    function send(route, data) {
+      data.url = data.url || document.documentURI;
+      let payload = stringify([route, data]);
+      if (ws.readyState === 1 && !q.length) {
+        ws.send(payload);
       } else {
-        q.push(stringify([url, document.documentURI, data]));
+        q.push(payload);
       }
     }
 

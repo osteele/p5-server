@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import { SketchConsoleEvent, ErrorMessageEvent, SketchErrorEvent } from './types';
+import { BrowserConsoleEvent, BrowserErrorEvent } from './types';
 import { parseCyclicJson } from './cyclicJson';
 import ws from 'ws';
 import http from 'http';
@@ -13,14 +13,14 @@ export interface BrowserScriptRelay {
 
 export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScriptRelay) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const routes = new Map<string, (url: string, body: Record<string, any>) => void>();
+  const routes = new Map<string, (event: Record<string, any>) => void>();
 
   const wsServer = new ws.Server({ noServer: true });
   wsServer.on('connection', socket => {
     socket.on('message', message => {
-      const [route, url, data] = parseCyclicJson(message as string);
+      const [route, data] = parseCyclicJson(message as string);
       const handler = routes.get(route);
-      if (handler) handler(url, data);
+      if (handler) handler({ ...data, file: urlToFilePath(data.url) });
     });
   });
   server.on('upgrade', (request, socket, head) => {
@@ -31,33 +31,28 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function defineHandler(route: string, handler: (url: string, body: any) => void) {
+  function defineHandler(route: string, handler: (event: any) => void) {
     routes.set(route, handler);
   }
 
-  defineHandler('console', (url: string, body: SketchConsoleEvent) => {
-    const data: SketchConsoleEvent = {
-      ...body,
-      args: body.args.map(decodeUnserializableValue),
-      file: urlToFilePath(url),
-      url
+  defineHandler('console', (event: BrowserConsoleEvent) => {
+    const data: BrowserConsoleEvent = {
+      ...event,
+      args: event.args.map(decodeUnserializableValue)
     };
     relay.emitScriptEvent('console', data);
   });
 
-  defineHandler('error', (url: string, body: ErrorMessageEvent) => {
-    const data: SketchErrorEvent = {
-      ...body,
-      url,
-      file: urlToFilePath(url),
-      stack: replaceUrlsInStack(body.stack)
+  defineHandler('error', (event: BrowserErrorEvent) => {
+    const data: BrowserErrorEvent = {
+      ...event,
+      stack: replaceUrlsInStack(event.stack)
     };
     relay.emitScriptEvent('error', data);
   });
 
-  defineHandler('window', (url: string, body: SketchConsoleEvent) => {
-    const data: SketchConsoleEvent = { ...body, file: urlToFilePath(body.url) };
-    relay.emitScriptEvent('window', data);
+  defineHandler('window', (event: BrowserConsoleEvent) => {
+    relay.emitScriptEvent('window', event);
   });
 
   function urlToFilePath(url: string | undefined): string | undefined {

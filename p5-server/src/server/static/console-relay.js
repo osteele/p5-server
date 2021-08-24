@@ -42,6 +42,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
     window.addEventListener('pagehide', () => { send('window', { event: 'pagehide' }) }, false);
 
     let ws = new WebSocket('ws://' + window.location.host);
+    let clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(16)).join('-');
     let q = [];
     ws.onopen = () => {
       while (q.length) {
@@ -51,6 +52,7 @@ if (typeof window !== 'undefined' && typeof window.console === 'object') {
 
     function send(route, data) {
       data.url = data.url || document.documentURI;
+      data.clientId = clientId;
       let payload = stringify([route, data]);
       if (ws.readyState === 1 && !q.length) {
         ws.send(payload);

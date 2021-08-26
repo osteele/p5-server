@@ -1,7 +1,8 @@
 import { URL } from 'url';
-import { BrowserConsoleEvent, BrowserErrorEvent, BrowserWindowEvent } from './eventTypes';
+import { BrowserConnectionEvent, BrowserConsoleEvent, BrowserErrorEvent, BrowserWindowEvent } from './eventTypes';
 import { parseCyclicJson } from './cyclicJson';
 import ws from 'ws';
+import net from 'net';
 import http from 'http';
 
 export interface BrowserScriptRelay {
@@ -23,9 +24,9 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
       if (handler) handler({ ...data, file: urlToFilePath(data.url) });
     });
   });
-  server.on('upgrade', (request, socket, head) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    wsServer.handleUpgrade(request, socket as any, head, socket => {
+
+  server.on('upgrade', (request, socket: net.Socket, head) => {
+    wsServer.handleUpgrade(request, socket, head, socket => {
       wsServer.emit('connection', socket, request);
     });
   });
@@ -34,6 +35,10 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
   function defineHandler(route: string, handler: (event: any) => void) {
     routes.set(route, handler);
   }
+
+  defineHandler('connection', (event: BrowserConnectionEvent) => {
+    relay.emitScriptEvent('connection', event);
+  });
 
   defineHandler('console', (event: BrowserConsoleEvent) => {
     const data: BrowserConsoleEvent = {

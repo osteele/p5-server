@@ -38,31 +38,6 @@ Object.entries(console).forEach(([method, savedFn]) => {
   };
 });
 
-document.addEventListener('visibilitychange', () => { send('window', { type: 'load', visibilityState: document.visibilityState }) });
-window.addEventListener('DOMContentLoaded', () => { send('window', { type: 'DOMContentLoaded' }) });
-window.addEventListener('load', () => { send('window', { type: 'load' }) });
-window.addEventListener('pagehide', () => { send('window', { type: 'pagehide' }) }, false);
-
-const ws = new WebSocket('ws://' + window.location.host);
-const clientId = Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(16)).join('-');
-const q = [];
-ws.onopen = () => {
-  while (q.length) {
-    ws.send(q.shift());
-  }
-};
-
-function send(route, data) {
-  data.url = data.url || document.documentURI;
-  data.clientId = clientId;
-  const payload = stringify([route, data]);
-  if (ws.readyState === 1 && !q.length) {
-    ws.send(payload);
-  } else {
-    q.push(payload);
-  }
-}
-
 function stringify(value) {
   try {
     return JSON.stringify(value);
@@ -117,3 +92,29 @@ function stringifyCycle(value, replacer) {
     return replacer ? replacer(key, value) : value;
   }
 }
+
+const ws = new WebSocket('ws://' + window.location.host);
+const clientId = Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(16)).join('-');
+const q = [];
+ws.onopen = () => {
+  while (q.length) {
+    ws.send(q.shift());
+  }
+};
+
+function send(route, data) {
+  data.url = data.url || document.documentURI;
+  data.clientId = clientId;
+  const payload = stringify([route, data]);
+  if (ws.readyState === 1 && !q.length) {
+    ws.send(payload);
+  } else {
+    q.push(payload);
+  }
+}
+
+send('connection', { type: 'opened' });
+document.addEventListener('visibilitychange', () => { send('window', { type: 'load', visibilityState: document.visibilityState }) });
+window.addEventListener('DOMContentLoaded', () => { send('window', { type: 'DOMContentLoaded' }) });
+window.addEventListener('load', () => { send('window', { type: 'load' }) });
+window.addEventListener('pagehide', () => { send('window', { type: 'pagehide' }) }, false);

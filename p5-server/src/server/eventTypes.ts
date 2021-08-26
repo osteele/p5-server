@@ -3,6 +3,13 @@
 /** This list is not extensive. */
 export type BrowserConsoleEventMethods = 'log' | 'info' | 'warn' | 'error' | 'debug' | 'clear';
 
+export type BrowserConnectionEvent = {
+  clientId: string;
+  file?: string;
+  url: string;
+  type: string;
+};
+
 export type BrowserConsoleEvent = {
   method: BrowserConsoleEventMethods;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

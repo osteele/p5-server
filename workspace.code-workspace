@@ -25,9 +25,23 @@
     "typescript.tsc.autoDetect": "off",
     "search.exclude": {
       "**/dist": true
+    },
+    "emeraldwalk.runonsave": {
+      "commands": [
+        {
+          "match": "package.json",
+          "isAsync": true,
+          "cmd": "fixpack ${file}"
+        }
+      ]
     }
   },
   "extensions": {
-    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "davidanson.vscode-markdownlint"]
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "davidanson.vscode-markdownlint",
+      "emeraldwalk.runonsave"
+    ]
   }
 }

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { asyncFilter, capitalize } from '../utils';
+import { asyncFilter, asyncFind, capitalize } from '../utils';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
 import { HTMLElement, parse } from 'node-html-parser';
@@ -332,7 +332,8 @@ class HtmlSketch extends Sketch {
     const htmlRoot = parse(htmlContent);
     const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
     const scripts = this.getLocalScriptFiles(htmlRoot);
-    return new HtmlSketch(dir, path.basename(htmlFile), scripts[0], { description });
+    const scriptFile = (await asyncFind(scripts, file => Sketch.isSketchScriptFile(path.join(dir, file)))) || scripts[0];
+    return new HtmlSketch(dir, path.basename(htmlFile), scriptFile, { description });
   }
 
   static async isSketchHtmlFile(htmlFile: string): Promise<boolean> {

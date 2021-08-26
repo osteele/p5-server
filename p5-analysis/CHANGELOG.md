@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+Bug fixes:
+
+- Identify the main script, in an HTML sketch that includes multiple scripts
+
 ## [0.5.0]
 
 - Many Sketch functions are now async

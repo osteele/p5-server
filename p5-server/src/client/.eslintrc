@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "extends": ["eslint:recommended"],
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "rules": {
+    "no-debugger": "error",
+    "prefer-const": "warn"
+  },
+  "ignorePatterns": ["rollup.config.js"]
+}

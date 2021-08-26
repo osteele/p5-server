@@ -2,45 +2,42 @@
   "name": "p5-server",
   "version": "0.5.1",
   "description": "CLI to create and serve p5.js sketches and collections, and infer required libraries",
-  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
-  "homepage": "https://github.com/osteele/p5-server#readme",
-  "repository": "github:osteele/p5-server",
   "keywords": [
-    "p5",
-    "p5.js",
     "creative coding",
     "live reload",
+    "p5",
+    "p5.js",
     "web server"
   ],
-  "license": "MIT",
+  "homepage": "https://github.com/osteele/p5-server#readme",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "publishConfig": {
-    "main": "./dist/index.js"
-  },
-  "bin": {
-    "p5": "dist/bin/p5-server.js"
-  },
+  "license": "MIT",
+  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "files": [
     "dist"
   ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "p5": "dist/bin/p5-server.js"
+  },
+  "repository": "github:osteele/p5-server",
   "scripts": {
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",
     "clean": "rimraf dist/",
-    "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "cli": "ts-node src/bin/p5-server.ts",
-    "start": "ts-node src/bin/p5-server.ts server",
-    "server:watch": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
-    "serve:examples": "yarn server:watch examples",
-    "serve:testdata": "yarn server:watch examples tests/testdata",
+    "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
-    "prepack": "yarn run build && cp ../README.md .",
     "postpack": "rm README.md",
+    "prepack": "yarn run build && cp ../README.md .",
+    "serve:examples": "yarn server:watch examples",
+    "serve:testdata": "yarn server:watch examples tests/testdata",
+    "server:watch": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
+    "start": "ts-node src/bin/p5-server.ts server",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -73,6 +70,9 @@
     "ts-node": "^10.2.0",
     "typedoc": "^0.21.5",
     "typescript": "^4.3.5"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js"
   },
   "jest": {
     "preset": "ts-jest",

@@ -1,24 +1,23 @@
 {
   "description": "Workspace for p5-analysis and p5-server",
-  "repository": "github:osteele/p5-server",
   "keywords": [
+    "creative coding",
     "p5",
-    "p5.js",
-    "creative coding"
+    "p5.js"
   ],
-  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
-  "license": "MIT",
+  "homepage": "https://github.com/osteele/p5-server#readme",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "homepage": "https://github.com/osteele/p5-server#readme",
+  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
+  "repository": "github:osteele/p5-server",
   "scripts": {
-    "prepare": "husky install",
-    "clean": "yarn workspaces foreach run clean:ws",
-    "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "build": "yarn workspaces foreach -t run build",
     "build:docs": "yarn workspaces foreach run build:docs",
+    "clean": "yarn workspaces foreach run clean:ws",
+    "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "lint": "yarn workspaces foreach run lint",
+    "prepare": "husky install",
     "test": "yarn workspace p5-analysis build && yarn workspaces foreach -t run test"
   },
   "devDependencies": {
@@ -38,9 +37,10 @@
     "typedoc": "^0.21.5",
     "typescript": "^4.3.5"
   },
+  "private": true,
+  "packageManager": "yarn@3.0.0",
   "workspaces": [
     "p5-analysis",
     "p5-server"
-  ],
-  "packageManager": "yarn@3.0.0"
+  ]
 }

@@ -2,26 +2,26 @@
   "name": "p5-analysis",
   "version": "0.5.0",
   "description": "API to find, create, and analyze p5.js sketch files.",
-  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
-  "homepage": "https://osteele.github.io/p5-server/p5-analysis",
-  "repository": "github:osteele/p5-server",
   "keywords": [
+    "creative coding",
     "p5",
-    "p5.js",
-    "creative coding"
+    "p5.js"
   ],
-  "license": "MIT",
+  "homepage": "https://osteele.github.io/p5-server/p5-analysis",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
   "files": [
     "dist"
   ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "p5-analyze": "dist/bin/p5-analyze.js"
   },
+  "repository": "github:osteele/p5-server",
   "scripts": {
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",

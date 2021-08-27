@@ -32,7 +32,10 @@ Object.entries(console).forEach(([method, savedFn]) => {
     send('console', {
       method,
       args: args.map((value, i) => undefinedValueReplacer(i, value)),
-      argStrings: args.map(value => value && typeof value === 'object' && typeof value.toString === 'function' ? value.toString() : null)
+      argStrings: args.map(value =>
+        value && (typeof value === 'object' || typeof value === 'function') && typeof value.toString === 'function' && !Array.isArray(value)
+          ? value.toString()
+          : undefined)
     });
     return ret;
   };
@@ -94,8 +97,12 @@ function stringifyCycle(value, replacer) {
 }
 
 const ws = new WebSocket('ws://' + window.location.host);
-const clientId = Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(16)).join('-');
 const q = [];
+
+const clientId =
+  Array.from(window.crypto.getRandomValues(new Uint32Array(2)))
+    .map(n => n.toString(16)).join('-');
+
 ws.onopen = () => {
   while (q.length) {
     ws.send(q.shift());
@@ -114,7 +121,7 @@ function send(route, data) {
 }
 
 send('connection', { type: 'opened' });
-document.addEventListener('visibilitychange', () => { send('window', { type: 'load', visibilityState: document.visibilityState }) });
+document.addEventListener('visibilitychange', () => { send('document', { type: 'visibilitychange', visibilityState: document.visibilityState }) });
 window.addEventListener('DOMContentLoaded', () => { send('window', { type: 'DOMContentLoaded' }) });
 window.addEventListener('load', () => { send('window', { type: 'load' }) });
 window.addEventListener('pagehide', () => { send('window', { type: 'pagehide' }) }, false);

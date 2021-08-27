@@ -1,5 +1,11 @@
 import { URL } from 'url';
-import { BrowserConnectionEvent, BrowserConsoleEvent, BrowserErrorEvent, BrowserWindowEvent } from './eventTypes';
+import {
+  BrowserConnectionEvent,
+  BrowserConsoleEvent,
+  BrowserDocumentEvent,
+  BrowserErrorEvent,
+  BrowserWindowEvent
+} from './eventTypes';
 import { parseCyclicJson } from './cyclicJson';
 import ws from 'ws';
 import net from 'net';
@@ -41,18 +47,18 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
   });
 
   defineHandler('console', (event: BrowserConsoleEvent) => {
-    const data: BrowserConsoleEvent = {
-      ...event,
-      args: event.args.map(decodeUnserializableValue)
-    };
+    const args = event.args.map(decodeUnserializableValue);
+    const data: BrowserConsoleEvent = { ...event, args };
     relay.emitScriptEvent('console', data);
   });
 
+  defineHandler('document', (event: BrowserDocumentEvent) => {
+    relay.emitScriptEvent('document', event);
+  });
+
   defineHandler('error', (event: BrowserErrorEvent) => {
-    const data: BrowserErrorEvent = {
-      ...event,
-      stack: replaceUrlsInStack(event.stack)
-    };
+    const stack = replaceUrlsInStack(event.stack);
+    const data: BrowserErrorEvent = { ...event, stack };
     relay.emitScriptEvent('error', data);
   });
 

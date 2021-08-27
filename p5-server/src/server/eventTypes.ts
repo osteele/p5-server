@@ -3,38 +3,44 @@
 /** This list is not extensive. */
 export type BrowserConsoleEventMethods = 'log' | 'info' | 'warn' | 'error' | 'debug' | 'clear';
 
-export type BrowserConnectionEvent = {
+export type BrowserEventCommon = {
+  type: string;
   clientId: string;
   file?: string;
   url: string;
-  type: string;
 };
+
+export type BrowserConnectionEvent = {
+  type: 'opened';
+} & BrowserEventCommon;
 
 export type BrowserConsoleEvent = {
   method: BrowserConsoleEventMethods;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[];
   argStrings: (string | null)[];
-  clientId: string;
-  file?: string;
-  url: string;
-};
+} & BrowserEventCommon;
+
+export type BrowserDocumentEvent = {
+  type: 'visibilitychange';
+  visibilityState: boolean;
+} & BrowserEventCommon;
 
 export type BrowserErrorEvent = (
   | { type: 'error'; line: number; col: number; url: string }
   | { type: 'unhandledRejection' }
 ) & {
-  type: string;
-  clientId: string;
-  file?: string;
-  url: string;
   message: string;
   stack?: string;
-};
+} & BrowserEventCommon;
 
 export type BrowserWindowEvent = {
-  type: string;
-  clientId: string;
-  file?: string;
-  url: string;
-};
+  type: 'load' | 'DOMContentLoaded' | 'pagehide';
+} & BrowserEventCommon;
+
+export type BrowserEventMessage =
+  | BrowserConnectionEvent
+  | BrowserConsoleEvent
+  | BrowserDocumentEvent
+  | BrowserErrorEvent
+  | BrowserWindowEvent;

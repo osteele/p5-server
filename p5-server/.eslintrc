@@ -1,3 +1,19 @@
 {
-  "ignorePatterns": ["src/server/static"]
+  "overrides": [
+    {
+      "files": ["**/src/server/static/**/*.js"],
+      "globals": {
+        "callee": true,
+        "console": true,
+        "document": true,
+        "fetch": true,
+        "window": true,
+        "WebSocket": true
+      },
+      "rules": {
+        "no-console": "off",
+        "prefer-const": "off"
+      }
+    }
+  ]
 }

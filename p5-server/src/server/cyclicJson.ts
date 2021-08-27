@@ -1,22 +1,10 @@
 import express from 'express';
 
-export function cyclicJsonBodyMiddleware() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const textware = express.text({ type: 'application/json' });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (req: any, _res: any, next: any) =>
-    textware(req, _res, _req => {
-      req.body = parseCyclicJson(req.body);
-      next();
-    });
-}
-
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const scopeKey = '$__p5_server:circular';
 const defKey = '$__p5_server:def';
 const refKey = '$__p5_server:ref';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseCyclicJson(json: string) {
   const value = JSON.parse(json);
   if (!(typeof value === 'object' && hasOwnProperty.call(value, scopeKey))) return value;
@@ -44,4 +32,19 @@ export function parseCyclicJson(json: string) {
     }
     return value;
   }
+}
+
+/*
+ * Middleware
+ */
+
+const textware = express.text({ type: 'application/json' });
+
+export function cyclicJsonBodyMiddleware() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (req: any, _res: any, next: any) =>
+    textware(req, _res, () => {
+      req.body = parseCyclicJson(req.body);
+      next();
+    });
 }

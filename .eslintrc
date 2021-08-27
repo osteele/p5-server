@@ -8,6 +8,9 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:jest/recommended"
   ],
+  "env": {
+    "node": true
+  },
   "ignorePatterns": ["dist", "node_modules", "examples", "testdata"],
   "rules": {
     "@typescript-eslint/explicit-module-boundary-types": "off",
@@ -26,21 +29,6 @@
       "files": ["**/tests/*.test.ts"],
       "rules": {
         "no-explicit-any": "off",
-        "prefer-const": "off"
-      }
-    },
-    {
-      "files": ["**/src/server/static/**/*.js"],
-      "globals": {
-        "callee": true,
-        "console": true,
-        "document": true,
-        "fetch": true,
-        "window": true,
-        "WebSocket": true
-      },
-      "rules": {
-        "no-console": "off",
         "prefer-const": "off"
       }
     }

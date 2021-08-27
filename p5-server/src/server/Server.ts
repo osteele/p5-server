@@ -332,7 +332,7 @@ export class Server {
       // encode URL paths
       .map(mount => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
       // normalize Windows paths
-      .map(mount => ({ ...mount, filePath: mount.filePath.replaceAll('/', path.sep) }))
+      .map(mount => ({ ...mount, filePath: mount.filePath.replace(/\//g, path.sep) }))
       // remove trailing slashes from file and url paths
       .map(mount => ({
         ...mount,

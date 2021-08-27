@@ -24,6 +24,7 @@
     },
     "typescript.tsc.autoDetect": "off",
     "search.exclude": {
+      ".yarn/**/*.cjs": true,
       "**/dist": true
     },
     "emeraldwalk.runonsave": {

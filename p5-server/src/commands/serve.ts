@@ -11,7 +11,7 @@ import {
 import { Server } from '../server/Server';
 import util from 'util';
 
-type Options = { open: boolean; port: string; console: boolean | string };
+type Options = { open: boolean; port: string; console: boolean | 'json' | 'passive' };
 
 export default async function serve(files: string[], options: Options = { open: false, port: '3000', console: false }) {
   const file = files[0] || '.';
@@ -19,7 +19,7 @@ export default async function serve(files: string[], options: Options = { open: 
   const serverOptions: Server.Options = {
     port: Number(options.port),
     root: file,
-    relayConsoleMessages: Boolean(options.console)
+    relayConsoleMessages: Boolean(options.console) && options.console !== 'passive'
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);

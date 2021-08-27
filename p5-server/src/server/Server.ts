@@ -149,9 +149,14 @@ function createRouter(config: RouterConfig): express.Router {
 
   return router;
 
-  function sendHtml<T>(req: Request<unknown, unknown, unknown, unknown, T>, res: Response<string, T>, html: string) {
+  function sendHtml<T>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    req: Request<unknown, unknown, unknown, Record<string, any>, T>,
+    res: Response<string, T>,
+    html: string
+  ) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
-    if (config.relayConsoleMessages) {
+    if (config.relayConsoleMessages || 'send-console-messages' in req.query) {
       html = injectScriptEventRelayScript(html);
     }
     res.send(html);

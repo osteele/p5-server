@@ -48,7 +48,7 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
 
   defineHandler('console', (event: BrowserConsoleEvent) => {
     const args = event.args.map(decodeUnserializableValue);
-    const data: BrowserConsoleEvent = { ...event, args };
+    const data: BrowserConsoleEvent = { ...event, type: 'console', args };
     relay.emitScriptEvent('console', data);
   });
 

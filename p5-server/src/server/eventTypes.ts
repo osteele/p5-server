@@ -15,10 +15,13 @@ export type BrowserConnectionEvent = {
 } & BrowserEventCommon;
 
 export type BrowserConsoleEvent = {
+  type: 'console';
   method: BrowserConsoleEventMethods;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[];
   argStrings: (string | null)[];
+  col?: number;
+  line?: number;
 } & BrowserEventCommon;
 
 export type BrowserDocumentEvent = {
@@ -26,10 +29,7 @@ export type BrowserDocumentEvent = {
   visibilityState: boolean;
 } & BrowserEventCommon;
 
-export type BrowserErrorEvent = (
-  | { type: 'error'; line: number; col: number; url: string }
-  | { type: 'unhandledRejection' }
-) & {
+export type BrowserErrorEvent = ({ type: 'error'; line: number; col: number } | { type: 'unhandledRejection' }) & {
   message: string;
   stack?: string;
 } & BrowserEventCommon;

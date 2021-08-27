@@ -12,4 +12,10 @@ function setup() {
     console.info();
     console.info('args', 1, 2, null, undefined, false, NaN, Infinity, { a: 1 }, [2, 3], circle, function () { });
     console.info('format: %d < %s.', 1, 2);
+
+    // throw new Error('error');
+}
+
+function draw() {
+    throw new Error('error');
 }

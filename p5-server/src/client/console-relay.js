@@ -1,7 +1,8 @@
 const serializationPrefix = '__p5_server_serialization_:';
 const unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
 
-const saved = {};
+// for debugging this module
+const savedMethods = new Object(null);
 const savedOnError = window.onerror;
 
 window.onerror = function (message, url, line, col, err) {
@@ -26,17 +27,21 @@ window.addEventListener('unhandledrejection', event => {
 });
 
 Object.entries(console).forEach(([method, savedFn]) => {
-  saved[method] = (...args) => savedFn.apply(console, args);
+  savedMethods[method] = (...args) => savedFn.apply(console, args);
   console[method] = (...args) => {
     const ret = savedFn.apply(console, args);
-    send('console', {
+    const argStrings = args.map(value =>
+      value && (typeof value === 'object' || typeof value === 'function') && !Array.isArray(value) && typeof value.toString === 'function'
+        ? value.toString()
+        : undefined);
+    const stack = new Error().stack;
+    const m = stack && stack.match(/\n(?:.+?@)?(.+?):(\d+):(\d+)\n/);
+    const loc = m ? { url: m[1], line: Number(m[2]), col: Number(m[3]) } : {};
+    send('console', Object.assign({
       method,
       args: args.map((value, i) => undefinedValueReplacer(i, value)),
-      argStrings: args.map(value =>
-        value && (typeof value === 'object' || typeof value === 'function') && typeof value.toString === 'function' && !Array.isArray(value)
-          ? value.toString()
-          : undefined)
-    });
+      argStrings
+    }, loc));
     return ret;
   };
 });

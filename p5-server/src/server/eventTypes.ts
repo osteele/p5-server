@@ -1,12 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-/** This list is not extensive. */
-export type BrowserConsoleEventMethods = 'log' | 'info' | 'warn' | 'error' | 'debug' | 'clear';
+export type BrowserConsoleEventMethods = 'clear' | 'debug' | 'error' | 'info' | 'log' | 'warn';
 
 export type BrowserEventCommon = {
-  type: string;
   clientId: string;
   file?: string;
+  timestamp: Date;
+  type: string;
   url: string;
 };
 

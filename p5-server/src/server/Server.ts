@@ -156,7 +156,7 @@ function createRouter(config: RouterConfig): express.Router {
     html: string
   ) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
-    if (config.relayConsoleMessages || 'send-console-messages' in req.query) {
+    if (config.relayConsoleMessages || 'send-console-messages' in req.query || 'vscodeBrowserReqId' in req.query) {
       html = injectScriptEventRelayScript(html);
     }
     res.send(html);

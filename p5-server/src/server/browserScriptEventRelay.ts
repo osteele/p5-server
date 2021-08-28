@@ -27,7 +27,7 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
     socket.on('message', message => {
       const [route, data] = parseCyclicJson(message as string);
       const handler = routes.get(route);
-      if (handler) handler({ ...data, file: urlToFilePath(data.url) });
+      if (handler) handler({ ...data, file: urlToFilePath(data.url), timestamp: new Date(data.timestamp) });
     });
   });
 
@@ -66,13 +66,23 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
     relay.emitScriptEvent('window', event);
   });
 
-  function urlToFilePath(url: string | undefined): string | undefined {
-    return (url && relay.urlPathToFilePath(new URL(url).pathname)) || undefined;
+  function urlToFilePath(url: string | null): string | null {
+    if (!url) return url;
+    try {
+      new URL(url);
+    } catch (e) {
+      if (e.name !== 'TypeError') throw e;
+      return null;
+    }
+    return relay.urlPathToFilePath(new URL(url).pathname);
   }
 
   function replaceUrlsInStack(stack: string | undefined): string | undefined {
     return stack
-      ? stack.replace(/\bhttps?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g, (s, p) => relay.urlPathToFilePath(p) || s)
+      ? stack.replace(
+          /((?<=[\b(])|\b)https?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g,
+          (s, p) => relay.urlPathToFilePath(p) || s
+        )
       : stack;
   }
 }

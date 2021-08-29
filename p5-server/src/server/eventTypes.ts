@@ -1,6 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-export type BrowserConsoleEventMethods = 'clear' | 'debug' | 'error' | 'info' | 'log' | 'warn';
+export type BrowserConsoleEventMethods =
+  | 'clear'
+  | 'debug'
+  | 'error'
+  | 'info'
+  | 'log'
+  | 'warn';
 
 export type BrowserEventCommon = {
   clientId: string;
@@ -29,7 +35,10 @@ export type BrowserDocumentEvent = {
   visibilityState: boolean;
 } & BrowserEventCommon;
 
-export type BrowserErrorEvent = ({ type: 'error'; line: number; col: number } | { type: 'unhandledRejection' }) & {
+export type BrowserErrorEvent = (
+  | { type: 'error'; line: number; col: number }
+  | { type: 'unhandledRejection' }
+) & {
   message: string;
   stack?: string;
 } & BrowserEventCommon;

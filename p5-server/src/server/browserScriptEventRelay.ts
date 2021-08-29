@@ -18,7 +18,10 @@ export interface BrowserScriptRelay {
   urlPathToFilePath(urlPath: string): string | null;
 }
 
-export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScriptRelay) {
+export function attachBrowserScriptRelay(
+  server: http.Server,
+  relay: BrowserScriptRelay
+) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const routes = new Map<string, (event: Record<string, any>) => void>();
 
@@ -27,7 +30,12 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
     socket.on('message', message => {
       const [route, data] = parseCyclicJson(message as string);
       const handler = routes.get(route);
-      if (handler) handler({ ...data, file: urlToFilePath(data.url), timestamp: new Date(data.timestamp) });
+      if (handler)
+        handler({
+          ...data,
+          file: urlToFilePath(data.url),
+          timestamp: new Date(data.timestamp)
+        });
     });
   });
 
@@ -88,7 +96,10 @@ export function attachBrowserScriptRelay(server: http.Server, relay: BrowserScri
 }
 
 export function injectScriptEventRelayScript(html: string) {
-  return html.replace(/(?=<\/head>)/, '<script src="/__p5_server_static/console-relay.js"></script>');
+  return html.replace(
+    /(?=<\/head>)/,
+    '<script src="/__p5_server_static/console-relay.js"></script>'
+  );
 }
 
 const serializationPrefix = '__p5_server_serialization_:';

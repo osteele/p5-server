@@ -16,6 +16,7 @@
     "build:docs": "yarn workspaces foreach run build:docs",
     "clean": "yarn workspaces foreach run clean:ws",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
+    "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "yarn workspaces foreach run lint",
     "prepare": "husky install",
     "test": "yarn workspace p5-analysis build && yarn workspaces foreach -t run test"

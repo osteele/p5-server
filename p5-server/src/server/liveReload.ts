@@ -6,15 +6,23 @@ export const liveReloadTemplate = `<script>
   ':$(port)/livereload.js?snipver=1"></' + 'script>')
 </script>`;
 
-export function injectLiveReloadScript(html: string, liveReloadServer: WebSocket.Server) {
+export function injectLiveReloadScript(
+  html: string,
+  liveReloadServer: WebSocket.Server
+) {
   // TODO: more robust injection
   // TODO: warn when injection is not possible
   if (!liveReloadServer) return html;
   const address = liveReloadServer.address();
   if (typeof address === 'string') {
-    throw new Error('liveReloadServer.address is a string, not a WebSocket.AddressInfo');
+    throw new Error(
+      'liveReloadServer.address is a string, not a WebSocket.AddressInfo'
+    );
   }
-  const liveReloadString = liveReloadTemplate.replace('$(port)', address.port.toString());
+  const liveReloadString = liveReloadTemplate.replace(
+    '$(port)',
+    address.port.toString()
+  );
   return html.replace(/(?=<\/head>)/, liveReloadString);
 }
 

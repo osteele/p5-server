@@ -95,7 +95,9 @@ export class Library implements Library.Properties {
     let libs: LibraryArray = new LibraryArray();
     const content = fs.readFileSync(htmlPath, 'utf-8');
     const htmlRoot = parse(content);
-    const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
+    const scriptSrcs = htmlRoot
+      .querySelectorAll('script[src]')
+      .map(node => node.attributes.src);
     const inferredLibs = libs;
     libs = new LibraryArray();
     scriptSrcs.forEach(src => {
@@ -125,13 +127,19 @@ export class Library implements Library.Properties {
       if (path.startsWith('/')) {
         let homepage = this.homepage;
         // if it's a GitHub Pages page, derive the corresponding repo URL
-        homepage = homepage.replace(/^https:\/\/([^.]+)\.github\.io\/([^/]+).*/, 'https://github.com/$1/$2');
+        homepage = homepage.replace(
+          /^https:\/\/([^.]+)\.github\.io\/([^/]+).*/,
+          'https://github.com/$1/$2'
+        );
         path = `${homepage.replace(/\/$/, '')}${path}`;
       }
       // If it's a repo file, derive the corresponding raw location. This is
       // outside the above conditional because it should apply to absolute paths
       // too.
-      path = path.replace(/^https:\/\/github.com\//, 'https://raw.githubusercontent.com/');
+      path = path.replace(
+        /^https:\/\/github.com\//,
+        'https://raw.githubusercontent.com/'
+      );
       path = path.replace('$(P5Version)', p5Version);
     } else if (this.packageName) {
       path = `https://unpkg.com/${this.packageName}`;
@@ -145,10 +153,15 @@ export class Library implements Library.Properties {
 
   protected matchesPath(path: string) {
     if (!this.importPath) return false;
-    return this.importPath === path || (this.packageName && getPackageName(path) === this.packageName);
+    return (
+      this.importPath === path ||
+      (this.packageName && getPackageName(path) === this.packageName)
+    );
 
     function getPackageName(s: string) {
-      const m = s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) || s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
+      const m =
+        s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
+        s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
       return m ? m[1] : undefined;
     }
   }

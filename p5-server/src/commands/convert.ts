@@ -3,9 +3,13 @@ import { die } from '../utils';
 
 const sketchTypes: SketchType[] = ['html', 'javascript'];
 
-export default async function convert(sketchPath: string, options: { to?: SketchType }) {
+export default async function convert(
+  sketchPath: string,
+  options: { to?: SketchType }
+) {
   const sketch = await Sketch.fromFile(sketchPath);
-  const targetType = options.to || (sketch.sketchType === 'html' ? 'javascript' : 'html');
+  const targetType =
+    options.to || (sketch.sketchType === 'html' ? 'javascript' : 'html');
 
   if (!sketchTypes.includes(targetType)) {
     die(`Invalid option --to ${options.to}; must be `);

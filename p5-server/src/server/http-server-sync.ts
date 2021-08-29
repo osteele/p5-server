@@ -1,7 +1,11 @@
 import express from 'express';
 import http = require('http');
 
-export function listenSync(app: express.Application, port?: number, timeout: number = 1000): Promise<http.Server> {
+export function listenSync(
+  app: express.Application,
+  port?: number,
+  timeout: number = 1000
+): Promise<http.Server> {
   return new Promise<http.Server>((resolve, reject) => {
     const server = app.listen(port);
     server.on('error', onError);

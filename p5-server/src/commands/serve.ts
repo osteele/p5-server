@@ -13,7 +13,10 @@ import util from 'util';
 
 type Options = { open: boolean; port: string; console: boolean | 'json' | 'passive' };
 
-export default async function serve(files: string[], options: Options = { open: false, port: '3000', console: false }) {
+export default async function serve(
+  files: string[],
+  options: Options = { open: false, port: '3000', console: false }
+) {
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {
@@ -39,7 +42,10 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
   };
 
   server.onScriptEvent('connection', (data: BrowserConnectionEvent) => {
-    console.error(chalk.italic.dim(`browser connection: ${data.type}`), makeLocationString(data));
+    console.error(
+      chalk.italic.dim(`browser connection: ${data.type}`),
+      makeLocationString(data)
+    );
   });
 
   server.onScriptEvent('console', (data: BrowserConsoleEvent) => {
@@ -48,15 +54,24 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
     } else {
       const { method, args, argStrings } = data;
       const argsOrStrings = argStrings.map((str, i) => str ?? args[i]);
-      const message = typeof args[0] === 'string' ? util.format(...argsOrStrings) : argsOrStrings.join(' ');
+      const message =
+        typeof args[0] === 'string'
+          ? util.format(...argsOrStrings)
+          : argsOrStrings.join(' ');
       const color = consoleColors[method] || chalk.black;
-      console.log(color(`browser console.${method}${args.length ? ': ' : ''}${message}`), makeLocationString(data));
+      console.log(
+        color(`browser console.${method}${args.length ? ': ' : ''}${message}`),
+        makeLocationString(data)
+      );
     }
   });
 
   server.onScriptEvent('document', (data: BrowserDocumentEvent) => {
     const { type, visibilityState } = data;
-    console.error(chalk.italic.dim(`browser document.${type}: ${visibilityState}`), makeLocationString(data));
+    console.error(
+      chalk.italic.dim(`browser document.${type}: ${visibilityState}`),
+      makeLocationString(data)
+    );
   });
 
   server.onScriptEvent('error', (data: BrowserErrorEvent) => {
@@ -64,7 +79,10 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
       console.log('browser error:', data);
     } else {
       const { type, message, stack } = data;
-      console.error(chalk.italic.bold.red(`browser ${type}: ${message}`), makeLocationString(data));
+      console.error(
+        chalk.italic.bold.red(`browser ${type}: ${message}`),
+        makeLocationString(data)
+      );
       if (stack) console.error(chalk.red(stack.replace(/^/gm, '  ')));
     }
   });
@@ -73,7 +91,10 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
     if (asJson) {
       console.log('browser window event:', data);
     } else {
-      console.log(chalk.italic.dim.blue(`browser window.${data.type}`), makeLocationString(data));
+      console.log(
+        chalk.italic.dim.blue(`browser window.${data.type}`),
+        makeLocationString(data)
+      );
     }
   });
 

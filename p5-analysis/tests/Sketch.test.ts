@@ -33,7 +33,9 @@ test('Sketch.fromScriptFile', async () => {
 });
 
 test('Sketch.isSketchHtmlFile', async () => {
-  expect(await Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)).toBe(true);
+  expect(await Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)).toBe(
+    true
+  );
   expect(await Sketch.isSketchHtmlFile(f`missing-file.html`)).toBe(false);
 
   expect(fs.existsSync(f`circles.js`)).toBe(true);
@@ -48,11 +50,15 @@ test('Sketch.isSketchScriptFile', async () => {
   expect(await Sketch.isSketchScriptFile(f`missing-file.js`)).toBe(false);
 
   expect(fs.existsSync(f`Sketch.analyzeDirectory/loose.js`)).toBe(true);
-  expect(await Sketch.isSketchScriptFile(f`Sketch.analyzeDirectory/loose.js`)).toBe(false);
+  expect(await Sketch.isSketchScriptFile(f`Sketch.analyzeDirectory/loose.js`)).toBe(
+    false
+  );
 });
 
 test('Sketch.analyzeDirectory', async () => {
-  const { sketches, allFiles, unassociatedFiles } = await Sketch.analyzeDirectory(f`Sketch.analyzeDirectory`);
+  const { sketches, allFiles, unassociatedFiles } = await Sketch.analyzeDirectory(
+    f`Sketch.analyzeDirectory`
+  );
   expect(sketches.length).toBe(4);
   expect(allFiles.length).toBe(6);
   expect(unassociatedFiles).toEqual(['collection', 'loose.js']);
@@ -60,15 +66,21 @@ test('Sketch.analyzeDirectory', async () => {
 
 test('Sketch.isSketchDir', async () => {
   const testfileDir = f`Sketch.analyzeDirectory`;
-  expect(await Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))).toBeInstanceOf(Sketch);
-  expect(await Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).toBeInstanceOf(Sketch);
+  expect(
+    await Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))
+  ).toBeInstanceOf(Sketch);
+  expect(await Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).toBeInstanceOf(
+    Sketch
+  );
   expect(await Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))).toBeFalsy();
   expect(await Sketch.isSketchDir(path.join(testfileDir, 'collection'))).toBeFalsy();
 });
 
 test('Sketch.files', async () => {
   const sketch = await Sketch.fromDirectory(f`html-includes`);
-  expect(sketch.files.sort()).toEqual(['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort());
+  expect(sketch.files.sort()).toEqual(
+    ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort()
+  );
 });
 
 test('Sketch.libraries', async () => {
@@ -89,11 +101,21 @@ test('Sketch.description', async () => {
     return sketch.description?.replace(/\s+/g, ' ');
   }
 
-  await expect(description('single-line-description.js')).resolves.toBe('sketch description');
-  await expect(description('multi-line-description.js')).resolves.toBe('sketch description');
-  await expect(description('single-line-block-description.js')).resolves.toBe('sketch description');
-  await expect(description('multi-line-block-description.js')).resolves.toBe('sketch description');
-  await expect(description('html-description.html')).resolves.toBe('sketch description');
+  await expect(description('single-line-description.js')).resolves.toBe(
+    'sketch description'
+  );
+  await expect(description('multi-line-description.js')).resolves.toBe(
+    'sketch description'
+  );
+  await expect(description('single-line-block-description.js')).resolves.toBe(
+    'sketch description'
+  );
+  await expect(description('multi-line-block-description.js')).resolves.toBe(
+    'sketch description'
+  );
+  await expect(description('html-description.html')).resolves.toBe(
+    'sketch description'
+  );
 });
 
 describe('Sketch.generate', () => {
@@ -108,15 +130,24 @@ describe('Sketch.generate', () => {
   test('default options', () => testGenerate('test.js', {}, 'default'));
   test('comments', () => testGenerate('test.js', { comments: true }, 'comments'));
   test('preload', () => testGenerate('test.js', { preload: true }, 'preload'));
-  test('windowResized', () => testGenerate('test.js', { windowResized: true }, 'windowResized'));
+  test('windowResized', () =>
+    testGenerate('test.js', { windowResized: true }, 'windowResized'));
   test('no-draw', () => testGenerate('test.js', { draw: false }, 'no-draw'));
-  test('no-examples', () => testGenerate('test.js', { examples: false }, 'no-examples'));
+  test('no-examples', () =>
+    testGenerate('test.js', { examples: false }, 'no-examples'));
   test('html', () => testGenerate('test.html', {}, 'html'));
 
-  async function testGenerate(outputName: string, options: Record<string, boolean>, snapshotName: string) {
+  async function testGenerate(
+    outputName: string,
+    options: Record<string, boolean>,
+    snapshotName: string
+  ) {
     const sketch = Sketch.create(`${outputDir}/${outputName}`);
     await sketch.generate(false, options);
-    expectDirectoriesEqual(outputDir, path.join(testfileDir, 'snapshots', snapshotName));
+    expectDirectoriesEqual(
+      outputDir,
+      path.join(testfileDir, 'snapshots', snapshotName)
+    );
   }
 });
 
@@ -135,23 +166,35 @@ describe('Sketch.convert', () => {
     // TODO: remove the description from the js file?
 
     test('html file already exists', () =>
-      testConvert('collision/sketch.js', { type: 'html' }, { exception: /html already exists/ }));
+      testConvert(
+        'collision/sketch.js',
+        { type: 'html' },
+        { exception: /html already exists/ }
+      ));
 
-    test('library', () => testConvert('use-sound-library.js', { type: 'html' }, 'use-sound-library'));
+    test('library', () =>
+      testConvert('use-sound-library.js', { type: 'html' }, 'use-sound-library'));
   });
 
   describe('html -> script', () => {
-    test('simple case', () => testConvert(['sketch.html', 'sketch.js'], { type: 'javascript' }, 'script'));
+    test('simple case', () =>
+      testConvert(['sketch.html', 'sketch.js'], { type: 'javascript' }, 'script'));
     // TODO: add the description to the script file?
 
-    test('library', () => testConvert('use-sound-library/index.html', { type: 'javascript' }, 'use-sound-library-js'));
+    test('library', () =>
+      testConvert(
+        'use-sound-library/index.html',
+        { type: 'javascript' },
+        'use-sound-library-js'
+      ));
 
     test('uninferred library', () =>
       testConvert(
         'uninferred-library/index.html',
         { type: 'javascript' },
         {
-          exception: 'index.html contains libraries that are not implied by sketch.js: p5.sound'
+          exception:
+            'index.html contains libraries that are not implied by sketch.js: p5.sound'
         }
       ));
 
@@ -166,10 +209,18 @@ describe('Sketch.convert', () => {
     // TODO: error if html file includes extra structure?
 
     test('inline scripts', () =>
-      testConvert('inline-script.html', { type: 'javascript' }, { exception: /contains an inline script/ }));
+      testConvert(
+        'inline-script.html',
+        { type: 'javascript' },
+        { exception: /contains an inline script/ }
+      ));
 
     test('multiple scripts', () =>
-      testConvert('multiple-scripts.html', { type: 'javascript' }, { exception: /contains multiple script tags/ }));
+      testConvert(
+        'multiple-scripts.html',
+        { type: 'javascript' },
+        { exception: /contains multiple script tags/ }
+      ));
 
     test('missing scripts', () =>
       testConvert(
@@ -185,7 +236,10 @@ describe('Sketch.convert', () => {
     expectation: string | { exception: string | RegExp }
   ) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;
-    let snapshotRelDir = path.join('snapshots', typeof expectation === 'string' ? expectation : path.dirname(mainFile));
+    let snapshotRelDir = path.join(
+      'snapshots',
+      typeof expectation === 'string' ? expectation : path.dirname(mainFile)
+    );
     if (filePath instanceof Array) {
       filePath.forEach(file => {
         fs.copyFileSync(path.join(testfileDir, file), path.join(outputDir, file));
@@ -255,6 +309,11 @@ function getDirectoryJson(dir: string): DirectoryJson {
     .filter(name => !name.startsWith('.'))
     .map(name => {
       const file = path.join(dir, name);
-      return [name, fs.statSync(file).isDirectory() ? getDirectoryJson(file) : fs.readFileSync(file, 'utf-8')];
+      return [
+        name,
+        fs.statSync(file).isDirectory()
+          ? getDirectoryJson(file)
+          : fs.readFileSync(file, 'utf-8')
+      ];
     });
 }

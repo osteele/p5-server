@@ -1,5 +1,12 @@
 import { Program } from 'esprima';
-import { Expression, MethodDefinition, Pattern, PropertyDefinition, Statement, SwitchCase } from 'estree';
+import {
+  Expression,
+  MethodDefinition,
+  Pattern,
+  PropertyDefinition,
+  Statement,
+  SwitchCase
+} from 'estree';
 
 export class ESTreeVisitor<T> {
   constructor(public readonly program: Program) {}

@@ -2,7 +2,12 @@ import fs from 'fs';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 
-import { dedentSymbol, indentSymbol, printTree, AsyncTreeInputIterable } from '../printTree';
+import {
+  dedentSymbol,
+  indentSymbol,
+  printTree,
+  AsyncTreeInputIterable
+} from '../printTree';
 
 export default async function tree(file: string, options: { level?: number }) {
   const depth = options.level || Infinity;
@@ -35,7 +40,10 @@ function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<str
       const files = [...unassociatedFiles]
         .map(f => path.join(dir, f))
         .sort((a, b) => a.localeCompare(b))
-        .sort((a, b) => Number(fs.statSync(b).isDirectory()) - Number(fs.statSync(a).isDirectory()));
+        .sort(
+          (a, b) =>
+            Number(fs.statSync(b).isDirectory()) - Number(fs.statSync(a).isDirectory())
+        );
       for (const file of files) {
         yield* visit(file, depth - 1);
       }
@@ -44,7 +52,10 @@ function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<str
   }
 
   // Recursively visit sketch
-  async function* visitSketch(sketch: Sketch, depth: number): AsyncIterable<string | symbol> {
+  async function* visitSketch(
+    sketch: Sketch,
+    depth: number
+  ): AsyncIterable<string | symbol> {
     yield* ['🎨' + `${sketch.name} (${sketch.mainFile})`, indentSymbol];
     if (depth >= 0 && sketch.files.length > 1) {
       yield* sketch.files;

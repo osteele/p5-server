@@ -10,7 +10,13 @@ import { JavaScriptSyntaxError, Script } from './Script';
 
 const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true };
-const defaultDirectoryExclusions = ['.*', '*~', 'node_modules', 'package.json', 'package-lock.json'];
+const defaultDirectoryExclusions = [
+  '.*',
+  '*~',
+  'node_modules',
+  'package.json',
+  'package-lock.json'
+];
 
 export type SketchType = 'html' | 'javascript';
 
@@ -43,9 +49,17 @@ export abstract class Sketch {
   /**
    * @category Sketch creation
    */
-  static create(mainFile: string, options: { title?: string; description?: string; scriptFile?: string } = {}) {
+  static create(
+    mainFile: string,
+    options: { title?: string; description?: string; scriptFile?: string } = {}
+  ) {
     if (/\.html?/i.test(mainFile)) {
-      return new HtmlSketch(path.dirname(mainFile), path.basename(mainFile), options.scriptFile, options);
+      return new HtmlSketch(
+        path.dirname(mainFile),
+        path.basename(mainFile),
+        options.scriptFile,
+        options
+      );
     } else if (/\.js$/i.test(mainFile)) {
       if (mainFile && options.scriptFile) {
         throw new Error(`Cannot specify both a .js file and a scriptPath`);
@@ -77,7 +91,10 @@ export abstract class Sketch {
    *
    * @category Sketch creation
    */
-  static async fromDirectory(dir: string, options?: { exclusions?: string[] }): Promise<Sketch> {
+  static async fromDirectory(
+    dir: string,
+    options?: { exclusions?: string[] }
+  ): Promise<Sketch> {
     const sketch = await Sketch.isSketchDir(dir, options);
     if (!sketch) {
       throw new Error(`Directory ${dir} is not a sketch directory`);
@@ -115,7 +132,9 @@ export abstract class Sketch {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
-    let files = (await readdir(dir)).filter(s => !exclusions.some(exclusion => minimatch(s, exclusion)));
+    let files = (await readdir(dir)).filter(
+      s => !exclusions.some(exclusion => minimatch(s, exclusion))
+    );
 
     // collect directory sketches, and remove them from the list of files
     files = await asyncFilter(files, async name => {
@@ -177,7 +196,9 @@ export abstract class Sketch {
    * @category Sketch detection
    */
   static async isSketchFile(file: string) {
-    return (await Sketch.isSketchHtmlFile(file)) || (await Sketch.isSketchScriptFile(file));
+    return (
+      (await Sketch.isSketchHtmlFile(file)) || (await Sketch.isSketchScriptFile(file))
+    );
   }
 
   /** Tests whether the directory is a sketch directory. It is a sketch
@@ -187,12 +208,18 @@ export abstract class Sketch {
    *
    * @category Sketch detection
    */
-  static async isSketchDir(dir: string, options?: { exclusions?: string[] }): Promise<Sketch | null> {
+  static async isSketchDir(
+    dir: string,
+    options?: { exclusions?: string[] }
+  ): Promise<Sketch | null> {
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
       return null;
     }
     const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, options);
-    return sketches.length === 1 && unassociatedFiles.every(file => /^readme($|\.)/i.test(file)) ? sketches[0] : null;
+    return sketches.length === 1 &&
+      unassociatedFiles.every(file => /^readme($|\.)/i.test(file))
+      ? sketches[0]
+      : null;
   }
 
   abstract get sketchType(): SketchType;
@@ -202,7 +229,10 @@ export abstract class Sketch {
   abstract get mainFile(): string;
 
   get name() {
-    return this._name || this.mainFile.replace(/\.(html?|js)$/i, '').replace(/\s*[-_]\s*/g, ' ');
+    return (
+      this._name ||
+      this.mainFile.replace(/\.(html?|js)$/i, '').replace(/\s*[-_]\s*/g, ' ')
+    );
   }
 
   set name(value: string) {
@@ -224,7 +254,10 @@ export abstract class Sketch {
     // otherwise, return the basename of either the HTML file or the JavaScript
     // file
     const basename = path.basename(this.mainFile);
-    return capitalize(basename.replace(/\.(html?|js)$/i, '')).replace(/\s*[-_]\s*/g, ' ');
+    return capitalize(basename.replace(/\.(html?|js)$/i, '')).replace(
+      /\s*[-_]\s*/g,
+      ' '
+    );
   }
 
   // HtmlSketch overrides this to read from the HTML
@@ -245,9 +278,13 @@ export abstract class Sketch {
     const files = [];
     // TODO: preflight this so we don't create some files unless we can create them all
     if (this.htmlFile) {
-      files.push(await this.writeGeneratedFile('index.html', this.htmlFile, force, options));
+      files.push(
+        await this.writeGeneratedFile('index.html', this.htmlFile, force, options)
+      );
     }
-    files.push(await this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options));
+    files.push(
+      await this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options)
+    );
     return files;
   }
 
@@ -273,14 +310,21 @@ export abstract class Sketch {
 
   protected explicitLibraries(): LibraryArray {
     const htmlPath = this.htmlFile && path.join(this.dir, this.htmlFile);
-    return htmlPath && fs.existsSync(htmlPath) ? Library.inHtml(htmlPath) : new LibraryArray();
+    return htmlPath && fs.existsSync(htmlPath)
+      ? Library.inHtml(htmlPath)
+      : new LibraryArray();
   }
 
   protected impliedLibraries(): LibraryArray {
-    return Library.inferFromScripts(this.files.filter(f => /\.js$/i.test(f)).map(f => path.join(this.dir, f)));
+    return Library.inferFromScripts(
+      this.files.filter(f => /\.js$/i.test(f)).map(f => path.join(this.dir, f))
+    );
   }
 
-  private async getGeneratedFileContent(base: string, options: Record<string, unknown>): Promise<string> {
+  private async getGeneratedFileContent(
+    base: string,
+    options: Record<string, unknown>
+  ): Promise<string> {
     const libraries = this.libraries;
     const data = {
       title: this.title,
@@ -330,9 +374,14 @@ class HtmlSketch extends Sketch {
     const dir = path.dirname(htmlFile);
     const htmlContent = await readFile(htmlFile, 'utf-8');
     const htmlRoot = parse(htmlContent);
-    const description = htmlRoot.querySelector('head meta[name=description]')?.attributes.content.trim();
+    const description = htmlRoot
+      .querySelector('head meta[name=description]')
+      ?.attributes.content.trim();
     const scripts = this.getLocalScriptFiles(htmlRoot);
-    const scriptFile = (await asyncFind(scripts, file => Sketch.isSketchScriptFile(path.join(dir, file)))) || scripts[0];
+    const scriptFile =
+      (await asyncFind(scripts, file =>
+        Sketch.isSketchScriptFile(path.join(dir, file))
+      )) || scripts[0];
     return new HtmlSketch(dir, path.basename(htmlFile), scriptFile, { description });
   }
 
@@ -346,7 +395,9 @@ class HtmlSketch extends Sketch {
 
     const html = await readFile(htmlFile, 'utf-8');
     const htmlRoot = parse(html);
-    const scriptSrcs = htmlRoot.querySelectorAll('script[src]').map(node => node.attributes.src);
+    const scriptSrcs = htmlRoot
+      .querySelectorAll('script[src]')
+      .map(node => node.attributes.src);
     // TODO: also require that a script contains setup()
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
@@ -387,7 +438,9 @@ class HtmlSketch extends Sketch {
           .querySelectorAll('head link[href]')
           .map(e => e.attributes.href.replace(/^\.\//, ''))
           .filter(s => !s.match(/https?:/)),
-        ...scriptFiles.flatMap(file => Script.getAssociatedFiles(path.join(this.dir, file)))
+        ...scriptFiles.flatMap(file =>
+          Script.getAssociatedFiles(path.join(this.dir, file))
+        )
       ];
     } else {
       return [];
@@ -419,7 +472,9 @@ class HtmlSketch extends Sketch {
         // there must be only one script file, and no inline scripts
         const html = await readFile(htmlPath, 'utf-8');
         const htmlRoot = parse(html);
-        const scriptSrcs = htmlRoot.querySelectorAll('script').map(e => e.attributes.src);
+        const scriptSrcs = htmlRoot
+          .querySelectorAll('script')
+          .map(e => e.attributes.src);
         // if scriptSrcs contains a null, it means there's an inline script
         if (scriptSrcs.some(s => !s)) {
           throw new Error(`${htmlPath} contains an inline script`);
@@ -430,10 +485,14 @@ class HtmlSketch extends Sketch {
             throw new Error(`${htmlPath} does not contain any local scripts`);
           case 1:
             if (!/\.js$/i.test(localScripts[0])) {
-              throw new Error(`${htmlPath} refers to a script file with the wrong extension`);
+              throw new Error(
+                `${htmlPath} refers to a script file with the wrong extension`
+              );
             }
             if (!fs.existsSync(path.join(this.dir, localScripts[0]))) {
-              throw new Error(`${htmlPath} refers to a script file that does not exist`);
+              throw new Error(
+                `${htmlPath} refers to a script file that does not exist`
+              );
             }
             break;
           default:
@@ -445,20 +504,30 @@ class HtmlSketch extends Sketch {
         // check that explicit and inferred libraries match
         const htmlLibs = this.explicitLibraries();
         const scriptLibs = this.impliedLibraries();
-        const htmlNotScript = htmlLibs.filter(lib => !scriptLibs.some(s => s.name === lib.name));
-        const scriptNotHtml = scriptLibs.filter(lib => !htmlLibs.some(h => h.name === lib.name));
+        const htmlNotScript = htmlLibs.filter(
+          lib => !scriptLibs.some(s => s.name === lib.name)
+        );
+        const scriptNotHtml = scriptLibs.filter(
+          lib => !htmlLibs.some(h => h.name === lib.name)
+        );
         if (htmlNotScript.length) {
           throw new Error(
-            `${path.join(this.dir, this.htmlFile)} contains libraries that are not implied by ${
+            `${path.join(
+              this.dir,
+              this.htmlFile
+            )} contains libraries that are not implied by ${
               this.scriptFile
             }: ${htmlLibs.map(lib => lib.name)}`
           );
         }
         if (scriptNotHtml.length) {
           throw new Error(
-            `${path.join(this.dir, this.scriptFile)} implies libraries that are not in ${
-              this.htmlFile
-            }: ${scriptNotHtml.map(lib => lib.name)}`
+            `${path.join(
+              this.dir,
+              this.scriptFile
+            )} implies libraries that are not in ${this.htmlFile}: ${scriptNotHtml.map(
+              lib => lib.name
+            )}`
           );
         }
 
@@ -489,11 +558,16 @@ class ScriptSketch extends Sketch {
 
     try {
       const { globals, freeVariables } = Script.fromFile(file);
-      return globals.get('setup') === 'FunctionDeclaration' && freeVariables.has('createCanvas');
+      return (
+        globals.get('setup') === 'FunctionDeclaration' &&
+        freeVariables.has('createCanvas')
+      );
     } catch (e) {
       if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
         const source = await readFile(file, 'utf-8');
-        return /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source);
+        return (
+          /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source)
+        );
       }
       throw e;
     }
@@ -512,7 +586,10 @@ class ScriptSketch extends Sketch {
   }
 
   get files() {
-    const files = [this.scriptFile, ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))];
+    const files = [
+      this.scriptFile,
+      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))
+    ];
     return [...new Set(files)];
   }
 

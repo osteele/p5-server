@@ -8,7 +8,9 @@ test('Script.fromFile', () => {
 });
 
 test('Script.getErrors', () => {
-  expect(() => Script.fromSource('const const;').globals).toThrow(/Unexpected keyword 'const'/);
+  expect(() => Script.fromSource('const const;').globals).toThrow(
+    /Unexpected keyword 'const'/
+  );
   expect(Script.fromSource('let a;').getErrors()).toEqual([]);
   const errs = Script.fromSource('const const;').getErrors();
   expect(errs).toHaveLength(1);
@@ -16,14 +18,18 @@ test('Script.getErrors', () => {
 });
 
 test('Script.findGlobals', () => {
-  expect(Script.fromSource('function f() {}').globals).toEqual(new Map([['f', 'FunctionDeclaration']]));
+  expect(Script.fromSource('function f() {}').globals).toEqual(
+    new Map([['f', 'FunctionDeclaration']])
+  );
   expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(
     new Map([
       ['f', 'FunctionDeclaration'],
       ['g', 'FunctionDeclaration']
     ])
   );
-  expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(new Map([['f', 'FunctionDeclaration']]));
+  expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(
+    new Map([['f', 'FunctionDeclaration']])
+  );
 
   // for now, globals is only function definitions
   expect(Script.fromSource('let a, b').globals).toEqual(
@@ -32,11 +38,14 @@ test('Script.findGlobals', () => {
       ['b', 'VariableDeclaration']
     ])
   );
-  expect(Script.fromSource('class A {}').globals).toEqual(new Map([['A', 'ClassDeclaration']]));
+  expect(Script.fromSource('class A {}').globals).toEqual(
+    new Map([['A', 'ClassDeclaration']])
+  );
 });
 
 describe('Script.freeVariables', () => {
-  const free = (code: string) => Array.from(Script.fromSource(code).freeVariables).sort();
+  const free = (code: string) =>
+    Array.from(Script.fromSource(code).freeVariables).sort();
   // const free = (code: string) => Script.fromSource(code).freeVariables;
 
   test('basics', () => {
@@ -75,8 +84,19 @@ describe('Script.freeVariables', () => {
   });
 
   test('control structures', () => {
-    expect(free('function f() {for (i=a; i<b; i+=c) d;}')).toEqual(['a', 'b', 'c', 'd', 'i']);
-    expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual(['a', 'b', 'c', 'd']);
+    expect(free('function f() {for (i=a; i<b; i+=c) d;}')).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+      'i'
+    ]);
+    expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual([
+      'a',
+      'b',
+      'c',
+      'd'
+    ]);
     expect(free('function f() {for (p of obj) p, a;}')).toEqual(['a', 'obj', 'p']);
     // expect(free('function f() {for (const p of obj) p, a;}')).toEqual(['a', 'obj']);
     expect(free('function f() {if(a)b;else c}')).toEqual(['a', 'b', 'c']);
@@ -114,7 +134,8 @@ describe('Script.freeVariables', () => {
 });
 
 test('Script.p5properties', () => {
-  const props = (source: string) => Array.from(Script.fromSource(source).p5properties).sort();
+  const props = (source: string) =>
+    Array.from(Script.fromSource(source).p5properties).sort();
 
   expect(props('function f() {}')).toEqual([]);
   expect(props('function f() {p5.p}')).toEqual(['p']);
@@ -128,7 +149,8 @@ test('Script.p5properties', () => {
 });
 
 test('Script.loadCallArguments', () => {
-  const calls = (source: string) => Array.from(Script.fromSource(source).loadCallArguments).sort();
+  const calls = (source: string) =>
+    Array.from(Script.fromSource(source).loadCallArguments).sort();
 
   expect(calls('function f() {}')).toEqual([]);
   expect(calls('function f() {loadImage("s")}')).toEqual(['s']);

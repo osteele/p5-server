@@ -44,7 +44,10 @@ async function* addTreeProperties<T>(
   iter: AsyncTreeInputIterable<T>
 ): AsyncIterable<{ item: T; index: number; isFirst: boolean; isLast: boolean }> {
   let index = 0;
-  for await (const [prev, item, next] of asyncIterateWindows(dropEmptyGroups(iter), 3)) {
+  for await (const [prev, item, next] of asyncIterateWindows(
+    dropEmptyGroups(iter),
+    3
+  )) {
     switch (item) {
       case indentSymbol:
       case dedentSymbol:
@@ -64,7 +67,9 @@ async function* addTreeProperties<T>(
  * Input: *[1, indentSymbol, unindentSymbol, 2, 3, indentSymbol, 4, 5, 6, unindentSymbol, 7, 8]
  * Output: *[1, 2, 3, indentSymbol, 4, 5, 6, unindentSymbol, 7, 8]
  */
-async function* dropEmptyGroups<T>(iter: AsyncTreeInputIterable<T>): AsyncTreeInputIterable<T> {
+async function* dropEmptyGroups<T>(
+  iter: AsyncTreeInputIterable<T>
+): AsyncTreeInputIterable<T> {
   let indentation = 0;
   for await (const item of iter) {
     switch (item) {
@@ -92,7 +97,10 @@ async function* dropEmptyGroups<T>(iter: AsyncTreeInputIterable<T>): AsyncTreeIn
  * Output: *[[,,1], [,1,2], [1,2,3], [2,3,], [3,,]]
  * (modulo technicalities about missing vs. undefined Array elements)
  */
-async function* asyncIterateWindows<T>(iter: AsyncIterable<T>, width: number): AsyncIterable<(T | undefined)[]> {
+async function* asyncIterateWindows<T>(
+  iter: AsyncIterable<T>,
+  width: number
+): AsyncIterable<(T | undefined)[]> {
   const window = new Array<T | undefined>(width);
   for await (const x of iter) {
     window.shift();

@@ -11,7 +11,9 @@ import updateNotifier from 'update-notifier';
 
 const program = new Command();
 
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8')
+);
 const appVersion = pkg.version;
 program.version(appVersion);
 
@@ -46,7 +48,10 @@ program
   .option('--to <type>', 'output type: html or javascript')
   .action(convert);
 
-program.command('libraries', 'List the libraries', { hidden: true, executableFile: 'p5-analyze' });
+program.command('libraries', 'List the libraries', {
+  hidden: true,
+  executableFile: 'p5-analyze'
+});
 
 program
   .command('serve')
@@ -58,7 +63,10 @@ program
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
-  .option('--console [FORMAT]', 'Relay console messages and errors to sketch in the server console')
+  .option(
+    '--console [FORMAT]',
+    'Relay console messages and errors to sketch in the server console'
+  )
   .action(serve);
 
 program

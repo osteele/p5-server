@@ -33,7 +33,9 @@ export default async function create(
 
   const templateOptions = options.options
     ? Object.fromEntries<boolean>(
-        options.options.split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
+        options.options
+          .split(',')
+          .map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
       )
     : {};
 

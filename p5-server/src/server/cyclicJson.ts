@@ -7,7 +7,8 @@ const refKey = '$__p5_server:ref';
 
 export function parseCyclicJson(json: string) {
   const value = JSON.parse(json);
-  if (!(typeof value === 'object' && hasOwnProperty.call(value, scopeKey))) return value;
+  if (!(typeof value === 'object' && hasOwnProperty.call(value, scopeKey)))
+    return value;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defs: any[] = [];

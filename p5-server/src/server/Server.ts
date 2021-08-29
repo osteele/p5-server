@@ -13,11 +13,17 @@ import WebSocket = require('ws');
 import http = require('http');
 import { closeSync, listenSync } from './http-server-sync';
 import { EventEmitter } from 'stream';
-import { BrowserScriptRelay, attachBrowserScriptRelay, injectScriptEventRelayScript } from './browserScriptEventRelay';
+import {
+  BrowserScriptRelay,
+  attachBrowserScriptRelay,
+  injectScriptEventRelayScript
+} from './browserScriptEventRelay';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
-  export type MountPointOption = string | { filePath: string; name?: string; urlPath?: string };
+  export type MountPointOption =
+    | string
+    | { filePath: string; name?: string; urlPath?: string };
 
   export type Options = Partial<{
     /** The http port number. Defaults to 3000. */
@@ -99,7 +105,9 @@ function createRouter(config: RouterConfig): express.Router {
       (await Sketch.isSketchScriptFile(file))
     ) {
       const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
-      const sketch = sketches.find(sketch => sketch.files.includes(path.basename(file)));
+      const sketch = sketches.find(sketch =>
+        sketch.files.includes(path.basename(file))
+      );
       if (sketch) {
         sendHtml(req, res, await sketch.getHtmlContent());
         return;
@@ -108,7 +116,10 @@ function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(file).getErrors();
       if (errs.length) {
-        const template = fs.readFileSync(path.join(templateDir, 'report-syntax-error.js.njk'), 'utf8');
+        const template = fs.readFileSync(
+          path.join(templateDir, 'report-syntax-error.js.njk'),
+          'utf8'
+        );
         return res.send(
           jsTemplateEnv.renderString(template, {
             fileName: path.basename(file), // TODO: relative to referer
@@ -156,7 +167,11 @@ function createRouter(config: RouterConfig): express.Router {
     html: string
   ) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
-    if (config.relayConsoleMessages || 'send-console-messages' in req.query || 'vscodeBrowserReqId' in req.query) {
+    if (
+      config.relayConsoleMessages ||
+      'send-console-messages' in req.query ||
+      'vscodeBrowserReqId' in req.query
+    ) {
       html = injectScriptEventRelayScript(html);
     }
     res.send(html);
@@ -239,7 +254,9 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   attachBrowserScriptRelay(server, sketchRelay);
   try {
-    const liveReloadServer = createLiveReloadServer(mountPoints.map(mount => mount.filePath));
+    const liveReloadServer = createLiveReloadServer(
+      mountPoints.map(mount => mount.filePath)
+    );
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://localhost:${address.port}`;
     return { server, liveReloadServer, url };
@@ -259,8 +276,12 @@ export class Server {
   private readonly options: ServerConfig;
   private liveReloadServer: WebSocket.Server | null = null;
   private readonly browserScriptEmitter = new EventEmitter();
-  public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(this.browserScriptEmitter);
-  public readonly onScriptEvent = this.browserScriptEmitter.on.bind(this.browserScriptEmitter);
+  public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(
+    this.browserScriptEmitter
+  );
+  public readonly onScriptEvent = this.browserScriptEmitter.on.bind(
+    this.browserScriptEmitter
+  );
 
   constructor(options: Partial<Server.Options> = {}) {
     const mountPoints =
@@ -327,13 +348,18 @@ export class Server {
   //   return null;
   // }
 
-  private static normalizeMountPoints(mountPoints: Server.MountPointOption[]): MountPoint[] {
+  private static normalizeMountPoints(
+    mountPoints: Server.MountPointOption[]
+  ): MountPoint[] {
     const finalPathSep = new RegExp(`${path.sep}$`);
     const mounts = mountPoints
       // normalize to records
       .map(mount => (typeof mount === 'string' ? { filePath: mount } : mount))
       // default url paths from file paths
-      .map(mount => ({ urlPath: '/' + (mount.name || path.basename(mount.filePath)), ...mount }))
+      .map(mount => ({
+        urlPath: '/' + (mount.name || path.basename(mount.filePath)),
+        ...mount
+      }))
       // encode URL paths
       .map(mount => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
       // normalize Windows paths

@@ -8,7 +8,10 @@ import { templateDir } from './globals';
 
 const directoryListingTmpl = pug.compileFile(path.join(templateDir, 'directory.pug'));
 
-export async function createDirectoryListing(dir: string, breadcrumbPath?: string): Promise<string> {
+export async function createDirectoryListing(
+  dir: string,
+  breadcrumbPath?: string
+): Promise<string> {
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
@@ -18,8 +21,12 @@ export async function createDirectoryListing(dir: string, breadcrumbPath?: strin
     html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf-8'))
   };
 
-  const directories = unassociatedFiles.filter(s => fs.statSync(path.join(dir, s)).isDirectory());
-  const files = unassociatedFiles.filter(s => !directories.includes(s) && s !== readmeName);
+  const directories = unassociatedFiles.filter(s =>
+    fs.statSync(path.join(dir, s)).isDirectory()
+  );
+  const files = unassociatedFiles.filter(
+    s => !directories.includes(s) && s !== readmeName
+  );
   const title = dir === './' ? 'P5 Server' : path.basename(dir);
 
   const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);

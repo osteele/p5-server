@@ -1,6 +1,11 @@
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
-import { findFreeVariables, findGlobals, findLoadCalls, findP5PropertyReferences } from './script-analysis';
+import {
+  findFreeVariables,
+  findGlobals,
+  findLoadCalls,
+  findP5PropertyReferences
+} from './script-analysis';
 import babel = require('@babel/core');
 import objectRestSpreadPlugin = require('@babel/plugin-proposal-object-rest-spread');
 

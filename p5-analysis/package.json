@@ -28,7 +28,6 @@
     "clean": "rimraf dist/",
     "cli": "ts-node --files src/bin/p5-analyze.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
-    "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepack": "yarn run build",
     "test": "jest",

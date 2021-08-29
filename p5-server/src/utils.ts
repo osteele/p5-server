@@ -7,7 +7,9 @@ export function die(message: string): never {
   process.exit(1);
 }
 
-export function pathComponentsForBreadcrumbs(relDirPath: string): { name: string; path: string }[] {
+export function pathComponentsForBreadcrumbs(
+  relDirPath: string
+): { name: string; path: string }[] {
   // normalize the path: remove the final '/' if it exists
   return (
     relDirPath

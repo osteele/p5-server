@@ -3,11 +3,17 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import checkCollisions from '../commands/check-library-collisions';
-import { findMinimizedAlternatives, listLibraries, checkLibraryPaths } from '../commands/library-commands';
+import {
+  findMinimizedAlternatives,
+  listLibraries,
+  checkLibraryPaths
+} from '../commands/library-commands';
 
 const program = new Command();
 
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8')
+);
 const appVersion = pkg.version;
 program.version(appVersion);
 

@@ -30,7 +30,11 @@ type Action = (
 
 type ActionIterator = AsyncIterableIterator<Action>;
 
-function Action(kind: 'copyFile' | 'mkdir', source: string, outputFile: string): Action {
+function Action(
+  kind: 'copyFile' | 'mkdir',
+  source: string,
+  outputFile: string
+): Action {
   return { kind, source, outputFile };
 }
 
@@ -51,7 +55,9 @@ function createActions(file: string, output: string): ActionIterator {
     const scriptOnlySketches = sketches.filter(s => !s.htmlFile);
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
-      const outputFile = path.join(output, sketch.scriptFile).replace(/\.js$/i, '.html');
+      const outputFile = path
+        .join(output, sketch.scriptFile)
+        .replace(/\.js$/i, '.html');
       yield { kind: 'generateHtml', sketch, outputFile };
     }
     for (const file of allFiles) {
@@ -64,7 +70,12 @@ function createActions(file: string, output: string): ActionIterator {
       const outputFile = path.join(output, 'index.html');
       // construct the listing from the output directory, because it contains
       // the generated sketch HTML files
-      yield { kind: 'generateIndex', dir: output, outputFile, path: path.basename(dir) };
+      yield {
+        kind: 'generateIndex',
+        dir: output,
+        outputFile,
+        path: path.basename(dir)
+      };
     }
   }
 }

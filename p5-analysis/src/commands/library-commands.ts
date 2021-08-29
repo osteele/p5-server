@@ -26,9 +26,13 @@ export async function checkLibraryPaths() {
   console.log('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
   const responses = await Promise.all(
-    librariesWithPaths.map(async function(library): Promise<[Library, string, null] | [Library, null, string]> {
+    librariesWithPaths.map(async function(
+      library
+    ): Promise<[Library, string, null] | [Library, null, string]> {
       const res = await cachedFetch(library.importPath!);
-      return res.ok ? [library, await res.text(), null] : [library, null, res.statusText];
+      return res.ok
+        ? [library, await res.text(), null]
+        : [library, null, res.statusText];
     })
   );
   console.log('done.\n');
@@ -36,14 +40,18 @@ export async function checkLibraryPaths() {
   const errorLibraries = responses.filter(res => res[2]);
   if (errorLibraries.length) {
     console.log(`These libraries failed to fetch:`);
-    errorLibraries.forEach(library => console.log(`  ${library[0].name}: ${library[2]}`));
+    errorLibraries.forEach(library =>
+      console.log(`  ${library[0].name}: ${library[2]}`)
+    );
     console.log();
   }
 
   const libraryScripts = responses
     .filter(res => res[1])
     .map(([library, text]): [Library, Script] => [library, Script.fromSource(text!)]);
-  const scriptErrors = libraryScripts.filter(([, script]) => script.getErrors().length > 0);
+  const scriptErrors = libraryScripts.filter(
+    ([, script]) => script.getErrors().length > 0
+  );
 
   for (const [library, script] of scriptErrors) {
     console.log(`${library.name}:`, library.importPath);
@@ -64,7 +72,10 @@ export async function checkLibraryPaths() {
 
 export async function findMinimizedAlternatives() {
   const candidates = Library.all.filter(
-    library => library.importPath && library.importPath.endsWith('.js') && !library.importPath.endsWith('.min.js')
+    library =>
+      library.importPath &&
+      library.importPath.endsWith('.js') &&
+      !library.importPath.endsWith('.min.js')
   );
   const found = (
     await Promise.all(
@@ -109,7 +120,10 @@ async function cachedFetch(url: string) {
     fs.mkdirSync(cacheDir);
   }
   // if the file is less than a day old, read it from the cache
-  if (fs.existsSync(cachePath) && fs.statSync(cachePath).mtime.getTime() > Date.now() - 86400000) {
+  if (
+    fs.existsSync(cachePath) &&
+    fs.statSync(cachePath).mtime.getTime() > Date.now() - 86400000
+  ) {
     const text = fs.readFileSync(cachePath, 'utf-8');
     return {
       ok: true,

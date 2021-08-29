@@ -252,7 +252,11 @@ export function findP5PropertyReferences(program: Program): Set<string> {
 class PropertyMemberIterator extends ESTreeVisitor<string> {
   *visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'MemberExpression') {
-      if (node.object.type === 'Identifier' && node.object.name === 'p5' && node.property.type === 'Identifier') {
+      if (
+        node.object.type === 'Identifier' &&
+        node.object.name === 'p5' &&
+        node.property.type === 'Identifier'
+      ) {
         yield node.property.name;
       }
     }
@@ -271,7 +275,11 @@ export function findLoadCalls(program: Program) {
 class LoadCallIterator extends ESTreeVisitor<string> {
   *visitExpression(node: Expression): Iterable<string> {
     if (node.type === 'CallExpression') {
-      if (node.callee.type === 'Identifier' && node.callee.name.startsWith('load') && node.arguments.length >= 1) {
+      if (
+        node.callee.type === 'Identifier' &&
+        node.callee.name.startsWith('load') &&
+        node.arguments.length >= 1
+      ) {
         const arg = node.arguments[0];
         if (arg.type === 'Literal' && typeof arg.value === 'string') {
           yield arg.value;

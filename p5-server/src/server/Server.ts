@@ -2,6 +2,7 @@ import pug from 'pug';
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
+import { readdir, readFile } from 'fs/promises';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import { Script, Sketch } from 'p5-analysis';
@@ -183,24 +184,16 @@ async function sendDirectoryListing<T>(
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<string, T>
 ) {
-  const reqPath = req.path;
-  let fileData: string;
-  const absPath = path.join(root, reqPath);
-  // read the directory contents
-  const indexFile = fs.readdirSync(absPath).find(file => /^index\.html?$/i.test(file));
-  if (indexFile) {
-    // This is needed for linked files to work.
-    if (!reqPath.endsWith('/')) {
-      res.redirect(reqPath + '/');
-      return;
-    }
-    fileData = fs.readFileSync(path.join(absPath, indexFile), 'utf-8');
-  } else {
-    fileData = await createDirectoryListing(absPath, reqPath);
   }
+  const reqPath = req.path;
+  // read the directory contents
+    // This is needed for linked files to work.
+  const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
+  const fileData = indexFile
+    ? await readFile(path.join(dir, indexFile), 'utf-8')
+    : await createDirectoryListing(dir, req.originalUrl);
 
-  // Note: This injects the reload script into the generated index pages too.
-  // This assures that the index page reloads when the directory contents
+  // pages. This ensures that the index page reloads when the directory contents
   // change.
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
 }

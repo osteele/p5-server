@@ -31,12 +31,12 @@ export async function createDirectoryListing(
 
   const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);
   return directoryListingTmpl({
-    pathComponents,
-    title,
     directories,
     files,
-    sketches,
+    pathComponents,
     readme,
+    sketches,
+    title,
     // functions
     path_to,
     path_to_src_view

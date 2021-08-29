@@ -118,8 +118,6 @@ function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(file).getErrors();
       if (errs.length) {
-        // console.info(terminalCodesToHtml(errs[0].message));
-
         const errorHTML =
           '<pre>' +
           terminalCodesToHtml(errs[0].message, true).replace(/\n/g, '<br>') +
@@ -130,8 +128,9 @@ function createRouter(config: RouterConfig): express.Router {
         );
         return res.send(
           jsTemplateEnv.renderString(template, {
-            fileName: path.basename(file), // TODO: relative to referer
-            message: errs[0].message,
+            fileName: path.basename(file),
+            // eslint-disable-next-line no-control-regex
+            message: errs[0].message.replace(/(\x1b\[\d*m)/g, ''),
             errorHtml: errorHTML
           })
         );

@@ -1,5 +1,6 @@
 (function () {
-    let msg = "Syntax error in " + {{ fileName | quote }} + ": " + {{ message | quote }};
-    console.error(msg);
-    document.body.innerHTML = {{ errorHtml | quote }};
+  let msg = "Syntax error in " + {{ fileName | quote }} + ": " + {{ message | quote }};
+  console.error(msg);
+  document.body.innerHTML = '<h1 style="margin:0">Syntax Error</h1>' + {{ errorHtml | quote }};
+  document.body.style.margin = "10px";
 }) ();

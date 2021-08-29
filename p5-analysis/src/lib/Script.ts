@@ -51,7 +51,6 @@ export class Script implements ScriptAnalysis {
       configFile: false,
       compact: true,
       filename: this.filename,
-      highlightCode: false,
       plugins: [objectRestSpreadConfigItem]
     });
 

@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
+- In-browser display of syntax error uses code highlighting
+- Knows about more libraries
 - Add an API to support multiple mount points
-- Relay console.xxx messages to the server, and re-emit them
+- Relay console.info etc. messages to the server. (For use with the [VSCode
+  extension](https://marketplace.visualstudio.com/items?itemName=osteele.p5-server).)
 
 ## [0.5.1]
 

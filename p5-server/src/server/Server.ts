@@ -1,4 +1,3 @@
-import pug from 'pug';
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
@@ -7,18 +6,20 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
+import pug from 'pug';
+import { EventEmitter } from 'stream';
+import {
+  attachBrowserScriptRelay,
+  BrowserScriptRelay,
+  injectScriptEventRelayScript
+} from './browserScriptEventRelay';
 import { createDirectoryListing } from './createDirectoryListing';
 import { templateDir } from './globals';
+import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
-import { closeSync, listenSync } from './http-server-sync';
-import { EventEmitter } from 'stream';
-import {
-  BrowserScriptRelay,
-  attachBrowserScriptRelay,
-  injectScriptEventRelayScript
-} from './browserScriptEventRelay';
+import { terminalCodesToHtml } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -117,6 +118,12 @@ function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(file).getErrors();
       if (errs.length) {
+        // console.info(terminalCodesToHtml(errs[0].message));
+
+        const errorHTML =
+          '<pre>' +
+          terminalCodesToHtml(errs[0].message, true).replace(/\n/g, '<br>') +
+          '</pre>';
         const template = fs.readFileSync(
           path.join(templateDir, 'report-syntax-error.js.njk'),
           'utf8'
@@ -124,7 +131,8 @@ function createRouter(config: RouterConfig): express.Router {
         return res.send(
           jsTemplateEnv.renderString(template, {
             fileName: path.basename(file), // TODO: relative to referer
-            message: errs[0].message
+            message: errs[0].message,
+            errorHtml: errorHTML
           })
         );
       }
@@ -184,15 +192,19 @@ async function sendDirectoryListing<T>(
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<string, T>
 ) {
+  // This is needed for linked files to work.
+  if (!req.originalUrl.endsWith('/')) {
+    return res.redirect(req.originalUrl + '/');
   }
   const reqPath = req.path;
+  const dir = path.join(root, reqPath.replace(/\//g, path.sep));
   // read the directory contents
-    // This is needed for linked files to work.
   const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
   const fileData = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl);
 
+  // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents
   // change.
   res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));

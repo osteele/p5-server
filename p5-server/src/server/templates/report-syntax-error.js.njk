@@ -1,6 +1,5 @@
 (function () {
     let msg = "Syntax error in " + {{ fileName | quote }} + ": " + {{ message | quote }};
-    document.body.innerText = msg;
-    console.info('set innerText to', msg);
     console.error(msg);
+    document.body.innerHTML = {{ errorHtml | quote }};
 }) ();

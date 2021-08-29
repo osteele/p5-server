@@ -19,7 +19,7 @@
     "@typescript-eslint/no-this-alias": "off",
     "jest/expect-expect": "off",
     "jest/no-disabled-tests": "off",
-    "no-console": ["error", { "allow": ["warn", "error", "log"] }],
+    "no-console": ["warn", { "allow": ["warn", "error", "log"] }],
     "no-constant-condition": "off",
     "no-debugger": "error",
     "prefer-const": "warn"

@@ -1,7 +1,7 @@
 # P5.js Server
 
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
-[![CI workflow](https://github.com/osteele/p5-server/actions/workflows/test.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/test.yml)
+[![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml)
 
 This project is a command-line interface for [p5.js](https://p5js.org/). It
 provides a web server with live reload, that knows how to server JavaScript-only

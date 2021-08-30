@@ -2,13 +2,18 @@ name: "unit tests"
 
 on:
   push:
-    branches: [master, test-workflow]
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
 
     steps:
       - name: Checkout repo
@@ -19,7 +24,7 @@ jobs:
       - name: Checkout LFS objects
         run: git lfs checkout
 
-      - name: Setup node
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: '14.7'
@@ -28,15 +33,13 @@ jobs:
       - name: Install
         run: |
           npm install -g yarn
-          yarn install
+          yarn install --frozen-lockfile
 
       - name: Lint
         run: yarn lint
 
       - name: Test
-        run: |
-          yarn clean
-          yarn test
+        run: yarn test
 
       - name: Build
         run: yarn build

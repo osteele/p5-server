@@ -74,7 +74,7 @@ export function terminalCodesToHtml(s: string, usePalette: boolean = false) {
       }
       while (stack.length > 0) output += stack.pop();
       const style = Object.entries(state)
-        .filter(([_k, v]) => v) // eslint-disable-line @typescript-eslint/no-unused-vars
+        .filter(([_k, v]) => v)
         .map(([k, v]) => `${k}: ${v}`)
         .join(';');
       if (style) {

@@ -17,6 +17,7 @@
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-this-alias": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "jest/expect-expect": "off",
     "jest/no-disabled-tests": "off",
     "no-console": ["warn", { "allow": ["warn", "error", "log"] }],

@@ -37,8 +37,7 @@ const consoleEventMethods = [
 
 Object.entries(console).forEach(([method, originalFn]) => {
   if (!consoleEventMethods.includes(method)) return;
-  savedMethods[method] = originalFn.bind(console);
-  console[method] = (...args) => {
+  function newFn(...args) {
     originalFn.apply(console, args);
     const argStrings = args.map(value =>
       value && (typeof value === 'object' || typeof value === 'function') && !Array.isArray(value) && typeof value.toString === 'function'
@@ -49,7 +48,12 @@ Object.entries(console).forEach(([method, originalFn]) => {
       args: args.map((value, i) => undefinedValueReplacer(i, value)),
       argStrings,
     }, getSourceLocation()));
-  };
+  }
+  savedMethods[method] = originalFn.bind(console);
+  console[method] = newFn;
+  newFn.displayName = originalFn.displayName;
+  newFn.name = originalFn.name;
+  newFn.length = originalFn.length;
 });
 
 function getSourceLocation() {

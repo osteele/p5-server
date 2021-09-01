@@ -52,7 +52,7 @@ function createActions(file: string, output: string): ActionIterator {
   async function* visitDir(dir: string, output: string): ActionIterator {
     const { sketches, allFiles } = await Sketch.analyzeDirectory(dir);
     yield Action('mkdir', dir, output);
-    const scriptOnlySketches = sketches.filter(s => !s.htmlFile);
+    const scriptOnlySketches = sketches.filter(s => s.sketchType === 'javascript');
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
       const outputFile = path

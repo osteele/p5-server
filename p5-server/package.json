@@ -35,7 +35,7 @@
     "postpack": "rm README.md",
     "prepack": "yarn run build && cp ../README.md .",
     "serve:examples": "yarn server:watch examples",
-    "serve:testdata": "yarn server:watch examples tests/testdata",
+    "serve:testdata": "yarn server:watch tests/testdata",
     "server:watch": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "start": "ts-node src/bin/p5-server.ts server",
     "test": "jest",

@@ -7,6 +7,15 @@ export function die(message: string): never {
   process.exit(1);
 }
 
+export function escapeHTML(str: string) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function pathComponentsForBreadcrumbs(
   relDirPath: string
 ): { name: string; path: string }[] {

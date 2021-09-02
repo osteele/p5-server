@@ -37,7 +37,7 @@ export class Script implements ScriptAnalysis {
   }
 
   static fromFile(filePath: string) {
-    return new Script(fs.readFileSync(filePath, 'utf8'), filePath);
+    return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
   }
 
   private get program() {

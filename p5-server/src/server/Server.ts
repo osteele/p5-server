@@ -19,7 +19,7 @@ import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
-import { terminalCodesToHtml } from '../utils';
+import { escapeHTML, terminalCodesToHtml } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -59,6 +59,12 @@ const defaultServerOptions = {
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
+
+const sourceViewTemplate = pug.compileFile(path.join(templateDir, 'source-view.pug'));
+const syntaxErrorTemplate = fs.readFileSync(
+  path.join(templateDir, 'report-syntax-error.js.njk'),
+  'utf-8'
+);
 
 function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
@@ -100,35 +106,33 @@ function createRouter(config: RouterConfig): express.Router {
   // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
-    const file = path.join(config.root, req.path);
+    const filepath = path.join(config.root, req.path);
     if (
       req.headers['accept']?.match(/\btext\/html\b/) &&
       req.query.fmt !== 'view' &&
-      (await Sketch.isSketchScriptFile(file))
+      (await Sketch.isSketchScriptFile(filepath))
     ) {
-      const { sketches } = await Sketch.analyzeDirectory(path.dirname(file));
+      const { sketches } = await Sketch.analyzeDirectory(path.dirname(filepath));
       const sketch = sketches.find(sketch =>
-        sketch.files.includes(path.basename(file))
+        sketch.files.includes(path.basename(filepath))
       );
       if (sketch) {
-        sendHtml(req, res, await sketch.getHtmlContent());
-        return;
+        return sendHtml(req, res, await sketch.getHtmlContent());
       }
     }
     try {
-      const errs = Script.fromFile(file).getErrors();
+      const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
         const errorHTML =
           '<pre>' +
-          terminalCodesToHtml(errs[0].message, true).replace(/\n/g, '<br>') +
+          terminalCodesToHtml(escapeHTML(errs[0].message), true).replace(
+            /\n/g,
+            '<br>'
+          ) +
           '</pre>';
-        const template = fs.readFileSync(
-          path.join(templateDir, 'report-syntax-error.js.njk'),
-          'utf8'
-        );
         return res.send(
-          jsTemplateEnv.renderString(template, {
-            fileName: path.basename(file),
+          jsTemplateEnv.renderString(syntaxErrorTemplate, {
+            fileName: path.basename(filepath),
             // eslint-disable-next-line no-control-regex
             message: errs[0].message.replace(/(\x1b\[\d*m)/g, ''),
             errorHtml: errorHTML
@@ -136,11 +140,18 @@ function createRouter(config: RouterConfig): express.Router {
         );
       }
     } catch (e) {
-      if (e.code !== 'ENOENT') {
+      if (e.code === 'ENOENT') {
+        return next();
+      } else {
         throw e;
       }
     }
-    next();
+    return res.send(
+      sourceViewTemplate({
+        title: req.path.replace(/^\//, ''),
+        source: await readFile(filepath, 'utf-8')
+      })
+    );
   });
 
   router.get('/*.md', (req, res, next) => {

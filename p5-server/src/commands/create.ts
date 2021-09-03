@@ -1,12 +1,11 @@
 import { Sketch } from 'p5-analysis';
-import { die } from '../utils';
+import { die, stringToOptions } from '../utils';
 import fs from 'fs';
 import path from 'path';
 
-export default async function create(
-  file: string,
-  options: { force: boolean; title: string; options: string; type?: 'folder' }
-) {
+type Options = { force: boolean; title: string; options: string; type?: 'folder' };
+
+export default async function create(file: string, options: Options) {
   let scriptFile: string | undefined;
   if (options.type && !options.type.match(/folder|file/)) {
     die('create: type must be "folder" or "file"');
@@ -31,25 +30,18 @@ export default async function create(
     scriptFile = path.basename(file).replace(/\.html?$/i, '.js');
   }
 
-  const templateOptions = options.options
-    ? Object.fromEntries<boolean>(
-        options.options
-          .split(',')
-          .map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
-      )
-    : {};
-
+  const templateOptions = stringToOptions(options.options);
   const sketchOptions = { scriptFile, ...options };
   const sketch = Sketch.create(file, sketchOptions);
-  let files: string[] | undefined;
+  let files: string[] = [];
   try {
     files = await sketch.generate(options.force, templateOptions);
-  } catch (err) {
-    if (err.code === 'EEXIST') {
+  } catch (e) {
+    if (e.code === 'EEXIST') {
       die(`${file} already exists. Try again with --force.`);
     }
-    console.error(Object.entries(err));
-    throw err;
+    console.error(Object.entries(e));
+    throw e;
   }
   files.forEach(file => console.log(`Created ${file}`));
 }

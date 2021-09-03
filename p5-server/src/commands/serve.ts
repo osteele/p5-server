@@ -26,7 +26,7 @@ export default async function serve(files: string[], options: Options) {
     port: Number(options.port),
     root: file,
     relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',
-    template: options.template
+    templateName: options.template
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);

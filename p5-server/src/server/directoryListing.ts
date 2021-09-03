@@ -9,9 +9,18 @@ import { templateDir } from './globals';
 export async function createDirectoryListing(
   dir: string,
   breadcrumbPath?: string,
-  templateName = 'directory.pug',
-  staticMode = false
+  options: Partial<{
+    staticMode: boolean;
+    templateName: string;
+    templateOptions: Record<string, string | boolean>;
+  }> = {}
 ): Promise<string> {
+  const { staticMode, templateName, templateOptions } = {
+    staticMode: false,
+    templateName: 'directory.pug',
+    templateOptions: {},
+    ...options
+  };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
   sketches.sort((a, b) => a.name.localeCompare(b.name));
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -41,6 +50,8 @@ export async function createDirectoryListing(
   }
   const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);
   return pug.renderFile(templatePath, {
+    ...templateOptions,
+
     directories,
     files,
     pathComponents,
@@ -58,7 +69,7 @@ export async function createDirectoryListing(
   });
 
   function directory_index(name: string) {
-    staticMode ? `${name}/index.html` : `${name}/`;
+    return staticMode ? `${name}/index.html` : `${name}/`;
   }
 
   function path_to(file: string, sk: Sketch) {

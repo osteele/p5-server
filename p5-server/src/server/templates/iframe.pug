@@ -41,6 +41,8 @@ html(lang='en')
             a.content(href=path_to(sketch.mainFile, sketch), target="sketch")
               .large.header= sketch.name
               .description= sketch.description
+              .description
+                a(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
         each dir in directories
           .item
             i.folder.outline.icon

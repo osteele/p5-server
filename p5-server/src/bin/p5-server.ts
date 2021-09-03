@@ -28,7 +28,7 @@ program
   .argument('[FILE]', 'the filename of the sketch', 'sketch.js')
   .option('--type <TYPE>', 'place the new files in a folder')
   .option('--force', 'force overwrite of existing files')
-  .option('-o, --options [OPTIONS]', 'comma-separated list of options')
+  .option('--options [OPTIONS]', 'comma-separated list of template options')
   .option('-t, --title [TITLE]', 'sketch title')
   .action(create);
 
@@ -38,6 +38,7 @@ program
   .description('Create a static site that presents the sketches')
   .argument('[SOURCE]', 'the source directory', '.')
   .option('-o, --output <OUTPUT>', 'the output directory', 'build')
+  .option('--options [OPTIONS]', 'comma-separated list of template options')
   .option('-t, --template <FILE>', 'template file', 'iframe')
   .option('-v, --verbose', 'verbose output')
   .option('--dry-run', 'dry run')

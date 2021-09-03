@@ -7,13 +7,14 @@ import marked from 'marked';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import { createDirectoryListing } from '../server/directoryListing';
-import { die } from '../utils';
+import { die, stringToOptions } from '../utils';
 
 type Options = {
   output: string;
   dryRun?: boolean;
-  verbose?: boolean;
   template: string;
+  options: string;
+  verbose?: boolean;
 };
 
 export default async function build(source: string, options: Options) {
@@ -75,7 +76,7 @@ function createActions(file: string, output: string): ActionIterator {
   async function* visitDir(dir: string, output: string): ActionIterator {
     const { sketches, allFiles } = await Sketch.analyzeDirectory(dir);
     yield Action('mkdir', dir, output);
-    const scriptOnlySketches = sketches.filter(s => s.sketchType === 'javascript');
+    const scriptOnlySketches = sketches.filter(sk => sk.sketchType === 'javascript');
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
       const outputFile = path
@@ -155,7 +156,12 @@ async function runActions(actions: ActionIterator, options: Options) {
       case 'createIndex': {
         const { dir, path } = action;
         fs.rmSync(outputFile, { force: true });
-        const html = await createDirectoryListing(dir, path, options.template, true);
+        const templateOptions = stringToOptions(options.options);
+        const html = await createDirectoryListing(dir, path, {
+          staticMode: true,
+          templateName: options.template,
+          templateOptions
+        });
         await writeFile(outputFile, html);
         filesCreated += 1;
         break;

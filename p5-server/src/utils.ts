@@ -40,6 +40,13 @@ export function pathComponentsForBreadcrumbs(
   );
 }
 
+export const stringToOptions = (str: string | null) =>
+  str
+    ? Object.fromEntries<boolean>(
+        str.split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
+      )
+    : {};
+
 const escapeCodeColors = [
   'black',
   'red',

@@ -43,7 +43,7 @@ export namespace Server {
     /** Inject the live reload websocket listener into HTML pages. */
     liveServer: boolean;
 
-    template?: string;
+    templateName?: string;
   }>;
 
   export type MountPointOption =
@@ -66,7 +66,7 @@ const defaultServerOptions = {
   port: 3000,
   relayConsoleMessages: false,
   scanPorts: true,
-  template: 'directory.pug'
+  templateName: 'directory.pug'
 };
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
@@ -119,6 +119,7 @@ function createRouter(config: RouterConfig): express.Router {
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
     const filepath = path.join(config.root, req.path);
+    // bare-javascript sketch, not view source
     if (
       req.headers['accept']?.match(/\btext\/html\b/) &&
       req.query.fmt !== 'view' &&
@@ -131,6 +132,15 @@ function createRouter(config: RouterConfig): express.Router {
       if (sketch) {
         return sendHtml(req, res, await sketch.getHtmlContent());
       }
+    }
+    // view source
+    if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt === 'view') {
+      return res.send(
+        sourceViewTemplate({
+          title: req.path.replace(/^\//, ''),
+          source: await readFile(filepath, 'utf-8')
+        })
+      );
     }
     try {
       const errs = Script.fromFile(filepath).getErrors();
@@ -157,14 +167,6 @@ function createRouter(config: RouterConfig): express.Router {
       } else {
         throw e;
       }
-    }
-    if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      return res.send(
-        sourceViewTemplate({
-          title: req.path.replace(/^\//, ''),
-          source: await readFile(filepath, 'utf-8')
-        })
-      );
     }
     return next();
   });
@@ -226,7 +228,9 @@ async function sendDirectoryListing<T>(
   const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
-    : await createDirectoryListing(dir, req.originalUrl, config.template);
+    : await createDirectoryListing(dir, req.originalUrl, {
+        templateName: config.templateName
+      });
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents

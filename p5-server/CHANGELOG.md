@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- `p5 build` defaults to sidebar + iframe
 - In-browser display of syntax error uses code highlighting
 - Knows about more libraries
 - Add an API to support multiple mount points

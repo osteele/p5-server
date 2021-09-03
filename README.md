@@ -40,10 +40,11 @@ In a terminal window:
 * `p5 serve <directory>` to serve a different directory
 * `p5 serve sketch.html` or `p5 serve sketch.js` serve a specific file.
 * `p5 serve [directory] --open` runs the server and opens the URL in the browser.
+* `p5 build [directory]` creates a site that displays the sketches with a
+  navigation sidebar.
 
-Any of these will display a URL that can be entered into a browser. (In some
-terminal programs, you can command-click on the URL instead of copying and
-pasting it.)
+`p5 serve` displays a URL that can be entered into a browser. (In some terminal
+programs, you can command-click on the URL instead of copying and pasting it.)
 
 ### Create a sketch
 

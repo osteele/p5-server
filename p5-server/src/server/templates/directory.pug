@@ -34,7 +34,7 @@ html(lang='en')
       .ui.segment
         h2.ui.header Sketches
         .ui.three.stackable.cards
-          each sketch in sketches.sort((a, b) => a.name.localeCompare(b.name))
+          each sketch in sketches
             .ui.card
               .content
                 .header
@@ -85,10 +85,10 @@ html(lang='en')
       .ui.segment
         h2.ui.header Folders
         .ui.divided.list
-          each folder in directories
+          each dir in directories
             .item
               i.folder.outline.icon
-              a.content(href=folder + '/')= folder
+              a.content(href=dir + '/')= dir
 
     if files.length
       .ui.segment

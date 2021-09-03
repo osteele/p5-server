@@ -13,7 +13,7 @@ import {
   BrowserScriptRelay,
   injectScriptEventRelayScript
 } from './browserScriptEventRelay';
-import { createDirectoryListing } from './createDirectoryListing';
+import { createDirectoryListing } from './directoryListing';
 import { templateDir } from './globals';
 import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
@@ -23,22 +23,32 @@ import { escapeHTML, terminalCodesToHtml } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
-  export type MountPointOption =
-    | string
-    | { filePath: string; name?: string; urlPath?: string };
-
   export type Options = Partial<{
     /** The http port number. Defaults to 3000. */
     port: number;
+
     /** If true, then if the specified port number is not available, find another port. Defaults to true. */
     scanPorts: boolean;
-    /** If true, relay console events from the sketch to an emitter on the server. */
-    relayConsoleMessages: boolean;
+
     /** The base directory. Defaults to the current working directory. */
     root: string | null;
-    /** A list of base directories. If this is present, it overrides the root option. */
+
+    /** A list of base directories and optional URL path prefixes. If this is
+     * present, it is used instead of the root option. */
     mountPoints: MountPointOption[];
+
+    /** If true, relay console events from the sketch to an emitter on the server. */
+    relayConsoleMessages: boolean;
+
+    /** Inject a live websocket listener into the HTML pages. */
+    liveServer: boolean;
+
+    template?: string;
   }>;
+
+  export type MountPointOption =
+    | string
+    | { filePath: string; name?: string; urlPath?: string };
 }
 
 type ServerConfig = Required<Server.Options>;
@@ -51,10 +61,12 @@ type RouterConfig = Server.Options & {
 type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
+  liveServer: true,
+  logConsoleEvents: false,
   port: 3000,
   relayConsoleMessages: false,
-  logConsoleEvents: false,
-  scanPorts: true
+  scanPorts: true,
+  template: 'directory.pug'
 };
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
@@ -79,7 +91,7 @@ function createRouter(config: RouterConfig): express.Router {
         res.sendFile(file);
       }
     } else {
-      await sendDirectoryListing(config.root, req, res);
+      await sendDirectoryListing(config, req, res);
     }
   });
 
@@ -146,12 +158,15 @@ function createRouter(config: RouterConfig): express.Router {
         throw e;
       }
     }
-    return res.send(
-      sourceViewTemplate({
-        title: req.path.replace(/^\//, ''),
-        source: await readFile(filepath, 'utf-8')
-      })
-    );
+    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+      return res.send(
+        sourceViewTemplate({
+          title: req.path.replace(/^\//, ''),
+          source: await readFile(filepath, 'utf-8')
+        })
+      );
+    }
+    return next();
   });
 
   router.get('/*.md', (req, res, next) => {
@@ -161,17 +176,16 @@ function createRouter(config: RouterConfig): express.Router {
         return next();
       }
       const fileData = fs.readFileSync(file, 'utf-8');
-      res.send(marked(fileData));
+      return res.send(marked(fileData));
     }
     return next();
   });
 
-  router.get('*', async (req, res, next) => {
+  router.get('*', (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
       const file = path.join(config.root, req.path);
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-        await sendDirectoryListing(config.root, req, res);
-        return;
+        return sendDirectoryListing(config, req, res);
       }
     }
     next();
@@ -198,7 +212,7 @@ function createRouter(config: RouterConfig): express.Router {
 }
 
 async function sendDirectoryListing<T>(
-  root: string,
+  config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<string, T>
 ) {
@@ -207,17 +221,20 @@ async function sendDirectoryListing<T>(
     return res.redirect(req.originalUrl + '/');
   }
   const reqPath = req.path;
-  const dir = path.join(root, reqPath.replace(/\//g, path.sep));
+  const dir = path.join(config.root, reqPath.replace(/\//g, path.sep));
   // read the directory contents
   const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
-  const fileData = indexFile
+  let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
-    : await createDirectoryListing(dir, req.originalUrl);
+    : await createDirectoryListing(dir, req.originalUrl, config.template);
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents
   // change.
-  res.send(injectLiveReloadScript(fileData, req.app.locals.liveReloadServer));
+  if (config.liveServer) {
+    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
+  }
+  return res.send(html);
 }
 
 async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay) {

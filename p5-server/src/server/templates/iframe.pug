@@ -1,0 +1,49 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    link(rel='icon', href='/__p5_server_static/favicon.svg')
+    link(rel='mask-icon', href='/__p5_server_static/favicon-mask.svg', color='#000000')
+    title= title
+    script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
+    script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
+    link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
+    style.
+      a .header, a.header {color: lightblue !important}
+      a:hover {text-decoration: underline}
+      .pusher {
+        width: 100%;
+        height: 100%;
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+      }
+  body
+    .ui.left.inverted.vertical.visible.sidebar.menu
+      .ui.breadcrumb
+        each component, i in pathComponents
+          if i > 0
+            .divider  /
+          if i + 1 == pathComponents.length
+            .section.active= component.name
+          else
+            a.section(href=component.path)= component.name
+
+        if readme
+          .item
+            a.header(href=readme.name, target="sketch")= readme.name
+        each sketch in sketches
+          .item
+            a.content(href=path_to(sketch.mainFile, sketch), target="sketch")
+              .large.header= sketch.name
+              .description= sketch.description
+        each dir in directories
+          .item
+            i.folder.outline.icon
+            a.content(href=dir + '/index.html')= dir
+
+    iframe.pusher(name="sketch", src=readme.name)

@@ -1,16 +1,22 @@
 // TODO: copy the static icons into the build directory
 
 import fs from 'fs';
+import { rm as rmSync } from 'fs/promises';
 import { writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
-import { createDirectoryListing } from '../server/createDirectoryListing';
+import { createDirectoryListing } from '../server/directoryListing';
 import { die } from '../utils';
 
-type Options = { output?: string; dryRun?: boolean; verbose?: boolean };
+type Options = {
+  output: string;
+  dryRun?: boolean;
+  verbose?: boolean;
+  template: string;
+};
 
-export default async function build(source: string, options: Options): Promise<void> {
-  const output = options.output || 'build';
+export default async function build(source: string, options: Options) {
+  const output = options.output;
 
   if (!path.relative(output, source).startsWith('..' + path.sep)) {
     die('The source directory cannot be inside the output directory');
@@ -18,7 +24,19 @@ export default async function build(source: string, options: Options): Promise<v
   if (!path.relative(source, output).startsWith('..' + path.sep)) {
     die('The output directory cannot be inside the source directory');
   }
-  await runActions(createActions(source, output), options);
+  const actions = createActions(source, output);
+  if (!options.dryRun) {
+    fs.readdirSync(output)
+      .filter(file => !file.startsWith('.'))
+      .map(file => path.join(output, file))
+      .forEach(file =>
+        fs.statSync(file).isDirectory()
+          ? rmSync(file, { recursive: true })
+          : fs.unlinkSync(file)
+      );
+  }
+  const count = await runActions(actions, options);
+  console.log(`${count} files written to ${output}`);
 }
 
 type Action = (
@@ -81,15 +99,18 @@ function createActions(file: string, output: string): ActionIterator {
 }
 
 async function runActions(actions: ActionIterator, options: Options) {
+  let filesCreated = 0;
   for await (const action of actions) {
     if (options.verbose || options.dryRun) {
       const args = actionMessageArgs(action);
       if (args) console.log(...args);
     }
     if (!options.dryRun) {
-      await runAction(action);
+      const { filesCreated: n } = await runAction(action);
+      filesCreated += n;
     }
   }
+  return filesCreated;
 
   function actionMessageArgs(action: Action) {
     const { outputFile } = action;
@@ -112,26 +133,31 @@ async function runActions(actions: ActionIterator, options: Options) {
 
   async function runAction(action: Action) {
     const { outputFile } = action;
+    let filesCreated = 0;
     switch (action.kind) {
       case 'copyFile':
         fs.copyFileSync(action.source, outputFile);
+        filesCreated += 1;
         break;
       case 'generateIndex': {
         const { dir, path } = action;
         fs.rmSync(outputFile, { force: true });
-        const html = await createDirectoryListing(dir, path);
+        const html = await createDirectoryListing(dir, path, options.template);
         await writeFile(outputFile, html);
+        filesCreated += 1;
         break;
       }
       case 'generateHtml': {
         const { sketch } = action;
         const html = await sketch.getHtmlContent();
         await writeFile(outputFile, html);
+        filesCreated += 1;
         break;
       }
       case 'mkdir':
         fs.mkdirSync(outputFile, { recursive: true });
         break;
     }
+    return { filesCreated };
   }
 }

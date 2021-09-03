@@ -35,8 +35,10 @@ program
 program
   .command('build', { hidden: true })
   .alias('b')
-  .argument('[SOURCE]', 'the filename of the sketch', '.')
-  .option('-o, --output [OUTPUT]', 'the filename of the sketch', 'build')
+  .description('Create a static site that presents the sketches')
+  .argument('[SOURCE]', 'the source directory', '.')
+  .option('-o, --output <OUTPUT>', 'the output directory', 'build')
+  .option('-t, --template <FILE>', 'template file', 'iframe')
   .option('-v, --verbose', 'verbose output')
   .option('--dry-run', 'dry run')
   .action(build);
@@ -63,6 +65,7 @@ program
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
+  .option('-t, --template [FILE]', 'template file')
   .option(
     '--console [FORMAT]',
     'Relay console messages and errors to sketch in the server console'

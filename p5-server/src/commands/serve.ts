@@ -1,8 +1,9 @@
-import chalk from 'chalk';
+import chalk, { Chalk } from 'chalk';
 import open from 'open';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
+  BrowserConsoleEventMethods,
   BrowserDocumentEvent,
   BrowserErrorEvent,
   BrowserEventMessage,
@@ -11,18 +12,21 @@ import {
 import { Server } from '../server/Server';
 import util from 'util';
 
-type Options = { open: boolean; port: string; console: boolean | 'json' | 'passive' };
+type Options = {
+  open: boolean;
+  port: string;
+  console: boolean | 'json' | 'passive';
+  template: string;
+};
 
-export default async function serve(
-  files: string[],
-  options: Options = { open: false, port: '3000', console: false }
-) {
+export default async function serve(files: string[], options: Options) {
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {
     port: Number(options.port),
     root: file,
-    relayConsoleMessages: Boolean(options.console) && options.console !== 'passive'
+    relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',
+    template: options.template
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);
@@ -32,7 +36,7 @@ export default async function serve(
 }
 
 function subscribeToBrowserEvents(server: Server, asJson: boolean) {
-  const consoleColors = {
+  const consoleColors: Record<BrowserConsoleEventMethods, Chalk | null> = {
     debug: chalk.blueBright,
     error: chalk.red,
     info: chalk.green,

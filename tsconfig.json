@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "removeComments": true
+    "removeComments": true,
+    "useUnknownInCatchVariables": false
   },
   "extends": "@tsconfig/node14/tsconfig.json"
 }

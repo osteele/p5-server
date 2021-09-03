@@ -3,6 +3,7 @@
 import fs from 'fs';
 import { rm as rmSync } from 'fs/promises';
 import { writeFile } from 'fs/promises';
+import marked from 'marked';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import { createDirectoryListing } from '../server/directoryListing';
@@ -42,14 +43,15 @@ export default async function build(source: string, options: Options) {
 type Action = (
   | { kind: 'copyFile'; source: string }
   | { kind: 'mkdir'; source: string }
-  | { kind: 'generateIndex'; dir: string; path: string }
-  | { kind: 'generateHtml'; sketch: Sketch }
+  | { kind: 'convertMarkdown'; source: string }
+  | { kind: 'createIndex'; dir: string; path: string }
+  | { kind: 'createSketchHtml'; sketch: Sketch }
 ) & { outputFile: string };
 
 type ActionIterator = AsyncIterableIterator<Action>;
 
 function Action(
-  kind: 'copyFile' | 'mkdir',
+  kind: 'convertMarkdown' | 'copyFile' | 'mkdir',
   source: string,
   outputFile: string
 ): Action {
@@ -64,6 +66,9 @@ function createActions(file: string, output: string): ActionIterator {
       yield* visitDir(source, output);
     } else {
       yield Action('copyFile', source, output);
+      if (source.endsWith('.md')) {
+        yield Action('convertMarkdown', source, output + '.html');
+      }
     }
   }
 
@@ -76,7 +81,7 @@ function createActions(file: string, output: string): ActionIterator {
       const outputFile = path
         .join(output, sketch.scriptFile)
         .replace(/\.js$/i, '.html');
-      yield { kind: 'generateHtml', sketch, outputFile };
+      yield { kind: 'createSketchHtml', sketch, outputFile };
     }
     for (const file of allFiles) {
       yield* visit(path.join(dir, file), path.join(output, file));
@@ -89,7 +94,7 @@ function createActions(file: string, output: string): ActionIterator {
       // construct the listing from the output directory, because it contains
       // the generated sketch HTML files
       yield {
-        kind: 'generateIndex',
+        kind: 'createIndex',
         dir: output,
         outputFile,
         path: path.basename(dir)
@@ -117,9 +122,11 @@ async function runActions(actions: ActionIterator, options: Options) {
     switch (action.kind) {
       case 'copyFile':
         return ['Copy', action.source, '->', outputFile];
-      case 'generateIndex':
+      case 'convertMarkdown':
+        return ['Convert', action.source, '->', outputFile];
+      case 'createIndex':
         return ['Generate directory listing', outputFile];
-      case 'generateHtml': {
+      case 'createSketchHtml': {
         const sketch = action.sketch;
         return ['Generate sketch HTML', sketch.scriptFile, '->', outputFile];
       }
@@ -139,15 +146,21 @@ async function runActions(actions: ActionIterator, options: Options) {
         fs.copyFileSync(action.source, outputFile);
         filesCreated += 1;
         break;
-      case 'generateIndex': {
+      case 'convertMarkdown': {
+        const html = marked(fs.readFileSync(action.source, 'utf-8'));
+        fs.writeFileSync(outputFile, html);
+        filesCreated += 1;
+        break;
+      }
+      case 'createIndex': {
         const { dir, path } = action;
         fs.rmSync(outputFile, { force: true });
-        const html = await createDirectoryListing(dir, path, options.template);
+        const html = await createDirectoryListing(dir, path, options.template, true);
         await writeFile(outputFile, html);
         filesCreated += 1;
         break;
       }
-      case 'generateHtml': {
+      case 'createSketchHtml': {
         const { sketch } = action;
         const html = await sketch.getHtmlContent();
         await writeFile(outputFile, html);

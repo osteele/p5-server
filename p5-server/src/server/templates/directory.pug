@@ -88,7 +88,7 @@ html(lang='en')
           each dir in directories
             .item
               i.folder.outline.icon
-              a.content(href=dir + '/')= dir
+              a.content(href=directory_index(dir))= dir
 
     if files.length
       .ui.segment

@@ -40,7 +40,7 @@ export namespace Server {
     /** If true, relay console events from the sketch to an emitter on the server. */
     relayConsoleMessages: boolean;
 
-    /** Inject a live websocket listener into the HTML pages. */
+    /** Inject the live reload websocket listener into HTML pages. */
     liveServer: boolean;
 
     template?: string;

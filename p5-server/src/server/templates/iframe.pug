@@ -35,7 +35,7 @@ html(lang='en')
 
         if readme
           .item
-            a.header(href=readme.name, target="sketch")= readme.name
+            a.header(href=readme.url, target="sketch")= readme.name
         each sketch in sketches
           .item
             a.content(href=path_to(sketch.mainFile, sketch), target="sketch")
@@ -44,6 +44,6 @@ html(lang='en')
         each dir in directories
           .item
             i.folder.outline.icon
-            a.content(href=dir + '/index.html')= dir
+            a.content(href=directory_index(dir))= dir
 
-    iframe.pusher(name="sketch", src=readme.name)
+    iframe.pusher(name="sketch", src=readme.url)

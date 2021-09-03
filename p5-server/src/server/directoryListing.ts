@@ -9,7 +9,8 @@ import { templateDir } from './globals';
 export async function createDirectoryListing(
   dir: string,
   breadcrumbPath?: string,
-  templateName: string = 'directory.pug'
+  templateName = 'directory.pug',
+  staticMode = false
 ): Promise<string> {
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
   sketches.sort((a, b) => a.name.localeCompare(b.name));
@@ -19,7 +20,8 @@ export async function createDirectoryListing(
   const readme = readmeName
     ? {
         name: readmeName,
-        html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf-8'))
+        html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
+        url: staticMode ? `${readmeName}.html` : readmeName
       }
     : null;
 
@@ -47,12 +49,17 @@ export async function createDirectoryListing(
     title,
 
     // functions
+    directory_index,
     path_to,
     path_to_src_view,
 
     // pug options
     cache: true
   });
+
+  function directory_index(name: string) {
+    staticMode ? `${name}/index.html` : `${name}/`;
+  }
 
   function path_to(file: string, sk: Sketch) {
     return path.relative(dir, path.join(sk.dir, file));

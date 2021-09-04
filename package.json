@@ -1,16 +1,10 @@
 {
-  "description": "Workspace for p5-analysis and p5-server",
-  "keywords": [
-    "creative coding",
-    "p5",
-    "p5.js"
+  "private": true,
+  "packageManager": "yarn@3.0.0",
+  "workspaces": [
+    "p5-analysis",
+    "p5-server"
   ],
-  "homepage": "https://github.com/osteele/p5-server#readme",
-  "bugs": {
-    "url": "https://github.com/osteele/p5-server/issues"
-  },
-  "author": "Oliver Steele <steele@osteele.com> (https://osteele.com/)",
-  "repository": "github:osteele/p5-server",
   "scripts": {
     "build": "yarn workspaces foreach -t run build",
     "build:docs": "yarn workspaces foreach run build:docs",
@@ -37,11 +31,5 @@
     "ts-jest": "^27.0.5",
     "typedoc": "^0.21.9",
     "typescript": "^4.4.2"
-  },
-  "private": true,
-  "packageManager": "yarn@3.0.0",
-  "workspaces": [
-    "p5-analysis",
-    "p5-server"
-  ]
+  }
 }

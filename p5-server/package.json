@@ -54,7 +54,9 @@
     "update-notifier": "^5.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.15.5",
     "@rollup/plugin-babel": "^5.3.0",
+    "@types/babel__core": "^7",
     "@types/copyfiles": "^2",
     "@types/eslint": "^7",
     "@types/express": "^4.17.13",

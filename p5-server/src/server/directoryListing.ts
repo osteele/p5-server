@@ -6,6 +6,14 @@ import { Sketch } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { templateDir } from './globals';
 
+export const defaultDirectoryExclusions = [
+  '.*',
+  '*~',
+  'node_modules',
+  'package.json',
+  'package-lock.json'
+];
+
 export async function createDirectoryListing(
   dir: string,
   breadcrumbPath?: string,
@@ -21,7 +29,9 @@ export async function createDirectoryListing(
     templateOptions: {},
     ...options
   };
-  const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
+  const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
+    exclusions: defaultDirectoryExclusions
+  });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 

@@ -1,11 +1,15 @@
 import fs from 'fs';
 import { rm as rmSync, writeFile } from 'fs/promises';
 import marked from 'marked';
+import minimatch from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
-import { createDirectoryListing } from '../server/directoryListing';
-import { die, stringToOptions } from '../utils';
+import {
+  createDirectoryListing,
+  defaultDirectoryExclusions
+} from '../server/directoryListing';
+import { die, pathIsInDirectory, stringToOptions } from '../utils';
 
 // TODO: copy the static icons into the build directory
 
@@ -18,13 +22,19 @@ type Options = {
   verbose?: boolean;
 };
 
+const directoryExclusions = [...defaultDirectoryExclusions, 'build'];
+
 export default async function build(source: string, options: Options) {
   const output = options.output;
+  const hrstart = process.hrtime.bigint();
 
-  if (!path.relative(output, source).startsWith('..' + path.sep)) {
+  if (
+    pathIsInDirectory(output, source) &&
+    !directoryExclusions.some(pattern => minimatch(output, pattern))
+  ) {
     die('The output directory cannot be inside the source directory');
   }
-  if (!path.relative(source, output).startsWith('..' + path.sep)) {
+  if (pathIsInDirectory(source, output)) {
     die('The source directory cannot be inside the output directory');
   }
   const actions = createActions(source, output);
@@ -40,9 +50,15 @@ export default async function build(source: string, options: Options) {
   }
   const count = await runActions(actions, options);
   const rootIndex = path.join(output, 'index.html');
-  console.log(`p5 build wrote ${count} files to ${output}`);
-  console.log(`Open file://${path.resolve(rootIndex)} to view`);
-  if (options.open) open(rootIndex);
+  const elapsed = Number(process.hrtime.bigint() - hrstart) / 1e9;
+  console.log(
+    `p5 build wrote ${count} files to directory ${output} in ${elapsed.toFixed(2)}ms`
+  );
+  if (options.open) {
+    open(rootIndex);
+  } else {
+    console.log(`Open file://${path.resolve(rootIndex)} to view`);
+  }
 }
 
 type Action = (
@@ -78,7 +94,9 @@ function createActions(file: string, output: string): ActionIterator {
   }
 
   async function* visitDir(dir: string, output: string): ActionIterator {
-    const { sketches, allFiles } = await Sketch.analyzeDirectory(dir);
+    const { sketches, allFiles } = await Sketch.analyzeDirectory(dir, {
+      exclusions: directoryExclusions
+    });
     yield Action('mkdir', dir, output);
     const scriptOnlySketches = sketches.filter(sk => sk.sketchType === 'javascript');
     // TODO: check for collisions when choosing the output file path

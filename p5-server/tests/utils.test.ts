@@ -1,5 +1,13 @@
 import { terminalCodesToHtml } from '../src/terminalCodes';
-import { pathComponentsForBreadcrumbs } from '../src/utils';
+import { pathComponentsForBreadcrumbs, pathIsInDirectory } from '../src/utils';
+
+test('pathIsInDirectory', () => {
+  expect(pathIsInDirectory('a/b', 'a/b/c')).toBe(true);
+  expect(pathIsInDirectory('a/b/c', 'a/b')).toBe(false);
+  expect(pathIsInDirectory('a/b', 'a/c')).toBe(false);
+  expect(pathIsInDirectory('/a/b', '/a/b/c')).toBe(true);
+  expect(pathIsInDirectory('/a/b/c', '/a/b')).toBe(false);
+});
 
 test('pathComponentsForBreadcrumbs', () => {
   expect(pathComponentsForBreadcrumbs('')).toEqual([{ path: '/', name: 'Home' }]);

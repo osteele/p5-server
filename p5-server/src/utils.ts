@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import path from 'path';
 
 /** Print the message to standard output; then exit with status code 1.
  */
@@ -38,6 +39,10 @@ export function pathComponentsForBreadcrumbs(
         [{ name: 'Home', path: '/' }]
       )
   );
+}
+
+export function pathIsInDirectory(filepath: string, dir: string) {
+  return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
 }
 
 export const stringToOptions = (str: string | null) =>

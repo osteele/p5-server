@@ -135,7 +135,7 @@ export abstract class Sketch {
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
     let files = (await readdir(dir)).filter(
-      s => !exclusions.some(exclusion => minimatch(s, exclusion))
+      file => !exclusions.some(pattern => minimatch(file, pattern))
     );
 
     // collect directory sketches, and remove them from the list of files

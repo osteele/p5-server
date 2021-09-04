@@ -9,7 +9,6 @@ import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
 import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
-import { escapeHTML } from '../utils';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
@@ -148,7 +147,7 @@ function createRouter(config: RouterConfig): express.Router {
       if (errs.length) {
         const errorHTML =
           '<pre>' +
-          terminalCodesToHtml(escapeHTML(errs[0].message), true).replace(
+          terminalCodesToHtml(errs[0].message, true).replace(
             /\n/g,
             '<br>'
           ) +

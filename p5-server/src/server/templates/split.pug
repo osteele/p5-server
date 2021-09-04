@@ -10,8 +10,10 @@ html(lang='en')
     script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
     style.
-      a .header, a.header {color: lightblue !important}
-      a:hover {text-decoration: underline}
+      .item:hover {background-color: #444 !important}
+      a.header:hover {text-decoration: underline}
+      .description a {color: inherit !important}
+      .source-view {display: inline-block; margin-left: .5em; opacity: 75%}
       .pusher {
         width: 100%;
         height: 100%;
@@ -33,19 +35,19 @@ html(lang='en')
           else
             a.section(href=component.path)= component.name
 
-        if readme
-          .item
-            a.header(href=readme.url, target="sketch")= readme.name
-        each sketch in sketches
-          .item
-            a.content(href=path_to(sketch.mainFile, sketch), target="sketch")
-              .large.header= sketch.name
-              .description= sketch.description
-              .description
-                a(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
-        each dir in directories
-          .item
-            i.folder.outline.icon
-            a.content(href=directory_index(dir))= dir
+      if readme
+        .item
+          a.header(href=readme.url, target="sketch")= readme.name
+      each sketch in sketches
+        .item
+          .header
+            a(href=path_to(sketch.mainFile, sketch), target="sketch")= sketch.name
+            a.source-view(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
+          .description
+            a(href=path_to(sketch.mainFile, sketch), target="sketch")= sketch.description
+      each dir in directories
+        .item
+          i.folder.outline.icon
+          a.content(href=directory_index(dir))= dir
 
     iframe.pusher(name="sketch", src=readme.url, scrolling="no")

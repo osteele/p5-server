@@ -38,8 +38,9 @@ program
   .description('Create a static site that presents the sketches')
   .argument('[SOURCE]', 'the source directory', '.')
   .option('-o, --output <OUTPUT>', 'the output directory', 'build')
+  .option('--open', 'Open the index file in a browser')
   .option('--options [OPTIONS]', 'comma-separated list of template options')
-  .option('-t, --template <FILE>', 'template file', 'iframe')
+  .option('-t, --theme <FILE>', 'template file', 'split')
   .option('-v, --verbose', 'verbose output')
   .option('--dry-run', 'dry run')
   .action(build);
@@ -66,7 +67,7 @@ program
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
-  .option('-t, --template [FILE]', 'template file')
+  .option('-t, --theme [FILE]', 'template file')
   .option(
     '--console [FORMAT]',
     'Relay console messages and errors to sketch in the server console'

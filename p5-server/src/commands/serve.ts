@@ -16,7 +16,7 @@ type Options = {
   open: boolean;
   port: string;
   console: boolean | 'json' | 'passive';
-  template: string;
+  theme: string;
 };
 
 export default async function serve(files: string[], options: Options) {
@@ -26,7 +26,7 @@ export default async function serve(files: string[], options: Options) {
     port: Number(options.port),
     root: file,
     relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',
-    templateName: options.template
+    theme: options.theme || undefined
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);

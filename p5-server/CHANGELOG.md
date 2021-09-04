@@ -2,12 +2,13 @@
 
 ## [Unreleased]
 
-- `p5 build` defaults to sidebar + iframe
+- Add `p5 build` themes; default to "split" = sidebar + iframe
 - In-browser display of syntax error uses code highlighting
 - Knows about more libraries
-- Add an API to support multiple mount points
-- Relay console.info etc. messages to the server. (For use with the [VSCode
+- Features to support [VSCode
   extension](https://marketplace.visualstudio.com/items?itemName=osteele.p5-server).)
+  - Add an API to support multiple mount points
+  - Relay console.info etc. messages to the server.
 
 ## [0.5.1]
 

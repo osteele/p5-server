@@ -1,4 +1,5 @@
-import { pathComponentsForBreadcrumbs, terminalCodesToHtml } from '../src/utils';
+import { terminalCodesToHtml } from '../src/terminalCodes';
+import { pathComponentsForBreadcrumbs } from '../src/utils';
 
 test('pathComponentsForBreadcrumbs', () => {
   expect(pathComponentsForBreadcrumbs('')).toEqual([{ path: '/', name: 'Home' }]);

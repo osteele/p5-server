@@ -8,6 +8,8 @@ import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
+import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
+import { escapeHTML } from '../utils';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
@@ -19,7 +21,6 @@ import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
 import http = require('http');
-import { escapeHTML, terminalCodesToHtml } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -43,7 +44,7 @@ export namespace Server {
     /** Inject the live reload websocket listener into HTML pages. */
     liveServer: boolean;
 
-    templateName?: string;
+    theme?: string;
   }>;
 
   export type MountPointOption =
@@ -66,7 +67,7 @@ const defaultServerOptions = {
   port: 3000,
   relayConsoleMessages: false,
   scanPorts: true,
-  templateName: 'directory.pug'
+  theme: 'directory'
 };
 
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
@@ -155,8 +156,7 @@ function createRouter(config: RouterConfig): express.Router {
         return res.send(
           jsTemplateEnv.renderString(syntaxErrorTemplate, {
             fileName: path.basename(filepath),
-            // eslint-disable-next-line no-control-regex
-            message: errs[0].message.replace(/(\x1b\[\d*m)/g, ''),
+            message: removeTerminalCodes(errs[0].message),
             errorHtml: errorHTML
           })
         );
@@ -229,7 +229,7 @@ async function sendDirectoryListing<T>(
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-        templateName: config.templateName
+        templateName: config.theme
       });
 
   // Note: This injects the reload script into both static and generated index
@@ -266,7 +266,9 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.
   if (fs.statSync(mountPoints[0].filePath).isDirectory()) {
-    createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath);
+    createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath, {
+      templateName: config.theme
+    });
   }
 
   let server: http.Server | null = null;
@@ -309,7 +311,7 @@ export class Server {
   public server: http.Server | null = null;
   public url?: string;
   public mountPoints: MountPoint[];
-  private readonly options: ServerConfig;
+  private readonly config: ServerConfig;
   private liveReloadServer: WebSocket.Server | null = null;
   private readonly browserScriptEmitter = new EventEmitter();
   public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(
@@ -325,7 +327,8 @@ export class Server {
         ? Server.normalizeMountPoints(options.mountPoints)
         : [{ filePath: options.root || '.', urlPath: '/' }];
     this.mountPoints = mountPoints;
-    this.options = { ...defaultServerOptions, root: null, ...options, mountPoints };
+    this.config = { ...defaultServerOptions, root: null, ...options, mountPoints };
+    this.config.theme ||= defaultServerOptions.theme;
   }
 
   /** Create and start the server. Returns the instance. */
@@ -334,7 +337,7 @@ export class Server {
   }
 
   public async start() {
-    const { server, liveReloadServer, url } = await startServer(this.options, this);
+    const { server, liveReloadServer, url } = await startServer(this.config, this);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;
@@ -352,7 +355,7 @@ export class Server {
   }
 
   public filePathToUrl(filePath: string) {
-    const baseUrl = this.url || `http://localhost:${this.options.port}`;
+    const baseUrl = this.url || `http://localhost:${this.config.port}`;
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');

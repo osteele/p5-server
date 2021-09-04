@@ -1,19 +1,20 @@
-// TODO: copy the static icons into the build directory
-
 import fs from 'fs';
-import { rm as rmSync } from 'fs/promises';
-import { writeFile } from 'fs/promises';
+import { rm as rmSync, writeFile } from 'fs/promises';
 import marked from 'marked';
+import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import { createDirectoryListing } from '../server/directoryListing';
 import { die, stringToOptions } from '../utils';
 
+// TODO: copy the static icons into the build directory
+
 type Options = {
-  output: string;
-  dryRun?: boolean;
-  template: string;
   options: string;
+  output: string;
+  theme: string;
+  dryRun?: boolean;
+  open?: boolean;
   verbose?: boolean;
 };
 
@@ -21,10 +22,10 @@ export default async function build(source: string, options: Options) {
   const output = options.output;
 
   if (!path.relative(output, source).startsWith('..' + path.sep)) {
-    die('The source directory cannot be inside the output directory');
+    die('The output directory cannot be inside the source directory');
   }
   if (!path.relative(source, output).startsWith('..' + path.sep)) {
-    die('The output directory cannot be inside the source directory');
+    die('The source directory cannot be inside the output directory');
   }
   const actions = createActions(source, output);
   if (!options.dryRun) {
@@ -38,7 +39,10 @@ export default async function build(source: string, options: Options) {
       );
   }
   const count = await runActions(actions, options);
-  console.log(`${count} files written to ${output}`);
+  const rootIndex = path.join(output, 'index.html');
+  console.log(`p5 build wrote ${count} files to ${output}`);
+  console.log(`Open file://${path.resolve(rootIndex)} to view`);
+  if (options.open) open(rootIndex);
 }
 
 type Action = (
@@ -159,7 +163,7 @@ async function runActions(actions: ActionIterator, options: Options) {
         const templateOptions = stringToOptions(options.options);
         const html = await createDirectoryListing(dir, path, {
           staticMode: true,
-          templateName: options.template,
+          templateName: options.theme,
           templateOptions
         });
         await writeFile(outputFile, html);

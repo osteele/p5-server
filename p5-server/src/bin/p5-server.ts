@@ -21,10 +21,10 @@ updateNotifier({ pkg }).notify();
 
 program
   .command('create')
+  .description('Create a new p5.js sketch')
   .alias('c')
   .alias('generate')
   .alias('g')
-  .description('Create a new p5.js sketch')
   .argument('[FILE]', 'the filename of the sketch', 'sketch.js')
   .option('--type <TYPE>', 'place the new files in a folder')
   .option('--force', 'force overwrite of existing files')
@@ -33,9 +33,9 @@ program
   .action(create);
 
 program
-  .command('build', { hidden: true })
-  .alias('b')
+  .command('build')
   .description('Create a static site that presents the sketches')
+  .alias('b')
   .argument('[SOURCE]', 'the source directory', '.')
   .option('-o, --output <OUTPUT>', 'the output directory', 'build')
   .option('--open', 'Open the index file in a browser')
@@ -47,8 +47,8 @@ program
 
 program
   .command('convert')
-  .argument('file')
   .description('Convert an HTML sketch to JavaScript-only or vice versa')
+  .argument('file')
   .option('--to <type>', 'output type: html or javascript')
   .action(convert);
 
@@ -76,6 +76,7 @@ program
 
 program
   .command('tree')
+  .description('Print the tree structure of a directory and its sketches')
   .argument('[DIRECTORY]', 'directory', '.')
   .option('-L, level <LEVEL>', 'Descend only level directories deep.')
   .action(tree);

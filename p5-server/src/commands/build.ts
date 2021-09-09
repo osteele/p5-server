@@ -37,8 +37,8 @@ export default async function build(source: string, options: Options) {
   if (pathIsInDirectory(source, output)) {
     die('The source directory cannot be inside the output directory');
   }
-  const actions = createActions(source, output);
-  if (!options.dryRun) {
+
+  if (!options.dryRun && fs.existsSync(output)) {
     fs.readdirSync(output)
       .filter(file => !file.startsWith('.'))
       .map(file => path.join(output, file))
@@ -48,6 +48,8 @@ export default async function build(source: string, options: Options) {
           : fs.unlinkSync(file)
       );
   }
+
+  const actions = createActions(source, output);
   const count = await runActions(actions, options);
   const rootIndex = path.join(output, 'index.html');
   const elapsed = Number(process.hrtime.bigint() - hrstart) / 1e9;
@@ -118,7 +120,7 @@ function createActions(file: string, output: string): ActionIterator {
       // the generated sketch HTML files
       yield {
         kind: 'createIndex',
-        dir: output,
+        dir,
         outputFile,
         path: path.basename(dir)
       };

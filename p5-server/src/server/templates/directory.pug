@@ -38,13 +38,13 @@ html(lang='en')
             .ui.card
               .content
                 .header
-                  a(href=path_to(sketch.mainFile, sketch))
+                  a(href=play_link(sketch))
                     img.ui.mini.image(src='/__p5_server_static/assets/p5js-icon.png')
                     | &ensp;
                     = sketch.name
                 .description
                   if sketch.description
-                    div(data-tooltip="This description comes from the HTML or JavaScript file")= sketch.description
+                    div(data-tooltip="This description comes from the HTML or JavaScript file")!= markdown(sketch.description)
                   .ui.divider
                   div
                     span(data-tooltip="The root of the sketch. The HTML or JavaScript file that includes everything else")

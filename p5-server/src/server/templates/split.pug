@@ -41,10 +41,11 @@ html(lang='en')
       each sketch in sketches
         .item
           .header
-            a(href=path_to(sketch.mainFile, sketch), target="sketch")= sketch.name
+            a(href=play_link(sketch), target="sketch")= sketch.name
             a.source-view(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
           .description
-            a(href=path_to(sketch.mainFile, sketch), target="sketch")!= markdown(sketch.description)
+            if sketch.description
+              a(href=play_link(sketch), target="sketch")!= markdown(sketch.description)
       each dir in directories
         .item
           i.folder.outline.icon

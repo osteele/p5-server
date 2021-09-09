@@ -64,6 +64,7 @@ export default async function build(source: string, options: Options) {
 }
 
 type Action = (
+  | { kind: 'copyDir'; source: string }
   | { kind: 'copyFile'; source: string }
   | { kind: 'mkdir'; source: string }
   | { kind: 'convertMarkdown'; source: string }
@@ -74,7 +75,7 @@ type Action = (
 type ActionIterator = AsyncIterableIterator<Action>;
 
 function Action(
-  kind: 'convertMarkdown' | 'copyFile' | 'mkdir',
+  kind: 'convertMarkdown' | 'copyDir' | 'copyFile' | 'mkdir',
   source: string,
   outputFile: string
 ): Action {
@@ -100,6 +101,7 @@ function createActions(file: string, output: string): ActionIterator {
       exclusions: directoryExclusions
     });
     yield Action('mkdir', dir, output);
+
     const scriptOnlySketches = sketches.filter(sk => sk.sketchType === 'javascript');
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
@@ -108,9 +110,20 @@ function createActions(file: string, output: string): ActionIterator {
         .replace(/\.js$/i, '.html');
       yield { kind: 'createSketchHtml', sketch, outputFile };
     }
+
+    const subdirectorySketches = sketches.filter(sk => sk.dir !== dir);
+    for (const sketch of subdirectorySketches) {
+      yield Action(
+        'copyDir',
+        sketch.dir,
+        path.join(output, path.relative(dir, sketch.dir))
+      );
+    }
+
     for (const file of allFiles) {
       yield* visit(path.join(dir, file), path.join(output, file));
     }
+
     if (!allFiles.find(file => /^index\.html?$/i.test(file))) {
       // Generate the index from the target, rather than the source, so that it
       // will refer to generated HTML files instead of the bare JavaScript
@@ -145,8 +158,10 @@ async function runActions(actions: ActionIterator, options: Options) {
   function actionMessageArgs(action: Action) {
     const { outputFile } = action;
     switch (action.kind) {
+      case 'copyDir':
+        return ['Copy directory', action.source, '->', outputFile];
       case 'copyFile':
-        return ['Copy', action.source, '->', outputFile];
+        return ['Copy file', action.source, '->', outputFile];
       case 'convertMarkdown':
         return ['Convert', action.source, '->', outputFile];
       case 'createIndex':
@@ -167,6 +182,10 @@ async function runActions(actions: ActionIterator, options: Options) {
     const { outputFile } = action;
     let filesCreated = 0;
     switch (action.kind) {
+      case 'copyDir':
+        fs.cpSync(action.source, outputFile, { recursive: true });
+        filesCreated += fs.readdirSync(action.source).length; // FIXME
+        break;
       case 'copyFile':
         fs.copyFileSync(action.source, outputFile);
         filesCreated += 1;

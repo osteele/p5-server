@@ -74,28 +74,38 @@ export async function createDirectoryListing(
     path_to,
     path_to_src_view,
     markdown,
+    play_link,
 
     // pug options
     cache: true
   });
 
-  function directory_index(name: string) {
-    return staticMode ? `${name}/index.html` : `${name}/`;
+  function directory_index(dir: string) {
+    return staticMode ? `${dir}/index.html` : `${dir}/`;
   }
 
-  function path_to(file: string, sk: Sketch) {
-    return path.relative(dir, path.join(sk.dir, file));
+  function markdown(md: string | null) {
+    return md ? marked(md) : '';
+  }
+
+  function path_to(filepath: string, sk: Sketch) {
+    return path.relative(dir, path.join(sk.dir, filepath));
   }
 
   function path_to_src_view(file: string, sk: Sketch) {
-    let p = path_to(file, sk);
-    if (p.match(/.*\.(html?|js)$/i)) {
-      p += '?fmt=view';
+    let filepath = path_to(file, sk);
+    if (!staticMode && filepath.match(/.*\.(html?|js)$/i)) {
+      filepath += '?fmt=view';
     }
-    return p;
+    return filepath;
   }
 
-  function markdown(s: string) {
-    return s ? marked(s) : '';
+  function play_link(sk: Sketch) {
+    return path_to(
+      staticMode && sk.sketchType === 'javascript'
+        ? sk.mainFile.replace(/\.js$/i, '.html')
+        : sk.mainFile,
+      sk
+    );
   }
 }

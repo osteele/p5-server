@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.6]
 
 - Add `p5 build` themes; default to "split" = sidebar + iframe
 - In-browser display of syntax error uses code highlighting

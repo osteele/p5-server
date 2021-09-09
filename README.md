@@ -4,16 +4,22 @@
 [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml)
 
 This project is a command-line interface for [p5.js](https://p5js.org/). It
-provides a web server with live reload, that knows how to server JavaScript-only
-sketches and figure out which libraries a sketch needs  in order to run.
+provides a web server with live reload, that knows how to serve JavaScript-only
+sketches and figure out which libraries a sketch needs in order to run.
 
-It is also available as a [Visual Studio Code
+The command can also be used to create a set of HTML pages for browsing a
+collection of sketches. For an example, see the [p5.vectorArguments home
+page](https://osteele.github.io/p5.libs/p5.vector-arguments/).
+
+The web server functionality is also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
 
 The directory and script analysis tools that make this possible are available
 via a [programmatic API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 
 ![screenshot](docs/screenshot.png)
+
+![screenshot](docs/split.png)
 
 ## Features
 
@@ -42,6 +48,8 @@ In a terminal window:
 * `p5 serve [directory] --open` runs the server and opens the URL in the browser.
 * `p5 build [directory]` creates a site that displays the sketches with a
   navigation sidebar.
+* `p5 serve [directory] --theme split` uses the split-view theme. It can be used
+  in conjunction with `--open`.
 
 `p5 serve` displays a URL that can be entered into a browser. (In some terminal
 programs, you can command-click on the URL instead of copying and pasting it.)
@@ -69,7 +77,7 @@ The default generated script contains `setup()` and `draw()` functions. The
 that follow the mouse. `--options` can be used to customize this script.
 See the reference, below.
 
-### Start the server
+### Run the server
 
 `p5 server` starts a sketch-aware server. The server is set to serve files from
 the current directory.
@@ -82,6 +90,14 @@ automatically.
 
 If another server is already running on port 3000, the server will choose
 another port.
+
+### Build a static site
+
+`p5 build DIR` builds a static site into `./build`.
+
+Run `p5 build --help` for a list of options.
+
+Two themes are supported, `--theme directory` and `--theme split`.
 
 ### Convert JavaScript <-> HTML sketches
 

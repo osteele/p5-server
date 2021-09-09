@@ -15,7 +15,7 @@ import {
   injectScriptEventRelayScript
 } from './browserScriptEventRelay';
 import { createDirectoryListing } from './createDirectoryListing';
-import { templateDir } from './globals';
+import { sourceViewTemplate, templateDir } from './globals';
 import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
 import WebSocket = require('ws');
@@ -72,7 +72,6 @@ const defaultServerOptions = {
 const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
 jsTemplateEnv.addFilter('quote', JSON.stringify);
 
-const sourceViewTemplate = pug.compileFile(path.join(templateDir, 'source-view.pug'));
 const syntaxErrorTemplate = fs.readFileSync(
   path.join(templateDir, 'report-syntax-error.js.njk'),
   'utf-8'
@@ -135,12 +134,10 @@ function createRouter(config: RouterConfig): express.Router {
     }
     // view source
     if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt === 'view') {
-      return res.send(
-        sourceViewTemplate({
-          title: req.path.replace(/^\//, ''),
-          source: await readFile(filepath, 'utf-8')
-        })
-      );
+      const source =  await readFile(filepath, 'utf-8');
+      const title = req.path.replace(/^\//, '');
+      const html = sourceViewTemplate({ source, title });
+      return res.send(html);
     }
     try {
       const errs = Script.fromFile(filepath).getErrors();

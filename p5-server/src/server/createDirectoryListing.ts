@@ -93,11 +93,12 @@ export async function createDirectoryListing(
   }
 
   function path_to_src_view(file: string, sk: Sketch) {
-    let filepath = path_to(file, sk);
-    if (!staticMode && filepath.match(/.*\.(html?|js)$/i)) {
-      filepath += '?fmt=view';
-    }
-    return filepath;
+    const filepath = path_to(file, sk);
+    return staticMode
+      ? `${filepath}.html`
+      : filepath.match(/.*\.(html?|js)$/i)
+      ? `${filepath}?fmt=view`
+      : filepath;
   }
 
   function play_link(sk: Sketch) {

@@ -5,6 +5,7 @@ import minimatch from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
+import { sourceViewTemplate } from '../server/globals';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions
@@ -70,6 +71,7 @@ type Action = (
   | { kind: 'convertMarkdown'; source: string }
   | { kind: 'createIndex'; dir: string; path: string }
   | { kind: 'createSketchHtml'; sketch: Sketch }
+  | { kind: 'createSourceView'; source: string }
 ) & { outputFile: string };
 
 type ActionIterator = AsyncIterableIterator<Action>;
@@ -120,6 +122,14 @@ function createActions(file: string, output: string): ActionIterator {
       );
     }
 
+    // Do this after the directories are copied
+    for (const sketch of sketches) {
+      const outputFile = path
+        .join(output, path.relative(dir, sketch.scriptFilePath))
+        .replace(/\.js$/i, '.js.html');
+      yield { kind: 'createSourceView', source: sketch.scriptFilePath, outputFile };
+    }
+
     for (const file of allFiles) {
       yield* visit(path.join(dir, file), path.join(output, file));
     }
@@ -166,10 +176,10 @@ async function runActions(actions: ActionIterator, options: Options) {
         return ['Convert', action.source, '->', outputFile];
       case 'createIndex':
         return ['Generate directory listing', outputFile];
-      case 'createSketchHtml': {
-        const sketch = action.sketch;
-        return ['Generate sketch HTML', sketch.scriptFile, '->', outputFile];
-      }
+      case 'createSketchHtml':
+        return ['Generate sketch HTML', action.sketch.scriptFile, '->', outputFile];
+      case 'createSourceView':
+        return ['Create source view', action.source, '->', outputFile];
       case 'mkdir':
         if (!fs.existsSync(outputFile)) {
           return ['Create directory', outputFile];
@@ -212,6 +222,14 @@ async function runActions(actions: ActionIterator, options: Options) {
       case 'createSketchHtml': {
         const { sketch } = action;
         const html = await sketch.getHtmlContent();
+        await writeFile(outputFile, html);
+        filesCreated += 1;
+        break;
+      }
+      case 'createSourceView': {
+        const source = fs.readFileSync(action.source, 'utf-8');
+        const title = path.basename(action.source);
+        const html = sourceViewTemplate({ source, title });
         await writeFile(outputFile, html);
         filesCreated += 1;
         break;

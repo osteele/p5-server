@@ -44,7 +44,7 @@ html(lang='en')
             a(href=path_to(sketch.mainFile, sketch), target="sketch")= sketch.name
             a.source-view(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
           .description
-            a(href=path_to(sketch.mainFile, sketch), target="sketch")= sketch.description
+            a(href=path_to(sketch.mainFile, sketch), target="sketch")!= markdown(sketch.description)
       each dir in directories
         .item
           i.folder.outline.icon

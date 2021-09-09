@@ -14,7 +14,7 @@ import {
   BrowserScriptRelay,
   injectScriptEventRelayScript
 } from './browserScriptEventRelay';
-import { createDirectoryListing } from './directoryListing';
+import { createDirectoryListing } from './createDirectoryListing';
 import { templateDir } from './globals';
 import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';

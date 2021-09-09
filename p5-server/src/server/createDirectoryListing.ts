@@ -73,6 +73,7 @@ export async function createDirectoryListing(
     directory_index,
     path_to,
     path_to_src_view,
+    markdown,
 
     // pug options
     cache: true
@@ -92,5 +93,9 @@ export async function createDirectoryListing(
       p += '?fmt=view';
     }
     return p;
+  }
+
+  function markdown(s: string) {
+    return s ? marked(s) : '';
   }
 }

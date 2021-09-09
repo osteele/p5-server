@@ -8,7 +8,7 @@ import path from 'path';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions
-} from '../server/directoryListing';
+} from '../server/createDirectoryListing';
 import { die, pathIsInDirectory, stringToOptions } from '../utils';
 
 // TODO: copy the static icons into the build directory

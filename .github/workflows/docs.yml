@@ -26,16 +26,16 @@ jobs:
       - name: Build docs
         run: yarn run build:docs
 
-      - name: Publish Analysis API
+      - name: Analysis API
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
           folder: p5-analysis/build/docs
           target-folder: p5-analysis
 
-      - name: Publish Server API
+      - name: Server API
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: p5-analysis/build/docs
+          folder: p5-server/build/docs
           target-folder: p5-server

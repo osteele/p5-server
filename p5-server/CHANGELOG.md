@@ -1,6 +1,10 @@
 # Change Log
 
-## [0.6]
+## [0.6.1]
+
+- Work around an error when `p5 build` encounters a directory with no README
+
+## [0.6.0]
 
 - Add `p5 build` themes; default to "split" = sidebar + iframe
 - In-browser display of syntax error uses code highlighting

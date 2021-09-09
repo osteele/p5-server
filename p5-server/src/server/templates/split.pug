@@ -51,4 +51,4 @@ html(lang='en')
           i.folder.outline.icon
           a.content(href=directory_index(dir))= dir
 
-    iframe.pusher(name="sketch", src=readme.url, scrolling="no")
+    iframe.pusher(name="sketch", src=readme && readme.url, scrolling="no")

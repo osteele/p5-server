@@ -143,69 +143,6 @@
     div.column{display: inline-block; vertical-align: top; width: 50%;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
   <!--[if lt IE 9]>
@@ -245,20 +182,25 @@
 <ul>
 <li><a href="#features">Features</a></li>
 <li><a href="#quick-start">Quick Start</a></li>
-<li><a href="#usage">Usage</a>
+<li><a href="#recipes">Recipes</a>
 <ul>
-<li><a href="#creating-a-sketch">Creating a sketch</a></li>
-<li><a href="#running-the-server">Running the server</a></li>
-<li><a href="#building-a-static-site">Building a static site</a></li>
-<li><a href="#converting-between-javascript-only-and-html-sketches">Converting between JavaScript-only and HTML sketches</a></li>
+<li><a href="#run-the-server">Run the Server</a>
+<ul>
+<li><a href="#serve-directory-from-a-specific-path">Serve directory from a specific path</a></li>
+<li><a href="#open-the-browser-automatically">Open the browser automatically</a></li>
+<li><a href="#browse-directories-in-split-screen-mode">Browse directories in split-screen mode</a></li>
+<li><a href="#create-a-sketch-file">Create a sketch file</a></li>
+</ul></li>
+<li><a href="#build-a-static-site">Build a static site</a></li>
+<li><a href="#convert-between-javascript-only-and-html-sketches">Convert between JavaScript-only and HTML sketches</a></li>
 </ul></li>
 <li><a href="#command-line-reference">Command-Line Reference</a>
 <ul>
 <li><a href="#p5-build-directory"><code>p5 build [DIRECTORY]</code></a></li>
+<li><a href="#p5-convert-filename---to-format"><code>p5 convert FILENAME --to FORMAT</code></a></li>
 <li><a href="#p5-create-name"><code>p5 create [NAME]</code></a></li>
 <li><a href="#p5-serve-filename"><code>p5 serve [filename]</code></a></li>
-<li><a href="#p5-convert-filename---to-html-javascript"><code>p5 convert filename --to html | javascript</code></a></li>
-<li><a href="#p5-tree-directory"><code>p5 tree [directory]</code></a></li>
+<li><a href="#p5-tree-directory"><code>p5 tree [DIRECTORY]</code></a></li>
 </ul></li>
 <li><a href="#implementation-notes">Implementation Notes</a></li>
 <li><a href="#limitations">Limitations</a></li>
@@ -289,31 +231,36 @@
 <li><p><strong><em>Sketch file generation</em></strong>. <code>p5 generate</code> creates a sketch file that you can use to get started.</p></li>
 </ul>
 <h1 id="quick-start">Quick Start</h1>
+<p>The first two commands install the <code>p5</code> command on your computer. You only need to do them once.</p>
+<p>Text shown in <code>monospace</code> should be entered into a terminal.</p>
 <ol type="1">
-<li><p>Test whether Node.js is installed on your system. Enter <code>node --version</code> into a terminal. This should print something like <code>v16.9.0</code>. [The exact number doesn’t matter, you just want it not to say “command not found”: xnode”.]</p>
-<p>If Node.js is <em>not</em> installed, install it from <a href="https://nodejs.org/">here</a>. It doesn’t matter whether you install the LTS or Current version.</p></li>
-<li><p>In a terminal window, enter:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">-g</span> p5-server</span></code></pre></div></li>
-<li><p>In the terminal, enter:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">p5</span> create my-sketch</span></code></pre></div>
-<p>You have created a sketch named <code>my-sketch.js</code>. (If you already have some sketches on your file system, you can skip this step. Instead, use the <code>cd</code> command to change the terminal’s current directory to a directory that contains some sketches.)</p></li>
-<li><p>In the terminal, enter:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">p5</span> serve <span class="at">--open</span></span></code></pre></div>
-<p>This runs the server and opens your sketch directory in the browser. In the browser page, you can click on a sketch to run it.</p></li>
-<li><p>Use a code editor (such as <a href="https://atom.io">Atom</a>, <a href="https://code.visualstudio.com">Visual Studio Code</a>, vim, or emacs), edit the <code>my-sketch.js</code> file that you created. Each time you save the file, the browser will reload the page and re-run your sketch.</p></li>
+<li><p><code>node --version</code></p>
+<p>This tests whether Node.js is installed on your system. It should print something like <code>v16.9.0</code>. (The exact number doesn’t matter; you just want it not to report an error such as “command not found”.)</p>
+<p>If Node.js is <em>not</em> installed, install it from <a href="https://nodejs.org/">here</a>. It doesn’t matter whether you install the LTS or Current version of node.</p></li>
+<li><p><code>npm install -g p5-server</code></p>
+<p>This installs the <code>p5</code> command on your computer. Now you can enter commands such as <code>p5 create</code> and <code>p5 serve</code>, or just <code>p5</code> to see a list of all the commands.</p></li>
+<li><p><code>p5 create my-sketch</code></p>
+<p>This creates a sketch named <code>my-sketch.js</code>. (If you already have some sketches on your file system, you can skip this step. Instead, use the <code>cd</code> command to change the terminal’s current directory to a directory that contains some sketches.)</p></li>
+<li><p><code>p5 serve --open</code></p>
+<p>This starts the server, and opens your sketch directory in the browser.</p>
+<p>Click on a sketch in the browser page to run it.</p></li>
+<li><p>Use a code editor (such as <a href="https://atom.io">Atom</a>, <a href="https://code.visualstudio.com">Visual Studio Code</a>, vim, or emacs) to edit the <code>my-sketch.js</code> file that you created in step 4. Each time you save the file, the browser will reload the page and re-run your sketch.</p></li>
 </ol>
-<h1 id="usage">Usage</h1>
-<p>In a terminal window:</p>
-<ul>
-<li><code>p5 serve</code> starts a server in the current directory</li>
-<li><code>p5 serve &lt;directory&gt;</code> serves a different directory.</li>
-<li><code>p5 serve sketch.html</code> or <code>p5 serve sketch.js</code> serve a specific file.</li>
-<li><code>p5 serve [directory] --open</code> opens the URL in the browser after starting the server.</li>
-<li><code>p5 build [directory]</code> creates a static site that displays the sketches with a navigation sidebar.</li>
-<li><code>p5 serve [directory] --theme split</code> uses the split-view theme.</li>
-</ul>
-<p><code>p5 serve</code> displays a URL that can be entered into a browser. (In some terminal programs, you can command-click on the URL instead of copying and pasting it.)</p>
-<h2 id="creating-a-sketch">Creating a sketch</h2>
+<h1 id="recipes">Recipes</h1>
+<h2 id="run-the-server">Run the Server</h2>
+<p><code>p5 server</code></p>
+<p>Starts a web server that knows about p5.js sketches, and that reloads sketches when files are changed. The server is set to serve files from the current directory.</p>
+<h3 id="serve-directory-from-a-specific-path">Serve directory from a specific path</h3>
+<p><code>p5 server PATH</code></p>
+<p>Starts a server that serves files from the directory at <em>PATH</em>.</p>
+<h3 id="open-the-browser-automatically">Open the browser automatically</h3>
+<p><code>p5 server --open</code></p>
+<p>Starts the server, and opens the directory in the default browser.</p>
+<h3 id="browse-directories-in-split-screen-mode">Browse directories in split-screen mode</h3>
+<p><code>p5 server --theme split</code></p>
+<p>Displays directories in split-view mode (as shown in the screen shot above).</p>
+<p>You can combine options, e.g. <code>p5 server examples --open --theme split</code>.</p>
+<h3 id="create-a-sketch-file">Create a sketch file</h3>
 <ul>
 <li><p><code>p5 create</code> creates a JavaScript sketch file named <code>sketch.js</code> in the current directory.</p>
 <p>This is a <strong>JavaScript-only sketch</strong>. The server can run this sketch, or you can paste it into online editors such as the <a href="https://editor.p5js.org">P5 web editor</a> and <a href="https://openprocessing.org">OpenProcessing.org</a>.</p></li>
@@ -322,27 +269,39 @@
 <li><p><code>p5 create my-sketch</code> creates a folder named <code>my-sketch</code>, and creates <code>index.html</code> and <code>sketch.js</code> files inside this folder.</p></li>
 </ul>
 <p>The default generated script contains <code>setup()</code> and <code>draw()</code> functions. The <code>setup()</code> functions creates a canvas, and the <code>draw()</code> functions draws circles that follow the mouse. <code>--options</code> can be used to customize this script. See the reference, below.</p>
-<h2 id="running-the-server">Running the server</h2>
-<p><code>p5 server</code> starts a web server that knows about p5.js sketchs, and that reloads sketches when files are changed. The server is set to serve files from the current directory.</p>
-<p><code>p5 server PATH</code> starts a server that serves files from the directory at <em>PATH</em>.</p>
-<p>By default, the server runs on port 3000. You can open it in a browser by visiting <a href="http://localhost:3000" class="uri">http://localhost:3000</a>. The <code>p5 server --open</code> will do this automatically.</p>
-<p>If another server is already running on port 3000, the server will choose another port.</p>
-<h2 id="building-a-static-site">Building a static site</h2>
+<h2 id="build-a-static-site">Build a static site</h2>
 <p><code>p5 build SOURCES</code> builds a static site into <code>./build</code>.</p>
 <p>Run <code>p5 build --help</code> for a list of options.</p>
 <p>Two themes are supported, <code>--theme directory</code> and <code>--theme split</code>.</p>
-<h2 id="converting-between-javascript-only-and-html-sketches">Converting between JavaScript-only and HTML sketches</h2>
+<h2 id="convert-between-javascript-only-and-html-sketches">Convert between JavaScript-only and HTML sketches</h2>
 <p><code>p5 convert sketch.html</code> converts an HTML sketch to a JavaScript-only sketch, by deleting the HTML file. It first inspects this file, to insure that the sketch contains only a single script file, and that all the information necessary to run the sketch is in the script.</p>
 <p><code>p5 convert sketch.js</code> creates an HTML file that can be used to run the sketch.</p>
 <h1 id="command-line-reference">Command-Line Reference</h1>
 <p>Run <code>p5 --help</code> to see a list of commands.</p>
-<p>Run <code>p5 &lt;command&gt; --help</code> to see command-line options.</p>
+<p>Run <code>p5 &lt;command&gt; --help</code> to see command-line options for a particular command.</p>
 <h2 id="p5-build-directory"><code>p5 build [DIRECTORY]</code></h2>
 <ul>
 <li><code>p5 build</code> creates an HTML index for a collection of sketches.</li>
 <li><code>p5 build -o out</code> places the index in the <code>./out</code> directory. (The default is <code>./build</code>.)</li>
 </ul>
+<h2 id="p5-convert-filename---to-format"><code>p5 convert FILENAME --to FORMAT</code></h2>
+<blockquote>
+<p>Converts between HTML and JavaScript-only sketches.</p>
+</blockquote>
+<ul>
+<li><code>p5 convert FILENAME --to html</code> creates an HTML file that uses the <code>&lt;script&gt;</code> tag to include the JavaScript sketch.</li>
+<li><code>p5 convert FILENAME --to javascript</code> removes an HTML file, leaving only the JavaScript file.</li>
+</ul>
+<p>Converting a JavaScript-only sketch is simple. An HTML file with the same base name is created, that includes the script, the p5.js source (from a CDN), and any inferred libraries. This will fail if the directory already contains a HTML file with this name.</p>
+<p>Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that includes the script. This potentially looses some information. Before the file is deleted, the following checks are made:</p>
+<ul>
+<li>The HTML file includes only a single script file.</li>
+<li>The libraries that the HTML file includes (via <code>&lt;script&gt;</code> tags) are the same as the libraries that will be inferred from the script file, based on the classes and functions that the script file uses and does not define.</li>
+</ul>
 <h2 id="p5-create-name"><code>p5 create [NAME]</code></h2>
+<blockquote>
+<p>Create a JavaScript-only sketch; or an HTML file and a JavaScript file.</p>
+</blockquote>
 <ul>
 <li><code>p5 create</code> – creates <code>sketch.js</code></li>
 <li><code>p5 create my-sketch.js</code> – creates just the JavaScript file</li>
@@ -358,7 +317,10 @@
 <li><code>no-examples</code> – omit the example call inside of <code>draw()</code></li>
 </ul>
 <h2 id="p5-serve-filename"><code>p5 serve [filename]</code></h2>
-<p>Runs a web server that serves the current directory (if there is no argument), or the <code>filename</code> subdirectory of the current directory.</p>
+<blockquote>
+<p>Runs a web server that knows about p5.js sketches.</p>
+</blockquote>
+<p>or the <code>filename</code> subdirectory of the current directory.</p>
 <p><code>p5 serve filename</code> runs a sketch in the browser.</p>
 <ul>
 <li>If <code>filename</code> is an HTML file (for example, <code>index.html</code>), this command serves that page.</li>
@@ -366,16 +328,12 @@
 <li>If <code>filename</code> is a directory, the browser displays a list of sketches and files in that directory.</li>
 <li>If <code>filename</code> is not supplied, the browser displays sketches and files in the current directory. (This is the same as <code>p5 serve .</code>.)</li>
 </ul>
-<h2 id="p5-convert-filename---to-html-javascript"><code>p5 convert filename --to html | javascript</code></h2>
-<p>Converts between HTML and JavaScript-only sketches.</p>
-<p>Converting a JavaScript-only sketch is simple. An HTML file with the same base name is created. This will only fail if the directory already contains a HTML file with this name.</p>
-<p>Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that includes the script. This potentially looses some information. Before the file is deleted, the following checks are made:</p>
-<ul>
-<li>The HTML file should include only a single script file.</li>
-<li>The libraries that the HTML file includes (via <code>&lt;script&gt;</code> tags) should be the same as the libraries that will be inferred from the script file. (See “Library inference”, below.)</li>
-</ul>
-<h2 id="p5-tree-directory"><code>p5 tree [directory]</code></h2>
-<p><code>p5 tree DIRECTORY</code> displays the contents of <em>DIRECTORY</em>, organized by sketch:</p>
+<p>By default, the server runs on port 3000. You can open it in a browser by visiting <a href="http://localhost:3000" class="uri">http://localhost:3000</a>. The <code>p5 server --open</code> will do this automatically.</p>
+<p>If another server is already running on port 3000, the server will choose another port.</p>
+<h2 id="p5-tree-directory"><code>p5 tree [DIRECTORY]</code></h2>
+<blockquote>
+<p>Display the contents of <em>DIRECTORY</em>, organized by sketch.</p>
+</blockquote>
 <pre class="text"><code>$ yarn cli tree examples
 📁examples
 ├── 🎨circles (circles.js)

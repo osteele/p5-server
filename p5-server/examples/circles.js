@@ -1,19 +1,21 @@
-// Description: This sketch is just a single JavaScript file, with no associated
-// HTML file.
+/* Description: This sketch is just a single JavaScript file, with no associated
+ * HTML file.
+ */
 
-// Description: A study inspired by Huw Messie's [Concentric
-// Circles](https://huwmessie.com/2019/12/16/stitching-intricate/).
+/* A study inspired by Huw Messie's [Concentric
+ * Circles](https://huwmessie.com/2019/12/16/stitching-intricate/).
+ */
 
 function setup() {
 	createCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
-	clear();
+	background(100);
+	stroke(200);
 
 	translate(width / 2, height / 2);
 	rotate(-PI / 2 + millis() / 700);
-	stroke('red');
 	strokeWeight(1 / 5);
 	let ratio = 10 * sin(millis() / 5000);
 	for (let angle = 0; angle < 2 * 360; angle += 2) {

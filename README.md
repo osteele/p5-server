@@ -8,13 +8,16 @@ provides a web server with live reload, that knows how to serve JavaScript-only
 sketches and figure out which libraries a sketch needs in order to run.
 
 The command can also be used to create a set of HTML pages for browsing a
-collection of sketches. The [examples page of the p5.vectorArguments documentation](https://osteele.github.io/p5.libs/p5.vector-arguments/examples) is an example of this.
+collection of sketches. The [examples
+page](https://osteele.github.io/p5.libs/p5.vector-arguments/examples) of the
+[p5.vectorArguments](https://osteele.github.io/p5.libs/p5.vector-arguments)
+documentation demonstrates this.
 
-The web server functionality is also available as a [Visual Studio Code
-extension](https://github.com/osteele/vscode-p5server#readme).
-
-The directory and script analysis tools that make this possible are available
-via a [programmatic API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
+The web server, library inference, and sketch generation features are also
+available as a [Visual Studio Code
+extension](https://github.com/osteele/vscode-p5server#readme) and via a
+[programmatic
+API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 
 ![screenshot](docs/screenshot.png)
 

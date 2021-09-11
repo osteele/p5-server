@@ -15,3 +15,4 @@ p5-server/package/
 !.yarn/versions
 .pnp.*
 *.tsbuildinfo
+gh-pages

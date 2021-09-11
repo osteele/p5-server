@@ -25,7 +25,7 @@
   "scripts": {
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts",
-    "clean": "rimraf dist/",
+    "clean": "rimraf dist",
     "cli": "ts-node --files src/bin/p5-analyze.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "lint": "eslint src/**/*.ts tests/**/*.ts",

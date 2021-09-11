@@ -3,13 +3,12 @@
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
 [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml)
 
-This project is a command-line interface for [p5.js](https://p5js.org/). It
+**p5-server** is a command-line interface for [p5.js](https://p5js.org/). It
 provides a web server with live reload, that knows how to serve JavaScript-only
 sketches and figure out which libraries a sketch needs in order to run.
 
 The command can also be used to create a set of HTML pages for browsing a
-collection of sketches. For an example, see the [p5.vectorArguments home
-page](https://osteele.github.io/p5.libs/p5.vector-arguments/).
+collection of sketches. The [examples page of the p5.vectorArguments documentation](https://osteele.github.io/p5.libs/p5.vector-arguments/examples) is an example of this.
 
 The web server functionality is also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
@@ -23,44 +22,45 @@ via a [programmatic API](https://github.com/osteele/p5-server/tree/master/p5-ana
 
 ## Features
 
-* **Live reload**. The browser reloads the page, when any file in its directory is
+* **Live reload**. The browser reloads the page when the source is
   modified.
 * **JavaScript-only sketches**. Run a sketch that's just a JavaScript file (e.g.
-  `p5 serve sketch.js`). You don't need to create an HTML wrapper.
-* **Automatic library includes**. If the server detects that a JavaScript-only
-  sketch requires a [p5.js library](https://p5js.org/libraries/), it will
-  automatically include it. (See
-  [here](https://github.com/osteele/p5-server#automatic-library-inclusion) for
-  how this works.)
-* **In-Page syntax errors**. If a JavaScript file has a syntax error, it is
-  displayed in the body of the page (you don't have to check the console).
+  `p5 serve sketch.js`). You don't need to create an HTML file just to run the
+  sketch.
+* **Automatic library includes**. If a JavaScript-only sketch uses a function
+  from a [p5.js library](https://p5js.org/libraries/), the library will be
+  included. ([This
+  page](https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion)
+  describes how this works.)
+* **In-Page syntax errors**. If a JavaScript file has a syntax error, the browser page displays the error.
+    ![Syntax error reported in browser](docs/syntax-error.png)
+    ![Syntax error reported in browser split-view](docs/syntax-error-split.png)
 * **P5-aware directory listings**. Viewing a directory in the browser lists the
   sketches, folders, other files in that directory.
-* **Sketch generation**. `p5 generate` creates an `index.html` / `sketch.js` pair of files.
+* **Sketch generation**. `p5 generate` creates a template sketch.
 
 ## Usage
 
 In a terminal window:
 
 * `p5 serve` starts a server in the current directory
-* `p5 serve <directory>` to serve a different directory
+* `p5 serve <directory>` serves a different directory.
 * `p5 serve sketch.html` or `p5 serve sketch.js` serve a specific file.
-* `p5 serve [directory] --open` runs the server and opens the URL in the browser.
-* `p5 build [directory]` creates a site that displays the sketches with a
+* `p5 serve [directory] --open` opens the URL in the browser after starting the server.
+* `p5 build [directory]` creates a static site that displays the sketches with a
   navigation sidebar.
-* `p5 serve [directory] --theme split` uses the split-view theme. It can be used
-  in conjunction with `--open`.
+* `p5 serve [directory] --theme split` uses the split-view theme.
 
 `p5 serve` displays a URL that can be entered into a browser. (In some terminal
 programs, you can command-click on the URL instead of copying and pasting it.)
 
-### Create a sketch
+### Creating a sketch
 
 `p5 create` creates a JavaScript sketch file named `sketch.js` in the current
 directory.
 
-This is a **JavaScript-only sketch**. The server (below) can run this, and you
-can paste it into online editors such as the [P5 web
+This is a **JavaScript-only sketch**. The server can run this sketch, or you can
+paste it into online editors such as the [P5 web
 editor](https://editor.p5js.org) and
 [OpenProcessing.org](https://openprocessing.org).
 
@@ -77,7 +77,7 @@ The default generated script contains `setup()` and `draw()` functions. The
 that follow the mouse. `--options` can be used to customize this script.
 See the reference, below.
 
-### Run the server
+### Running the server
 
 `p5 server` starts a sketch-aware server. The server is set to serve files from
 the current directory.
@@ -91,7 +91,7 @@ automatically.
 If another server is already running on port 3000, the server will choose
 another port.
 
-### Build a static site
+### Building a static site
 
 `p5 build DIR` builds a static site into `./build`.
 
@@ -99,7 +99,7 @@ Run `p5 build --help` for a list of options.
 
 Two themes are supported, `--theme directory` and `--theme split`.
 
-### Convert JavaScript <-> HTML sketches
+### Converting between JavaScript-only and HTML sketches
 
 `p5 convert sketch.html` converts an HTML sketch to a JavaScript-only sketch, by
 deleting the HTML file. It first inspects this file, to insure that the sketch
@@ -118,7 +118,7 @@ run the sketch is in the script.
     npm install p5-server
     ```
 
-## Reference
+## Command-Line Reference
 
 Run `p5 --help` to see a list of commands.
 
@@ -196,8 +196,9 @@ automatic library inclusion, and other details of the implementation.
   sketches.
 * Library inference hasn't been tested with sketches that are written as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-* See the implementation notes for limitations on the recognition of associated
-  files.
+* See the [p5-analysis implementation
+  notes](./p5-analysis/README.md#implementation-notes) notes for limitations on
+  the recognition of associated files.
 
 ## API
 

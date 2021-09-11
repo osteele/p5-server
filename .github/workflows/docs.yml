@@ -10,17 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           lfs: true
+      - run: git lfs checkout
 
-      - name: Checkout LFS objects
-        run: git lfs checkout
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
 
       - name: Install
         run: |
           npm install -g yarn
+          yarn --version
           yarn install --immutable-cache
 
       - name: Build docs

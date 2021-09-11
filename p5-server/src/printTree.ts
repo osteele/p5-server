@@ -10,7 +10,7 @@ export async function printTree(iter: AsyncTreeInputIterable<string>) {
   for await (const { item, index, isFirst, isLast } of addTreeProperties(iter)) {
     if (isFirst && index > 0) {
       prefixStack.push(prefix);
-      prefix = prefix.replace(/├/g, '|').replace(/─/g, ' ') + '├── ';
+      prefix = prefix.replace(/├/g, '│').replace(/─/g, ' ') + '├── ';
     }
     if (isLast) {
       prefix = prefix!.replace('├', '└');

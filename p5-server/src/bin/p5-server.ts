@@ -78,7 +78,8 @@ program
   .command('tree')
   .description('Print the tree structure of a directory and its sketches')
   .argument('[DIRECTORY]', 'directory', '.')
-  .option('-L, level <LEVEL>', 'Descend only level directories deep.')
+  .option('-L, --level <LEVEL>', 'Descend only level directories deep.')
+  .option('--descriptions', 'Print descriptions of sketches')
   .action(tree);
 
 program.parse(process.argv);

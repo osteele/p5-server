@@ -9,13 +9,19 @@ import {
   AsyncTreeInputIterable
 } from '../printTree';
 
-export default async function tree(file: string, options: { level?: number }) {
+export default async function tree(
+  file: string,
+  options: { descriptions: boolean; level?: number }
+) {
   const depth = options.level || Infinity;
-  const iter = sketchTreeIter(file, depth);
+  const iter = sketchTreeIter(file, { depth, printDescriptions: options.descriptions });
   await printTree(iter);
 }
 
-function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<string> {
+function sketchTreeIter(
+  file: string,
+  { depth, printDescriptions }: { depth: number; printDescriptions: boolean }
+): AsyncTreeInputIterable<string> {
   return visit(file, depth) as AsyncTreeInputIterable<string>;
 
   async function* visit(file: string, depth: number): AsyncIterable<string | symbol> {
@@ -56,7 +62,12 @@ function sketchTreeIter(file: string, depth: number): AsyncTreeInputIterable<str
     sketch: Sketch,
     depth: number
   ): AsyncIterable<string | symbol> {
-    yield* ['🎨' + `${sketch.name} (${sketch.mainFile})`, indentSymbol];
+    const mainFile = sketch.files.length === 1 ? ` (${sketch.mainFile})` : '';
+    const description =
+      printDescriptions && sketch.description
+        ? ` - ${sketch.description.replace(/\s*\n\s*/g, ' ')}`
+        : '';
+    yield* ['🎨' + `${sketch.name}${mainFile}${description}`, indentSymbol];
     if (depth >= 0 && sketch.files.length > 1) {
       yield* sketch.files;
     }

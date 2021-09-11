@@ -33,7 +33,7 @@ jobs:
       - name: Install
         run: |
           npm install -g yarn
-          yarn install --frozen-lockfile
+          yarn install --immutable-cache
 
       - name: Lint
         run: yarn lint

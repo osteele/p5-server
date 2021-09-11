@@ -211,6 +211,31 @@
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
+  <style>
+    #TOC {
+      font-size: small
+    }
+
+    @media only screen and (min-width: 1200px) {
+      #TOC {
+        margin-right: -350px;
+        float: right;
+      }
+    }
+
+    a {
+      color: darkblue;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    a:visited {
+      color: darkblue;
+    }
+  </style>
 </head>
 <body>
 <header id="title-block-header">
@@ -219,6 +244,7 @@
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#features">Features</a></li>
+<li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#usage">Usage</a>
 <ul>
 <li><a href="#creating-a-sketch">Creating a sketch</a></li>
@@ -226,12 +252,13 @@
 <li><a href="#building-a-static-site">Building a static site</a></li>
 <li><a href="#converting-between-javascript-only-and-html-sketches">Converting between JavaScript-only and HTML sketches</a></li>
 </ul></li>
-<li><a href="#installation">Installation</a></li>
 <li><a href="#command-line-reference">Command-Line Reference</a>
 <ul>
+<li><a href="#p5-build-directory"><code>p5 build [DIRECTORY]</code></a></li>
 <li><a href="#p5-create-name"><code>p5 create [NAME]</code></a></li>
 <li><a href="#p5-serve-filename"><code>p5 serve [filename]</code></a></li>
 <li><a href="#p5-convert-filename---to-html-javascript"><code>p5 convert filename --to html | javascript</code></a></li>
+<li><a href="#p5-tree-directory"><code>p5 tree [directory]</code></a></li>
 </ul></li>
 <li><a href="#implementation-notes">Implementation Notes</a></li>
 <li><a href="#limitations">Limitations</a></li>
@@ -241,24 +268,40 @@
 </ul>
 </nav>
 <p><a href="https://www.npmjs.com/package/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version" /></a> <a href="https://github.com/osteele/p5-server/actions/workflows/ci.yml"><img src="https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg" alt="CI workflow" /></a></p>
-<p><strong>p5-server</strong> is a command-line interface for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, that knows how to serve JavaScript-only sketches and figure out which libraries a sketch needs in order to run.</p>
-<p>The command can also be used to create a set of HTML pages for browsing a collection of sketches. The <a href="https://osteele.github.io/p5.libs/p5.vector-arguments/examples">examples page</a> of the <a href="https://osteele.github.io/p5.libs/p5.vector-arguments">p5.vectorArguments</a> documentation demonstrates this.</p>
-<p>The web server, library inference, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a> and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
+<p><strong>p5-server</strong> is a command-line interface for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, that knows how to serve JavaScript-only sketches and to figure out which libraries a sketch needs in order to run.</p>
 <figure>
-<img src="docs/screenshot.png" alt="Directory listing" /><figcaption aria-hidden="true">Directory listing</figcaption>
+<img src="docs/screenshot.png" alt="Directory listing in the browser" /><figcaption aria-hidden="true">Directory listing in the browser</figcaption>
 </figure>
+<p>You can use it develop sketches, or to browse a collection of sketches in a directory.</p>
 <figure>
-<img src="docs/split.png" alt="Split view" /><figcaption aria-hidden="true">Split view</figcaption>
+<img src="docs/explore.gif" alt="Using the split view to explore a collection of sketches" /><figcaption aria-hidden="true">Using the split view to explore a collection of sketches</figcaption>
 </figure>
+<p>p5-server can also be used to create a set of HTML pages that present a collection of sketches. The <a href="https://osteele.github.io/p5.libs/p5.vector-arguments/examples">examples page</a> of the <a href="https://osteele.github.io/p5.libs/p5.vector-arguments">p5.vectorArguments</a> documentation demonstrates this.</p>
+<p>The web server, library inference, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a>, and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
 <h1 id="features">Features</h1>
 <ul>
-<li><strong>Live reload</strong>. The browser reloads the page when the source is modified.</li>
-<li><strong>JavaScript-only sketches</strong>. Run a sketch that’s just a JavaScript file (e.g. <code>p5 serve sketch.js</code>). You don’t need to create an HTML file just to run the sketch.</li>
-<li><strong>Automatic library includes</strong>. If a JavaScript-only sketch uses a function from a <a href="https://p5js.org/libraries/">p5.js library</a>, the library will be included. (<a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion">This page</a> describes how this works.)</li>
-<li><strong>In-Page syntax errors</strong>. If a JavaScript file has a syntax error, the browser page displays the error. <img src="docs/syntax-error.png" alt="Syntax error reported in browser" /> <img src="docs/syntax-error-split.png" alt="Syntax error reported in browser split-view" /></li>
-<li><strong>P5-aware directory listings</strong>. Viewing a directory in the browser lists the sketches, folders, other files in that directory.</li>
-<li><strong>Sketch generation</strong>. <code>p5 generate</code> creates a template sketch.</li>
+<li><p><strong><em>Live reload</em></strong>. The browser reloads the page when the source is modified.</p></li>
+<li><p><strong><em>JavaScript-only sketches</em></strong>. A sketch can be a single JavaScript file. You don’t need to create an HTML file just to run the sketch.</p></li>
+<li><p><strong><em>Automatic library includes</em></strong>. If a JavaScript-only sketch uses a function from a <a href="https://p5js.org/libraries/">p5.js library</a>, the library will be included. (<a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion">This page</a> describes how this works.)</p></li>
+<li><p><strong><em>In-browser syntax errors</em></strong>. A JavaScript file that has a syntax error will display the error in the browser. Edit and save the file to reload the page.</p>
+<p><img src="docs/syntax-error.png" alt="Syntax error reported in browser" /> <img src="docs/syntax-error-split.png" alt="Syntax error reported in browser split-view" /></p></li>
+<li><p><strong><em>Sketch-aware directory listings</em></strong>. Viewing a directory in the browser lists the sketches, folders, other files in that directory.</p></li>
+<li><p><strong><em>Sketch file generation</em></strong>. <code>p5 generate</code> creates a sketch file that you can use to get started.</p></li>
 </ul>
+<h1 id="quick-start">Quick Start</h1>
+<ol type="1">
+<li><p>Test whether Node.js is installed on your system. Enter <code>node --version</code> into a terminal. This should print something like <code>v16.9.0</code>. [The exact number doesn’t matter, you just want it not to say “command not found”: xnode”.]</p>
+<p>If Node.js is <em>not</em> installed, install it from <a href="https://nodejs.org/">here</a>. It doesn’t matter whether you install the LTS or Current version.</p></li>
+<li><p>In a terminal window, enter:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">-g</span> p5-server</span></code></pre></div></li>
+<li><p>In the terminal, enter:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">p5</span> create my-sketch</span></code></pre></div>
+<p>You have created a sketch named <code>my-sketch.js</code>. (If you already have some sketches on your file system, you can skip this step. Instead, use the <code>cd</code> command to change the terminal’s current directory to a directory that contains some sketches.)</p></li>
+<li><p>In the terminal, enter:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">p5</span> serve <span class="at">--open</span></span></code></pre></div>
+<p>This runs the server and opens your sketch directory in the browser. In the browser page, you can click on a sketch to run it.</p></li>
+<li><p>Use a code editor (such as <a href="https://atom.io">Atom</a>, <a href="https://code.visualstudio.com">Visual Studio Code</a>, vim, or emacs), edit the <code>my-sketch.js</code> file that you created. Each time you save the file, the browser will reload the page and re-run your sketch.</p></li>
+</ol>
 <h1 id="usage">Usage</h1>
 <p>In a terminal window:</p>
 <ul>
@@ -271,33 +314,34 @@
 </ul>
 <p><code>p5 serve</code> displays a URL that can be entered into a browser. (In some terminal programs, you can command-click on the URL instead of copying and pasting it.)</p>
 <h2 id="creating-a-sketch">Creating a sketch</h2>
-<p><code>p5 create</code> creates a JavaScript sketch file named <code>sketch.js</code> in the current directory.</p>
-<p>This is a <strong>JavaScript-only sketch</strong>. The server can run this sketch, or you can paste it into online editors such as the <a href="https://editor.p5js.org">P5 web editor</a> and <a href="https://openprocessing.org">OpenProcessing.org</a>.</p>
-<p><code>p5 create my-sketch.js</code> creates a JavaScript sketch file named <code>my-sketch.js</code>.</p>
-<p><code>p5 create my-sketch.html</code> creates an HTML file named <code>my-sketch.html</code> and a JavaScript file named <code>my-sketch.js</code>.</p>
-<p><code>p5 create my-sketch</code> creates a folder named <code>my-sketch</code>, and creates <code>index.html</code> and <code>sketch.js</code> files inside this folder.</p>
+<ul>
+<li><p><code>p5 create</code> creates a JavaScript sketch file named <code>sketch.js</code> in the current directory.</p>
+<p>This is a <strong>JavaScript-only sketch</strong>. The server can run this sketch, or you can paste it into online editors such as the <a href="https://editor.p5js.org">P5 web editor</a> and <a href="https://openprocessing.org">OpenProcessing.org</a>.</p></li>
+<li><p><code>p5 create my-sketch.js</code> creates a JavaScript sketch file named <code>my-sketch.js</code>.</p></li>
+<li><p><code>p5 create my-sketch.html</code> creates an HTML file named <code>my-sketch.html</code> and a JavaScript file named <code>my-sketch.js</code>.</p></li>
+<li><p><code>p5 create my-sketch</code> creates a folder named <code>my-sketch</code>, and creates <code>index.html</code> and <code>sketch.js</code> files inside this folder.</p></li>
+</ul>
 <p>The default generated script contains <code>setup()</code> and <code>draw()</code> functions. The <code>setup()</code> functions creates a canvas, and the <code>draw()</code> functions draws circles that follow the mouse. <code>--options</code> can be used to customize this script. See the reference, below.</p>
 <h2 id="running-the-server">Running the server</h2>
-<p><code>p5 server</code> starts a sketch-aware server. The server is set to serve files from the current directory.</p>
-<p><code>p5 server DIR</code> starts a server that serves files from the directory at DIR.</p>
-<p>By default, the server runs on port 3000. You can open it in a browser by visiting <a href="http://localhost:3000" class="uri">http://localhost:3000</a>. The <code>--open</code> option will do this automatically.</p>
+<p><code>p5 server</code> starts a web server that knows about p5.js sketchs, and that reloads sketches when files are changed. The server is set to serve files from the current directory.</p>
+<p><code>p5 server PATH</code> starts a server that serves files from the directory at <em>PATH</em>.</p>
+<p>By default, the server runs on port 3000. You can open it in a browser by visiting <a href="http://localhost:3000" class="uri">http://localhost:3000</a>. The <code>p5 server --open</code> will do this automatically.</p>
 <p>If another server is already running on port 3000, the server will choose another port.</p>
 <h2 id="building-a-static-site">Building a static site</h2>
-<p><code>p5 build DIR</code> builds a static site into <code>./build</code>.</p>
+<p><code>p5 build SOURCES</code> builds a static site into <code>./build</code>.</p>
 <p>Run <code>p5 build --help</code> for a list of options.</p>
 <p>Two themes are supported, <code>--theme directory</code> and <code>--theme split</code>.</p>
 <h2 id="converting-between-javascript-only-and-html-sketches">Converting between JavaScript-only and HTML sketches</h2>
 <p><code>p5 convert sketch.html</code> converts an HTML sketch to a JavaScript-only sketch, by deleting the HTML file. It first inspects this file, to insure that the sketch contains only a single script file, and that all the information necessary to run the sketch is in the script.</p>
 <p><code>p5 convert sketch.js</code> creates an HTML file that can be used to run the sketch.</p>
-<h1 id="installation">Installation</h1>
-<ol type="1">
-<li><p>Install <a href="https://nodejs.org/">Node.js</a>.</p></li>
-<li><p>In a terminal window, enter:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install p5-server</span></code></pre></div></li>
-</ol>
 <h1 id="command-line-reference">Command-Line Reference</h1>
 <p>Run <code>p5 --help</code> to see a list of commands.</p>
 <p>Run <code>p5 &lt;command&gt; --help</code> to see command-line options.</p>
+<h2 id="p5-build-directory"><code>p5 build [DIRECTORY]</code></h2>
+<ul>
+<li><code>p5 build</code> creates an HTML index for a collection of sketches.</li>
+<li><code>p5 build -o out</code> places the index in the <code>./out</code> directory. (The default is <code>./build</code>.)</li>
+</ul>
 <h2 id="p5-create-name"><code>p5 create [NAME]</code></h2>
 <ul>
 <li><code>p5 create</code> – creates <code>sketch.js</code></li>
@@ -330,6 +374,38 @@
 <li>The HTML file should include only a single script file.</li>
 <li>The libraries that the HTML file includes (via <code>&lt;script&gt;</code> tags) should be the same as the libraries that will be inferred from the script file. (See “Library inference”, below.)</li>
 </ul>
+<h2 id="p5-tree-directory"><code>p5 tree [directory]</code></h2>
+<p><code>p5 tree DIRECTORY</code> displays the contents of <em>DIRECTORY</em>, organized by sketch:</p>
+<pre class="text"><code>$ yarn cli tree examples
+📁examples
+├── 🎨circles (circles.js)
+├── 🎨sketch
+│   ├── sketch.html
+│   ├── main.js
+│   └── helper.js
+├── 🎨sketch-dir
+│   ├── index.html
+│   └── sketch.js
+├── 🎨squares (squares.js)
+├── 🎨syntax-error
+│   ├── index.html
+│   └── sketch.js
+├── 📁collection
+│   ├── 🎨sketch 1 (sketch-1.js)
+│   ├── 🎨sketch 2 (sketch-2.js)
+│   └── README.md
+├── 📁libraries
+│   ├── 🎨dat.gui (dat.gui.js)
+│   ├── 🎨layers (layers.js)
+│   ├── 🎨posenet (posenet.js)
+│   ├── 🎨sound
+│   │   ├── sound.js
+│   │   └── doorbell.mp3
+│   ├── 🎨sound pulse (sound-pulse.js)
+│   ├── 🎨vector arguments (vector-arguments.js)
+│   └── README.md
+└── README.md</code></pre>
+<p>This is similar to what the Sketch Explorer view in the <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a> displays.</p>
 <h1 id="implementation-notes">Implementation Notes</h1>
 <p>The <a href="./p5-analysis/README.md#implementation-notes">p5-analysis implementation notes</a> describe sketch detection, automatic library inclusion, and other details of the implementation.</p>
 <h1 id="limitations">Limitations</h1>
@@ -353,6 +429,7 @@
 <li>marked for converting Markdown to HTML</li>
 <li>nunjucks and pug for template generation</li>
 <li>The Semantic UI CSS framework</li>
+<li>And of course [p5.js](<a href="https://p5js.org/">https</a></li>
 </ul>
 <h1 id="license">License</h1>
 <p><a href="LICENSE">MIT</a> © by Oliver Steele</p>

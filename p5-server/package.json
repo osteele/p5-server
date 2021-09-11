@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.6.1",
+  "version": "0.6.3",
   "description": "CLI to create and serve p5.js sketches and collections, and infer required libraries",
   "keywords": [
     "creative coding",
@@ -23,7 +23,11 @@
   "bin": {
     "p5": "dist/bin/p5-server.js"
   },
-  "repository": "github:osteele/p5-server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/osteele/p5-server.git",
+    "directory": "p5-server"
+  },
   "scripts": {
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:client": "rollup -c ./src/client/rollup.config.js",
@@ -34,7 +38,7 @@
     "dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "postpack": "rm README.md",
-    "prepack": "yarn run build && cp ../README.md .",
+    "prepack": "yarn run build && sed 's|(docs/|(https://osteele.github.io/p5-server/docs/|' < ../README.md > README.md",
     "serve:examples": "yarn dev examples",
     "serve:testdata": "yarn dev tests/testdata",
     "start": "ts-node src/bin/p5-server.ts server",

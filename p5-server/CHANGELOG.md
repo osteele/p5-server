@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.3]
+
+- Improve docs
+- Add package.json#repository.directory
+
 ## [0.6.1]
 
 - Work around an error when `p5 build` encounters a directory with no README

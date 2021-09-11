@@ -7,9 +7,12 @@
 provides a web server with live reload, that knows how to serve JavaScript-only
 sketches and to figure out which libraries a sketch needs in order to run.
 
-![Directory listing](docs/screenshot.png)
+![Directory listing in the browser](docs/screenshot.png)
 
-![Split view](docs/split.png)
+You can use it develop sketches, or to browse a collection of sketches in a
+directory.
+
+![Using the split view to explore a collection of sketches](docs/explore.gif)
 
 p5-server can also be used to create a set of HTML pages that present a
 collection of sketches. The [examples
@@ -25,80 +28,93 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 
 ## Features
 
-* **Live reload**. The browser reloads the page when the source is
+* ***Live reload***. The browser reloads the page when the source is
   modified.
-* **JavaScript-only sketches**. A sketch can be a single JavaScript file. You
+* ***JavaScript-only sketches***. A sketch can be a single JavaScript file. You
   don't need to create an HTML file just to run the sketch.
-* **Automatic library includes**. If a JavaScript-only sketch uses a function
+* ***Automatic library includes***. If a JavaScript-only sketch uses a function
   from a [p5.js library](https://p5js.org/libraries/), the library will be
   included. ([This
   page](https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion)
   describes how this works.)
-* **In-Page syntax errors**. A JavaScript file that has a syntax error will
+* ***In-browser syntax errors***. A JavaScript file that has a syntax error will
   display the error in the browser. Edit and save the file to reload the page.
 
     ![Syntax error reported in browser](docs/syntax-error.png)
     ![Syntax error reported in browser split-view](docs/syntax-error-split.png)
-* **P5-aware directory listings**. Viewing a directory in the browser lists the
-  sketches, folders, other files in that directory.
-* **Sketch generation**. `p5 generate` creates a sketch file that you can use to
-  get started.
+* ***Sketch-aware directory listings***. Viewing a directory in the browser
+  lists the sketches, folders, other files in that directory.
+* ***Sketch file generation***. `p5 generate` creates a sketch file that you can
+  use to get started.
 
 ## Quick Start
 
-1. Test whether Node.js is installed on your system. Enter `node --version` into a
-   terminal. This should print something like `v16.9.0`. [The exact number
-   doesn't matter, you just want it not to say "command not found": xnode".]
+The first two commands install the `p5` command on your computer. You only need to do them once.
+
+Text shown in `monospace` should be entered into a terminal.
+
+1. `node --version`
+
+   This tests whether Node.js is installed on your system. It should print
+   something like `v16.9.0`. (The exact number doesn't matter; you just want it
+   not to report an error such as "command not found".)
 
    If Node.js is *not* installed, install it from [here](https://nodejs.org/).
-   It doesn't matter whether you install the LTS or Current version.
+   It doesn't matter whether you install the LTS or Current version of node.
 
-2. In a terminal window, enter:
+2. `npm install -g p5-server`
 
-    ```sh
-    npm install -g p5-server
-    ```
+    This installs the `p5` command on your computer. Now you can enter commands such as `p5 create` and `p5 serve`, or just `p5` to see a list of all the commands.
 
-3. In the terminal, enter:
+3. `p5 create my-sketch`
 
-    ```sh
-    p5 create my-sketch
-    ```
-
-    You have created a sketch named `my-sketch.js`. (If you already have some
+    This creates a sketch named `my-sketch.js`. (If you already have some
     sketches on your file system, you can skip this step. Instead, use the `cd`
     command to change the terminal's current directory to a directory that
     contains some sketches.)
 
-4. In the terminal, enter:
+4. `p5 serve --open`
 
-    ```sh
-    p5 serve --open
-    ```
+   This starts the server, and opens your sketch directory in the browser.
 
-   This runs the server and opens your sketch directory in the browser. In the
-    browser page, you can click on a sketch to run it.
+   Click on a sketch in the browser page to run it.
 
 5. Use a code editor (such as [Atom](https://atom.io), [Visual Studio
-   Code](https://code.visualstudio.com), vim, or emacs), edit the `my-sketch.js`
-   file that you created. Each time you save the file, the browser will reload the page and re-run your sketch.
+   Code](https://code.visualstudio.com), vim, or emacs) to edit the
+   `my-sketch.js` file that you created in step 4. Each time you save the file,
+   the browser will reload the page and re-run your sketch.
 
-## Usage
+## Recipes
 
-In a terminal window:
+### Run the Server
 
-* `p5 serve` starts a server in the current directory
-* `p5 serve <directory>` serves a different directory.
-* `p5 serve sketch.html` or `p5 serve sketch.js` serve a specific file.
-* `p5 serve [directory] --open` opens the URL in the browser after starting the server.
-* `p5 build [directory]` creates a static site that displays the sketches with a
-  navigation sidebar.
-* `p5 serve [directory] --theme split` uses the split-view theme.
+`p5 server`
 
-`p5 serve` displays a URL that can be entered into a browser. (In some terminal
-programs, you can command-click on the URL instead of copying and pasting it.)
+Starts a web server that knows about p5.js sketches, and that reloads
+sketches when files are changed. The server is set to serve files from the
+current directory.
 
-### Creating a sketch
+#### Serve a directory inside the current directory
+
+`p5 server PATH`
+
+Starts a server that serves files from the directory at *PATH*.
+
+#### Open the browser automatically
+
+`p5 server --open`
+
+Starts the server, and opens the directory in the default browser.
+
+#### Browse directories in split-screen mode
+
+`p5 server --theme split`
+
+Displays directories in split-view mode (as shown in the screen shot above).
+
+You can combine options, e.g. `p5 server examples --open --theme split`.
+
+#### Create a sketch file
 
 * `p5 create` creates a JavaScript sketch file named `sketch.js` in the current
 directory.
@@ -122,22 +138,7 @@ The default generated script contains `setup()` and `draw()` functions. The
 that follow the mouse. `--options` can be used to customize this script.
 See the reference, below.
 
-### Running the server
-
-`p5 server` starts a web server that knows about p5.js sketchs, and that reloads
-sketches when files are changed. The server is set to serve files from the
-current directory.
-
-`p5 server PATH` starts a server that serves files from the directory at *PATH*.
-
-By default, the server runs on port 3000. You can open it in a browser by
-visiting <http://localhost:3000>. The `p5 server --open` will do this
-automatically.
-
-If another server is already running on port 3000, the server will choose
-another port.
-
-### Building a static site
+### Build a static site
 
 `p5 build SOURCES` builds a static site into `./build`.
 
@@ -145,7 +146,7 @@ Run `p5 build --help` for a list of options.
 
 Two themes are supported, `--theme directory` and `--theme split`.
 
-### Converting between JavaScript-only and HTML sketches
+### Convert between JavaScript-only and HTML sketches
 
 `p5 convert sketch.html` converts an HTML sketch to a JavaScript-only sketch, by
 deleting the HTML file. It first inspects this file, to insure that the sketch
@@ -158,7 +159,7 @@ run the sketch is in the script.
 
 Run `p5 --help` to see a list of commands.
 
-Run `p5 <command> --help` to see command-line options.
+Run `p5 <command> --help` to see command-line options for a particular command.
 
 ### `p5 build [DIRECTORY]`
 
@@ -166,7 +167,31 @@ Run `p5 <command> --help` to see command-line options.
 * `p5 build -o out` places the index in the `./out` directory.   (The default is
   `./build`.)
 
+### `p5 convert FILENAME --to FORMAT`
+
+> Converts between HTML and JavaScript-only sketches.
+
+* `p5 convert FILENAME --to html` creates an HTML file that uses the `<script>`
+  tag to include the JavaScript sketch.
+* `p5 convert FILENAME --to javascript` removes an HTML file, leaving only the JavaScript file.
+
+Converting a JavaScript-only sketch is simple. An HTML file with the same base
+name is created, that includes the script, the p5.js source (from a CDN), and
+any inferred libraries. This will fail if the directory already contains a
+HTML file with this name.
+
+Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that
+includes the script. This potentially looses some information. Before the file is deleted,
+the following checks are made:
+
+* The HTML file includes only a single script file.
+* The libraries that the HTML file includes (via `<script>` tags) are the same
+  as the libraries that will be inferred from the script file, based on the
+  classes and functions that the script file uses and does not define.
+
 ### `p5 create [NAME]`
+
+> Create a JavaScript-only sketch; or an HTML file and a JavaScript file.
 
 * `p5 create` – creates `sketch.js`
 * `p5 create my-sketch.js` – creates just the JavaScript file
@@ -187,7 +212,8 @@ template options. The options are:
 
 ### `p5 serve [filename]`
 
-Runs a web server that serves the current directory (if there is no argument),
+> Runs a web server that knows about p5.js sketches.
+
 or the `filename` subdirectory of the current directory.
 
 `p5 serve filename` runs a sketch in the browser.
@@ -200,25 +226,16 @@ or the `filename` subdirectory of the current directory.
 * If `filename` is not supplied, the browser displays sketches and files in the
   current directory. (This is the same as `p5 serve .`.)
 
-### `p5 convert filename --to html | javascript`
+By default, the server runs on port 3000. You can open it in a browser by
+visiting <http://localhost:3000>. The `p5 server --open` will do this
+automatically.
 
-Converts between HTML and JavaScript-only sketches.
+If another server is already running on port 3000, the server will choose
+another port.
 
-Converting a JavaScript-only sketch is simple. An HTML file with the same base name is created.
-This will only fail if the directory already contains a HTML file with this name.
+### `p5 tree [DIRECTORY]`
 
-Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML file that
-includes the script. This potentially looses some information. Before the file is deleted,
-the following checks are made:
-
-* The HTML file should include only a single script file.
-* The libraries that the HTML file includes (via `<script>` tags) should be the
-  same as the libraries that will be inferred from the script file. (See
-  “Library inference”, below.)
-
-### `p5 tree [directory]`
-
-`p5 tree DIRECTORY` displays the contents of *DIRECTORY*, organized by sketch:
+> Display the contents of *DIRECTORY*, organized by sketch.
 
 ```text
 $ yarn cli tree examples

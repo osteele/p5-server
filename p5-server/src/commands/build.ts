@@ -59,7 +59,7 @@ export default async function build(source: string, options: Options) {
   );
   if (options.open) {
     open(rootIndex);
-  } else {
+  } else if (options.verbose) {
     console.log(`Open file://${path.resolve(rootIndex)} to view`);
   }
 }

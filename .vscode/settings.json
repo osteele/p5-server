@@ -5,13 +5,10 @@
   },
   "json.schemas": [
     {
-      "fileMatch": ["p5-analysis/**/libraries/*.json"],
+      "fileMatch": [
+        "p5-analysis/**/libraries/*.json"
+      ],
       "url": "./p5-analysis/src/lib/schemas/libraries.json"
     }
-  ],
-  "search.exclude": {
-    "node_modules": true,
-    "p5-analysis": true,
-    "p5-server": true
-  }
+  ]
 }

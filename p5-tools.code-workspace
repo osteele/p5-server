@@ -14,6 +14,9 @@
     }
   ],
   "settings": {
+    "files.associations": {
+      "NOTES": "markdown",
+    },
     "files.exclude": {
       "dist": true,
       "node_modules": true
@@ -32,7 +35,7 @@
         {
           "match": "package.json",
           "isAsync": true,
-          "cmd": "fixpack ${file}"
+          "cmd": "echo fixpack ${file}"
         }
       ]
     },

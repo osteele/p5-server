@@ -5,9 +5,13 @@
 
 **p5-server** is a command-line interface for [p5.js](https://p5js.org/). It
 provides a web server with live reload, that knows how to serve JavaScript-only
-sketches and figure out which libraries a sketch needs in order to run.
+sketches and to figure out which libraries a sketch needs in order to run.
 
-The command can also be used to create a set of HTML pages for browsing a
+![Directory listing](docs/screenshot.png)
+
+![Split view](docs/split.png)
+
+p5-server can also be used to create a set of HTML pages that present a
 collection of sketches. The [examples
 page](https://osteele.github.io/p5.libs/p5.vector-arguments/examples) of the
 [p5.vectorArguments](https://osteele.github.io/p5.libs/p5.vector-arguments)
@@ -15,32 +19,69 @@ documentation demonstrates this.
 
 The web server, library inference, and sketch generation features are also
 available as a [Visual Studio Code
-extension](https://github.com/osteele/vscode-p5server#readme) and via a
+extension](https://github.com/osteele/vscode-p5server#readme), and via a
 [programmatic
 API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
-
-![Directory listing](docs/screenshot.png)
-
-![Split view](docs/split.png)
 
 ## Features
 
 * **Live reload**. The browser reloads the page when the source is
   modified.
-* **JavaScript-only sketches**. Run a sketch that's just a JavaScript file (e.g.
-  `p5 serve sketch.js`). You don't need to create an HTML file just to run the
-  sketch.
+* **JavaScript-only sketches**. A sketch can be a single JavaScript file. You
+  don't need to create an HTML file just to run the sketch.
 * **Automatic library includes**. If a JavaScript-only sketch uses a function
   from a [p5.js library](https://p5js.org/libraries/), the library will be
   included. ([This
   page](https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion)
   describes how this works.)
-* **In-Page syntax errors**. If a JavaScript file has a syntax error, the browser page displays the error.
+* **In-Page syntax errors**. A JavaScript file that has a syntax error will
+  display the error in the browser. Edit and save the file to reload the page.
+
     ![Syntax error reported in browser](docs/syntax-error.png)
     ![Syntax error reported in browser split-view](docs/syntax-error-split.png)
 * **P5-aware directory listings**. Viewing a directory in the browser lists the
   sketches, folders, other files in that directory.
-* **Sketch generation**. `p5 generate` creates a template sketch.
+* **Sketch generation**. `p5 generate` creates a sketch file that you can use to
+  get started.
+
+## Quick Start
+
+1. Test whether Node.js is installed on your system. Enter `node --version` into a
+   terminal. This should print something like `v16.9.0`. [The exact number
+   doesn't matter, you just want it not to say "command not found": xnode".]
+
+   If Node.js is *not* installed, install it from [here](https://nodejs.org/).
+   It doesn't matter whether you install the LTS or Current version.
+
+2. In a terminal window, enter:
+
+    ```sh
+    npm install -g p5-server
+    ```
+
+3. In the terminal, enter:
+
+    ```sh
+    p5 create my-sketch
+    ```
+
+    You have created a sketch named `my-sketch.js`. (If you already have some
+    sketches on your file system, you can skip this step. Instead, use the `cd`
+    command to change the terminal's current directory to a directory that
+    contains some sketches.)
+
+4. In the terminal, enter:
+
+    ```sh
+    p5 serve --open
+    ```
+
+   This runs the server and opens your sketch directory in the browser. In the
+    browser page, you can click on a sketch to run it.
+
+5. Use a code editor (such as [Atom](https://atom.io), [Visual Studio
+   Code](https://code.visualstudio.com), vim, or emacs), edit the `my-sketch.js`
+   file that you created. Each time you save the file, the browser will reload the page and re-run your sketch.
 
 ## Usage
 
@@ -59,21 +100,22 @@ programs, you can command-click on the URL instead of copying and pasting it.)
 
 ### Creating a sketch
 
-`p5 create` creates a JavaScript sketch file named `sketch.js` in the current
+* `p5 create` creates a JavaScript sketch file named `sketch.js` in the current
 directory.
 
-This is a **JavaScript-only sketch**. The server can run this sketch, or you can
-paste it into online editors such as the [P5 web
-editor](https://editor.p5js.org) and
-[OpenProcessing.org](https://openprocessing.org).
+  This is a **JavaScript-only sketch**. The server can run this sketch, or you
+  can paste it into online editors such as the [P5 web
+  editor](https://editor.p5js.org) and
+  [OpenProcessing.org](https://openprocessing.org).
 
-`p5 create my-sketch.js` creates a JavaScript sketch file named `my-sketch.js`.
+* `p5 create my-sketch.js` creates a JavaScript sketch file named
+  `my-sketch.js`.
 
-`p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
-JavaScript file named `my-sketch.js`.
+* `p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
+  JavaScript file named `my-sketch.js`.
 
-`p5 create my-sketch` creates a folder named `my-sketch`, and creates
-`index.html` and `sketch.js` files inside this folder.
+* `p5 create my-sketch` creates a folder named `my-sketch`, and creates
+  `index.html` and `sketch.js` files inside this folder.
 
 The default generated script contains `setup()` and `draw()` functions. The
 `setup()` functions creates a canvas, and the `draw()` functions draws circles
@@ -82,13 +124,14 @@ See the reference, below.
 
 ### Running the server
 
-`p5 server` starts a sketch-aware server. The server is set to serve files from
-the current directory.
+`p5 server` starts a web server that knows about p5.js sketchs, and that reloads
+sketches when files are changed. The server is set to serve files from the
+current directory.
 
-`p5 server DIR` starts a server that serves files from the directory at DIR.
+`p5 server PATH` starts a server that serves files from the directory at *PATH*.
 
 By default, the server runs on port 3000. You can open it in a browser by
-visiting <http://localhost:3000>. The `--open` option will do this
+visiting <http://localhost:3000>. The `p5 server --open` will do this
 automatically.
 
 If another server is already running on port 3000, the server will choose
@@ -96,7 +139,7 @@ another port.
 
 ### Building a static site
 
-`p5 build DIR` builds a static site into `./build`.
+`p5 build SOURCES` builds a static site into `./build`.
 
 Run `p5 build --help` for a list of options.
 
@@ -111,21 +154,17 @@ run the sketch is in the script.
 
 `p5 convert sketch.js` creates an HTML file that can be used to run the sketch.
 
-## Installation
-
-1. Install [Node.js](https://nodejs.org/).
-
-2. In a terminal window, enter:
-
-    ```sh
-    npm install p5-server
-    ```
-
 ## Command-Line Reference
 
 Run `p5 --help` to see a list of commands.
 
 Run `p5 <command> --help` to see command-line options.
+
+### `p5 build [DIRECTORY]`
+
+* `p5 build` creates an HTML index for a collection of sketches.
+* `p5 build -o out` places the index in the `./out` directory.   (The default is
+  `./build`.)
 
 ### `p5 create [NAME]`
 
@@ -177,6 +216,45 @@ the following checks are made:
   same as the libraries that will be inferred from the script file. (See
   “Library inference”, below.)
 
+### `p5 tree [directory]`
+
+`p5 tree DIRECTORY` displays the contents of *DIRECTORY*, organized by sketch:
+
+```text
+$ yarn cli tree examples
+📁examples
+├── 🎨circles (circles.js)
+├── 🎨sketch
+│   ├── sketch.html
+│   ├── main.js
+│   └── helper.js
+├── 🎨sketch-dir
+│   ├── index.html
+│   └── sketch.js
+├── 🎨squares (squares.js)
+├── 🎨syntax-error
+│   ├── index.html
+│   └── sketch.js
+├── 📁collection
+│   ├── 🎨sketch 1 (sketch-1.js)
+│   ├── 🎨sketch 2 (sketch-2.js)
+│   └── README.md
+├── 📁libraries
+│   ├── 🎨dat.gui (dat.gui.js)
+│   ├── 🎨layers (layers.js)
+│   ├── 🎨posenet (posenet.js)
+│   ├── 🎨sound
+│   │   ├── sound.js
+│   │   └── doorbell.mp3
+│   ├── 🎨sound pulse (sound-pulse.js)
+│   ├── 🎨vector arguments (vector-arguments.js)
+│   └── README.md
+└── README.md
+```
+
+This is similar to what the Sketch Explorer view in the [Visual Studio Code
+extension](https://github.com/osteele/vscode-p5server#readme) displays.
+
 ## Implementation Notes
 
 The [p5-analysis implementation
@@ -218,6 +296,7 @@ This project builds on these libraries and frameworks:
 * marked for converting Markdown to HTML
 * nunjucks and pug for template generation
 * The Semantic UI CSS framework
+* And of course [p5.js]([https](https://p5js.org/)
 
 ## License
 

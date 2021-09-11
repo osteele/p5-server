@@ -9,7 +9,7 @@
     "p5.js",
     "web server"
   ],
-  "homepage": "https://github.com/osteele/p5-server#readme",
+  "homepage": "https://osteele.github.io/p5-server/",
   "bugs": {
     "url": "https://github.com/osteele/p5-server/issues"
   },
@@ -31,12 +31,12 @@
     "clean": "rimraf dist",
     "cli": "ts-node src/bin/p5-server.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
+    "dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "postpack": "rm README.md",
     "prepack": "yarn run build && cp ../README.md .",
-    "serve:examples": "yarn server:watch examples",
-    "serve:testdata": "yarn server:watch tests/testdata",
-    "server:watch": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
+    "serve:examples": "yarn dev examples",
+    "serve:testdata": "yarn dev tests/testdata",
     "start": "ts-node src/bin/p5-server.ts server",
     "test": "jest",
     "test:watch": "jest --watch"

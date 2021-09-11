@@ -16,20 +16,20 @@ jobs:
       - run: git lfs checkout
 
       - uses: bahmutov/npm-install@v1
-      - run: npm install -g yarn
-      - run: yarn install --immutable-cache
+        with:
+          install-command: yarn --immutable-cache
 
       - name: Build docs
         run: yarn run build:docs
 
-      - name: Analysis API
+      - name: Build p5-analysis API docs
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
           folder: p5-analysis/build/docs
           target-folder: p5-analysis
 
-      - name: Server API
+      - name: Build p5-server API docs
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages

@@ -5,7 +5,7 @@ import minimatch from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
-import { sourceViewTemplate } from '../server/globals';
+import { sourceViewTemplate } from '../server/templates';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions

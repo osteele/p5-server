@@ -3,21 +3,19 @@ import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
 import { readdir, readFile } from 'fs/promises';
 import marked from 'marked';
-import nunjucks from 'nunjucks';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
-import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
   injectScriptEventRelayScript
 } from './browserScriptEventRelay';
 import { createDirectoryListing } from './createDirectoryListing';
-import { sourceViewTemplate, templateDir } from './globals';
 import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
+import { createSyntaxErrorJsReporter, sourceViewTemplate, templateDir } from './templates';
 import WebSocket = require('ws');
 import http = require('http');
 
@@ -68,14 +66,6 @@ const defaultServerOptions = {
   scanPorts: true,
   theme: 'directory'
 };
-
-const jsTemplateEnv = new nunjucks.Environment(null, { autoescape: false });
-jsTemplateEnv.addFilter('quote', JSON.stringify);
-
-const syntaxErrorTemplate = fs.readFileSync(
-  path.join(templateDir, 'report-syntax-error.js.njk'),
-  'utf-8'
-);
 
 function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
@@ -142,20 +132,7 @@ function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
-        const errorHTML =
-          '<pre>' +
-          terminalCodesToHtml(errs[0].message, true).replace(
-            /\n/g,
-            '<br>'
-          ) +
-          '</pre>';
-        return res.send(
-          jsTemplateEnv.renderString(syntaxErrorTemplate, {
-            fileName: path.basename(filepath),
-            message: removeTerminalCodes(errs[0].message),
-            errorHtml: errorHTML
-          })
-        );
+        return res.send( createSyntaxErrorJsReporter(errs, filepath));
       }
     } catch (e) {
       if (e.code === 'ENOENT') {

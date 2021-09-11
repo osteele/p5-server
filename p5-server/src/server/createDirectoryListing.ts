@@ -4,7 +4,7 @@ import path from 'path';
 import pug from 'pug';
 import { Sketch } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
-import { templateDir } from './globals';
+import { templateDir } from './templates';
 
 export const defaultDirectoryExclusions = [
   '.*',

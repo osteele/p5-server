@@ -24,6 +24,7 @@ html(lang='en')
         border: none;
         background: white;
       }
+    script(src='/__p5_server_static/iframe-manager.js')
   body
     .ui.left.inverted.vertical.visible.sidebar.menu
       .ui.breadcrumb
@@ -51,4 +52,4 @@ html(lang='en')
           i.folder.outline.icon
           a.content(href=directory_index(dir))= dir
 
-    iframe.pusher(name="sketch", src=readme && readme.url, scrolling="no")
+    iframe.pusher#sketch(name="sketch", src=readme && readme.url, scrolling="no")

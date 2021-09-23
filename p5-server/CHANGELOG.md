@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+- Split view stores sketch url in hashbang
+
 ## [0.6.3]
 
 - Improve docs

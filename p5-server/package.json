@@ -32,18 +32,19 @@
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
     "build:client": "rollup -c ./src/client/rollup.config.js",
     "build:docs": "typedoc src/index.ts",
+    "build:readme": "sed 's|(docs/|(https://osteele.github.io/p5-server/docs/|' < ../README.md > README.md",
     "clean": "rimraf dist",
     "cli": "ts-node src/bin/p5-server.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "postpack": "rm README.md",
-    "prepack": "yarn run build && sed 's|(docs/|(https://osteele.github.io/p5-server/docs/|' < ../README.md > README.md",
-    "serve:examples": "yarn dev examples",
-    "serve:testdata": "yarn dev tests/testdata",
+    "prepack": "yarn run build && yarn build:readme",
     "start": "ts-node src/bin/p5-server.ts server",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "watch:examples": "yarn dev examples",
+    "watch:testdata": "yarn dev tests/testdata"
   },
   "dependencies": {
     "@types/ws": "^7.4.7",

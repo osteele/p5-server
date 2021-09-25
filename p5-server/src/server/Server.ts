@@ -14,9 +14,8 @@ import {
 } from './browserScriptEventRelay';
 import { createDirectoryListing } from './createDirectoryListing';
 import { closeSync, listenSync } from './http-server-sync';
-import { createLiveReloadServer, injectLiveReloadScript } from './liveReload';
+import { createLiveReloadServer, injectLiveReloadScript, LiveReloadServer } from './liveReload';
 import { createSyntaxErrorJsReporter, sourceViewTemplate, templateDir } from './templates';
-import WebSocket = require('ws');
 import http = require('http');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -124,7 +123,7 @@ function createRouter(config: RouterConfig): express.Router {
     }
     // view source
     if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt === 'view') {
-      const source =  await readFile(filepath, 'utf-8');
+      const source = await readFile(filepath, 'utf-8');
       const title = req.path.replace(/^\//, '');
       const html = sourceViewTemplate({ source, title });
       return res.send(html);
@@ -132,7 +131,7 @@ function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
-        return res.send( createSyntaxErrorJsReporter(errs, filepath));
+        return res.send(createSyntaxErrorJsReporter(errs, filepath));
       }
     } catch (e) {
       if (e.code === 'ENOENT') {
@@ -202,8 +201,8 @@ async function sendDirectoryListing<T>(
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-        templateName: config.theme
-      });
+      templateName: config.theme
+    });
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents
@@ -265,9 +264,11 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   attachBrowserScriptRelay(server, sketchRelay);
   try {
-    const liveReloadServer = createLiveReloadServer(
-      mountPoints.map(mount => mount.filePath)
-    );
+    const liveReloadServer = await createLiveReloadServer({
+      port: Math.min(port + 35729 - config.port, 30000),
+      scanPorts: true,
+      watchDirs: mountPoints.map(mount => mount.filePath)
+    });
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://localhost:${address.port}`;
     return { server, liveReloadServer, url };
@@ -285,7 +286,7 @@ export class Server {
   public url?: string;
   public mountPoints: MountPoint[];
   private readonly config: ServerConfig;
-  private liveReloadServer: WebSocket.Server | null = null;
+  private liveReloadServer: LiveReloadServer | null = null;
   private readonly browserScriptEmitter = new EventEmitter();
   public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(
     this.browserScriptEmitter

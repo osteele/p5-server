@@ -9,17 +9,26 @@ import {
   BrowserEventMessage,
   BrowserWindowEvent
 } from 'src/server/eventTypes';
-import { Server } from '../server/Server';
 import util from 'util';
+import { Server } from '../server/Server';
+import { die } from '../utils';
 
 type Options = {
   open: boolean;
   port: string;
   console: boolean | 'json' | 'passive';
+  split: boolean;
   theme: string;
 };
 
 export default async function serve(files: string[], options: Options) {
+  console.log(options);
+  if (options.split) {
+    if (options.theme && options.theme !== 'split') {
+      die('Use either --split or --theme but not both');
+    }
+    options.theme = 'split';
+  }
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {

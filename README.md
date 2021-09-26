@@ -106,13 +106,15 @@ Starts a server that serves files from the directory at *PATH*.
 
 Starts the server, and opens the directory in the default browser.
 
-#### Browse directories in split-screen mode
+#### Browse directories in split mode
 
-`p5 server --theme split`
+`p5 server --split`
 
-Displays directories in split-view mode (as shown in the screen shot above).
+Displays directory listings with the sketch in the same window (inside of an
+[iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe)), as
+shown in the screen shot above.
 
-You can combine options, e.g. `p5 server examples --open --theme split`.
+You can combine options, e.g. `p5 server examples --open --split`.
 
 #### Create a sketch file
 

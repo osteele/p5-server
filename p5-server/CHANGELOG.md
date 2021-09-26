@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- new option `p5 serve --split` is a shortcut for `p5 serve --theme split`
 - Reloading a page in the split view theme returns to the same sketch
 - Fixed split view iframe size
 - Update notifier includes link to changelog (this file). This will affect

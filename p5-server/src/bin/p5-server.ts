@@ -1,13 +1,14 @@
 #!/usr/bin/env node
+import chalk from 'chalk';
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import updateNotifier from 'update-notifier';
 import build from '../commands/build';
 import convert from '../commands/convert';
 import create from '../commands/create';
 import serve from '../commands/serve';
 import tree from '../commands/tree';
-import updateNotifier from 'update-notifier';
 
 const program = new Command();
 
@@ -17,7 +18,14 @@ const pkg = JSON.parse(
 const appVersion = pkg.version;
 program.version(appVersion);
 
-updateNotifier({ pkg }).notify();
+updateNotifier({ pkg }).notify({
+  isGlobal: true,
+  message: `Update available ${chalk.dim('{currentVersion}')} ${chalk.reset(
+    '→'
+  )} ${chalk.green('{latestVersion}')}
+  Run ${chalk.cyan('{updateCommand}')} to update
+  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`
+});
 
 program
   .command('create')

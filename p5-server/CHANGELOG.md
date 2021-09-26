@@ -4,6 +4,8 @@
 
 - Reloading a page in the split view theme returns to the same sketch
 - Fixed split view iframe size
+- Update notifier includes link to changelog (this file). This will affect
+  future updates but not updates to this version.
 
 ## [0.6.3]
 

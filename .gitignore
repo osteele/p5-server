@@ -16,3 +16,5 @@ p5-server/package/
 .pnp.*
 *.tsbuildinfo
 gh-pages
+p5-server/src/server/static/console-relay.js
+p5-server/src/server/static/iframe-manager.js

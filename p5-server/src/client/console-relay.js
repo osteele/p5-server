@@ -5,7 +5,7 @@ const unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
 const savedMethods = new Object(null);
 const savedOnError = window.onerror;
 
-window.onerror = function (message, url, line, col, err) {
+window.onerror = (message, url, line, col, err) => {
   send('error', {
     type: 'error',
     message,

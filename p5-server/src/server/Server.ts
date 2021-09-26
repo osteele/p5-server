@@ -267,7 +267,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
     const liveReloadServer = await createLiveReloadServer({
       port: Math.min(port + 35729 - config.port, 30000),
       scanPorts: true,
-      watchDirs: mountPoints.map(mount => mount.filePath)
+      watchDirs: [templateDir, ...mountPoints.map(mount => mount.filePath)],
     });
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://localhost:${address.port}`;

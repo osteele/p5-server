@@ -1,0 +1,33 @@
+body {
+  overflow: hidden;
+}
+
+.item:hover {
+  background-color: #444 !important;
+}
+
+a.header:hover,
+.item .header a:hover {
+  text-decoration: underline;
+}
+
+.description a {
+  color: inherit !important;
+}
+
+.source-view {
+  display: inline-block;
+  margin-left: 0.5em;
+  opacity: 75%;
+}
+
+.pusher {
+  width: calc(100% - 260px);
+  height: 100%;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}

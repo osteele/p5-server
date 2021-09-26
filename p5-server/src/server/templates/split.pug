@@ -9,21 +9,8 @@ html(lang='en')
     script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
     script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
-    style.
-      .item:hover {background-color: #444 !important}
-      a.header:hover {text-decoration: underline}
-      .description a {color: inherit !important}
-      .source-view {display: inline-block; margin-left: .5em; opacity: 75%}
-      .pusher {
-        width: 100%;
-        height: 100%;
-      }
-      iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: white;
-      }
+    style
+      include split.css
     script(src='/__p5_server_static/iframe-manager.js')
   body
     .ui.left.inverted.vertical.visible.sidebar.menu

@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 
-- Split view stores sketch url in hashbang
+- Reloading a page in the split view theme returns to the same sketch
+- Fixed split view iframe size
 
 ## [0.6.3]
 

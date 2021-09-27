@@ -1,15 +1,14 @@
 import fs from 'fs';
 import { rm as rmSync, writeFile } from 'fs/promises';
-import marked from 'marked';
 import minimatch from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
-import { sourceViewTemplate } from '../server/templates';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions
 } from '../server/createDirectoryListing';
+import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates';
 import { die, pathIsInDirectory, stringToOptions } from '../utils';
 
 // TODO: copy the static icons into the build directory
@@ -201,7 +200,7 @@ async function runActions(actions: ActionIterator, options: Options) {
         filesCreated += 1;
         break;
       case 'convertMarkdown': {
-        const html = marked(fs.readFileSync(action.source, 'utf-8'));
+        const html = markdownToHtmlPage(fs.readFileSync(action.source, 'utf-8'));
         fs.writeFileSync(outputFile, html);
         filesCreated += 1;
         break;

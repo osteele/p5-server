@@ -2,7 +2,6 @@ import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
 import { readdir, readFile } from 'fs/promises';
-import marked from 'marked';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
@@ -15,7 +14,7 @@ import {
 import { createDirectoryListing } from './createDirectoryListing';
 import { closeSync, listenSync } from './http-server-sync';
 import { createLiveReloadServer, injectLiveReloadScript, LiveReloadServer } from './liveReload';
-import { createSyntaxErrorJsReporter, sourceViewTemplate, templateDir } from './templates';
+import { createSyntaxErrorJsReporter, markdownToHtmlPage, sourceViewTemplate, templateDir } from './templates';
 import http = require('http');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -149,8 +148,8 @@ function createRouter(config: RouterConfig): express.Router {
       if (!fs.existsSync(file)) {
         return next();
       }
-      const fileData = fs.readFileSync(file, 'utf-8');
-      return res.send(marked(fileData));
+      const data = fs.readFileSync(file, 'utf-8');
+      return res.send(markdownToHtmlPage(data));
     }
     return next();
   });

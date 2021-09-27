@@ -1,23 +1,25 @@
 import fs from 'fs';
+import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
 import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
 
-//
-// Source view
-//
-
 export const templateDir = path.join(__dirname, './templates');
+
+const markdownPageTemplate = pug.compileFile(path.join(templateDir, 'markdown.pug'));
+
+export function markdownToHtmlPage(data: string): string {
+  const markdown = marked(data);
+  const title = (data.match(/^# (.*)$/m) || [])[1] ?? '';
+  return markdownPageTemplate({ markdown, title });
+}
 
 export const sourceViewTemplate = pug.compileFile(
   path.join(templateDir, 'source-view.pug')
 );
 
-//
-// Syntax error
-//
-
+//#region Syntax error
 export const syntaxErrorTemplate = pug.compileFile(
   path.join(templateDir, 'syntax-error.pug')
 );
@@ -45,3 +47,4 @@ export function createSyntaxErrorJsReporter(
     errorHtml
   });
 }
+//#endregion

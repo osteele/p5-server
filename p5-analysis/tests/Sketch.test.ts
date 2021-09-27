@@ -290,6 +290,12 @@ function copyDirectory(src: string, dst: string) {
 }
 
 function expectDirectoriesEqual(a: string, b: string) {
+  if (process.env.JEST_UPDATE_FILE_SNAPSHOTS) {
+    fs.cpSync(a, b, {
+      recursive: true,
+      filter: (src: string) => !src.startsWith('.')
+    });
+  }
   let aFiles = getDirectoryJson(a);
   let bFiles = getDirectoryJson(b);
   try {

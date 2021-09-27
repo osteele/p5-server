@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+- Generate HTML from PUG template
+- Center the canvas
+
 ## [0.6]
 
 Bug fixes:

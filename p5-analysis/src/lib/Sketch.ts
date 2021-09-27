@@ -1,3 +1,4 @@
+import pug from 'pug';
 import fs from 'fs';
 import { asyncFilter, asyncFind, capitalize } from '../utils';
 import { readdir, readFile, writeFile } from 'fs/promises';
@@ -47,6 +48,8 @@ export abstract class Sketch {
     this._title = options.title;
     this.description = options.description;
   }
+
+  //#region instantiation
 
   /**
    * @category Sketch creation
@@ -122,6 +125,8 @@ export abstract class Sketch {
     }
   }
 
+  //#endregion
+
   /** Analyze the directory for sketch files. Returns a list of sketches, and
    * files that aren't associated with any sketch.
    *
@@ -175,6 +180,8 @@ export abstract class Sketch {
     }
   }
 
+  //#region detection
+
   /** Tests whether a file is an HTML sketch file. It is a sketch file if it
    * includes the `p5.min.js` or `p5.js` script.
    *
@@ -223,6 +230,10 @@ export abstract class Sketch {
       ? sketches[0]
       : null;
   }
+
+  //#endregion
+
+  //#region properties
 
   abstract get sketchType(): SketchType;
 
@@ -286,20 +297,40 @@ export abstract class Sketch {
    * File names are relative to sketch.dirPath. */
   abstract get files(): string[];
 
+  //#endregion
+
+  //#region file generation
+
+  protected static readonly indexTemplateName = 'index.pug';
+
   /** Create and save the files for this sketch. This includes the script file;
-   * for an HTML sketch, this also includes the HTML file. */
-  async generate(force = false, options: Record<string, unknown> = {}) {
-    const files = [];
-    // TODO: preflight this so we don't create some files unless we can create them all
-    if (this.htmlFile) {
-      files.push(
-        await this.writeGeneratedFile('index.html', this.htmlFile, force, options)
-      );
+   * for an HTML sketch, this also includes the HTML file.
+   *
+   *
+   * @category file generation
+   */
+  async generate(
+    force = false,
+    options: Record<string, unknown> = {}
+  ): Promise<string[]> {
+    const files = new Map<string, string>();
+    if (this.htmlFile) files.set(this.htmlFile, Sketch.indexTemplateName);
+    files.set(this.scriptFile, 'sketch.js.njk');
+
+    // Don't create any files unless we can create them all.
+    // This allows a race condition if two calls to generate() occur run in parallel.
+    if (!force) {
+      [...files.keys()].filter(fs.existsSync).forEach(filename => {
+        writeFile(filename, ''); // force the error to be thrown
+        // if it raced away, remove it before moving onto the next extant file (if there is one)
+        fs.unlinkSync(filename);
+      });
     }
-    files.push(
-      await this.writeGeneratedFile('sketch.js.njk', this.scriptFile, force, options)
-    );
-    return files;
+
+    for (const [filename, templateName] of files) {
+      await this.writeGeneratedFile(templateName, filename, force, options);
+    }
+    return [...files.keys()];
   }
 
   protected async writeGeneratedFile(
@@ -314,9 +345,15 @@ export abstract class Sketch {
     return filepath;
   }
 
+  //#endregion
+
+  //#region libraries
+
   /** The list of libraries. For a JavaScript sketch, this is the list of
    * libraries inferred from the undefined global variables that it references.
    * For an HTML sketch, this is the list of libraries named in the HTML file.
+   *
+   * @category Libraries
    */
   get libraries(): LibraryArray {
     return this.htmlFile ? this.explicitLibraries() : this.impliedLibraries();
@@ -337,6 +374,9 @@ export abstract class Sketch {
     );
   }
 
+  //#endregion
+
+  //#region templates (file generation)
   private async getGeneratedFileContent(
     base: string,
     options: Record<string, unknown>
@@ -351,17 +391,30 @@ export abstract class Sketch {
       ...options
     };
     const templatePath = path.join(templateDir, base);
-    // replacing the following two lines by `nunjucks.render` passes the test
-    // suite by fails to find the file when imported from another package
-    const template = nunjucks.compile(await readFile(templatePath, 'utf-8'));
-    return template.render(data).trim() + '\n';
+    if (templatePath.endsWith('.njk')) {
+      // replacing the following two lines by `nunjucks.render` passes the test
+      // suite, but the code fails to find the file when imported from another
+      // package
+      const template = nunjucks.compile(await readFile(templatePath, 'utf-8'));
+      return template.render(data).trim() + '\n';
+    }
+    if (templatePath.endsWith('.pug')) {
+      return pug
+        .renderFile(templatePath, { pretty: true, ...data })
+        .replace(/<!-- pug: newline\s*-->/g, '')
+        .replace(/(<!-- .*?\S)(-->)/g, '$1 $2')
+        .replace(/^\s+$/gm, '')
+        .replace(/\n?$/g, '\n');
+    }
+    throw new Error(`Unknown template extension: ${templatePath}`);
   }
 
   public async getHtmlContent(): Promise<string> {
     return this.htmlFilePath
       ? await readFile(this.htmlFilePath, 'utf-8')
-      : this.getGeneratedFileContent('index.html', {});
+      : this.getGeneratedFileContent(Sketch.indexTemplateName, {});
   }
+  //#endregion
 
   /** Convert an HTML sketch to a JavaScript-only sketch (by removing the HTML file),
    * or a JavaScript sketch to an HTML sketch (by adding the HTML file).
@@ -369,6 +422,8 @@ export abstract class Sketch {
    * Before modifying the file system, this method verifies that the set of libraries
    * will remain the same. Before removing an HTML file, it also verifies that the file
    * included only the single script file, and no other non-library files.
+   *
+   * @category Sketch conversion
    */
   public abstract convert(options: { type: SketchType }): Promise<void>;
 }
@@ -611,7 +666,7 @@ class ScriptSketch extends Sketch {
         if (fs.existsSync(htmlPath)) {
           throw new Error(`${htmlPath} already exists`);
         }
-        await this.writeGeneratedFile('index.html', htmlName, false, {});
+        await this.writeGeneratedFile(Sketch.indexTemplateName, htmlName, false, {});
       }
     }
   }
@@ -630,5 +685,6 @@ class ScriptSketch extends Sketch {
     if (m) {
       return m[1].replace(/\n\n.+/, '');
     }
+    return undefined;
   }
 }

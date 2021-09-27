@@ -22,7 +22,6 @@ type Options = {
 };
 
 export default async function serve(files: string[], options: Options) {
-  console.log(options);
   if (options.split) {
     if (options.theme && options.theme !== 'split') {
       die('Use either --split or --theme but not both');

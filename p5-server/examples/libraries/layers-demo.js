@@ -1,5 +1,9 @@
 function setup() {
   createCanvas(440, 440);
+  createDiv(
+    '<p>This sketch includes the <a href="https://osteele.github.io/p5.libs/p5.layers/">p5.layers</a> library, ' +
+    'because it includes a call to <code>beginLayer()</code>.</p>'
+  );
 }
 
 function draw() {

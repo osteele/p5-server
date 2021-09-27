@@ -2,7 +2,7 @@ let pulse;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  text('click to play', 10, 20);
+  text('click and hold to play', 10, 20);
 
   pulse = new p5.Pulse();
   pulse.amp(0.5);

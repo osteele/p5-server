@@ -1,5 +1,6 @@
-/* Description: This sketch is just a single JavaScript file, with no associated
- * HTML file.
+/** Description: This sketch is just a single JavaScript file, with no
+ * associated HTML file. This minimalist representation makes it easy to manage
+ * a collection of short sketches without much overhead.
  */
 
 /* A study inspired by Huw Messie's [Concentric

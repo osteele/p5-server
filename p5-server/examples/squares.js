@@ -1,6 +1,8 @@
 /** Description: This JavaScript-only file demonstrates automatic library
-  * inclusion (the p5.vectorArguments library, inferred from
-  * `enableVectorArguments()`). */
+  * inclusion. The sketch calls `enableVectorArguments()`), so the server includes the
+  * [p5.vectorArguments
+  * library](https://osteele.github.io/p5.libs/p5.vector-arguments/)
+  */
 
 function setup() {
   createCanvas(windowWidth, windowHeight);

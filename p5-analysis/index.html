@@ -11,14 +11,17 @@ and the <a href="https://github.com/osteele/vscode-p5server#readme">P5 Server Vi
 extension</a>.</p>
 <p>The API consists of three classes:</p>
 <ul>
-<li><a href="classes/Sketch.html">Sketch</a> the interface to generate
-sketch files, find associated files, infer libraries, and scan directories for
-sketches that they contain.</li>
-<li><a href="classes/Script.html">Script</a> represents a JavaScript file. It provides
-script analysis features that are used to detect whether a script is a p5.js
-sketch, and to perform library inference.</li>
-<li><a href="classes/Library.html">Library</a> represents a <a href="https://p5js.org/libraries/">p5.js
-library</a>.</li>
+<li><p><a href="classes/Sketch.html">Sketch</a> represents an sketch. This is at least a script file, and may
+also include an HTML file and additional scripts an  assets. It is the
+interface to generate sketch files, find associated files, infer libraries,
+and scan directories for sketches that they contain.</p>
+</li>
+<li><p><a href="classes/Script.html">Script</a> represents a JavaScript file. It provides script analysis
+features that are used to detect whether a script is a p5.js sketch, and to
+perform library inference.</p>
+</li>
+<li><p><a href="classes/Library.html">Library</a> represents a <a href="https://p5js.org/libraries/">p5.js library</a>.</p>
+</li>
 </ul>
 <p>The API reference is <a href="https://osteele.github.io/p5-server/p5-analysis/">here</a>.</p>
 <p>These APIs are not stable until this package reaches version 1.0.</p>

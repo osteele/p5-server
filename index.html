@@ -181,14 +181,15 @@
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#features">Features</a></li>
-<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#quick-start-installation">Quick Start – Installation</a></li>
+<li><a href="#quick-start-usage">Quick Start – Usage</a></li>
 <li><a href="#recipes">Recipes</a>
 <ul>
 <li><a href="#run-the-server">Run the Server</a>
 <ul>
-<li><a href="#serve-directory-from-a-specific-path">Serve directory from a specific path</a></li>
+<li><a href="#serve-a-directory-inside-the-current-directory">Serve a directory inside the current directory</a></li>
 <li><a href="#open-the-browser-automatically">Open the browser automatically</a></li>
-<li><a href="#browse-directories-in-split-screen-mode">Browse directories in split-screen mode</a></li>
+<li><a href="#browse-directories-in-split-mode">Browse directories in split mode</a></li>
 <li><a href="#create-a-sketch-file">Create a sketch file</a></li>
 </ul></li>
 <li><a href="#build-a-static-site">Build a static site</a></li>
@@ -215,9 +216,7 @@
 <img src="docs/screenshot.png" alt="Directory listing in the browser" /><figcaption aria-hidden="true">Directory listing in the browser</figcaption>
 </figure>
 <p>You can use it develop sketches, or to browse a collection of sketches in a directory.</p>
-<figure>
-<img src="docs/explore.gif" alt="Using the split view to explore a collection of sketches" /><figcaption aria-hidden="true">Using the split view to explore a collection of sketches</figcaption>
-</figure>
+<p><a href="https://images.osteele.com/p5-server/explore-fullsize.gif"><img src="docs/explore.gif" alt="Using the split view to explore a collection of sketches. Click to see a higher-resolution version." /></a></p>
 <p>p5-server can also be used to create a set of HTML pages that present a collection of sketches. The <a href="https://osteele.github.io/p5.libs/p5.vector-arguments/examples">examples page</a> of the <a href="https://osteele.github.io/p5.libs/p5.vector-arguments">p5.vectorArguments</a> documentation demonstrates this.</p>
 <p>The web server, library inference, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a>, and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
 <h1 id="features">Features</h1>
@@ -230,8 +229,8 @@
 <li><p><strong><em>Sketch-aware directory listings</em></strong>. Viewing a directory in the browser lists the sketches, folders, other files in that directory.</p></li>
 <li><p><strong><em>Sketch file generation</em></strong>. <code>p5 generate</code> creates a sketch file that you can use to get started.</p></li>
 </ul>
-<h1 id="quick-start">Quick Start</h1>
-<p>The first two commands install the <code>p5</code> command on your computer. You only need to do them once.</p>
+<h1 id="quick-start-installation">Quick Start – Installation</h1>
+<p>These commands install the <code>p5</code> command on your computer. You only need to do them once.</p>
 <p>Text shown in <code>monospace</code> should be entered into a terminal.</p>
 <ol type="1">
 <li><p><code>node --version</code></p>
@@ -239,6 +238,9 @@
 <p>If Node.js is <em>not</em> installed, install it from <a href="https://nodejs.org/">here</a>. It doesn’t matter whether you install the LTS or Current version of node.</p></li>
 <li><p><code>npm install -g p5-server</code></p>
 <p>This installs the <code>p5</code> command on your computer. Now you can enter commands such as <code>p5 create</code> and <code>p5 serve</code>, or just <code>p5</code> to see a list of all the commands.</p></li>
+</ol>
+<h1 id="quick-start-usage">Quick Start – Usage</h1>
+<ol type="1">
 <li><p><code>p5 create my-sketch</code></p>
 <p>This creates a sketch named <code>my-sketch.js</code>. (If you already have some sketches on your file system, you can skip this step. Instead, use the <code>cd</code> command to change the terminal’s current directory to a directory that contains some sketches.)</p></li>
 <li><p><code>p5 serve --open</code></p>
@@ -250,16 +252,16 @@
 <h2 id="run-the-server">Run the Server</h2>
 <p><code>p5 server</code></p>
 <p>Starts a web server that knows about p5.js sketches, and that reloads sketches when files are changed. The server is set to serve files from the current directory.</p>
-<h3 id="serve-directory-from-a-specific-path">Serve directory from a specific path</h3>
+<h3 id="serve-a-directory-inside-the-current-directory">Serve a directory inside the current directory</h3>
 <p><code>p5 server PATH</code></p>
 <p>Starts a server that serves files from the directory at <em>PATH</em>.</p>
 <h3 id="open-the-browser-automatically">Open the browser automatically</h3>
 <p><code>p5 server --open</code></p>
 <p>Starts the server, and opens the directory in the default browser.</p>
-<h3 id="browse-directories-in-split-screen-mode">Browse directories in split-screen mode</h3>
-<p><code>p5 server --theme split</code></p>
-<p>Displays directories in split-view mode (as shown in the screen shot above).</p>
-<p>You can combine options, e.g. <code>p5 server examples --open --theme split</code>.</p>
+<h3 id="browse-directories-in-split-mode">Browse directories in split mode</h3>
+<p><code>p5 server --split</code></p>
+<p>Displays directory listings with the sketch in the same window (inside of an <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a>), as shown in the screen shot above.</p>
+<p>You can combine options, e.g. <code>p5 server examples --open --split</code>.</p>
 <h3 id="create-a-sketch-file">Create a sketch file</h3>
 <ul>
 <li><p><code>p5 create</code> creates a JavaScript sketch file named <code>sketch.js</code> in the current directory.</p>

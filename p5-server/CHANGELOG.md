@@ -6,6 +6,8 @@
 - Reloading a page in the split view theme returns to the same sketch
 - Center the canvas
 - Fixed split view iframe size
+- Embed large file from private CDN. githubusercontent.com gives “Content length
+  exceeded” error when hotlinking from npm
 - Update notifier includes link to changelog (this file). This will affect
   future updates but not updates to this version.
 

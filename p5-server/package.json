@@ -32,7 +32,7 @@
     "build": "run-s clean build:client copy-files && tsc --declaration",
     "build:client": "rollup -c ./src/client/rollup.config.js",
     "build:docs": "typedoc src/index.ts",
-    "build:readme": "sed 's|(docs/|(https://osteele.github.io/p5-server/docs/|' < ../README.md > README.md",
+    "build:readme": "sed -f scripts/readme.sed < ../README.md > README.md",
     "clean": "rimraf dist 'src/server/static/{console-relay.js,iframe-manager.js}'",
     "cli": "ts-node src/bin/p5-server.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",

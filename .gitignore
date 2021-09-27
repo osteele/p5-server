@@ -18,3 +18,4 @@ p5-server/package/
 gh-pages
 p5-server/src/server/static/console-relay.js
 p5-server/src/server/static/iframe-manager.js
+p5-server/README.md

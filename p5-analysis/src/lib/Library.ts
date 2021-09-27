@@ -51,7 +51,8 @@ export class Library implements Library.Properties {
   }
 
   /** Adds all the libraries in the given library specification JSON file to the
-   * global library array in Library.all. */
+   * global library array in Library.all.
+   */
   static addFromJson(jsonPath: string) {
     const json = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
     json.forEach(Library.add);

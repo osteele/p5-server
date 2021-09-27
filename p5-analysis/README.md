@@ -11,14 +11,16 @@ extension](https://github.com/osteele/vscode-p5server#readme).
 
 The API consists of three classes:
 
-* {@link Sketch} the interface to generate
-  sketch files, find associated files, infer libraries, and scan directories for
-  sketches that they contain.
-* {@link Script} represents a JavaScript file. It provides
-  script analysis features that are used to detect whether a script is a p5.js
-  sketch, and to perform library inference.
-* {@link Library} represents a [p5.js
-  library](https://p5js.org/libraries/).
+* {@link Sketch} represents an sketch. This is at least a script file, and may
+  also include an HTML file and additional scripts an  assets. It is the
+  interface to generate sketch files, find associated files, infer libraries,
+  and scan directories for sketches that they contain.
+
+* {@link Script} represents a JavaScript file. It provides script analysis
+  features that are used to detect whether a script is a p5.js sketch, and to
+  perform library inference.
+
+* {@link Library} represents a [p5.js library](https://p5js.org/libraries/).
 
 The API reference is [here](https://osteele.github.io/p5-server/p5-analysis/).
 

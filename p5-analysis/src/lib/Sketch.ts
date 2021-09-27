@@ -124,7 +124,6 @@ export abstract class Sketch {
       throw new Error(`Unrecognized file type: ${filePath}`);
     }
   }
-
   //#endregion
 
   /** Analyze the directory for sketch files. Returns a list of sketches, and
@@ -191,8 +190,9 @@ export abstract class Sketch {
     return HtmlSketch.isSketchHtmlFile(htmlFile);
   }
 
-  /** Tests whether a file is a JavaScript sketch file. It is a sketch file if it includes
-   * a definition of the `set()` function and a call to `createCanvas()`.
+  /** Tests whether a file is a JavaScript sketch file. It is recognized as a
+   * sketch file if it includes a definition of the `setup()` function and a
+   * call to the p5.js `createCanvas()`.
    *
    * @category Sketch detection
    */
@@ -238,7 +238,8 @@ export abstract class Sketch {
   abstract get sketchType(): SketchType;
 
   /** For an HTML sketch, this is the HTML file. For a JavaScript sketch, this is
-   * the JavaScript file. In either case, it is relative to dir. */
+   * the JavaScript file. In either case, it is relative to dir.
+   */
   abstract get mainFile(): string;
 
   get mainFilePath() {
@@ -265,7 +266,8 @@ export abstract class Sketch {
   }
 
   /** For an HTML sketch, this is the <title> element. Otherwise it is the base
-   * name of the main file. */
+   * name of the main file.
+   */
   get title() {
     if (this._title) {
       return this._title;
@@ -294,8 +296,38 @@ export abstract class Sketch {
    * the HTML file includes; and any files that the JavaScript files include,
    * to the extent that this can be determined by static inspection.
    *
-   * File names are relative to sketch.dirPath. */
+   * File names are relative to sketch.dirPath.
+   */
   abstract get files(): string[];
+
+  //#endregion
+
+  //#region libraries
+
+  /** The list of libraries. For a JavaScript sketch, this is the list of
+   * libraries inferred from the undefined global variables that it references.
+   * For an HTML sketch, this is the list of libraries named in the HTML file.
+   *
+   * @category Libraries
+   */
+  get libraries(): LibraryArray {
+    return this.htmlFile ? this.explicitLibraries() : this.impliedLibraries();
+  }
+
+  protected explicitLibraries(): LibraryArray {
+    const htmlPath = this.htmlFilePath;
+    return htmlPath && fs.existsSync(htmlPath)
+      ? Library.inHtml(htmlPath)
+      : new LibraryArray();
+  }
+
+  protected impliedLibraries(): LibraryArray {
+    return Library.inferFromScripts(
+      this.files
+        .filter(name => /\.js$/i.test(name))
+        .map(name => path.join(this.dir, name))
+    );
+  }
 
   //#endregion
 
@@ -343,35 +375,6 @@ export abstract class Sketch {
     const content = await this.getGeneratedFileContent(templateName, templateOptions);
     await writeFile(filepath, content, force ? {} : { flag: 'wx' });
     return filepath;
-  }
-
-  //#endregion
-
-  //#region libraries
-
-  /** The list of libraries. For a JavaScript sketch, this is the list of
-   * libraries inferred from the undefined global variables that it references.
-   * For an HTML sketch, this is the list of libraries named in the HTML file.
-   *
-   * @category Libraries
-   */
-  get libraries(): LibraryArray {
-    return this.htmlFile ? this.explicitLibraries() : this.impliedLibraries();
-  }
-
-  protected explicitLibraries(): LibraryArray {
-    const htmlPath = this.htmlFilePath;
-    return htmlPath && fs.existsSync(htmlPath)
-      ? Library.inHtml(htmlPath)
-      : new LibraryArray();
-  }
-
-  protected impliedLibraries(): LibraryArray {
-    return Library.inferFromScripts(
-      this.files
-        .filter(name => /\.js$/i.test(name))
-        .map(name => path.join(this.dir, name))
-    );
   }
 
   //#endregion

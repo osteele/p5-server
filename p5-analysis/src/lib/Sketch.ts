@@ -1,11 +1,12 @@
-import pug from 'pug';
 import fs from 'fs';
-import { asyncFilter, asyncFind, capitalize } from '../utils';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
 import { HTMLElement, parse } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
+import prettier from 'prettier';
+import pug from 'pug';
+import { asyncFilter, asyncFind, capitalize } from '../utils';
 import { Library, LibraryArray, p5Version } from './Library';
 import { JavaScriptSyntaxError, Script } from './Script';
 
@@ -402,12 +403,11 @@ export abstract class Sketch {
       return template.render(data).trim() + '\n';
     }
     if (templatePath.endsWith('.pug')) {
-      return pug
-        .renderFile(templatePath, { pretty: true, ...data })
-        .replace(/<!-- pug: newline\s*-->/g, '')
+      const html = pug
+        .renderFile(templatePath, { pretty: false, ...data })
         .replace(/(<!-- .*?\S)(-->)/g, '$1 $2')
-        .replace(/^\s+$/gm, '')
-        .replace(/\n?$/g, '\n');
+        .replace(/<!-- pug: newline\s*-->/g, '\n\n');
+      return prettier.format(html, { parser: 'html', printWidth: 120 });
     }
     throw new Error(`Unknown template extension: ${templatePath}`);
   }

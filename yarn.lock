@@ -2441,6 +2441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prettier@npm:^2":
+  version: 2.4.0
+  resolution: "@types/prettier@npm:2.4.0"
+  checksum: f7128dc36e68906c9316c7d284b29561c6aa294e9b04d860ab41ebb9734080fdcbbedb42dd1bfa45ed72f9b34e28233d8e2e98c715b31b333d31f77da3dcad01
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:^2.1.5":
   version: 2.3.2
   resolution: "@types/prettier@npm:2.3.2"
@@ -8969,6 +8976,7 @@ __metadata:
     "@types/node": ^16.9.1
     "@types/node-fetch": ^2.5.12
     "@types/nunjucks": ^3.1.5
+    "@types/prettier": ^2
     "@types/rimraf": ^3.0.2
     commander: ^8.2.0
     copyfiles: ^2.4.1
@@ -8981,6 +8989,7 @@ __metadata:
     node-fetch: ^2.6.2
     node-html-parser: ^4.1.4
     nunjucks: ^3.2.3
+    prettier: ^2.4.1
     rimraf: ^3.0.2
     ts-node: ^10.2.1
     typedoc: ^0.22.2
@@ -9361,6 +9370,15 @@ __metadata:
   bin:
     prettier: ./bin-prettier.js
   checksum: bc78219e0f8173a808f4c6c8e0a137dd8ebd4fbe013e63fe1a37a82b48612f17b8ae8e18a992adf802ee2cf7428f14f084e7c2846ca5759cf4013c6e54810e1f
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "prettier@npm:2.4.1"
+  bin:
+    prettier: bin-prettier.js
+  checksum: cc6830588b401b0d742862fe9c46bc9118204fb307c3abe0e49e95b35ed23629573807ffdf9cdd65289c252a0bb51fc0171437f6626ee36378dea80f0ee80b91
   languageName: node
   linkType: hard
 

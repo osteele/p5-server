@@ -42,7 +42,8 @@
     "minimatch": "^3.0.4",
     "node-fetch": "^2.6.2",
     "node-html-parser": "^4.1.4",
-    "nunjucks": "^3.2.3"
+    "nunjucks": "^3.2.3",
+    "prettier": "^2.4.1"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.7",
@@ -53,6 +54,7 @@
     "@types/node": "^16.9.1",
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.1.5",
+    "@types/prettier": "^2",
     "@types/rimraf": "^3.0.2",
     "copyfiles": "^2.4.1",
     "eslint": "^7.32.0",

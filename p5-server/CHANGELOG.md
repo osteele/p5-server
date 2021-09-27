@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.7.1]
+
+- Update README
+
 ## [0.7.0]
 
 - New option `p5 serve --split` is a shortcut for `p5 serve --theme split`

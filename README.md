@@ -12,7 +12,7 @@ sketches and to figure out which libraries a sketch needs in order to run.
 You can use it develop sketches, or to browse a collection of sketches in a
 directory.
 
-![Using the split view to explore a collection of sketches](docs/explore.gif)
+[![Using the split view to explore a collection of sketches. Click to see a higher-resolution version.](docs/explore.gif)](https://images.osteele.com/p5-server/explore-fullsize.gif)
 
 p5-server can also be used to create a set of HTML pages that present a
 collection of sketches. The [examples
@@ -25,6 +25,9 @@ available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme), and via a
 [programmatic
 API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
+
+Follow [@osteele on Twitter](https://twitter.com/osteele) for updates. See my
+other p5.js libraries and tools [here](https://code.osteele.com).
 
 ## Features
 
@@ -47,9 +50,10 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 * ***Sketch file generation***. `p5 generate` creates a sketch file that you can
   use to get started.
 
-## Quick Start
+## Quick Start – Installation
 
-The first two commands install the `p5` command on your computer. You only need to do them once.
+These commands install the `p5` command on your computer. You only need to do
+them once.
 
 Text shown in `monospace` should be entered into a terminal.
 
@@ -64,22 +68,27 @@ Text shown in `monospace` should be entered into a terminal.
 
 2. `npm install -g p5-server`
 
-    This installs the `p5` command on your computer. Now you can enter commands such as `p5 create` and `p5 serve`, or just `p5` to see a list of all the commands.
+    This installs the `p5` command on your computer.
 
-3. `p5 create my-sketch`
+    Once this is done, you can enter commands such as `p5 create` and `p5
+    serve`, or just `p5` to see a list of all the commands.
+
+## Quick Start – Usage
+
+1. `p5 create my-sketch`
 
     This creates a sketch named `my-sketch.js`. (If you already have some
     sketches on your file system, you can skip this step. Instead, use the `cd`
     command to change the terminal's current directory to a directory that
     contains some sketches.)
 
-4. `p5 serve --open`
+2. `p5 serve --open`
 
    This starts the server, and opens your sketch directory in the browser.
 
    Click on a sketch in the browser page to run it.
 
-5. Use a code editor (such as [Atom](https://atom.io), [Visual Studio
+3. Use a code editor (such as [Atom](https://atom.io), [Visual Studio
    Code](https://code.visualstudio.com), vim, or emacs) to edit the
    `my-sketch.js` file that you created in step 4. Each time you save the file,
    the browser will reload the page and re-run your sketch.
@@ -308,7 +317,7 @@ The server can be invoked programmatically. See the [API Reference](https://oste
 
 This project builds on these libraries and frameworks:
 
-* commander, for parsing command-line arguments
+* commander, chalk, and update-notifier for command-line-y stuff
 * esprima and node-html-parser for parsing JavaScript and HTML, respectively
 * expressjs for the web server
 * livereload for the live reload functionality

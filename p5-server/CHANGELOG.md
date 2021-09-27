@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [0.7.0]
 
 - New option `p5 serve --split` is a shortcut for `p5 serve --theme split`
 - Reloading a page in the split view theme returns to the same sketch

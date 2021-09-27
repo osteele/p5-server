@@ -5,13 +5,21 @@
     "outDir": "dist"
   },
   "extends": "..",
-  "exclude": ["dist", "build", "node_modules", "tests"],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules",
+    "tests"
+  ],
   "typedocOptions": {
     "name": "P5-server API documentation",
     "out": "build/docs",
     "excludePrivate": true,
     "excludeProtected": true,
     "readme": "./docs/api-index.md",
-    "sort": ["static-first", "alphabetical"]
+    "sort": [
+      "static-first",
+      "alphabetical"
+    ]
   }
 }

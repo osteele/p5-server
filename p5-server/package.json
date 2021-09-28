@@ -51,6 +51,7 @@
     "chalk": "^4.1.2",
     "commander": "^8.2.0",
     "express": "^4.17.1",
+    "highlight.js": "^11.2.0",
     "livereload": "^0.9.3",
     "marked": "^3.0.3",
     "open": "^8.2.1",

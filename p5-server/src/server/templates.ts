@@ -1,16 +1,34 @@
 import fs from 'fs';
+import hljs from 'highlight.js/lib/core';
+import hljscss from 'highlight.js/lib/languages/css';
+import hljsjavascript from 'highlight.js/lib/languages/javascript';
+import hljsplaintext from 'highlight.js/lib/languages/plaintext';
+import hljsshell from 'highlight.js/lib/languages/shell';
 import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
 import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
 
+hljs.registerLanguage('css', hljscss);
+hljs.registerLanguage('javascript', hljsjavascript);
+hljs.registerLanguage('plaintext', hljsplaintext);
+hljs.registerLanguage('shell', hljsshell);
+
 export const templateDir = path.join(__dirname, './templates');
 
 const markdownPageTemplate = pug.compileFile(path.join(templateDir, 'markdown.pug'));
 
+export const markedOptions: marked.MarkedOptions = {
+  smartypants: true,
+  highlight(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'javascript';
+    return hljs.highlight(code, { language }).value;
+  }
+};
+
 export function markdownToHtmlPage(data: string): string {
-  const markdown = marked(data);
+  const markdown = marked(data, markedOptions);
   const title = (data.match(/^# (.*)$/m) || [])[1] ?? '';
   return markdownPageTemplate({ markdown, title });
 }

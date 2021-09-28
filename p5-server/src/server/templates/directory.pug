@@ -9,6 +9,7 @@ html(lang='en')
     script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
     script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css')
     style.
       body {
         max-width: 800px;
@@ -96,8 +97,8 @@ html(lang='en')
           span(data-html="These files don't appear to be associated with any\nsketches in this directory. See the p5-server docs.")
             i.small.info.circle.icon
           | Loose Files
-        div.
-          Note that p5-server only recognizes literal strings, for example `loadImage("dog.png")`
+        :markdown
+          Note that p5-server only recognizes literal strings; for example, `loadImage("dog.png")`,
           but not `name = "cat.png"; loadImage(name)`.
         .ui.divided.list
           each file in files

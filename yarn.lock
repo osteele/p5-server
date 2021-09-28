@@ -5888,6 +5888,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"highlight.js@npm:^11.2.0":
+  version: 11.2.0
+  resolution: "highlight.js@npm:11.2.0"
+  checksum: 12bfd562899a6a70d20321460ec40a94456bd8a9cb7deedbb70630c1981b937690fa0c7cf056d8f12c3c39981b400fb1a4f8b784b97399b26bd812460809cc0e
+  languageName: node
+  linkType: hard
+
 "hosted-git-info@npm:^2.1.4":
   version: 2.8.9
   resolution: "hosted-git-info@npm:2.8.9"
@@ -9024,6 +9031,7 @@ __metadata:
     copyfiles: ^2.4.1
     eslint: ^7.32.0
     express: ^4.17.1
+    highlight.js: ^11.2.0
     jest: ^27.1.1
     livereload: ^0.9.3
     marked: ^3.0.3

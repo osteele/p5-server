@@ -3,6 +3,7 @@
 ## [0.7.1]
 
 - Update README
+- Better Markdown formatting
 
 ## [0.7.0]
 

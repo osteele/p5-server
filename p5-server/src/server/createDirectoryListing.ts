@@ -4,7 +4,7 @@ import path from 'path';
 import pug from 'pug';
 import { Sketch } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
-import { templateDir } from './templates';
+import { markedOptions, templateDir } from './templates';
 
 export const defaultDirectoryExclusions = [
   '.*',
@@ -39,7 +39,7 @@ export async function createDirectoryListing(
   const readme = readmeName
     ? {
         name: readmeName,
-        html: marked(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
+        html: markdown(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
         url: staticMode ? `${readmeName}.html` : readmeName
       }
     : null;
@@ -77,7 +77,8 @@ export async function createDirectoryListing(
     play_link,
 
     // pug options
-    cache: true
+    cache: true,
+    filters: { markdown }
   });
 
   function directory_index(dir: string) {
@@ -85,7 +86,7 @@ export async function createDirectoryListing(
   }
 
   function markdown(md: string | null) {
-    return md ? marked(md) : '';
+    return md ? marked(md, markedOptions) : '';
   }
 
   function path_to(filepath: string, sk: Sketch) {

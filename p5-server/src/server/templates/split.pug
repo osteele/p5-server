@@ -22,21 +22,20 @@ html(lang='en')
             .section.active= component.name
           else
             a.section(href=component.path)= component.name
-
       if readme
         .item
-          a.header(href=readme.url, target="sketch")= readme.name
+          a.header(href=readme.url, target='sketch')= readme.name
       each sketch in sketches
         .item
           .header
-            a(href=play_link(sketch), target="sketch")= sketch.name
+            a(href=play_link(sketch), target='sketch')= sketch.name
             a.source-view(href=path_to_src_view(sketch.scriptFile, sketch), target="sketch") (source)
           .description
             if sketch.description
-              a(href=play_link(sketch), target="sketch")!= markdown(sketch.description)
+              a(href=play_link(sketch), target='sketch')!= markdown(sketch.description)
       each dir in directories
         .item
           i.folder.outline.icon
           a.content(href=directory_index(dir))= dir
 
-    iframe.pusher#sketch(name="sketch", src=readme && readme.url, scrolling="no")
+    iframe.pusher#sketch(name='sketch', src=readme && readme.url, scrolling='no')

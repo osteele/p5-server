@@ -9,12 +9,21 @@ import { EventEmitter } from 'stream';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
-  injectScriptEventRelayScript
+  injectScriptEventRelayScript,
 } from './browserScriptEventRelay';
 import { createDirectoryListing } from './createDirectoryListing';
 import { closeSync, listenSync } from './http-server-sync';
-import { createLiveReloadServer, injectLiveReloadScript, LiveReloadServer } from './liveReload';
-import { createSyntaxErrorJsReporter, markdownToHtmlPage, sourceViewTemplate, templateDir } from './templates';
+import {
+  createLiveReloadServer,
+  injectLiveReloadScript,
+  LiveReloadServer,
+} from './liveReload';
+import {
+  createSyntaxErrorJsReporter,
+  markdownToHtmlPage,
+  sourceViewTemplate,
+  templateDir,
+} from './templates';
 import http = require('http');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -62,7 +71,7 @@ const defaultServerOptions = {
   port: 3000,
   relayConsoleMessages: false,
   scanPorts: true,
-  theme: 'directory'
+  theme: 'directory',
 };
 
 function createRouter(config: RouterConfig): express.Router {
@@ -83,7 +92,7 @@ function createRouter(config: RouterConfig): express.Router {
   });
 
   router.get('/*.html?', (req, res, next) => {
-    const file = path.join(config.root, req.path);
+    const file = path.join(config.root, decodeURIComponent(req.path));
     try {
       if (req.query.fmt === 'view') {
         res.set('Content-Type', 'text/plain');
@@ -105,7 +114,7 @@ function createRouter(config: RouterConfig): express.Router {
   // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
-    const filepath = path.join(config.root, req.path);
+    const filepath = path.join(config.root, decodeURIComponent(req.path));
     // bare-javascript sketch, not view source
     if (
       req.headers['accept']?.match(/\btext\/html\b/) &&
@@ -144,7 +153,7 @@ function createRouter(config: RouterConfig): express.Router {
 
   router.get('/*.md', (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      const file = path.join(config.root, req.path);
+      const file = path.join(config.root, decodeURIComponent(req.path));
       if (!fs.existsSync(file)) {
         return next();
       }
@@ -156,7 +165,7 @@ function createRouter(config: RouterConfig): express.Router {
 
   router.get('*', (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      const file = path.join(config.root, req.path);
+      const file = path.join(config.root, decodeURIComponent(req.path));
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
         return sendDirectoryListing(config, req, res);
       }
@@ -193,15 +202,17 @@ async function sendDirectoryListing<T>(
   if (!req.originalUrl.endsWith('/')) {
     return res.redirect(req.originalUrl + '/');
   }
-  const reqPath = req.path;
-  const dir = path.join(config.root, reqPath.replace(/\//g, path.sep));
+  const dir = path.join(
+    config.root,
+    decodeURIComponent(req.path).replace(/\//g, path.sep)
+  );
   // read the directory contents
   const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-      templateName: config.theme
-    });
+        templateName: config.theme,
+      });
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents
@@ -238,7 +249,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   // browser request.
   if (fs.statSync(mountPoints[0].filePath).isDirectory()) {
     createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath, {
-      templateName: config.theme
+      templateName: config.theme,
     });
   }
 
@@ -370,7 +381,7 @@ export class Server {
       // default url paths from file paths
       .map(mount => ({
         urlPath: '/' + (mount.name || path.basename(mount.filePath)),
-        ...mount
+        ...mount,
       }))
       // encode URL paths
       .map(mount => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
@@ -380,7 +391,7 @@ export class Server {
       .map(mount => ({
         ...mount,
         filePath: mount.filePath.replace(finalPathSep, ''),
-        urlPath: mount.urlPath.replace(/\/$/, '')
+        urlPath: mount.urlPath.replace(/\/$/, ''),
       }));
     // modify url paths to ensure that they are unique
     const seen = new Set<string>();

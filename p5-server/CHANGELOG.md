@@ -4,6 +4,7 @@
 
 - Update README
 - Better Markdown formatting
+- Serve files with spaces
 
 ## [0.7.0]
 

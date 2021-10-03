@@ -1,7 +1,42 @@
 # P5.js Server
 
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
-[![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml)
+<!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [P5.js Server](#p5js-server)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Quick Start – Installation](#quick-start--installation)
+  - [Quick Start – Usage](#quick-start--usage)
+  - [Recipes](#recipes)
+    - [Run the Server](#run-the-server)
+      - [Serve a directory inside the current directory](#serve-a-directory-inside-the-current-directory)
+      - [Open the browser automatically](#open-the-browser-automatically)
+      - [Browse directories in split mode](#browse-directories-in-split-mode)
+      - [Create a sketch file](#create-a-sketch-file)
+    - [Build a static site](#build-a-static-site)
+    - [Convert between JavaScript-only and HTML sketches](#convert-between-javascript-only-and-html-sketches)
+  - [Command-Line Reference](#command-line-reference)
+    - [`p5 build [DIRECTORY]`](#p5-build-directory)
+    - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename---to-format)
+    - [`p5 create [NAME]`](#p5-create-name)
+    - [`p5 serve [filename]`](#p5-serve-filename)
+    - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
+  - [Implementation Notes](#implementation-notes)
+  - [Limitations](#limitations)
+  - [API](#api)
+  - [Acknowledgements](#acknowledgements)
+  - [Other Work](#other-work)
+  - [Keeping in Touch](#keeping-in-touch)
+  - [License](#license)
+
+<!-- /code_chunk_output -->
+
+## Overview
 
 **p5-server** is a command-line interface for [p5.js](https://p5js.org/). It
 provides a web server with live reload, that knows how to serve JavaScript-only
@@ -26,28 +61,25 @@ extension](https://github.com/osteele/vscode-p5server#readme), and via a
 [programmatic
 API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 
-Follow [@osteele on Twitter](https://twitter.com/osteele) for updates. See my
-other p5.js libraries and tools [here](https://code.osteele.com).
-
 ## Features
 
-* ***Live reload***. The browser reloads the page when the source is
+- ***Live reload***. The browser reloads the page when the source is
   modified.
-* ***JavaScript-only sketches***. A sketch can be a single JavaScript file. You
+- ***JavaScript-only sketches***. A sketch can be a single JavaScript file. You
   don't need to create an HTML file just to run the sketch.
-* ***Automatic library includes***. If a JavaScript-only sketch uses a function
+- ***Automatic library includes***. If a JavaScript-only sketch uses a function
   from a [p5.js library](https://p5js.org/libraries/), the library will be
   included. ([This
   page](https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion)
   describes how this works.)
-* ***In-browser syntax errors***. A JavaScript file that has a syntax error will
+- ***In-browser syntax errors***. A JavaScript file that has a syntax error will
   display the error in the browser. Edit and save the file to reload the page.
 
     ![Syntax error reported in browser](docs/syntax-error.png)
     ![Syntax error reported in browser split-view](docs/syntax-error-split.png)
-* ***Sketch-aware directory listings***. Viewing a directory in the browser
+- ***Sketch-aware directory listings***. Viewing a directory in the browser
   lists the sketches, folders, other files in that directory.
-* ***Sketch file generation***. `p5 generate` creates a sketch file that you can
+- ***Sketch file generation***. `p5 generate` creates a sketch file that you can
   use to get started.
 
 ## Quick Start – Installation
@@ -77,10 +109,11 @@ Text shown in `monospace` should be entered into a terminal.
 
 1. `p5 create my-sketch`
 
-    This creates a sketch named `my-sketch.js`. (If you already have some
-    sketches on your file system, you can skip this step. Instead, use the `cd`
-    command to change the terminal's current directory to a directory that
-    contains some sketches.)
+    This creates a sketch named `my-sketch.js` in the current directory.
+
+    If you already have some sketches on your file system, you can skip this
+    step. Instead, use the `cd` command to change the terminal's current
+    directory to a directory that contains some sketches.
 
 2. `p5 serve --open`
 
@@ -90,7 +123,7 @@ Text shown in `monospace` should be entered into a terminal.
 
 3. Use a code editor (such as [Atom](https://atom.io), [Visual Studio
    Code](https://code.visualstudio.com), vim, or emacs) to edit the
-   `my-sketch.js` file that you created in step 4. Each time you save the file,
+   `my-sketch.js` file that you created in step 1. Each time you save the file,
    the browser will reload the page and re-run your sketch.
 
 ## Recipes
@@ -127,7 +160,7 @@ You can combine options, e.g. `p5 server examples --open --split`.
 
 #### Create a sketch file
 
-* `p5 create` creates a JavaScript sketch file named `sketch.js` in the current
+- `p5 create` creates a JavaScript sketch file named `sketch.js` in the current
 directory.
 
   This is a **JavaScript-only sketch**. The server can run this sketch, or you
@@ -135,13 +168,13 @@ directory.
   editor](https://editor.p5js.org) and
   [OpenProcessing.org](https://openprocessing.org).
 
-* `p5 create my-sketch.js` creates a JavaScript sketch file named
+- `p5 create my-sketch.js` creates a JavaScript sketch file named
   `my-sketch.js`.
 
-* `p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
+- `p5 create my-sketch.html` creates an HTML file named `my-sketch.html` and a
   JavaScript file named `my-sketch.js`.
 
-* `p5 create my-sketch` creates a folder named `my-sketch`, and creates
+- `p5 create my-sketch` creates a folder named `my-sketch`, and creates
   `index.html` and `sketch.js` files inside this folder.
 
 The default generated script contains `setup()` and `draw()` functions. The
@@ -174,17 +207,17 @@ Run `p5 <command> --help` to see command-line options for a particular command.
 
 ### `p5 build [DIRECTORY]`
 
-* `p5 build` creates an HTML index for a collection of sketches.
-* `p5 build -o out` places the index in the `./out` directory.   (The default is
+- `p5 build` creates an HTML index for a collection of sketches.
+- `p5 build -o out` places the index in the `./out` directory.   (The default is
   `./build`.)
 
 ### `p5 convert FILENAME --to FORMAT`
 
 > Converts between HTML and JavaScript-only sketches.
 
-* `p5 convert FILENAME --to html` creates an HTML file that uses the `<script>`
+- `p5 convert FILENAME --to html` creates an HTML file that uses the `<script>`
   tag to include the JavaScript sketch.
-* `p5 convert FILENAME --to javascript` removes an HTML file, leaving only the JavaScript file.
+- `p5 convert FILENAME --to javascript` removes an HTML file, leaving only the JavaScript file.
 
 Converting a JavaScript-only sketch is simple. An HTML file with the same base
 name is created, that includes the script, the p5.js source (from a CDN), and
@@ -195,8 +228,8 @@ Converting an HTML sketch to a JavaScript-only sketch involves deleting the HTML
 includes the script. This potentially looses some information. Before the file is deleted,
 the following checks are made:
 
-* The HTML file includes only a single script file.
-* The libraries that the HTML file includes (via `<script>` tags) are the same
+- The HTML file includes only a single script file.
+- The libraries that the HTML file includes (via `<script>` tags) are the same
   as the libraries that will be inferred from the script file, based on the
   classes and functions that the script file uses and does not define.
 
@@ -204,22 +237,22 @@ the following checks are made:
 
 > Create a JavaScript-only sketch; or an HTML file and a JavaScript file.
 
-* `p5 create` – creates `sketch.js`
-* `p5 create my-sketch.js` – creates just the JavaScript file
-* `p5 create my-sketch.html` – creates `my-sketch.html` and `my-sketch.js`
-* `p5 create my-sketch --type folder` – creates a folder named `my-sketch`, that
+- `p5 create` – creates `sketch.js`
+- `p5 create my-sketch.js` – creates just the JavaScript file
+- `p5 create my-sketch.html` – creates `my-sketch.html` and `my-sketch.js`
+- `p5 create my-sketch --type folder` – creates a folder named `my-sketch`, that
   contains files `index.html` and `sketch.js`.
 
 `p5 create --options comments,preload` specifies a comma-separated set of
 template options. The options are:
 
-* `comments` – include comments (e.g. `// put setup code here`) inside the
+- `comments` – include comments (e.g. `// put setup code here`) inside the
   functions
-* `preload` – include an (empty) `preload()` function
-* `windowResized` – include a `windowResized()` function, that resizes the
+- `preload` – include an (empty) `preload()` function
+- `windowResized` – include a `windowResized()` function, that resizes the
   canvas when the window is resized
-* `no-draw` – omit the `draw()` function, in order to create a "static" sketch
-* `no-examples` – omit the example call inside of `draw()`
+- `no-draw` – omit the `draw()` function, in order to create a "static" sketch
+- `no-examples` – omit the example call inside of `draw()`
 
 ### `p5 serve [filename]`
 
@@ -229,12 +262,12 @@ or the `filename` subdirectory of the current directory.
 
 `p5 serve filename` runs a sketch in the browser.
 
-* If `filename` is an HTML file (for example, `index.html`), this command serves
+- If `filename` is an HTML file (for example, `index.html`), this command serves
   that page.
-* If `filename` is a JavaScript file that contains a p5.js sketch (for example,
+- If `filename` is a JavaScript file that contains a p5.js sketch (for example,
   `sketch.js`), the server serves a page that runs the sketch.
-* If `filename` is a directory, the browser displays a list of sketches and files in that directory.
-* If `filename` is not supplied, the browser displays sketches and files in the
+- If `filename` is a directory, the browser displays a list of sketches and files in that directory.
+- If `filename` is not supplied, the browser displays sketches and files in the
   current directory. (This is the same as `p5 serve .`.)
 
 By default, the server runs on port 3000. You can open it in a browser by
@@ -291,21 +324,21 @@ automatic library inclusion, and other details of the implementation.
 
 ## Limitations
 
-* This code hasn't been tested on Windows.
-* Generated sketches require an internet connection to run. They load the p5.js
+- This code hasn't been tested on Windows.
+- Generated sketches require an internet connection to run. They load the p5.js
   and other libraries from a content delivery network (“CDN”). Browsers cache
   these files, so reloading a page or running other sketches that use the same
   (or no) libraries do not require additional internet access, but you will need
   internet access the first time you use this extension or after the browser
   cache has expired.
-* The server requires an internet connection in order to display sketches and
+- The server requires an internet connection in order to display sketches and
   directory listings. (It loads the Semantic UI CSS framework from a CDN.)
-* This code hasn't been tested with
+- This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.
-* Library inference hasn't been tested with sketches that are written as
+- Library inference hasn't been tested with sketches that are written as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-* See the [p5-analysis implementation
+- See the [p5-analysis implementation
   notes](./p5-analysis/README.md#implementation-notes) notes for limitations on
   the recognition of associated files.
 
@@ -317,14 +350,28 @@ The server can be invoked programmatically. See the [API Reference](https://oste
 
 This project builds on these libraries and frameworks:
 
-* commander, chalk, and update-notifier for command-line-y stuff
-* esprima and node-html-parser for parsing JavaScript and HTML, respectively
-* expressjs for the web server
-* livereload for the live reload functionality
-* marked for converting Markdown to HTML
-* nunjucks and pug for template generation
-* The Semantic UI CSS framework
-* And of course [p5.js]([https](https://p5js.org/)
+- commander, chalk, and update-notifier for command-line-y stuff
+- esprima and node-html-parser for parsing JavaScript and HTML, respectively
+- expressjs for the web server
+- livereload for the live reload functionality
+- marked for converting Markdown to HTML
+- nunjucks and pug for template generation
+- The Semantic UI CSS framework
+- And of course [p5.js]([https](https://p5js.org/)
+
+## Other Work
+
+[https://code.osteele.com](https://code.osteele.com#p5-js) lists my other p5.js
+projects. These include tools, libraries, and examples and educational
+materials.
+
+## Keeping in Touch
+
+Report bugs, features requests, and suggestions
+[here](https://github.com/osteele/p5-server/issues), or message me [on
+Twitter](https://twitter.com/osteele).
+
+Follow [@osteele on Twitter](https://twitter.com/osteele) for updates.
 
 ## License
 

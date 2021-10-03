@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.2]
+
+- Add libraries: anime, CCapture.js, p5.pattern, p5.rotate-about
+
 ## [0.6.1]
 
 - Generate HTML from PUG template

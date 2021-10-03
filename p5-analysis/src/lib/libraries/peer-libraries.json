@@ -1,13 +1,29 @@
 [
   {
+    "name": "anime",
+    "description": "Anime.js (/ˈæn.ə.meɪ/) is a lightweight JavaScript animation library with a simple, yet powerful API.",
+    "homepage": "https://animejs.com",
+    "packageName": "animejs",
+    "defines": {
+      "globals": ["anime"]
+    }
+  },
+  {
+    "name": "CCapture.js",
+    "description": "CCapture.js is a library to help capturing animations created with HTML5 canvas at a fixed framerate",
+    "homepage": "https://github.com/spite/ccapture.js#readme",
+    "packageName": "ccapture.js",
+    "defines": {
+      "globals": ["CCapture"]
+    }
+  },
+  {
     "name": "dat.gui",
     "description": "dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.",
     "homepage": "https://github.com/dataarts/dat.gui",
     "packageName": "dat.gui",
     "defines": {
-      "globals": [
-        "dat"
-      ]
+      "globals": ["dat"]
     }
   }
 ]

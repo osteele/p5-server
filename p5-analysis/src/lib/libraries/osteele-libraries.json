@@ -5,9 +5,16 @@
     "homepage": "https://osteele.github.io/p5.libs/p5.layers/",
     "packageName": "p5.layers",
     "defines": {
-      "globals": [
-        "beginLayer"
-      ]
+      "globals": ["beginLayer"]
+    }
+  },
+  {
+    "name": "p5.rotate-about",
+    "description": "Add p5.js rotateAbout() and scaleAbout() functions",
+    "homepage": "https://osteele.github.io/p5.libs/p5.vector-arguments/",
+    "packageName": "p5.rotate-about",
+    "defines": {
+      "globals": ["rotateAbout", "scaleAbout"]
     }
   },
   {
@@ -16,9 +23,7 @@
     "homepage": "https://osteele.github.io/p5.libs/p5.vector-arguments/",
     "packageName": "p5.vector-arguments",
     "defines": {
-      "globals": [
-        "enableVectorArguments"
-      ]
+      "globals": ["enableVectorArguments"]
     }
   }
 ]

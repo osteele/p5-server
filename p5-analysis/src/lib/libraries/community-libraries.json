@@ -5,9 +5,7 @@
     "homepage": "https://www.tetoki.eu/asciiart/",
     "importPath": "https://www.tetoki.eu/asciiart/asciiart/p5.asciiart.min.js",
     "defines": {
-      "globals": [
-        "AsciiArt"
-      ]
+      "globals": ["AsciiArt"]
     }
   },
   {
@@ -16,9 +14,7 @@
     "homepage": "https://itpnyu.github.io/p5ble-website/",
     "packageName": "p5ble",
     "defines": {
-      "globals": [
-        "p5ble"
-      ]
+      "globals": ["p5ble"]
     }
   },
   {
@@ -27,10 +23,7 @@
     "homepage": "https://github.com/sarahgp/p5bots",
     "importPath": "/master/lib/p5bots.min.js",
     "defines": {
-      "p5": [
-        "board",
-        "serial"
-      ]
+      "p5": ["board", "serial"]
     }
   },
   {
@@ -39,9 +32,7 @@
     "homepage": "https://github.com/Lartu/p5.clickable",
     "importPath": "/master/library/p5.clickable.min.js",
     "defines": {
-      "globals": [
-        "Clickable"
-      ]
+      "globals": ["Clickable"]
     }
   },
   {
@@ -50,9 +41,7 @@
     "homepage": "https://github.com/jtnimoy/p5.cmyk.js",
     "importPath": "/master/addons/p5.cmyk.js",
     "defines": {
-      "globals": [
-        "Cmyk"
-      ]
+      "globals": ["Cmyk"]
     }
   },
   {
@@ -91,9 +80,7 @@
     "packageName": "createloop",
     "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
     "defines": {
-      "globals": [
-        "createloop"
-      ]
+      "globals": ["createloop"]
     }
   },
   {
@@ -126,13 +113,8 @@
     "homepage": "https://github.com/freshfork/p5.EasyCam",
     "importPath": "https://freshfork.github.io/p5.EasyCam/p5.easycam.min.js",
     "defines": {
-      "globals": [
-        "Dw",
-        "createEasyCam"
-      ],
-      "p5": [
-        "RoverCam"
-      ]
+      "globals": ["Dw", "createEasyCam"],
+      "p5": ["RoverCam"]
     }
   },
   {
@@ -179,13 +161,7 @@
         "besselI0",
         "fplot"
       ],
-      "p5": [
-        "Gen",
-        "Ease",
-        "ArrayEval",
-        "Filt",
-        "FastFourierTransform"
-      ]
+      "p5": ["Gen", "Ease", "ArrayEval", "Filt", "FastFourierTransform"]
     }
   },
   {
@@ -213,9 +189,7 @@
     "homepage": "https://github.com/jagracar/grafica.js",
     "importPath": "https://raw.githubusercontent.com/jagracar/grafica.js/master/releases/grafica.min.js",
     "defines": {
-      "globals": [
-        "GPlot"
-      ]
+      "globals": ["GPlot"]
     }
   },
   {
@@ -223,9 +197,7 @@
     "description": "p5.gui generates a graphical user interface for your p5.js sketches.",
     "homepage": "https://github.com/bitcraftlab/p5.gui",
     "defines": {
-      "globals": [
-        "createGui"
-      ]
+      "globals": ["createGui"]
     }
   },
   {
@@ -234,11 +206,7 @@
     "homepage": "https://github.com/bmoren/p5.localmessage",
     "importPath": "/master/p5.localmessage.min.js",
     "defines": {
-      "globals": [
-        "registerServiceWorker",
-        "sendMessage",
-        "listenMessage"
-      ]
+      "globals": ["registerServiceWorker", "sendMessage", "listenMessage"]
     }
   },
   {
@@ -247,9 +215,7 @@
     "homepage": "https://github.com/jtnimoy/marching",
     "importPath": "/master/lib/p5.marching.min.js",
     "defines": {
-      "globals": [
-        "marchingSquares"
-      ]
+      "globals": ["marchingSquares"]
     }
   },
   {
@@ -259,9 +225,7 @@
     "packageName": "mappa-mundi",
     "importPath": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
     "defines": {
-      "globals": [
-        "Mappa"
-      ]
+      "globals": ["Mappa"]
     }
   },
   {
@@ -271,9 +235,7 @@
     "packageName": "ml5",
     "importPath": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
     "defines": {
-      "globals": [
-        "ml5"
-      ]
+      "globals": ["ml5"]
     }
   },
   {
@@ -282,10 +244,7 @@
     "homepage": "https://molleindustria.github.io/p5.play/",
     "importPath": "/master/lib/p5.play.js",
     "defines": {
-      "globals": [
-        "createSprite",
-        "loadAnimation"
-      ]
+      "globals": ["createSprite", "loadAnimation"]
     }
   },
   {
@@ -294,10 +253,7 @@
     "homepage": "https://github.com/bobcgausa/cook-js",
     "importPath": "/master/p5.particle.js",
     "defines": {
-      "globals": [
-        "Particle",
-        "Fountain"
-      ]
+      "globals": ["Particle", "Fountain"]
     }
   },
   {
@@ -306,9 +262,7 @@
     "homepage": "https://antiboredom.github.io/p5.riso/",
     "importPath": "https://raw.githubusercontent.com/antiboredom/p5.riso/master/lib/p5.riso.js",
     "defines": {
-      "globals": [
-        "drawRiso"
-      ]
+      "globals": ["drawRiso"]
     }
   },
   {
@@ -317,9 +271,7 @@
     "homepage": "https://rednoise.org/rita/",
     "packageName": "rita",
     "defines": {
-      "globals": [
-        "RiTa"
-      ]
+      "globals": ["RiTa"]
     }
   },
   {
@@ -328,9 +280,7 @@
     "homepage": "http://codeforartists.com/RotatingKnobMaker/",
     "importPath": "http://codeforartists.com/RotatingKnobMaker/MIDI_knob/knobMaker_5.js",
     "defines": {
-      "globals": [
-        "MakeKnob"
-      ]
+      "globals": ["MakeKnob"]
     }
   },
   {
@@ -339,9 +289,7 @@
     "homepage": "https://github.com/mveteanu/p5.SceneManager",
     "packageName": "p5.scenemanager",
     "defines": {
-      "globals": [
-        "SceneManager"
-      ]
+      "globals": ["SceneManager"]
     }
   },
   {
@@ -350,9 +298,7 @@
     "homepage": "https://github.com/bohnacker/p5js-screenPosition",
     "importPath": "/master/addScreenPositionFunction.js",
     "defines": {
-      "globals": [
-        "addScreenPositionFunction"
-      ]
+      "globals": ["addScreenPositionFunction"]
     }
   },
   {
@@ -361,9 +307,7 @@
     "homepage": "https://github.com/generative-light/p5.scribble.js",
     "importPath": "/master/p5.scribble.js",
     "defines": {
-      "globals": [
-        "Scribble"
-      ]
+      "globals": ["Scribble"]
     }
   },
   {
@@ -372,9 +316,7 @@
     "homepage": "https://github.com/p5-serial/p5.serialport",
     "packageName": "p5.serialserver",
     "defines": {
-      "p5": [
-        "SerialPort"
-      ]
+      "p5": ["SerialPort"]
     }
   },
   {
@@ -425,10 +367,7 @@
     "homepage": "https://idmnyu.github.io/p5.js-speech/",
     "importPath": "https://raw.githubusercontent.com/IDMNYU/p5.js-speech/master/lib/p5.speech.js",
     "defines": {
-      "p5": [
-        "Speech",
-        "SpeechRec"
-      ]
+      "p5": ["Speech", "SpeechRec"]
     }
   },
   {
@@ -443,9 +382,7 @@
     "homepage": "https://github.com/linux-man/p5.tiledmap",
     "packageName": "p5.tiledmap",
     "defines": {
-      "globals": [
-        "loadTiledMap"
-      ]
+      "globals": ["loadTiledMap"]
     }
   },
   {
@@ -455,9 +392,7 @@
     "packageName": "p5.touchgui",
     "importPath": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
     "defines": {
-      "globals": [
-        "createGui"
-      ]
+      "globals": ["createGui"]
     }
   },
   {
@@ -466,9 +401,7 @@
     "homepage": "https://www.tetoki.eu/vida/",
     "importPath": "https://www.tetoki.eu/vida/vida/p5.vida.min.js",
     "defines": {
-      "globals": [
-        "Vida"
-      ]
+      "globals": ["Vida"]
     }
   },
   {
@@ -477,10 +410,7 @@
     "homepage": "https://github.com/Dozed12/p5.voronoi",
     "importPath": "/master/library/p5.voronoi.min.js",
     "defines": {
-      "globals": [
-        "voronoi",
-        "voronoiGetDiagram"
-      ]
+      "globals": ["voronoi", "voronoiGetDiagram"]
     }
   },
   {
@@ -489,9 +419,7 @@
     "homepage": "http://p5xr.org/",
     "importPath": "https://github.com/stalgiag/p5.xr/releases/download/v0.4.0/p5xr.min.js",
     "defines": {
-      "globals": [
-        "createVRCanvas"
-      ]
+      "globals": ["createVRCanvas"]
     }
   },
   {
@@ -500,11 +428,13 @@
     "homepage": "https://github.com/FreddieRa/p5.3D",
     "packageName": "p5.xr",
     "defines": {
-      "globals": [
-        "createWord3D",
-        "createPicture3D",
-        "createCanvas3D"
-      ]
+      "globals": ["createWord3D", "createPicture3D", "createCanvas3D"]
     }
+  },
+  {
+    "name": "p5.pattern",
+    "description": "A pattern drawing library for p5.js.",
+    "homepage": "https://openprocessing.org/sketch/1278485",
+    "importPath": "https://raw.githubusercontent.com/SYM380/p5.pattern/main/p5.pattern.js"
   }
 ]

@@ -10,6 +10,7 @@ export default [
     output: {
       file: './src/server/static/console-relay.js',
       format: 'iife',
+      strict: false,
     },
     plugins,
   },

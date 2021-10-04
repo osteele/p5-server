@@ -88,6 +88,7 @@ program
   .option('-o, --open', 'Open the page in a browser')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
   .option('-t, --theme [FILE]', 'template file')
+  .option('--browser <NAME>', 'safari | chrome | firefox | edge (implies --open)')
   .option('--split', 'Use the split (directory + sketch) template')
   .option(
     '--console [FORMAT]',

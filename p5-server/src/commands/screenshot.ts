@@ -1,9 +1,8 @@
 import { mkdir, writeFile } from 'fs/promises';
-import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
 import { Server } from '../server/Server';
-import { die } from '../utils';
+import { die, openInBrowser } from '../utils';
 
 type Options = {
   output?: string;
@@ -113,19 +112,4 @@ function parseScreenshotOptions(options: Options): Server.Options['screenshot'] 
     pixelDensity,
     skipFrames,
   };
-}
-
-function openInBrowser(url: string, browser?: string) {
-  const appName: open.AppName | 'safari' | undefined =
-    browser === 'safari'
-      ? 'safari'
-      : browser! in open.apps
-      ? (browser as open.AppName)
-      : undefined;
-  if (browser && !browser) {
-    die(`Unknown browser: ${browser}`);
-  }
-  const openApps = { safari: 'safari', ...open.apps };
-  const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
-  open(url, openOptions);
 }

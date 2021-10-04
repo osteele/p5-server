@@ -1,5 +1,4 @@
 import chalk, { Chalk } from 'chalk';
-import open from 'open';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
@@ -11,12 +10,13 @@ import {
 } from 'src/server/eventTypes';
 import util from 'util';
 import { Server } from '../server/Server';
-import { die } from '../utils';
+import { die, openInBrowser } from '../utils';
 
 type Options = {
+  browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
+  console: boolean | 'json' | 'passive';
   open: boolean;
   port: string;
-  console: boolean | 'json' | 'passive';
   split: boolean;
   theme: string;
 };
@@ -40,7 +40,8 @@ export default async function serve(files: string[], options: Options) {
   const server = await Server.start(serverOptions);
   if (options.console) subscribeToBrowserEvents(server, options.console === 'json');
   console.log(`Serving ${displayName} at ${server.url}`);
-  if (options.open && server.url) open(server.url);
+  if ((options.open || options.browser) && server.url)
+    openInBrowser(server.url, options.browser?.toLowerCase());
 }
 
 function subscribeToBrowserEvents(server: Server, asJson: boolean) {

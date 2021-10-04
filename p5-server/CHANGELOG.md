@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - New command `p5 screenshot FILE` saves the canvas as an image file.
+- `p5 serve` has `--open <BROWSER>` option
 
 ## [0.7.1]
 

@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { HTMLElement, parse as parseHtml } from 'node-html-parser';
+import open from 'open';
 import path from 'path';
 
 /** Print the message to standard output; then exit with status code 1.
@@ -16,6 +17,22 @@ export function escapeHTML(str: string) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// This is similar to open.open, except that it also accepts 'safari' as an app name
+export function openInBrowser(url: string, browser?: string) {
+  const appName: open.AppName | 'safari' | undefined =
+    browser === 'safari'
+      ? 'safari'
+      : browser! in open.apps
+      ? (browser as open.AppName)
+      : undefined;
+  if (browser && !browser) {
+    die(`Unknown browser: ${browser}`);
+  }
+  const openApps = { safari: 'safari', ...open.apps };
+  const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
+  open(url, openOptions);
 }
 
 export function pathComponentsForBreadcrumbs(

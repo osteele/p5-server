@@ -2,8 +2,9 @@ window.addEventListener('DOMContentLoaded', () => {
   let settings = __p5_server_screenshot_settings || {};
   let frameNumber = 0;
   let skipFrames = settings.skipFrames || 0;
-  let remainingFrames = settings.frames || 1;
-  let imageType = settings.imageType || 'image/png';
+  let remainingFrames = settings.frameCount || 1;
+  let imageType = settings.imageType ? settings.imageType.replace('jpg', 'jpeg') : 'png';
+  let pending = 0;
 
   function wrap(wrapped) {
     return () => {
@@ -13,11 +14,12 @@ window.addEventListener('DOMContentLoaded', () => {
         const headers = {
           'Content-Type': 'application/json',
         };
-        let dataURL = this.canvas.toDataURL(imageType);
+        let dataURL = this.canvas.toDataURL('image/' + imageType);
         const body = JSON.stringify({ dataURL, frameNumber });
+        pending++;
         fetch('/__p5_server/screenshot', { method: 'post', headers, body })
           .then(() => {
-            if (remainingFrames <= 0) window.close();
+            if (--pending <= 0 && remainingFrames <= 0) window.close();
           });
       }
       frameNumber++;

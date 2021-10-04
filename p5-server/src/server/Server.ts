@@ -50,16 +50,18 @@ export namespace Server {
     liveServer: boolean;
 
     /** Sketches send screenshot data to this handler. */
-    screenshot: {
-      canvasDimensions?: { width: number; height: number };
-      pixelDensity?: number;
-      skipFrames?: number;
+    screenshot: Partial<{
+      canvasDimensions: { width: number; height: number };
+      frameCount: number;
+      imageType: 'png' | 'jpeg';
+      pixelDensity: number;
+      skipFrames: number;
       onFrameData: (data: {
         contentType: string;
         data: Buffer;
         frameNumber: number;
       }) => void | Promise<void>;
-    } | null;
+    }> | null;
 
     theme?: string;
   }>;
@@ -111,7 +113,7 @@ function createRouter(config: RouterConfig): express.Router {
     async (req, res) => {
       const { dataURL } = req.body;
       const m = dataURL.match(/^data:(image\/png);base64,(.*)$/);
-      if (!m || !config.screenshot) return res.send(200);
+      if (!m || !config.screenshot?.onFrameData) return res.send(200);
       await config.screenshot.onFrameData({
         contentType: m[1],
         data: Buffer.from(m[2], 'base64'),

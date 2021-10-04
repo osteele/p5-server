@@ -72,6 +72,7 @@ program
   .option('-o, --output <OUTPUT>', 'the output file')
   .option('--browser <NAME>', 'safari | chrome | firefox | edge')
   .option('--canvas-size <DIMENSIONS>', 'canvas dimensions e.g. 100 or 100,200')
+  .option('--frame-count <NUMBER>', 'the number of frames saved', '1')
   .option('--pixel-density <NUMBER>', 'e.g. 2, 0.5, or 1/2')
   .option('--skip-frames <COUNT>', 'omit the first COUNT frames')
   .action(screenshot);

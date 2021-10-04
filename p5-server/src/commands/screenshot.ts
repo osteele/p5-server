@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
@@ -9,8 +9,9 @@ type Options = {
   output?: string;
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
   canvasSize: string;
+  frameCount: string;
   pixelDensity: string;
-  skipFrames: number;
+  skipFrames: string;
 };
 
 export default async function screenshot(source: string, options: Options) {
@@ -25,12 +26,63 @@ export default async function screenshot(source: string, options: Options) {
     options.output ||
     path
       .basename(source.replace(/(.+)\/index\.html?/i, '$1'))
-      .replace(/\.(js|html?)$/i, '') + '.png';
-  if (!/\.png$/i.test(output)) {
-    die('The output file extension must be .png');
+      .replace(/\.(js|html?)$/i, '') +
+      (Number(options.frameCount || 1) > 1 ? '-%d.png' : '.png');
+  if (!/\.png|jpe?g$/i.test(output)) {
+    die('The output file extension must be .png or .jpeg');
   }
 
-  let savedFrames = 0;
+  const serverOptions: Server.Options = {
+    root: source,
+    screenshot: {
+      onFrameData,
+      imageType: 'png',
+      ...parseScreenshotOptions(options),
+    },
+  };
+  let remainingFrames = serverOptions.screenshot?.frameCount || 1;
+  if (remainingFrames > 1 && !/%\d*d/.test(output)) {
+    console.warn(
+      'Warning: For best results, include a %d in the output filename when capturing multiple frames'
+    );
+  }
+  const server = await Server.start(serverOptions);
+
+  openInBrowser(server.url!, options.browser?.toLowerCase());
+
+  async function onFrameData({
+    data,
+    frameNumber,
+  }: {
+    data: Buffer;
+    frameNumber: number;
+  }) {
+    if (remainingFrames < 0) return;
+
+    const fname = output.replace(/%\d*d/g, fmt => {
+      let s = String(frameNumber);
+      const m = fmt.match(/%(0)?(\d+)/);
+      if (m) {
+        const pad = m[1] || '0';
+        const len = Number(m[2]);
+        s = s.padStart(len, pad);
+      }
+      return s;
+    });
+    await mkdir(path.dirname(fname), { recursive: true });
+    await writeFile(fname, data);
+    console.log(`Saved screenshot from ${source} to ${fname}`);
+
+    if (--remainingFrames == 0) {
+      // FIXME: why doesn't server.stop() work?
+      // server.server?.on('close', () => console.info('server closed'));
+      // server.server?.close();
+      setTimeout(() => process.exit(0), 100);
+    }
+  }
+}
+
+function parseScreenshotOptions(options: Options): Server.Options['screenshot'] {
   const skipFrames = Number(options.skipFrames || 0);
 
   let canvasDimensions = undefined;
@@ -53,33 +105,14 @@ export default async function screenshot(source: string, options: Options) {
     pixelDensity = Number(m[1]) / Number(m[2] || 1);
   }
 
-  const serverOptions = {
-    root: source,
-    screenshot: {
-      onFrameData,
-      skipFrames,
-      canvasDimensions,
-      pixelDensity,
-      type: {
-        png: 'image/png',
-      },
-    },
+  const frameCount = Number(options.frameCount || 1);
+
+  return {
+    canvasDimensions,
+    frameCount,
+    pixelDensity,
+    skipFrames,
   };
-  const server = await Server.start(serverOptions);
-
-  openInBrowser(server.url!, options.browser?.toLowerCase());
-
-  async function onFrameData({ data }: { data: Buffer }) {
-    if (savedFrames++ > 0) return;
-
-    await writeFile(output, data);
-    console.log(`Saved screenshot from ${source} to ${output}`);
-
-    // FIXME: why doesn't server.stop() work?
-    // server.server?.on('close', () => console.info('server closed'));
-    // server.server?.close();
-    setTimeout(() => process.exit(0), 100);
-  }
 }
 
 function openInBrowser(url: string, browser?: string) {

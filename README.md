@@ -205,13 +205,13 @@ Run `p5 screenshot --help` for a list of options. There are options to set the
 output filename, the number of the starting frame, the pixel density, the canvas
 dimensions, and the browser (Safari, Chrome, Firefox, or Edge).
 
-Note: The sketch will run for a few frames after the requested screenshot.
+Notes:
 
-Note: Only the canvas is saved, not the HTML. Elements created with
-`createButton()`, `createDiv()` etc. are not captured in the screenshot.
-
-Note: This only works for instance-mode sketches (sketches that call global
-functions e.g. `rect()`, not instance functions e.g. `p5.rect()`).
+- The sketch will run for a few frames after the requested screenshot.
+- Only the canvas is saved, not the HTML. Elements created with
+  `createButton()`, `createDiv()` etc. are not captured in the screenshot.
+- This only works for instance-mode sketches (sketches that call global
+  functions e.g. `rect()`, not instance functions e.g. `p5.rect()`).
 
 ### Convert between JavaScript-only and HTML sketches
 

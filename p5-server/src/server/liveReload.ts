@@ -1,37 +1,35 @@
 import livereload from 'livereload';
 import net from 'net';
+import { addScriptToHtmlHead } from '../utils';
 
 export type LiveReloadServer = ReturnType<typeof livereload.createServer>;
 
-export const liveReloadTemplate = `<script>
+export const liveReloadTemplate = `
   document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
-  ':$(port)/livereload.js?snipver=1"></' + 'script>')
-</script>`;
+  ':$(port)/livereload.js?snipver=1"></' + 'script>')`;
 
 export function injectLiveReloadScript(
   html: string,
   liveReloadServer: LiveReloadServer
 ) {
-  // TODO: more robust injection
-  // TODO: warn when injection is not possible
   if (!liveReloadServer) return html;
   const address = liveReloadServer.server.address();
   if (typeof address === 'string') {
     throw new Error(
-      'liveReloadServer.address is a string, not a WebSocket.AddressInfo'
+      `liveReloadServer.address is a string ${address}; expected a WebSocket.AddressInfo`
     );
   }
-  const liveReloadString = liveReloadTemplate.replace(
+  const liveReloadScript = liveReloadTemplate.replace(
     '$(port)',
     address.port.toString()
   );
-  return html.replace(/(?=<\/head>)/, liveReloadString);
+  return addScriptToHtmlHead(html, { script: liveReloadScript });
 }
 
 export async function createLiveReloadServer({
   port = 35729,
   scanPorts = true,
-  watchDirs = <string[]>[]
+  watchDirs = <string[]>[],
 }): Promise<LiveReloadServer> {
   const lastPort = port + 9;
   while (port && scanPorts && !(await isPortAvailable(port))) {

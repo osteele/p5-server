@@ -63,13 +63,29 @@ export function pathIsInDirectory(filepath: string, dir: string) {
   return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
 }
 
+/**
+ * Examples:
+ * 'a,b,c' => {a: true, b: true, c: true}
+ * 'a,no-b,c' => {a: true, b: false, c: true}
+ */
 export const stringToOptions = (str: string | null) =>
   str
     ? Object.fromEntries<boolean>(
-        str.split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
+        str.split(',').map(s => [s.replace(/^no-/, ''), !s.startsWith('no-')])
       )
     : {};
 
+/** Insert a <script> element in an HTML document's head.
+ *
+ * If the source argument is a string, it becomes the value of the element's
+ * `src` attribute.
+ *
+ * If it is an object with a key `script` it becomes the text content of the
+ * element.
+ *
+ * Otherwise it is an Object; the script tag defines its keys as global
+ * variables, that are initialized to the corresponding values.
+ */
 export function addScriptToHtmlHead(
   html: string,
   source: string | Record<string, unknown>
@@ -82,9 +98,15 @@ export function addScriptToHtmlHead(
     null
   );
   if (source instanceof Object) {
-    scriptNode.textContent = Object.entries(source)
-      .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
-      .join('\n');
+    scriptNode.textContent =
+      'script' in source
+        ? (source.script as string)
+        : Object.entries(source)
+            .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
+            .join('\n');
+  }
+  if (!htmlRoot.querySelector('head')) {
+    htmlRoot.querySelector('body').appendChild(new HTMLElement('head', {}, '', null));
   }
   htmlRoot.querySelector('head').appendChild(scriptNode);
 

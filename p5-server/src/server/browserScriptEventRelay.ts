@@ -1,15 +1,16 @@
+import http from 'http';
+import net from 'net';
 import { URL } from 'url';
+import ws from 'ws';
+import { addScriptToHtmlHead } from '../utils';
+import { parseCyclicJson } from './cyclicJson';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
   BrowserDocumentEvent,
   BrowserErrorEvent,
-  BrowserWindowEvent
+  BrowserWindowEvent,
 } from './eventTypes';
-import { parseCyclicJson } from './cyclicJson';
-import ws from 'ws';
-import net from 'net';
-import http from 'http';
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +35,7 @@ export function attachBrowserScriptRelay(
         handler({
           ...data,
           file: urlToFilePath(data.url),
-          timestamp: new Date(data.timestamp)
+          timestamp: new Date(data.timestamp),
         });
     });
   });
@@ -96,10 +97,7 @@ export function attachBrowserScriptRelay(
 }
 
 export function injectScriptEventRelayScript(html: string) {
-  return html.replace(
-    /(?=<\/head>)/,
-    '<script src="/__p5_server_static/console-relay.js"></script>'
-  );
+  return addScriptToHtmlHead(html, '/__p5_server_static/console-relay.js');
 }
 
 const serializationPrefix = '__p5_server_serialization_:';

@@ -67,11 +67,10 @@ paragraph that begins with &quot;<code>Description:</code> &quot; in that block.
 <a href="#automatic-library-inclusion" id="automatic-library-inclusion" style="color: inherit; text-decoration: none;">
   <h3>Automatic library inclusion</h3>
 </a>
-<p>JavaScript-only sketches automatically include many of the libraries that are
-listed on the <a href="https://p5js.org/libraries/">p5.js Libraries page</a>, as well as
-<a href="https://github.com/dataarts/dat.gui">dat.gui</a>. For example, if the sketch calls
-<code>loadSound</code>, it will include the p5.sound library. If it refers to <code>ml5</code>, it
-will include the ml5.js library.</p>
+<p>JavaScript-only sketches can automatically include any of <a href="https://osteele.github.io/p5-server/p5-analysis/libraries">these
+ libraries</a>. For
+ example, if the sketch calls <code>loadSound</code>, it will include the p5.sound library.
+ If it refers to <code>ml5</code>, it will include the ml5.js library.</p>
 <p>Automatic library loading is done by examining the free variables, and
 references to <code>p5.prop</code> where <code>prop</code> is any property name, in the JavaScript source.</p>
 <p>A list of libraries, and the global variables that trigger including a library,

@@ -1,6 +1,13 @@
 import express from 'express';
 import http = require('http');
 
+/** A wrapper for express.Application#listen that returns a Promise.
+ *
+ * The Promise succeeds if server.address() returns truthy within `interval` ms.
+ *
+ * It fails if the server sends on 'error' event or fails to produce and address
+ * within the specified interval.
+ * */
 export function listenSync(
   app: express.Application,
   port?: number,
@@ -11,27 +18,26 @@ export function listenSync(
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
       const address = server.address();
+      removeListeners();
       if (address) {
-        clear();
         resolve(server);
       } else {
-        clear();
         reject(new Error('Failed to start server'));
       }
     }, timeout);
     const intervalTimer = setInterval(() => {
       const address = server.address();
       if (address) {
-        clear();
+        removeListeners();
         resolve(server);
       }
     }, 50);
 
     function onError(e: Error): void {
-      clear();
+      removeListeners();
       reject(e);
     }
-    function clear() {
+    function removeListeners() {
       server.off('error', onError);
       clearTimeout(timeoutTimer);
       clearInterval(intervalTimer);
@@ -39,24 +45,33 @@ export function listenSync(
   });
 }
 
+/** A wrapper for http.Server#close that returns a Promise.
+ *
+ * The Promise succeeds if the server sends a 'close' event within `interval`
+ * ms.
+ *
+ * It fails if the server sends an 'error' event or fails to close within the
+ * specified interval.
+ */
 export function closeSync(server: http.Server, timeout: number = 1000) {
   return new Promise<void>((resolve, reject) => {
     server.close();
     server.on('close', onClose);
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
+      removeListeners();
       onError(new Error('Failed to close server'));
     }, timeout);
 
     function onClose() {
-      clear();
+      removeListeners();
       resolve();
     }
     function onError(e: Error) {
-      clear();
+      removeListeners();
       reject(e);
     }
-    function clear() {
+    function removeListeners() {
       server.off('close', onClose);
       server.off('error', onError);
       clearTimeout(timeoutTimer);

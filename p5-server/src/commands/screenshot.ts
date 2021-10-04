@@ -27,15 +27,18 @@ export default async function screenshot(source: string, options: Options) {
       .basename(source.replace(/(.+)\/index\.html?/i, '$1'))
       .replace(/\.(js|html?)$/i, '') +
       (Number(options.frameCount || 1) > 1 ? '-%d.png' : '.png');
-  if (!/\.png|jpe?g$/i.test(output)) {
+
+  const ext = output.replace(/.*\./, '').toLowerCase().replace(/^jpg$/, 'jpeg');
+  if (!/^(png|jpe?g)$/i.test(ext)) {
     die('The output file extension must be .png or .jpeg');
   }
+  const imageType = ext as 'png' | 'jpeg';
 
   const serverOptions: Server.Options = {
     root: source,
     screenshot: {
       onFrameData,
-      imageType: 'png',
+      imageType,
       ...parseScreenshotOptions(options),
     },
   };
@@ -45,8 +48,8 @@ export default async function screenshot(source: string, options: Options) {
       'Warning: For best results, include a %d in the output filename when capturing multiple frames'
     );
   }
-  const server = await Server.start(serverOptions);
 
+  const server = await Server.start(serverOptions);
   openInBrowser(server.url!, options.browser?.toLowerCase());
 
   async function onFrameData({
@@ -73,9 +76,10 @@ export default async function screenshot(source: string, options: Options) {
     console.log(`Saved screenshot from ${source} to ${fname}`);
 
     if (--remainingFrames == 0) {
+      // The delay is to give the client time to receive the request response,
+      // so that it knows to close.
+
       // FIXME: why doesn't server.stop() work?
-      // server.server?.on('close', () => console.info('server closed'));
-      // server.server?.close();
       setTimeout(() => process.exit(0), 100);
     }
   }

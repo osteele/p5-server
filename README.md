@@ -365,6 +365,8 @@ automatic library inclusion, and other details of the implementation.
   sketches.
 - Library inference hasn't been tested with sketches that are written as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- This is a development server, not a production server. It was not designed for
+  security or performance.
 - See the [p5-analysis implementation
   notes](./p5-analysis/README.md#implementation-notes) notes for limitations on
   the recognition of associated files.

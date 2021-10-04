@@ -57,9 +57,9 @@ export namespace Server {
       pixelDensity: number;
       skipFrames: number;
       onFrameData: (data: {
-        contentType: string;
         data: Buffer;
         frameNumber: number;
+        imageType: string;
       }) => void | Promise<void>;
     }> | null;
 
@@ -112,10 +112,10 @@ function createRouter(config: RouterConfig): express.Router {
     express.json({ limit: '50mb' }),
     async (req, res) => {
       const { dataURL } = req.body;
-      const m = dataURL.match(/^data:(image\/png);base64,(.*)$/);
-      if (!m || !config.screenshot?.onFrameData) return res.send(200);
+      const m = dataURL.match(/^data:image\/(.+?);base64,(.*)$/);
+      if (!m || !config.screenshot?.onFrameData) return res.sendStatus(200);
       await config.screenshot.onFrameData({
-        contentType: m[1],
+        imageType: m[1],
         data: Buffer.from(m[2], 'base64'),
         frameNumber: req.body.frameNumber,
       });
@@ -376,11 +376,11 @@ export class Server {
   public async stop() {
     if (this.server) {
       await closeSync(this.server);
+      this.server = null;
     }
-    this.server = null;
+    this.url = undefined;
     this.liveReloadServer?.close();
     this.liveReloadServer = null;
-    this.url = undefined;
   }
 
   public filePathToUrl(filePath: string) {

@@ -1,128 +1,208 @@
 # Change Log
 
-## [Unreleased]
+## [Unreleased] - 2021-10-03
 
-- New command `p5 screenshot FILE` saves the canvas as an image file.
+New:
+
+- New command `p5 screenshot FILE` saves the canvas as an image file
 - `p5 serve` has `--open <BROWSER>` option
 
+Fixed:
+
 - `p5 serve path/to/sketch.html`
-## [0.7.1]
+
+## [0.7.2] - 2021-10-03
+
+Fixed:
+
+- Fix console relay (used by vscode extension)
+
+Improved:
+
+- Add libraries
+
+## [0.7.1] - 2021-10-01
+
+Improved:
 
 - Update README
 - Better Markdown formatting
-- Serve files with spaces
 
-## [0.7.0]
+Fixed:
+
+- Serve files, directories with spaces in their names
+
+## [0.7.0] - 2021-09-27
+
+New:
 
 - New option `p5 serve --split` is a shortcut for `p5 serve --theme split`
+
+Improved:
+
 - Reloading a page in the split view theme returns to the same sketch
 - Center the canvas
-- Fixed split view iframe size
-- Embed large file from private CDN. githubusercontent.com gives “Content length
-  exceeded” error when hotlinking from npm
 - Update notifier includes link to changelog (this file). This will affect
   future updates but not updates to this version.
 
-## [0.6.3]
+Fixed:
+
+- Fixed split view iframe size
+- Embed large file from private CDN. githubusercontent.com gives “Content length
+  exceeded” error when hotlinking from npm
+
+## [0.6.3] - 2021-09-11
+
+Improved:
 
 - Improve docs
 - Add package.json#repository.directory
 
-## [0.6.1]
+## [0.6.1] - 2021-09-09
+
+Fixed:
 
 - Work around an error when `p5 build` encounters a directory with no README
 
-## [0.6.0]
+## [0.6.0] - 2021-09-09
+
+New:
 
 - Add `p5 build` themes; default to "split" = sidebar + iframe
 - In-browser display of syntax error uses code highlighting
-- Knows about more libraries
-- Features to support [VSCode
-  extension](https://marketplace.visualstudio.com/items?itemName=osteele.p5-server).)
   - Add an API to support multiple mount points
   - Relay console.info etc. messages to the server.
 
-## [0.5.1]
+Improved:
+
+- Knows about more libraries
+- Features to support [VSCode
+  extension](https://marketplace.visualstudio.com/items?itemName=osteele.p5-server).)
+
+## [0.5.1] - 2021-08-20
+
+Fixed:
 
 - fix `import "path/posix"` -> `import "path"`
 
-## [0.5.0]
+## [0.5.0] - 2021-08-17
+
+New:
 
 - added `p5 tree`
 - added `p5 build`
+
+Improved:
+
 - more functionality is async behind the scenes
 
-## [0.4.2]
+## [0.4.2] - 2021-08-10
+
+Changed:
 
 - Change options to `p5 create`
+
+Improved:
+
 - Set the title for the default directory
 
-## [0.3.5]
+## [0.3.5] - 2021-08-09
 
-- Server.close is async
+New:
+
 - Multiple concurrent servers can be instantiated
 
-## [0.3.4]
+Improved:
 
-- `p5 serve` report default directory name as '.'
+- Server.close is async
 
-## [0.3.3]
+## [0.3.4] - 2021-08-08
+
+Improved:
+
+- `p5 serve` no longer report default directory name as '.'
+
+## [0.3.3] - 2021-08-08
+
+Fixed:
 
 - Fixes to package distr
 
-## [0.3.2]
+## [0.3.2] - 2021-08-07
 
 - Factored out [p5-analysis](https://www.npmjs.com/package/p5-analysis) package
 - Updated to p5-analysis 0.3.2; adapted to API changes
 
-## [0.3.1]
+## [0.3.1] - 2021-08-03
+
+Fixed:
 
 - Fix filename case inconsistency that caused error on Linux.
 
-## [0.3.0]
+## [0.3.0] - 2021-08-03
+
+New:
 
 - Add a command an API to convert between HTML and JavaScript-only sketches
-- Added svg files to distr
-- Remove src from distribution
 - Added scanPorts server option. This defaults true (the previous behavior)
+
+Fixed:
+
+- Added svg files to distr
+
+Improved:
+
+- Remove src from distribution
 - Sketch API changes (see commit descriptions)
 
-## [0.2.2]
+## [0.2.2] - 2021-07-31
+
+Fixed:
 
 - Add libraries.json back to distr
 
-## [0.2.1]
+## [0.2.1] - 2021-07-31
 
-- Fix crash involving `<script>` tags with no src attribute
-- Teach script analyzer about script expressions; (properly) ignore meta properties
+Improved:
+
 - Add a directory listing favicon
 - learn the ASCIIArt script include
 
-## [0.2.0]
+Fixed:
+
+- Fix crash involving `<script>` tags with no src attribute
+- Teach script analyzer about script expressions; (properly) ignore meta properties
+
+## [0.2.0] - 2021-07-30
+
+Improved:
 
 - Request for sketch.js redirects to index.html if this exists
 - Script analysis returns a map of definition types
-- Rename findProject -> analyzeDirectory
 - Add descriptions to the example sketches
 - Improve sketch directory detection
 - Teach script analyzer about class declarations, template literals
 
-## [0.1.9]
+Changed:
+
+- Rename findProject -> analyzeDirectory
+
+## [0.1.9] - 2021-07-29
 
 - recognize single-sketch directories
 - document implementation notes
 
-## [0.1.8]
+## [0.1.8] - 2021-07-28
 
 - use a template, generation options, for sketch generation
 
-## [0.1.7]
+## [0.1.7] - 2021-07-28
 
-## [0.1.6]
+## [0.1.6] - 2021-07-28
 
-## [0.1.5]
+## [0.1.5] - 2021-07-27
 
-## [0.1.4]
+## [0.1.4] - 2021-07-27
 
 - find an unoccupied port
 - Add a Script model
@@ -135,17 +215,17 @@
 - recognize libraries in HTML files
 - parse es modules
 
-## [0.1.2]
+## [0.1.2] - 2021-07-26
 
 - add tooltips
 - learn to import libraries that have been published to npm
 - improvements to script analysis
 - improvements to directory listing
 
-## [0.1.1]
+## [0.1.1] - 2021-07-26
 
-## [0.1.0]
+## [0.1.0] - 2021-07-26
 
-## [0.0.1]
+## [0.0.1] - 2021-07-25
 
 - Initial release

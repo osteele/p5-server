@@ -1,42 +1,47 @@
 import { writeFile } from 'fs/promises';
 import open from 'open';
+import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
-import { die } from '../utils';
 import { Server } from '../server/Server';
+import { die } from '../utils';
 
 type Options = {
   output?: string;
-  browser: 'safari' | 'chrome' | 'firefox' | 'edge';
+  browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
   skipFrames: number;
 };
 
 export default async function screenshot(source: string, options: Options) {
+  if (await Sketch.isSketchDir(source)) {
+    // const sketch = await Sketch.fromDirectory(source);
+    // source = sketch.mainFilePath;
+  } else if (!(await Sketch.isSketchFile(source))) {
+    die(`${source} is not a sketch file`);
+  }
+
   const output =
-    options.output || path.basename(source).replace(/\.(js|html?)$/, '') + '.png';
-  if (!/\.png$/.test(output)) {
+    options.output ||
+    path
+      .basename(source.replace(/(.+)\/index\.html?/i, '$1'))
+      .replace(/\.(js|html?)$/i, '') + '.png';
+  if (!/\.png$/i.test(output)) {
     die('The output file extension must be .png');
   }
+
   let skipFrames = Number(options.skipFrames || 0);
   const serverOptions = {
     root: source,
-    screenshot: { onFrame },
+    screenshot: { onFrameData },
+    type: {
+      png: 'image/png',
+    },
   };
   const server = await Server.start(serverOptions);
-  const appName: open.AppName | 'safari' | null =
-    options.browser === 'safari'
-      ? 'safari'
-      : options.browser in open.apps
-      ? options.browser
-      : null;
-  if (options.browser && !appName) {
-    die(`Unknown browser: ${options.browser}`);
-  }
-  const openApps = { safari: 'safari', ...open.apps };
-  const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
-  open(server.url!, openOptions);
+
+  openInBrowser(server.url!, options.browser);
 
   let savedFrames = 0;
-  async function onFrame({ data }: { data: Buffer }) {
+  async function onFrameData({ data }: { data: Buffer }) {
     if (skipFrames-- >= 0) return;
     if (savedFrames++ > 0) return;
 
@@ -54,4 +59,19 @@ export default async function screenshot(source: string, options: Options) {
       setTimeout(() => process.exit(0), 100);
     }
   }
+}
+
+function openInBrowser(url: string, browser?: string) {
+  const appName: open.AppName | 'safari' | undefined =
+    browser === 'safari'
+      ? 'safari'
+      : browser! in open.apps
+      ? (browser as open.AppName)
+      : undefined;
+  if (browser && !browser) {
+    die(`Unknown browser: ${browser}`);
+  }
+  const openApps = { safari: 'safari', ...open.apps };
+  const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
+  open(url, openOptions);
 }

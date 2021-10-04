@@ -50,13 +50,10 @@ export namespace Server {
 
     /** Sketches send screenshot data to this handler. */
     screenshot: {
-      onFrame: (data: {
+      onFrameData: (data: {
         contentType: string;
         data: Buffer;
-      }) =>
-        | { close?: boolean }
-        | void
-        | Promise<{ close?: boolean } | null | undefined>;
+      }) => { close?: boolean } | void | Promise<{ close?: boolean } | void>;
     } | null;
 
     theme?: string;
@@ -111,10 +108,11 @@ function createRouter(config: RouterConfig): express.Router {
       const m = dataURL.match(/^data:image\/png;base64,(.*)$/);
       if (!m || !config.screenshot) return res.send(200);
       const { close } =
-        (await config.screenshot.onFrame({
+        (await config.screenshot.onFrameData({
           contentType: 'image/png',
           data: Buffer.from(m[1], 'base64'),
         })) || {};
+      res.set('Content-Type', 'text/plain');
       res.send(close ? 'close' : '');
     }
   );
@@ -164,11 +162,14 @@ function createRouter(config: RouterConfig): express.Router {
       const source = await readFile(filepath, 'utf-8');
       const title = req.path.replace(/^\//, '');
       const html = sourceViewTemplate({ source, title });
+      res.set('Content-Type', 'text/html');
       return res.send(html);
     }
+
     try {
       const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
+        res.set('Content-Type', 'text/html');
         return res.send(createSyntaxErrorJsReporter(errs, filepath));
       }
     } catch (e) {
@@ -180,14 +181,10 @@ function createRouter(config: RouterConfig): express.Router {
     }
 
     if (config.screenshot) {
-      let data = await readFile(filepath, 'utf-8');
-      if (await Sketch.isSketchScriptFile(filepath)) {
-        data += '\n' + (await readFile(path.join(__dirname, 'static/screenshot.js')));
-      }
-      res.send(data);
-      return;
+      await sendScript(res, filepath);
+    } else {
+      next();
     }
-    return next();
   });
 
   router.get('/*.md', (req, res, next) => {
@@ -197,6 +194,7 @@ function createRouter(config: RouterConfig): express.Router {
         return next();
       }
       const data = fs.readFileSync(file, 'utf-8');
+      res.set('Content-Type', 'text/html');
       return res.send(markdownToHtmlPage(data));
     }
     return next();
@@ -215,8 +213,7 @@ function createRouter(config: RouterConfig): express.Router {
   return router;
 
   function sendHtml<T>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    req: Request<unknown, unknown, unknown, Record<string, any>, T>,
+    req: Request<unknown, unknown, unknown, Record<string, unknown>, T>,
     res: Response<string, T>,
     html: string
   ) {
@@ -228,14 +225,27 @@ function createRouter(config: RouterConfig): express.Router {
     ) {
       html = injectScriptEventRelayScript(html);
     }
+    res.set('Content-Type', 'text/html');
     res.send(html);
+  }
+
+  async function sendScript(
+    res: Response<unknown, Record<string, unknown>, number>,
+    filepath: string
+  ) {
+    let data = await readFile(filepath, 'utf-8');
+    if (config.screenshot && (await Sketch.isSketchScriptFile(filepath))) {
+      data += '\n' + (await readFile(path.join(__dirname, 'static/screenshot.js')));
+    }
+    res.set('Content-Type', 'text/javascript');
+    res.send(data);
   }
 }
 
 async function sendDirectoryListing<T>(
   config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
-  res: Response<string, T>
+  res: Response<unknown, T>
 ) {
   // This is needed for linked files to work.
   if (!req.originalUrl.endsWith('/')) {

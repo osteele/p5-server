@@ -7,6 +7,7 @@ import updateNotifier from 'update-notifier';
 import build from '../commands/build';
 import convert from '../commands/convert';
 import create from '../commands/create';
+import screenshot from '../commands/screenshot';
 import serve from '../commands/serve';
 import tree from '../commands/tree';
 
@@ -24,7 +25,7 @@ updateNotifier({ pkg }).notify({
     '→'
   )} ${chalk.green('{latestVersion}')}
   Run ${chalk.cyan('{updateCommand}')} to update
-  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`
+  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`,
 });
 
 program
@@ -62,8 +63,16 @@ program
 
 program.command('libraries', 'List the libraries', {
   hidden: true,
-  executableFile: 'p5-analyze'
+  executableFile: 'p5-analyze',
 });
+
+program
+  .command('screenshot')
+  .argument('SKETCH_FILE')
+  .option('-o, --output <OUTPUT>', 'the output file')
+  .option('--browser <NAME>', 'safari | chrome | firefox | edge')
+  .option('--skip-frames <COUNT>', 'omit the first COUNT frames')
+  .action(screenshot);
 
 program
   .command('serve')

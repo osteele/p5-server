@@ -48,6 +48,17 @@ export namespace Server {
     /** Inject the live reload websocket listener into HTML pages. */
     liveServer: boolean;
 
+    /** Sketches send screenshot data to this handler. */
+    screenshot: {
+      onFrame: (data: {
+        contentType: string;
+        data: Buffer;
+      }) =>
+        | { close?: boolean }
+        | void
+        | Promise<{ close?: boolean } | null | undefined>;
+    } | null;
+
     theme?: string;
   }>;
 
@@ -71,6 +82,7 @@ const defaultServerOptions = {
   port: 3000,
   relayConsoleMessages: false,
   scanPorts: true,
+  screenshot: null,
   theme: 'directory',
 };
 
@@ -90,6 +102,22 @@ function createRouter(config: RouterConfig): express.Router {
       await sendDirectoryListing(config, req, res);
     }
   });
+
+  router.post(
+    '/__p5_server/screenshot',
+    express.json({ limit: '50mb' }),
+    async (req, res) => {
+      const { dataURL } = req.body;
+      const m = dataURL.match(/^data:image\/png;base64,(.*)$/);
+      if (!m || !config.screenshot) return res.send(200);
+      const { close } =
+        (await config.screenshot.onFrame({
+          contentType: 'image/png',
+          data: Buffer.from(m[1], 'base64'),
+        })) || {};
+      res.send(close ? 'close' : '');
+    }
+  );
 
   router.get('/*.html?', (req, res, next) => {
     const file = path.join(config.root, decodeURIComponent(req.path));
@@ -115,7 +143,8 @@ function createRouter(config: RouterConfig): express.Router {
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
     const filepath = path.join(config.root, decodeURIComponent(req.path));
-    // bare-javascript sketch, not view source
+
+    // bare-javascript sketch; not view source
     if (
       req.headers['accept']?.match(/\btext\/html\b/) &&
       req.query.fmt !== 'view' &&
@@ -129,6 +158,7 @@ function createRouter(config: RouterConfig): express.Router {
         return sendHtml(req, res, await sketch.getHtmlContent());
       }
     }
+
     // view source
     if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt === 'view') {
       const source = await readFile(filepath, 'utf-8');
@@ -147,6 +177,15 @@ function createRouter(config: RouterConfig): express.Router {
       } else {
         throw e;
       }
+    }
+
+    if (config.screenshot) {
+      let data = await readFile(filepath, 'utf-8');
+      if (await Sketch.isSketchScriptFile(filepath)) {
+        data += '\n' + (await readFile(path.join(__dirname, 'static/screenshot.js')));
+      }
+      res.send(data);
+      return;
     }
     return next();
   });

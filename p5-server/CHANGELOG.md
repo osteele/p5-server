@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+- New command `p5 screenshot FILE` saves the canvas as an image file.
+
 ## [0.7.1]
 
 - Update README

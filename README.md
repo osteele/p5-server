@@ -7,31 +7,34 @@
 
 <!-- code_chunk_output -->
 
-- [Overview](#overview)
-- [Features](#features)
-- [Quick Start – Installation](#quick-start-installation)
-- [Quick Start – Usage](#quick-start-usage)
-- [Recipes](#recipes)
-  - [Run the Server](#run-the-server)
-    - [Serve a directory inside the current directory](#serve-a-directory-inside-the-current-directory)
-    - [Open the browser automatically](#open-the-browser-automatically)
-    - [Browse directories in split mode](#browse-directories-in-split-mode)
-    - [Create a sketch file](#create-a-sketch-file)
-  - [Build a static site](#build-a-static-site)
-  - [Convert between JavaScript-only and HTML sketches](#convert-between-javascript-only-and-html-sketches)
-- [Command-Line Reference](#command-line-reference)
-  - [`p5 build [DIRECTORY]`](#p5-build-directory)
-  - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename-to-format)
-  - [`p5 create [NAME]`](#p5-create-name)
-  - [`p5 serve [filename]`](#p5-serve-filename)
-  - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
-- [Implementation Notes](#implementation-notes)
-- [Limitations](#limitations)
-- [API](#api)
-- [Acknowledgements](#acknowledgements)
-- [Other Work](#other-work)
-- [Keeping in Touch](#keeping-in-touch)
-- [License](#license)
+- [P5.js Server](#p5js-server)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Quick Start – Installation](#quick-start--installation)
+  - [Quick Start – Usage](#quick-start--usage)
+  - [Recipes](#recipes)
+    - [Run the Server](#run-the-server)
+      - [Serve a directory inside the current directory](#serve-a-directory-inside-the-current-directory)
+      - [Open the browser automatically](#open-the-browser-automatically)
+      - [Browse directories in split mode](#browse-directories-in-split-mode)
+      - [Create a sketch file](#create-a-sketch-file)
+    - [Build a static site](#build-a-static-site)
+    - [Create a screenshot](#create-a-screenshot)
+    - [Convert between JavaScript-only and HTML sketches](#convert-between-javascript-only-and-html-sketches)
+  - [Command-Line Reference](#command-line-reference)
+    - [`p5 build [DIRECTORY]`](#p5-build-directory)
+    - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename---to-format)
+    - [`p5 create [NAME]`](#p5-create-name)
+    - [`p5 serve [filename]`](#p5-serve-filename)
+    - [`p5 sceenshot [filename]`](#p5-sceenshot-filename)
+    - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
+  - [Implementation Notes](#implementation-notes)
+  - [Limitations](#limitations)
+  - [API](#api)
+  - [Acknowledgements](#acknowledgements)
+  - [Other Work](#other-work)
+  - [Keeping in Touch](#keeping-in-touch)
+  - [License](#license)
 
 <!-- /code_chunk_output -->
 
@@ -189,6 +192,19 @@ Run `p5 build --help` for a list of options.
 
 Two themes are supported, `--theme directory` and `--theme split`.
 
+### Create a screenshot
+
+`p5 screenshot my-sketch.js` creates a screenshot named `my-sketch.png` in the
+current directory. It operates by running the sketch in a browser, saving the
+canvas, and then closing the browser page.
+
+`p5 screenshot my-sketch.html` works for an HTML sketch; `p5 screenshot
+my-sketch` works for a single-sketch directory.
+
+Run `p5 screenshot --help` for a list of options. Options are supported to set
+the output filename and the number of the starting frame, and to specify the
+browser.
+
 ### Convert between JavaScript-only and HTML sketches
 
 `p5 convert sketch.html` converts an HTML sketch to a JavaScript-only sketch, by
@@ -275,6 +291,10 @@ automatically.
 
 If another server is already running on port 3000, the server will choose
 another port.
+
+### `p5 sceenshot [filename]`
+
+> Open the sketch in a browser, and save the canvas as an image.
 
 ### `p5 tree [DIRECTORY]`
 

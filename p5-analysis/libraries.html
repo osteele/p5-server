@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Library Inference</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Library Inference</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#core-libraries">Core Libraries</a>
+<ul>
+<li><a href="#p5.sound"><span>p5.sound</span></a></li>
+</ul></li>
+<li><a href="#community-libraries">Community Libraries</a>
+<ul>
+<li><a href="#ascii-art"><span>ASCII Art</span></a></li>
+<li><a href="#p5.ble.js"><span>p5.ble.js</span></a></li>
+<li><a href="#p5.bots"><span>p5.bots</span></a></li>
+<li><a href="#p5.clickable"><span>p5.clickable</span></a></li>
+<li><a href="#p5.cmyk.js"><span>p5.cmyk.js</span></a></li>
+<li><a href="#p5.collide2d"><span>p5.collide2D</span></a></li>
+<li><a href="#p5.createloop"><span>p5.createloop</span></a></li>
+<li><a href="#p5.dimensions.js"><span>p5.dimensions.js</span></a></li>
+<li><a href="#p5.easycam"><span>p5.EasyCam</span></a></li>
+<li><a href="#p5.experience.js"><span>p5.experience.js</span></a></li>
+<li><a href="#p5.func"><span>p5.func</span></a></li>
+<li><a href="#p5.geolocation"><span>p5.geolocation</span></a></li>
+<li><a href="#grafica.js"><span>grafica.js</span></a></li>
+<li><a href="#p5.gui"><span>p5.gui</span></a></li>
+<li><a href="#p5.localmessage"><span>p5.localmessage</span></a></li>
+<li><a href="#marching"><span>marching</span></a></li>
+<li><a href="#mappa"><span>Mappa</span></a></li>
+<li><a href="#ml5.js"><span>ml5.js</span></a></li>
+<li><a href="#p5.play"><span>p5.play</span></a></li>
+<li><a href="#p5.particle"><span>p5.particle</span></a></li>
+<li><a href="#p5.riso"><span>p5.Riso</span></a></li>
+<li><a href="#rita"><span>RiTa</span></a></li>
+<li><a href="#rotating-knobs"><span>Rotating Knobs</span></a></li>
+<li><a href="#p5.scenemanager"><span>p5.SceneManager</span></a></li>
+<li><a href="#p5js.screenposition"><span>p5js.screenPosition</span></a></li>
+<li><a href="#p5.scribble"><span>p5.scribble</span></a></li>
+<li><a href="#p5.serial"><span>p5.serial</span></a></li>
+<li><a href="#shape5"><span>Shape5</span></a></li>
+<li><a href="#p5.shape.js"><span>p5.shape.js</span></a></li>
+<li><a href="#p5.speech"><span>p5.speech</span></a></li>
+<li><a href="#p5.start2d.js"><span>p5.start2d.js</span></a></li>
+<li><a href="#p5.tiledmap"><span>p5.tiledmap</span></a></li>
+<li><a href="#p5.touchgui"><span>p5.touchgui</span></a></li>
+<li><a href="#vida"><span>vida</span></a></li>
+<li><a href="#p5.voronoi"><span>p5.voronoi</span></a></li>
+<li><a href="#p5.xr"><span>p5.xr</span></a></li>
+<li><a href="#p5.3d"><span>p5.3D</span></a></li>
+<li><a href="#p5.pattern"><span>p5.pattern</span></a></li>
+</ul></li>
+<li><a href="#peer-libraries">Peer Libraries</a>
+<ul>
+<li><a href="#anime"><span>anime</span></a></li>
+<li><a href="#ccapture.js"><span>CCapture.js</span></a></li>
+<li><a href="#dat.gui"><span>dat.gui</span></a></li>
+</ul></li>
+<li><a href="#olivers-libraries">Oliver’s Libraries</a>
+<ul>
+<li><a href="#p5.layers"><span>p5.layers</span></a></li>
+<li><a href="#p5.rotate-about"><span>p5.rotate-about</span></a></li>
+<li><a href="#p5.vector-arguments"><span>p5.vector-arguments</span></a></li>
+</ul></li>
+</ul>
+</nav>
+<p><a href="https://osteele.github.io/p5-server/">p5-server</a>, and the <a href="https://github.com/osteele/vscode-p5server#readme">P5 Server Visual Studio Code extension</a>, automatically include these libraries if a sketch refers to functions or classes that they define, and the sketch does not include its own definitions of these variables.</p>
+<h1 id="core-libraries">Core Libraries</h1>
+<p>“Core” libraries from <a href="https://p5js.org/libraries/" class="uri">https://p5js.org/libraries/</a></p>
+<h2 id="p5.sound"><a href="https://p5js.org/reference/#/libraries/p5.sound">p5.sound</a></h2>
+<p>p5.sound extends p5 with Web Audio functionality including audio input, playback, analysis and synthesis.</p>
+<p>Defines:</p>
+<ul>
+<li><code>createConvolver</code></li>
+<li><code>freqToMidi</code></li>
+<li><code>getAudioContext</code></li>
+<li><code>getOutputVolume</code></li>
+<li><code>loadSound</code></li>
+<li><code>midiToFreq</code></li>
+<li><code>outputVolume</code></li>
+<li><code>sampleRate</code></li>
+<li><code>saveSound</code></li>
+<li><code>setBPM</code></li>
+<li><code>soundFormats</code></li>
+<li><code>soundOut</code></li>
+<li><code>userStartAudio</code></li>
+<li><code>p5.Amplitude</code></li>
+<li><code>p5.AudioIn</code></li>
+<li><code>p5.Convolver</code></li>
+<li><code>p5.Delay</code></li>
+<li><code>p5.Envelope</code></li>
+<li><code>p5.FFT</code></li>
+<li><code>p5.Filter</code></li>
+<li><code>p5.MonoSynth</code></li>
+<li><code>p5.Noise</code></li>
+<li><code>p5.Oscillator</code></li>
+<li><code>p5.Part</code></li>
+<li><code>p5.Phrase</code></li>
+<li><code>p5.PolySynth</code></li>
+<li><code>p5.Pulse</code></li>
+<li><code>p5.Reverb</code></li>
+<li><code>p5.Score</code></li>
+<li><code>p5.SoundFile</code></li>
+<li><code>p5.SoundLop</code></li>
+<li><code>p5.SoundRecorder</code></li>
+</ul>
+<h1 id="community-libraries">Community Libraries</h1>
+<p>“Community” libraries from <a href="https://p5js.org/libraries/" class="uri">https://p5js.org/libraries/</a></p>
+<h2 id="ascii-art"><a href="https://www.tetoki.eu/asciiart/">ASCII Art</a></h2>
+<p>p5.asciiart is a simple and easy to use image-to-ASCII art converter for p5js.</p>
+<p>Defines:</p>
+<ul>
+<li><code>AsciiArt</code></li>
+</ul>
+<h2 id="p5.ble.js"><a href="https://itpnyu.github.io/p5ble-website/">p5.ble.js</a></h2>
+<p>A Javascript library that enables communication between BLE devices and p5 sketches.</p>
+<p>Defines:</p>
+<ul>
+<li><code>p5ble</code></li>
+</ul>
+<h2 id="p5.bots"><a href="https://github.com/sarahgp/p5bots">p5.bots</a></h2>
+<p>With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!</p>
+<p>Defines:</p>
+<ul>
+<li><code>p5.board</code></li>
+<li><code>p5.serial</code></li>
+</ul>
+<h2 id="p5.clickable"><a href="https://github.com/Lartu/p5.clickable">p5.clickable</a></h2>
+<p>Event driven, easy-to-use button library.</p>
+<p>Defines:</p>
+<ul>
+<li><code>Clickable</code></li>
+</ul>
+<h2 id="p5.cmyk.js"><a href="https://github.com/jtnimoy/p5.cmyk.js">p5.cmyk.js</a></h2>
+<p>CMYK color space for p5.js</p>
+<p>Defines:</p>
+<ul>
+<li><code>Cmyk</code></li>
+</ul>
+<h2 id="p5.collide2d"><a href="https://github.com/bmoren/p5.collide2D">p5.collide2D</a></h2>
+<p>p5.collide2D provides tools for calculating collision detection for 2D geometry with p5.js.</p>
+<p>Defines:</p>
+<ul>
+<li><code>collideDebug</code></li>
+<li><code>collidePointPoint</code></li>
+<li><code>collidePointCircle</code></li>
+<li><code>collidePointEllipse</code></li>
+<li><code>collidePointRect</code></li>
+<li><code>collidePointLine</code></li>
+<li><code>collidePointArc</code></li>
+<li><code>collideRectRect</code></li>
+<li><code>collideCircleCircle</code></li>
+<li><code>collideRectCircle</code></li>
+<li><code>collideLineLine</code></li>
+<li><code>collideLineCircle</code></li>
+<li><code>collideLineRect</code></li>
+<li><code>collidePointPoly</code></li>
+<li><code>collideCirclePoly</code></li>
+<li><code>collideRectPoly</code></li>
+<li><code>collideLinePoly</code></li>
+<li><code>collidePolyPoly</code></li>
+<li><code>collidePointTriangle</code></li>
+</ul>
+<h2 id="p5.createloop"><a href="https://www.npmjs.com/package/p5.createloop">p5.createloop</a></h2>
+<p>Create animation loops with noise and GIF exports in one line of code</p>
+<p>Defines:</p>
+<ul>
+<li><code>createloop</code></li>
+</ul>
+<h2 id="p5.dimensions.js"><a href="https://github.com/Smilebags/p5.dimensions.js">p5.dimensions.js</a></h2>
+<p>p5.dimensions extends p5.js’ vector functions to work in any number of dimensions.</p>
+<p>Defines:</p>
+<ul>
+<li><code>nDist</code></li>
+<li><code>nDistSq</code></li>
+<li><code>nDot</code></li>
+<li><code>nLerp</code></li>
+<li><code>nAdd</code></li>
+<li><code>nSub</code></li>
+<li><code>nMul</code></li>
+<li><code>nDiv</code></li>
+<li><code>nSetMag</code></li>
+<li><code>nCross</code></li>
+<li><code>nEqual</code></li>
+<li><code>nNormalize</code></li>
+<li><code>nMag</code></li>
+<li><code>nMagSq</code></li>
+</ul>
+<h2 id="p5.easycam"><a href="https://github.com/freshfork/p5.EasyCam">p5.EasyCam</a></h2>
+<p>Simple 3D camera control with inertial pan, zoom, and rotate</p>
+<p>Defines:</p>
+<ul>
+<li><code>Dw</code></li>
+<li><code>createEasyCam</code></li>
+<li><code>p5.RoverCam</code></li>
+</ul>
+<h2 id="p5.experience.js"><a href="https://github.com/loneboarder/p5.experience.js">p5.experience.js</a></h2>
+<p>Extensive library for p5.js that adds additional event-listening functionality for creating canvas-based web applications</p>
+<p>Defines:</p>
+<ul>
+<li><code>uxRect</code></li>
+<li><code>uxSquare</code></li>
+<li><code>uxTriangle</code></li>
+<li><code>uxCircle</code></li>
+<li><code>uxEllipse</code></li>
+<li><code>uxFillColor</code></li>
+<li><code>uxnoFill</code></li>
+<li><code>uxStroke</code></li>
+<li><code>uxNoStroke</code></li>
+<li><code>uxStrokeWeight</code></li>
+</ul>
+<h2 id="p5.func"><a href="https://idmnyu.github.io/p5.js-func/">p5.func</a></h2>
+<p>p5.func is a p5 extension that provides new objects and utilities for function generation in the time, frequency, and spatial domains</p>
+<p>Defines:</p>
+<ul>
+<li><code>imap</code></li>
+<li><code>wrap</code></li>
+<li><code>createArray</code></li>
+<li><code>normalizeArray</code></li>
+<li><code>resizeArray</code></li>
+<li><code>multiplyArray</code></li>
+<li><code>addArray</code></li>
+<li><code>subtractArray</code></li>
+<li><code>divideArray</code></li>
+<li><code>moduloArray</code></li>
+<li><code>sumArray</code></li>
+<li><code>f2ib</code></li>
+<li><code>ib2f</code></li>
+<li><code>sinc</code></li>
+<li><code>besselI0</code></li>
+<li><code>fplot</code></li>
+<li><code>p5.Gen</code></li>
+<li><code>p5.Ease</code></li>
+<li><code>p5.ArrayEval</code></li>
+<li><code>p5.Filt</code></li>
+<li><code>p5.FastFourierTransform</code></li>
+</ul>
+<h2 id="p5.geolocation"><a href="https://github.com/bmoren/p5.geolocation">p5.geolocation</a></h2>
+<p>p5.geolocation provides techniques for acquiring, watching, calculating, and geofencing user locations for p5.js</p>
+<p>Defines:</p>
+<ul>
+<li><code>geoCheck</code></li>
+<li><code>getCurrentPosition</code></li>
+<li><code>watchPosition</code></li>
+<li><code>clearWatch</code></li>
+<li><code>intervalCurrentPosition</code></li>
+<li><code>clearIntervalPos</code></li>
+<li><code>calcGeoDistance</code></li>
+<li><code>geoFenceCircle</code></li>
+<li><code>geoFencePolygon</code></li>
+</ul>
+<h2 id="grafica.js"><a href="https://github.com/jagracar/grafica.js">grafica.js</a></h2>
+<p>grafica.js lets you add simple but highly configurable 2D plots to your p5.js sketches.</p>
+<p>Defines:</p>
+<ul>
+<li><code>GPlot</code></li>
+</ul>
+<h2 id="p5.gui"><a href="https://github.com/bitcraftlab/p5.gui">p5.gui</a></h2>
+<p>p5.gui generates a graphical user interface for your p5.js sketches.</p>
+<p>Defines:</p>
+<ul>
+<li><code>createGui</code></li>
+</ul>
+<h2 id="p5.localmessage"><a href="https://github.com/bmoren/p5.localmessage">p5.localmessage</a></h2>
+<p>p5.localmessage provides a simple interface to send messages locally from one sketch to another for easy multi-window sketching</p>
+<p>Defines:</p>
+<ul>
+<li><code>registerServiceWorker</code></li>
+<li><code>sendMessage</code></li>
+<li><code>listenMessage</code></li>
+</ul>
+<h2 id="marching"><a href="https://github.com/jtnimoy/marching">marching</a></h2>
+<p>Raster to vector conversion, isosurfaces</p>
+<p>Defines:</p>
+<ul>
+<li><code>marchingSquares</code></li>
+</ul>
+<h2 id="mappa"><a href="https://github.com/cvalenzuela/Mappa">Mappa</a></h2>
+<p>Mappa provides a set of tools for working with static maps, tile maps, and geo-data. Useful when building geolocation-based visual representations</p>
+<p>Defines:</p>
+<ul>
+<li><code>Mappa</code></li>
+</ul>
+<h2 id="ml5.js"><a href="https://ml5js.org/">ml5.js</a></h2>
+<p>ml5.js aims to make machine learning approachable for a broad audience of artists, creative coders, and students. The library provides access to machine learning algorithms and models in the browser.</p>
+<p>Defines:</p>
+<ul>
+<li><code>ml5</code></li>
+</ul>
+<h2 id="p5.play"><a href="https://molleindustria.github.io/p5.play/">p5.play</a></h2>
+<p>p5.play provides sprites, animations, input and collision functions for games and gamelike applications</p>
+<p>Defines:</p>
+<ul>
+<li><code>createSprite</code></li>
+<li><code>loadAnimation</code></li>
+</ul>
+<h2 id="p5.particle"><a href="https://github.com/bobcgausa/cook-js">p5.particle</a></h2>
+<p>The Particle and Fountain objects can be used to create data-driven effects that are defined through user structures or JSON input and user-draw functions</p>
+<p>Defines:</p>
+<ul>
+<li><code>Particle</code></li>
+<li><code>Fountain</code></li>
+</ul>
+<h2 id="p5.riso"><a href="https://antiboredom.github.io/p5.riso/">p5.Riso</a></h2>
+<p>p5.Riso is a library for generating files suitable for Risograph printing. It helps turn your sketches into multi-color prints</p>
+<p>Defines:</p>
+<ul>
+<li><code>drawRiso</code></li>
+</ul>
+<h2 id="rita"><a href="https://rednoise.org/rita/">RiTa</a></h2>
+<p>RiTa.js provides a set of natural language processing objects for generative literature</p>
+<p>Defines:</p>
+<ul>
+<li><code>RiTa</code></li>
+</ul>
+<h2 id="rotating-knobs"><a href="http://codeforartists.com/RotatingKnobMaker/">Rotating Knobs</a></h2>
+<p>Make knobs you can rotate with custom graphics and return value ranges</p>
+<p>Defines:</p>
+<ul>
+<li><code>MakeKnob</code></li>
+</ul>
+<h2 id="p5.scenemanager"><a href="https://github.com/mveteanu/p5.SceneManager">p5.SceneManager</a></h2>
+<p>p5.SceneManager is a library for managing multiple p5.js scenes in a single sketch</p>
+<p>Defines:</p>
+<ul>
+<li><code>SceneManager</code></li>
+</ul>
+<h2 id="p5js.screenposition"><a href="https://github.com/bohnacker/p5js-screenPosition">p5js.screenPosition</a></h2>
+<p>p5js.screenPosition is a library that provides a function for getting the position of the mouse on the screen</p>
+<p>Defines:</p>
+<ul>
+<li><code>addScreenPositionFunction</code></li>
+</ul>
+<h2 id="p5.scribble"><a href="https://github.com/generative-light/p5.scribble.js">p5.scribble</a></h2>
+<p>Draw 2D primitives in a sketchy look</p>
+<p>Defines:</p>
+<ul>
+<li><code>Scribble</code></li>
+</ul>
+<h2 id="p5.serial"><a href="https://github.com/p5-serial/p5.serialport">p5.serial</a></h2>
+<p>p5.serial enables serial communication between devices that support serial (RS-232) and p5 sketches running in the browser</p>
+<p>Defines:</p>
+<ul>
+<li><code>p5.SerialPort</code></li>
+</ul>
+<h2 id="shape5"><a href="https://github.com/pfe1223/Shape5js">Shape5</a></h2>
+<p>Shape5 is a library for creating and manipulating shapes in p5.js</p>
+<p>Defines:</p>
+<ul>
+<li><code>Circle</code></li>
+<li><code>Square</code></li>
+<li><code>Triangle</code></li>
+<li><code>Polygon</code></li>
+<li><code>Oval</code></li>
+<li><code>Rectangle</code></li>
+<li><code>Semicircle</code></li>
+<li><code>Rhombus</code></li>
+<li><code>RightTriangle</code></li>
+<li><code>IsoscelesTriangle</code></li>
+<li><code>Stripe</code></li>
+</ul>
+<h2 id="p5.shape.js"><a href="https://github.com/gaba5/p5.shape.js">p5.shape.js</a></h2>
+<p>A library built to add more simple shapes to the p5.js framework.</p>
+<p>Defines:</p>
+<ul>
+<li><code>tri</code></li>
+<li><code>pent</code></li>
+<li><code>hexagon</code></li>
+<li><code>hept</code></li>
+<li><code>octo</code></li>
+<li><code>nona</code></li>
+<li><code>heart</code></li>
+<li><code>center</code></li>
+<li><code>deca</code></li>
+<li><code>trap</code></li>
+<li><code>rightTri</code></li>
+</ul>
+<h2 id="p5.speech"><a href="https://idmnyu.github.io/p5.js-speech/">p5.speech</a></h2>
+<p>p5.speech provides simple, clear access to the Web Speech and Speech Recognition APIs, allowing for the easy creation of sketches that can talk and listen</p>
+<p>Defines:</p>
+<ul>
+<li><code>p5.Speech</code></li>
+<li><code>p5.SpeechRec</code></li>
+</ul>
+<h2 id="p5.start2d.js"><a href="https://github.com/eltapir/p5.start2d.js">p5.start2d.js</a></h2>
+<p>p5 extension for 2D static art using px, mm, cm or inches</p>
+<p>Defines:</p>
+<h2 id="p5.tiledmap"><a href="https://github.com/linux-man/p5.tiledmap">p5.tiledmap</a></h2>
+<p>p5.tiledmap provides drawing and helper functions to include maps in your sketches</p>
+<p>Defines:</p>
+<ul>
+<li><code>loadTiledMap</code></li>
+</ul>
+<h2 id="p5.touchgui"><a href="https://github.com/L05/p5.touchgui">p5.touchgui</a></h2>
+<p>A multi-touch and mouse GUI Library for p5.js</p>
+<p>Defines:</p>
+<ul>
+<li><code>createGui</code></li>
+</ul>
+<h2 id="vida"><a href="https://www.tetoki.eu/vida/">vida</a></h2>
+<p>Vida is a simple library that adds camera (or video) based motion detection and blob tracking functionality to p5js</p>
+<p>Defines:</p>
+<ul>
+<li><code>Vida</code></li>
+</ul>
+<h2 id="p5.voronoi"><a href="https://github.com/Dozed12/p5.voronoi">p5.voronoi</a></h2>
+<p>p5.voronoi is a library for creating Voronoi diagrams in p5.js</p>
+<p>Defines:</p>
+<ul>
+<li><code>voronoi</code></li>
+<li><code>voronoiGetDiagram</code></li>
+</ul>
+<h2 id="p5.xr"><a href="http://p5xr.org/">p5.xr</a></h2>
+<p>A library for creating VR and AR sketches with p5</p>
+<p>Defines:</p>
+<ul>
+<li><code>createVRCanvas</code></li>
+</ul>
+<h2 id="p5.3d"><a href="https://github.com/FreddieRa/p5.3D">p5.3D</a></h2>
+<p>p5.3D is a library for creating 3D graphics 3D Text and Images in WebGL</p>
+<p>Defines:</p>
+<ul>
+<li><code>createWord3D</code></li>
+<li><code>createPicture3D</code></li>
+<li><code>createCanvas3D</code></li>
+</ul>
+<h2 id="p5.pattern"><a href="https://openprocessing.org/sketch/1278485">p5.pattern</a></h2>
+<p>A pattern drawing library for p5.js.</p>
+<p>Defines:</p>
+<h1 id="peer-libraries">Peer Libraries</h1>
+<p>Libraries that are not specific to p5.js, but are useful for p5 sketches</p>
+<h2 id="anime"><a href="https://animejs.com">anime</a></h2>
+<p>Anime.js (/ˈæn.ə.meɪ/) is a lightweight JavaScript animation library with a simple, yet powerful API.</p>
+<p>Defines:</p>
+<ul>
+<li><code>anime</code></li>
+</ul>
+<h2 id="ccapture.js"><a href="https://github.com/spite/ccapture.js#readme">CCapture.js</a></h2>
+<p>CCapture.js is a library to help capturing animations created with HTML5 canvas at a fixed framerate</p>
+<p>Defines:</p>
+<ul>
+<li><code>CCapture</code></li>
+</ul>
+<h2 id="dat.gui"><a href="https://github.com/dataarts/dat.gui">dat.gui</a></h2>
+<p>dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.</p>
+<p>Defines:</p>
+<ul>
+<li><code>dat</code></li>
+</ul>
+<h1 id="olivers-libraries">Oliver’s Libraries</h1>
+<p><a href="https://osteele.github.io/p5.libs/">Oliver’s p5.js libraries</a></p>
+<h2 id="p5.layers"><a href="https://osteele.github.io/p5.libs/p5.layers/">p5.layers</a></h2>
+<p>Make it easier to use Graphics instances to make layers</p>
+<p>Defines:</p>
+<ul>
+<li><code>beginLayer</code></li>
+</ul>
+<h2 id="p5.rotate-about"><a href="https://osteele.github.io/p5.libs/p5.vector-arguments/">p5.rotate-about</a></h2>
+<p>Add p5.js rotateAbout() and scaleAbout() functions</p>
+<p>Defines:</p>
+<ul>
+<li><code>rotateAbout</code></li>
+<li><code>scaleAbout</code></li>
+</ul>
+<h2 id="p5.vector-arguments"><a href="https://osteele.github.io/p5.libs/p5.vector-arguments/">p5.vector-arguments</a></h2>
+<p>Allow the p5.js functions to accept Vector arguments</p>
+<p>Defines:</p>
+<ul>
+<li><code>enableVectorArguments</code></li>
+</ul>
+</body>
+</html>

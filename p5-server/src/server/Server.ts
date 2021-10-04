@@ -105,7 +105,7 @@ function createRouter(config: RouterConfig): express.Router {
         const sketch = await Sketch.fromFile(sketchFile);
         sendHtml(req, res, await sketch.getHtmlContent());
       } else {
-        res.sendFile(sketchFile);
+        sendHtml(req, res, await readFile(sketchFile, 'utf-8'));
       }
     } else if (config.screenshot) {
       const { sketches } = fs.statSync(file).isDirectory()

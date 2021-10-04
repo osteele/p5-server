@@ -12,7 +12,10 @@ import {
   BrowserScriptRelay,
   injectScriptEventRelayScript,
 } from './browserScriptEventRelay';
-import { createDirectoryListing } from './createDirectoryListing';
+import {
+  createDirectoryListing,
+  defaultDirectoryExclusions,
+} from './createDirectoryListing';
 import { closeSync, listenSync } from './http-server-sync';
 import {
   createLiveReloadServer,
@@ -94,14 +97,29 @@ function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
 
   router.get('/', async (req, res) => {
-    const file = config.sketchFile;
-    if (file) {
-      if (await Sketch.isSketchScriptFile(file)) {
-        const sketch = await Sketch.fromFile(file);
+    const sketchFile = config.sketchFile;
+    const file = path.join(config.root, decodeURIComponent(req.path));
+
+    if (sketchFile) {
+      if (await Sketch.isSketchScriptFile(sketchFile)) {
+        const sketch = await Sketch.fromFile(sketchFile);
         sendHtml(req, res, await sketch.getHtmlContent());
       } else {
-        res.sendFile(file);
+        res.sendFile(sketchFile);
       }
+    } else if (config.screenshot) {
+      const { sketches } = fs.statSync(file).isDirectory()
+        ? await Sketch.analyzeDirectory(file, {
+            exclusions: defaultDirectoryExclusions,
+          })
+        : { sketches: [] };
+      if (sketches.length !== 1)
+        throw new Error(`Expected exactly one sketch in ${file}`);
+      const [sketch] = sketches;
+      const html = sketch.htmlFile
+        ? await readFile(sketch.htmlFilePath!, 'utf-8')
+        : await sketch.getHtmlContent();
+      sendHtml(req, res, html);
     } else {
       await sendDirectoryListing(config, req, res);
     }
@@ -154,7 +172,9 @@ function createRouter(config: RouterConfig): express.Router {
       req.query.fmt !== 'view' &&
       (await Sketch.isSketchScriptFile(filepath))
     ) {
-      const { sketches } = await Sketch.analyzeDirectory(path.dirname(filepath));
+      const { sketches } = await Sketch.analyzeDirectory(path.dirname(filepath), {
+        exclusions: defaultDirectoryExclusions,
+      });
       const sketch = sketches.find(sketch =>
         sketch.files.includes(path.basename(filepath))
       );

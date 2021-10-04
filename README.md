@@ -163,8 +163,8 @@ Two themes are supported, `--theme directory` and `--theme split`.
 current directory. It operates by running the sketch in a browser, saving the
 canvas, and then closing the browser page.
 
-`p5 screenshot my-sketch.html` works for an HTML sketch; `p5 screenshot
-my-sketch` works for a single-sketch directory.
+You can also use `p5 screenshot my-sketch.html` for an HTML sketch; and `p5
+screenshot dir` where `dir` names a single-sketch directory.
 
 Run `p5 screenshot --help` for a list of options. There are options to set the
 output filename, the number of the starting frame, the pixel density, the canvas

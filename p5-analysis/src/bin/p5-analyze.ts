@@ -6,7 +6,8 @@ import checkCollisions from '../commands/check-library-collisions';
 import {
   findMinimizedAlternatives,
   listLibraries,
-  checkLibraryPaths
+  checkLibraryPaths,
+  generateLibraryPage,
 } from '../commands/library-commands';
 
 const program = new Command();
@@ -22,6 +23,7 @@ const libraries = program.command('libraries');
 libraries.command('check-collisions').action(checkCollisions);
 libraries.command('find-minimized-alternatives').action(findMinimizedAlternatives);
 libraries.command('test-import-paths').action(checkLibraryPaths);
+libraries.command('generate').action(generateLibraryPage);
 libraries.command('list').action(listLibraries);
 
 program.parse(process.argv);

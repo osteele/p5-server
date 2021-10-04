@@ -4,15 +4,50 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import { Library, Script } from '..';
 import nunjucks from 'nunjucks';
-import path from 'path';
+
+nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
+
+const roleDescriptions: Record<string, { name?: string; description: string }> = {
+  core: { description: '“Core” libraries from <https://p5js.org/libraries/>' },
+  community: {
+    description: '“Community” libraries from <https://p5js.org/libraries/>',
+  },
+  peer: {
+    description:
+      'Libraries that are not specific to p5.js, but are useful for p5 sketches',
+  },
+  osteele: {
+    name: 'Oliver’s Libraries',
+    description: '[Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)',
+  },
+};
 
 export function listLibraries() {
-  const templatePath = path.join(__dirname, './templates/list-libraries.njk');
   console.log(
-    nunjucks.render(templatePath, {
-      libraries: Library.all
+    nunjucks.render('list-libraries.njk', {
+      libraries: Library.all,
+      roleDescriptions,
     })
   );
+}
+
+export function generateLibraryPage() {
+  const roles = (
+    Array.from(new Set(Library.all.map(lib => lib.role))).filter(Boolean) as string[]
+  ).map(roleKey => ({
+    name: roleDescriptions[roleKey].name || `${capitalize(roleKey)} Libraries`,
+    description: roleDescriptions[roleKey].description,
+    libraries: Library.all.filter(lib => lib.role === roleKey),
+  }));
+  const markdown = nunjucks.render('libraries.njk', {
+    roles,
+    stringify: JSON.stringify,
+  });
+  console.log(markdown);
+
+  function capitalize(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 }
 
 export async function checkLibraryPaths() {
@@ -26,7 +61,7 @@ export async function checkLibraryPaths() {
   console.log('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
   const responses = await Promise.all(
-    librariesWithPaths.map(async function(
+    librariesWithPaths.map(async function (
       library
     ): Promise<[Library, string, null] | [Library, null, string]> {
       const res = await cachedFetch(library.importPath!);
@@ -79,7 +114,7 @@ export async function findMinimizedAlternatives() {
   );
   const found = (
     await Promise.all(
-      candidates.map(async function(library): Promise<[Library, string] | null> {
+      candidates.map(async function (library): Promise<[Library, string] | null> {
         const url = library.importPath!.replace(/\.js$/, '.min.js');
         const res = await cachedFetch(url);
         return res.ok ? [library, url] : null;
@@ -111,10 +146,7 @@ export async function findMinimizedAlternatives() {
 async function cachedFetch(url: string) {
   const cacheDir = '/tmp/node-fetch-cache';
   // compute the md5 of url
-  const hash = crypto
-    .createHash('md5')
-    .update(url)
-    .digest('hex');
+  const hash = crypto.createHash('md5').update(url).digest('hex');
   const cachePath = `${cacheDir}/${hash}`;
   if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir);
@@ -129,7 +161,7 @@ async function cachedFetch(url: string) {
       ok: true,
       status: 200,
       statusText: 'OK',
-      text: () => Promise.resolve(text)
+      text: () => Promise.resolve(text),
     };
   } else {
     const res = await fetch(url);
@@ -139,7 +171,7 @@ async function cachedFetch(url: string) {
     }
     return {
       ...res,
-      text: () => Promise.resolve(text)
+      text: () => Promise.resolve(text),
     };
   }
 }

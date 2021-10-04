@@ -9,7 +9,7 @@
     "build": "yarn workspaces foreach -tv run build",
     "build:docs": "yarn build:docs:root && yarn workspaces foreach -v run build:docs",
     "build:docs:root": "pandoc -dpandoc.yml README.md -o gh-pages/index.html && cp -r docs LICENSE gh-pages",
-    "gh-pages:build": "rimraf 'gh-pages/*' && yarn build:docs && yarn build:docs:root && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
+    "gh-pages:build": "rimraf 'gh-pages/*' && yarn build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "yarn gh-pages:build && yarn gh-pages:publish",
     "clean": "yarn workspaces foreach run clean:ws",

@@ -35,8 +35,9 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
 - ***JavaScript-only sketches***. A sketch can be a single JavaScript file. You
   don't need to create an HTML file just to run the sketch.
 - ***Automatic library includes***. If a JavaScript-only sketch uses a function
-  from a [p5.js library](https://p5js.org/libraries/), the library will be
-  included. ([This
+  from [one of these
+  libraries](https://osteele.github.io/p5-server/p5-analysis/libraries), the
+  library will be included. ([This
   page](https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion)
   describes how this works.)
 - ***In-browser syntax errors***. A JavaScript file that has a syntax error will

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { parse } from 'node-html-parser';
-import path from 'path';
 import { JavaScriptSyntaxError, Script } from './Script';
 
 export const p5Version = '1.4.0';
@@ -9,6 +8,7 @@ export const p5Version = '1.4.0';
 export namespace Library {
   export type Properties = {
     name: string;
+    role?: string;
     description: string;
     homepage: string;
     packageName?: string;
@@ -28,6 +28,7 @@ export class Library implements Library.Properties {
   public readonly homepage: string;
   /** The npm package name of the library. */
   public readonly packageName?: string;
+  public readonly role?: string;
   /** Global variables (functions and classes) and p5.* properties that the
    * library defines. */
   public readonly defines?: Record<'globals' | 'p5', string[]>;
@@ -37,6 +38,7 @@ export class Library implements Library.Properties {
     this.name = spec.name;
     this.description = spec.description;
     this.homepage = spec.homepage;
+    this.role = spec.role;
     this._importPath = spec.importPath;
     Object.assign(this, spec);
   }
@@ -53,9 +55,9 @@ export class Library implements Library.Properties {
   /** Adds all the libraries in the given library specification JSON file to the
    * global library array in Library.all.
    */
-  static addFromJson(jsonPath: string) {
-    const json = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
-    json.forEach(Library.add);
+  static addFromJson(jsonPath: string, { role }: { role?: string } = {}) {
+    const specs = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+    specs.forEach((spec: Library.Properties) => Library.add({ role, ...spec }));
   }
 
   /** Finds a library by its name. */
@@ -182,8 +184,11 @@ export class LibraryArray extends Array<Library> {
     return Array.from(Array.prototype.map.call(this, fn)) as U[];
   }
 }
-
-Library.addFromJson(path.join(__dirname, 'libraries', '/core-libraries.json'));
-Library.addFromJson(path.join(__dirname, 'libraries', '/community-libraries.json'));
-Library.addFromJson(path.join(__dirname, 'libraries', '/peer-libraries.json'));
-Library.addFromJson(path.join(__dirname, 'libraries', '/osteele-libraries.json'));
+[
+  { role: 'core', file: 'core-libraries' },
+  { role: 'community', file: 'community-libraries' },
+  { role: 'peer', file: 'peer-libraries' },
+  { role: 'osteele', file: 'osteele-libraries' },
+].forEach(({ role, file }) => {
+  Library.addFromJson(`${__dirname}/libraries/${file}.json`, { role });
+});

@@ -24,7 +24,7 @@
   "repository": "github:osteele/p5-server",
   "scripts": {
     "build": "yarn run clean && yarn run copy-files && tsc --declaration",
-    "build:docs": "typedoc src/index.ts",
+    "build:docs": "typedoc src/index.ts && yarn run cli libraries generate | pandoc -s --toc --shift-heading-level-by -1 > build/docs/libraries.html",
     "clean": "rimraf dist",
     "cli": "ts-node --files src/bin/p5-analyze.ts",
     "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",

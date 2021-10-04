@@ -72,11 +72,10 @@ paragraph that begins with "`Description:` " in that block.
 
 ### Automatic library inclusion
 
-JavaScript-only sketches automatically include many of the libraries that are
-listed on the [p5.js Libraries page](https://p5js.org/libraries/), as well as
-[dat.gui](https://github.com/dataarts/dat.gui). For example, if the sketch calls
-`loadSound`, it will include the p5.sound library. If it refers to `ml5`, it
-will include the ml5.js library.
+JavaScript-only sketches can automatically include any of [these
+ libraries](https://osteele.github.io/p5-server/p5-analysis/libraries). For
+ example, if the sketch calls `loadSound`, it will include the p5.sound library.
+ If it refers to `ml5`, it will include the ml5.js library.
 
 Automatic library loading is done by examining the free variables, and
 references to `p5.prop` where `prop` is any property name, in the JavaScript source.

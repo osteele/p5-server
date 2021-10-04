@@ -1,0 +1,31 @@
+# Library Inference
+
+[p5-server](https://osteele.github.io/p5-server/), and the [P5 Server Visual Studio Code extension](https://github.com/osteele/vscode-p5server#readme),
+automatically include these libraries if a sketch refers to
+functions or classes that they define, and the sketch does not
+include its own definitions of these variables.
+
+{% for role in roles %}
+
+## {{ role.name }}
+
+{{ role.description }}
+
+{% for lib in role.libraries -%}
+
+### [{{ lib.name }}]({{ lib.homepage }})
+
+{{ lib.description }}
+
+Defines:
+
+{% for s in lib.defines.globals %}
+- `{{ s }}`
+{%- endfor -%}
+{% for s in lib.defines.p5 %}
+- `p5.{{ s }}`
+{%- endfor %}
+
+{% endfor %}
+
+{% endfor %}

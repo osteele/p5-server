@@ -6,6 +6,7 @@ import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
+import { addScriptToHtmlHead } from '../utils';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
@@ -50,10 +51,12 @@ export namespace Server {
 
     /** Sketches send screenshot data to this handler. */
     screenshot: {
+      skipFrames?: number;
       onFrameData: (data: {
         contentType: string;
         data: Buffer;
-      }) => { close?: boolean } | void | Promise<{ close?: boolean } | void>;
+        frameNumber: number;
+      }) => void | Promise<void>;
     } | null;
 
     theme?: string;
@@ -105,15 +108,14 @@ function createRouter(config: RouterConfig): express.Router {
     express.json({ limit: '50mb' }),
     async (req, res) => {
       const { dataURL } = req.body;
-      const m = dataURL.match(/^data:image\/png;base64,(.*)$/);
+      const m = dataURL.match(/^data:(image\/png);base64,(.*)$/);
       if (!m || !config.screenshot) return res.send(200);
-      const { close } =
-        (await config.screenshot.onFrameData({
-          contentType: 'image/png',
-          data: Buffer.from(m[1], 'base64'),
-        })) || {};
-      res.set('Content-Type', 'text/plain');
-      res.send(close ? 'close' : '');
+      await config.screenshot.onFrameData({
+        contentType: m[1],
+        data: Buffer.from(m[2], 'base64'),
+        frameNumber: req.body.frameNumber,
+      });
+      res.sendStatus(200);
     }
   );
 
@@ -180,11 +182,7 @@ function createRouter(config: RouterConfig): express.Router {
       }
     }
 
-    if (config.screenshot) {
-      await sendScript(res, filepath);
-    } else {
-      next();
-    }
+    next();
   });
 
   router.get('/*.md', (req, res, next) => {
@@ -225,20 +223,14 @@ function createRouter(config: RouterConfig): express.Router {
     ) {
       html = injectScriptEventRelayScript(html);
     }
+    if (config.screenshot && req.path === '/') {
+      html = addScriptToHtmlHead(html, '/__p5_server_static/screenshot.js');
+      html = addScriptToHtmlHead(html, {
+        __p5_server_screenshot_settings: config.screenshot,
+      });
+    }
     res.set('Content-Type', 'text/html');
     res.send(html);
-  }
-
-  async function sendScript(
-    res: Response<unknown, Record<string, unknown>, number>,
-    filepath: string
-  ) {
-    let data = await readFile(filepath, 'utf-8');
-    if (config.screenshot && (await Sketch.isSketchScriptFile(filepath))) {
-      data += '\n' + (await readFile(path.join(__dirname, 'static/screenshot.js')));
-    }
-    res.set('Content-Type', 'text/javascript');
-    res.send(data);
   }
 }
 

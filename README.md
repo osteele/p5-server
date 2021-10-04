@@ -205,6 +205,14 @@ Run `p5 screenshot --help` for a list of options. Options are supported to set
 the output filename and the number of the starting frame, and to specify the
 browser.
 
+Note: The sketch will run for a few frames after the requested screenshot.
+
+Note: Only the canvas is saved, not the HTML. Elements created with
+`createButton()`, `createDiv()` etc. are not captured in the screenshot.
+
+Note: This only works for instance-mode sketches (sketches that call global
+functions e.g. `rect()`, not instance functions e.g. `p5.rect()`).
+
 ### Convert between JavaScript-only and HTML sketches
 
 `p5 convert sketch.html` converts an HTML sketch to a JavaScript-only sketch, by

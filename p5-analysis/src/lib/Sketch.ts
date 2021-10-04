@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
-import { HTMLElement, parse } from 'node-html-parser';
+import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import prettier from 'prettier';
@@ -17,7 +17,7 @@ const defaultDirectoryExclusions = [
   '*~',
   'node_modules',
   'package.json',
-  'package-lock.json'
+  'package-lock.json',
 ];
 
 export type SketchType = 'html' | 'javascript';
@@ -172,7 +172,7 @@ export abstract class Sketch {
     return {
       sketches,
       allFiles: files,
-      unassociatedFiles: removeProjectFiles(files)
+      unassociatedFiles: removeProjectFiles(files),
     };
 
     function removeProjectFiles(files: string[]) {
@@ -392,7 +392,7 @@ export abstract class Sketch {
       p5Version,
       scriptFile: this.scriptFile,
       ...defaultGenerationOptions,
-      ...options
+      ...options,
     };
     const templatePath = path.join(templateDir, base);
     if (templatePath.endsWith('.njk')) {
@@ -447,7 +447,7 @@ class HtmlSketch extends Sketch {
   static async fromFile(htmlFile: string): Promise<Sketch> {
     const dir = path.dirname(htmlFile);
     const htmlContent = await readFile(htmlFile, 'utf-8');
-    const htmlRoot = parse(htmlContent);
+    const htmlRoot = parseHtml(htmlContent);
     const description = htmlRoot
       .querySelector('head meta[name=description]')
       ?.attributes.content.trim();
@@ -468,7 +468,7 @@ class HtmlSketch extends Sketch {
     }
 
     const html = await readFile(htmlFilepath, 'utf-8');
-    const htmlRoot = parse(html);
+    const htmlRoot = parseHtml(html);
     const scriptSrcs = htmlRoot
       .querySelectorAll('script[src]')
       .map(node => node.attributes.src);
@@ -493,7 +493,7 @@ class HtmlSketch extends Sketch {
     const filePath = this.htmlFilePath!;
     if (fs.existsSync(filePath)) {
       const htmlContent = fs.readFileSync(filePath, 'utf-8');
-      const htmlRoot = parse(htmlContent);
+      const htmlRoot = parseHtml(htmlContent);
       const title = htmlRoot.querySelector('head title')?.text?.trim();
       if (title) return title;
     }
@@ -504,7 +504,7 @@ class HtmlSketch extends Sketch {
     const htmlFile = this.htmlFilePath!;
     if (fs.existsSync(htmlFile)) {
       const html = fs.readFileSync(htmlFile, 'utf-8');
-      const htmlRoot = parse(html);
+      const htmlRoot = parseHtml(html);
       const scriptFiles = this.getLocalScriptFiles(htmlRoot);
       return [
         ...this.getLocalScriptFiles(htmlRoot),
@@ -514,7 +514,7 @@ class HtmlSketch extends Sketch {
           .filter(s => !s.match(/https?:/)),
         ...scriptFiles.flatMap(name =>
           Script.getAssociatedFiles(path.join(this.dir, name))
-        )
+        ),
       ];
     } else {
       return [];
@@ -524,7 +524,7 @@ class HtmlSketch extends Sketch {
   protected getLocalScriptFiles(htmlRoot?: HTMLElement) {
     if (!htmlRoot) {
       const html = fs.readFileSync(this.htmlFilePath!, 'utf-8');
-      htmlRoot = parse(html);
+      htmlRoot = parseHtml(html);
     }
     return HtmlSketch.getLocalScriptFiles(htmlRoot);
   }
@@ -544,7 +544,7 @@ class HtmlSketch extends Sketch {
 
         // there must be only one script file, and no inline scripts
         const html = await readFile(htmlPath, 'utf-8');
-        const htmlRoot = parse(html);
+        const htmlRoot = parseHtml(html);
         const scriptSrcs = htmlRoot
           .querySelectorAll('script')
           .map(e => e.attributes.src);
@@ -655,7 +655,7 @@ class ScriptSketch extends Sketch {
   get files() {
     const files = [
       this.scriptFile,
-      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))
+      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile)),
     ];
     return [...new Set(files)];
   }

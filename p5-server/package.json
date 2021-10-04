@@ -54,6 +54,7 @@
     "highlight.js": "^11.2.0",
     "livereload": "^0.9.3",
     "marked": "^3.0.3",
+    "node-html-parser": "^4.1.4",
     "open": "^8.2.1",
     "p5-analysis": "workspace:*",
     "pug": "^3.0.2",

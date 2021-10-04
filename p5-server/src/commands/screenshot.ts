@@ -28,10 +28,11 @@ export default async function screenshot(source: string, options: Options) {
     die('The output file extension must be .png');
   }
 
-  let skipFrames = Number(options.skipFrames || 0);
+  let savedFrames = 0;
+  const skipFrames = Number(options.skipFrames || 0);
   const serverOptions = {
     root: source,
-    screenshot: { onFrameData },
+    screenshot: { onFrameData, skipFrames },
     type: {
       png: 'image/png',
     },
@@ -40,24 +41,16 @@ export default async function screenshot(source: string, options: Options) {
 
   openInBrowser(server.url!, options.browser);
 
-  let savedFrames = 0;
   async function onFrameData({ data }: { data: Buffer }) {
-    if (skipFrames-- >= 0) return;
     if (savedFrames++ > 0) return;
 
-    // run this asynchronously
-    saveAndQuit();
-    return { close: true };
+    await writeFile(output, data);
+    console.log(`Saved screenshot from ${source} to ${output}`);
 
-    async function saveAndQuit() {
-      await writeFile(output, data);
-      console.log(`Saved screenshot from ${source} to ${output}`);
-
-      // FIXME: why doesn't server.stop() work?
-      // server.server?.on('close', () => console.info('server closed'));
-      // server.server?.close();
-      setTimeout(() => process.exit(0), 100);
-    }
+    // FIXME: why doesn't server.stop() work?
+    // server.server?.on('close', () => console.info('server closed'));
+    // server.server?.close();
+    setTimeout(() => process.exit(0), 100);
   }
 }
 

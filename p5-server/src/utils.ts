@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import path from 'path';
 
 /** Print the message to standard output; then exit with status code 1.
@@ -33,8 +34,8 @@ export function pathComponentsForBreadcrumbs(
           ...crumbs,
           {
             name,
-            path: (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name
-          }
+            path: (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name,
+          },
         ],
         [{ name: 'Home', path: '/' }]
       )
@@ -51,3 +52,24 @@ export const stringToOptions = (str: string | null) =>
         str.split(',').map(s => (/no-/.test(s) ? [s.substring(3), false] : [s, true]))
       )
     : {};
+
+export function addScriptToHtmlHead(
+  html: string,
+  source: string | Record<string, unknown>
+): string {
+  const htmlRoot = parseHtml(html);
+  const scriptNode = new HTMLElement(
+    'script',
+    {},
+    typeof source === 'string' ? `src=${JSON.stringify(source)}` : '',
+    null
+  );
+  if (source instanceof Object) {
+    scriptNode.textContent = Object.entries(source)
+      .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
+      .join('\n');
+  }
+  htmlRoot.querySelector('head').appendChild(scriptNode);
+
+  return htmlRoot.outerHTML;
+}

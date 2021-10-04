@@ -9035,6 +9035,7 @@ __metadata:
     jest: ^27.1.1
     livereload: ^0.9.3
     marked: ^3.0.3
+    node-html-parser: ^4.1.4
     nodemon: ^2.0.12
     npm-run-all: ^4.1.5
     open: ^8.2.1

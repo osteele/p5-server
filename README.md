@@ -201,9 +201,9 @@ canvas, and then closing the browser page.
 `p5 screenshot my-sketch.html` works for an HTML sketch; `p5 screenshot
 my-sketch` works for a single-sketch directory.
 
-Run `p5 screenshot --help` for a list of options. Options are supported to set
-the output filename and the number of the starting frame, and to specify the
-browser.
+Run `p5 screenshot --help` for a list of options. There are options to set the
+output filename, the number of the starting frame, the pixel density, the canvas
+dimensions, and the browser (Safari, Chrome, Firefox, or Edge).
 
 Note: The sketch will run for a few frames after the requested screenshot.
 

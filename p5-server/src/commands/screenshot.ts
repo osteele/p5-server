@@ -8,6 +8,8 @@ import { die } from '../utils';
 type Options = {
   output?: string;
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
+  canvasSize: string;
+  pixelDensity: string;
   skipFrames: number;
 };
 
@@ -30,16 +32,42 @@ export default async function screenshot(source: string, options: Options) {
 
   let savedFrames = 0;
   const skipFrames = Number(options.skipFrames || 0);
+
+  let canvasDimensions = undefined;
+  if (options.canvasSize) {
+    const m = options.canvasSize.match(/^(\d+)(?:[x, ](\d+))?$/);
+    if (!m) {
+      die(`Invalid canvas size: ${options.canvasSize}`);
+    }
+    canvasDimensions = { width: Number(m[1]), height: Number(m[2] ?? m[1]) };
+  }
+
+  let pixelDensity = undefined;
+  if (options.pixelDensity) {
+    const m = options.pixelDensity.match(
+      /^(\d+(?:\.\d*)?|\.\d+)(?:\/(\d+(?:\.\d*)?|\.\d+))?$/
+    );
+    if (!m) {
+      die(`Invalid pixel density: ${options.pixelDensity}`);
+    }
+    pixelDensity = Number(m[1]) / Number(m[2] || 1);
+  }
+
   const serverOptions = {
     root: source,
-    screenshot: { onFrameData, skipFrames },
-    type: {
-      png: 'image/png',
+    screenshot: {
+      onFrameData,
+      skipFrames,
+      canvasDimensions,
+      pixelDensity,
+      type: {
+        png: 'image/png',
+      },
     },
   };
   const server = await Server.start(serverOptions);
 
-  openInBrowser(server.url!, options.browser);
+  openInBrowser(server.url!, options.browser?.toLowerCase());
 
   async function onFrameData({ data }: { data: Buffer }) {
     if (savedFrames++ > 0) return;

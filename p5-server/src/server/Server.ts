@@ -51,6 +51,8 @@ export namespace Server {
 
     /** Sketches send screenshot data to this handler. */
     screenshot: {
+      canvasDimensions?: { width: number; height: number };
+      pixelDensity?: number;
       skipFrames?: number;
       onFrameData: (data: {
         contentType: string;

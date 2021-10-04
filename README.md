@@ -3,41 +3,6 @@
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [P5.js Server](#p5js-server)
-  - [Overview](#overview)
-  - [Features](#features)
-  - [Quick Start – Installation](#quick-start--installation)
-  - [Quick Start – Usage](#quick-start--usage)
-  - [Recipes](#recipes)
-    - [Run the Server](#run-the-server)
-      - [Serve a directory inside the current directory](#serve-a-directory-inside-the-current-directory)
-      - [Open the browser automatically](#open-the-browser-automatically)
-      - [Browse directories in split mode](#browse-directories-in-split-mode)
-      - [Create a sketch file](#create-a-sketch-file)
-    - [Build a static site](#build-a-static-site)
-    - [Create a screenshot](#create-a-screenshot)
-    - [Convert between JavaScript-only and HTML sketches](#convert-between-javascript-only-and-html-sketches)
-  - [Command-Line Reference](#command-line-reference)
-    - [`p5 build [DIRECTORY]`](#p5-build-directory)
-    - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename---to-format)
-    - [`p5 create [NAME]`](#p5-create-name)
-    - [`p5 serve [filename]`](#p5-serve-filename)
-    - [`p5 sceenshot [filename]`](#p5-sceenshot-filename)
-    - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
-  - [Implementation Notes](#implementation-notes)
-  - [Limitations](#limitations)
-  - [API](#api)
-  - [Acknowledgements](#acknowledgements)
-  - [Other Work](#other-work)
-  - [Keeping in Touch](#keeping-in-touch)
-  - [License](#license)
-
-<!-- /code_chunk_output -->
-
 ## Overview
 
 **p5-server** is a command-line interface for [p5.js](https://p5js.org/). It

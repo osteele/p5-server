@@ -4,9 +4,6 @@ dist
 *.tgz
 *.log
 
-p5-analysis/package/
-p5-server/package/
-
 .yarn/*
 !.yarn/patches
 !.yarn/releases
@@ -15,7 +12,8 @@ p5-server/package/
 !.yarn/versions
 .pnp.*
 *.tsbuildinfo
+
 gh-pages
-p5-server/src/server/static/console-relay.js
-p5-server/src/server/static/iframe-manager.js
-p5-server/README.md
+
+p5-analysis/package/
+p5-server/package/

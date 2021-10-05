@@ -97,7 +97,7 @@ export function attachBrowserScriptRelay(
 }
 
 export function injectScriptEventRelayScript(html: string) {
-  return addScriptToHtmlHead(html, '/__p5_server_static/console-relay.js');
+  return addScriptToHtmlHead(html, '/__p5_server_static/console-relay.min.js');
 }
 
 const serializationPrefix = '__p5_server_serialization_:';

@@ -8,7 +8,7 @@ export default [
   {
     input: './src/client/console-relay.js',
     output: {
-      file: './src/server/static/console-relay.js',
+      file: './src/server/static/console-relay.min.js',
       format: 'iife',
       strict: false,
     },
@@ -17,7 +17,7 @@ export default [
   {
     input: './src/client/iframe-manager.js',
     output: {
-      file: './src/server/static/iframe-manager.js',
+      file: './src/server/static/iframe-manager.min.js',
       format: 'iife',
     },
     plugins,

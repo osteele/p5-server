@@ -21,6 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
           .then(() => {
             if (--pending <= 0 && remainingFrames <= 0) window.close();
           });
+        if (remainingFrames <= 0) this.noLoop(); // since it may be a while before the fetch returns
       }
       frameNumber++;
     }

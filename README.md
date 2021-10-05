@@ -173,11 +173,9 @@ dimensions, and the browser (Safari, Chrome, Firefox, or Edge).
 
 Notes:
 
-- The sketch will run for a few frames after the requested screenshot.
 - Only the canvas is saved, not the HTML. Elements created with
   `createButton()`, `createDiv()` etc. are not captured in the screenshot.
-- This only works for instance-mode sketches (sketches that call global
-  functions e.g. `rect()`, not instance functions e.g. `p5.rect()`).
+- The screenshot feature has not been tested with instance-mode sketches.
 
 ### Convert between JavaScript-only and HTML sketches
 

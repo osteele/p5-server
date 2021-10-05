@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+Improved:
+
+- Updates to screenshot client code
+
 ## [0.8.0] - 2021-10-04
 
 New:

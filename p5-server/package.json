@@ -29,13 +29,13 @@
     "directory": "p5-server"
   },
   "scripts": {
-    "build": "run-s clean build:client copy-files && tsc --declaration",
+    "build": "run-s clean build:client build:copy-files && tsc --declaration",
     "build:client": "rollup -c ./src/client/rollup.config.js",
+    "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "build:docs": "typedoc src/index.ts",
     "build:readme": "sed -f scripts/readme.sed < ../README.md > README.md",
     "clean": "rimraf dist 'src/server/static/*.min.js'",
     "cli": "ts-node src/bin/p5-server.ts",
-    "copy-files": "copyfiles -u 1 'src/**/*.{css,html,njk,pug,png,js,json,svg}' dist/",
     "dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "postpack": "rm README.md",

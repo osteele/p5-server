@@ -4,23 +4,16 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import { Library, Script } from '..';
 import nunjucks from 'nunjucks';
+import path from 'path';
 
 nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
 
-const roleDescriptions: Record<string, { name?: string; description: string }> = {
-  core: { description: '“Core” libraries from <https://p5js.org/libraries/>' },
-  community: {
-    description: '“Community” libraries from <https://p5js.org/libraries/>',
-  },
-  peer: {
-    description:
-      'Libraries that are not specific to p5.js, but are useful for p5 sketches',
-  },
-  osteele: {
-    name: 'Oliver’s Libraries',
-    description: '[Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)',
-  },
-};
+const roleDescriptions: Record<string, { name?: string; description: string }> =
+  Object.fromEntries(
+    JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../lib/libraries/roles.json'), 'utf-8')
+    ).map((role: { key: string }) => [role.key, role])
+  );
 
 export function listLibraries() {
   console.log(

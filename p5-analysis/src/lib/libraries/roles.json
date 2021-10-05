@@ -1,0 +1,19 @@
+[
+  {
+    "key": "core",
+    "description": "“Core” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/)"
+  },
+  {
+    "key": "community",
+    "description": "“Community” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/)"
+  },
+  {
+    "key": "peer",
+    "description": "Libraries that are not specific to p5.js, but are useful for p5 sketches"
+  },
+  {
+    "key": "osteele",
+    "name": "Oliver’s Libraries",
+    "description": "[Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)"
+  }
+]

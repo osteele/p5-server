@@ -6,7 +6,7 @@
   "json.schemas": [
     {
       "fileMatch": [
-        "p5-analysis/**/libraries/*.json"
+        "p5-analysis/**/libraries/*-libraries.json"
       ],
       "url": "./p5-analysis/src/lib/schemas/libraries.json"
     }

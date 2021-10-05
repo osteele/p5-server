@@ -6,6 +6,9 @@
 
 - Updates to screenshot client code
 - Fix import paths for p5.xr, p5.3D
+- Import libraries that are only hosted on git from ghcdn.rawgit.org, not
+  raw.githubusercontent.com. This fixes an issue with their content type that
+  prevented some libraries from loading.
 
 ## [0.8.0] - 2021-10-04
 

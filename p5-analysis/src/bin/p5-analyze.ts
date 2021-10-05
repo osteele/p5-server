@@ -22,7 +22,7 @@ const libraries = program.command('libraries');
 
 libraries.command('check-collisions').action(checkCollisions);
 libraries.command('find-minimized-alternatives').action(findMinimizedAlternatives);
-libraries.command('test-import-paths').action(checkLibraryPaths);
+libraries.command('validate-import-paths').action(checkLibraryPaths);
 libraries.command('generate').action(generateLibraryPage);
 libraries.command('report').action(listLibraries);
 

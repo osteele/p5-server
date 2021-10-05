@@ -87,7 +87,7 @@
     "name": "p5.dimensions.js",
     "description": "p5.dimensions extends p5.js’ vector functions to work in any number of dimensions.",
     "homepage": "https://github.com/Smilebags/p5.dimensions.js",
-    "importPath": "https://raw.githubusercontent.com/Smilebags/p5.dimensions.js/master/libraries/p5.dimensions.js",
+    "importPath": "@master/libraries/p5.dimensions.js",
     "defines": {
       "globals": [
         "nDist",
@@ -260,7 +260,7 @@
     "name": "p5.Riso",
     "description": "p5.Riso is a library for generating files suitable for Risograph printing. It helps turn your sketches into multi-color prints",
     "homepage": "https://antiboredom.github.io/p5.riso/",
-    "importPath": "https://raw.githubusercontent.com/antiboredom/p5.riso/master/lib/p5.riso.js",
+    "importPath": "@master/lib/p5.riso.js",
     "defines": {
       "globals": ["drawRiso"]
     }
@@ -365,7 +365,7 @@
     "name": "p5.speech",
     "description": "p5.speech provides simple, clear access to the Web Speech and Speech Recognition APIs, allowing for the easy creation of sketches that can talk and listen",
     "homepage": "https://idmnyu.github.io/p5.js-speech/",
-    "importPath": "https://raw.githubusercontent.com/IDMNYU/p5.js-speech/master/lib/p5.speech.js",
+    "importPath": "@master/lib/p5.speech.js",
     "defines": {
       "p5": ["Speech", "SpeechRec"]
     }

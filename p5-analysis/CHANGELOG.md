@@ -2,12 +2,22 @@
 
 ## [unreleased]
 
-- add library.repository; derive load path from this when present
-- add recommended library role
-- add new syntax for repo-relative import paths
-- fix paths for p5.xr, p5.3D
-- rename `p5 libraries list` -> `p5 libraries report`
-- add import path to library report
+Fixed:
+
+- Replace raw.githubusercontent.com by ghcdn.rawgit.org. This fixes an error where some script files didn't have the correct content type, and couldn't be loaded.
+- Fix import paths for p5.xr, p5.3D
+
+Added:
+
+- Add recommended library role
+- Add new syntax for repo-relative import paths
+- Add import path to library report
+
+Changed:
+
+- Add library.repository; derive load path from this when present
+- Rename `p5 libraries list` -> `p5 libraries report`
+- Rename `p5 libraries test-import-paths` -> `p5 libraries validate-import-paths`
 
 ## [0.6.2] - 2021-10-03
 
@@ -20,7 +30,7 @@
 
 ## [0.6.0] - 2021-09-09
 
-Bug fixes:
+Fixed:
 
 - Identify the main script, in an HTML sketch that includes multiple scripts
 

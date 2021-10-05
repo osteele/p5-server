@@ -53,26 +53,25 @@ export async function checkLibraryPaths() {
     console.log();
   }
 
-  console.log('Fetching sources...');
+  process.stdout.write('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
   const responses = await Promise.all(
     librariesWithPaths.map(async library => {
       const res = await cachedFetch(library.importPath!);
-      return res.ok
-        ? { library, ok: res.ok, text: await res.text() }
-        : { library, ok: res.ok };
+      return { library, ok: res.ok, text: res.ok ? await res.text() : undefined };
     })
   );
   console.log('done.\n');
 
   const invalidImportPaths = responses.filter(res => !res.ok);
   if (invalidImportPaths.length) {
-    console.log(`These libraries did not have valid import paths:`);
+    console.log(`These library import paths are invalid:`);
     invalidImportPaths.forEach(({ library }) =>
       console.log(`  ${library.name} (${library.homepage}) – ${library.importPath}`)
     );
     console.log();
   }
+
   const libraryScripts = responses
     .filter(res => res.ok)
     .map(({ library, text }): [Library, Script] => [library, Script.fromSource(text!)]);

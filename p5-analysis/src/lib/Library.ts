@@ -154,10 +154,7 @@ export class Library implements Library.Properties {
       // If it's a repo file, derive the corresponding raw location. This is
       // outside the above conditional because it should apply to absolute paths
       // too.
-      path = path.replace(
-        /^https:\/\/github.com\//,
-        'https://raw.githubusercontent.com/'
-      );
+      path = path.replace(/^https:\/\/github.com\//, 'https://ghcdn.rawgit.org/');
       path = path.replace('$(P5Version)', p5Version);
     } else if (this.packageName) {
       path = `https://unpkg.com/${this.packageName}`;

@@ -289,9 +289,8 @@
 <p>Run <code>p5 screenshot --help</code> for a list of options. There are options to set the output filename, the number of the starting frame, the pixel density, the canvas dimensions, and the browser (Safari, Chrome, Firefox, or Edge).</p>
 <p>Notes:</p>
 <ul>
-<li>The sketch will run for a few frames after the requested screenshot.</li>
 <li>Only the canvas is saved, not the HTML. Elements created with <code>createButton()</code>, <code>createDiv()</code> etc. are not captured in the screenshot.</li>
-<li>This only works for instance-mode sketches (sketches that call global functions e.g. <code>rect()</code>, not instance functions e.g. <code>p5.rect()</code>).</li>
+<li>The screenshot feature has not been tested with instance-mode sketches.</li>
 </ul>
 <h2 id="convert-between-javascript-only-and-html-sketches">Convert between JavaScript-only and HTML sketches</h2>
 <p><code>p5 convert sketch.html</code> converts an HTML sketch to a JavaScript-only sketch, by deleting the HTML file. It first inspects this file, to insure that the sketch contains only a single script file, and that all the information necessary to run the sketch is in the script.</p>

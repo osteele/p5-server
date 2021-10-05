@@ -248,7 +248,7 @@ function createRouter(config: RouterConfig): express.Router {
       html = injectScriptEventRelayScript(html);
     }
     if (config.screenshot && req.path === '/') {
-      html = addScriptToHtmlHead(html, '/__p5_server_static/screenshot.js');
+      html = addScriptToHtmlHead(html, '/__p5_server_static/screenshot.min.js');
       html = addScriptToHtmlHead(html, {
         __p5_server_screenshot_settings: config.screenshot,
       });

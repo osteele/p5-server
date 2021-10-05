@@ -9,3 +9,9 @@ rules:
   prefer-const: warn
 ignorePatterns:
   - rollup.config.js
+overrides:
+  - files:
+    - screenshot.js
+    globals:
+      __p5_server_screenshot_settings: true
+      p5: true

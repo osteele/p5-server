@@ -1,20 +1,20 @@
 window.addEventListener('DOMContentLoaded', () => {
-  let settings = __p5_server_screenshot_settings || {};
+  const settings = __p5_server_screenshot_settings || {};
   let frameNumber = 0;
   let skipFrames = settings.skipFrames || 0;
   let remainingFrames = settings.frameCount || 1;
-  let imageType = settings.imageType ? settings.imageType.replace('jpg', 'jpeg') : 'png';
+  const imageType = settings.imageType ? settings.imageType.replace('jpg', 'jpeg') : 'png';
   let pending = 0;
 
   function wrap(wrapped) {
-    return () => {
+    return function () {
       wrapped.call(this);
 
       if (skipFrames-- < 0 && remainingFrames-- > 0) {
         const headers = {
           'Content-Type': 'application/json',
         };
-        let dataURL = this.canvas.toDataURL('image/' + imageType);
+        const dataURL = this.canvas.toDataURL('image/' + imageType);
         const body = JSON.stringify({ dataURL, frameNumber });
         pending++;
         fetch('/__p5_server/screenshot', { method: 'post', headers, body })
@@ -36,15 +36,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (settings.canvasDimensions) {
     const { width, height } = settings.canvasDimensions;
-    let savedCreateCanvas = p5.prototype.createCanvas;
-    p5.prototype.createCanvas = (x, y, mode) => {
+    const savedCreateCanvas = p5.prototype.createCanvas;
+    p5.prototype.createCanvas = function (x, y, mode) {
       return savedCreateCanvas.call(this, width, height, mode);
     }
   }
   if (settings.pixelDensity) {
-    let savedCreateCanvas = p5.prototype.createCanvas;
-    p5.prototype.createCanvas = (width, height, mode) => {
-      let canvas = savedCreateCanvas.call(this, width, height, mode);
+    const savedCreateCanvas = p5.prototype.createCanvas;
+    p5.prototype.createCanvas = function (width, height, mode) {
+      const canvas = savedCreateCanvas.call(this, width, height, mode);
       p5.prototype.pixelDensity.call(this, settings.pixelDensity);
       return canvas;
     }

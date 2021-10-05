@@ -1,6 +1,7 @@
 Libraries:
 {% for lib in libraries -%}
     - {{ lib.name }} ({{ lib.homepage }})
-  {{ lib.description }}
+  Description: {{ lib.description }}
+  Import path: {{ lib.importPath }}
 
 {% endfor %}

@@ -47,36 +47,35 @@ export async function checkLibraryPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
-    missingImportPaths.forEach(library => console.log(' ', library.name));
+    missingImportPaths.forEach(library =>
+      console.log(' ', `${library.name} (${library.homepage})`)
+    );
     console.log();
   }
 
   console.log('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
   const responses = await Promise.all(
-    librariesWithPaths.map(async function (
-      library
-    ): Promise<[Library, string, null] | [Library, null, string]> {
+    librariesWithPaths.map(async library => {
       const res = await cachedFetch(library.importPath!);
       return res.ok
-        ? [library, await res.text(), null]
-        : [library, null, res.statusText];
+        ? { library, ok: res.ok, text: await res.text() }
+        : { library, ok: res.ok };
     })
   );
   console.log('done.\n');
 
-  const errorLibraries = responses.filter(res => res[2]);
-  if (errorLibraries.length) {
-    console.log(`These libraries failed to fetch:`);
-    errorLibraries.forEach(library =>
-      console.log(`  ${library[0].name}: ${library[2]}`)
+  const invalidImportPaths = responses.filter(res => !res.ok);
+  if (invalidImportPaths.length) {
+    console.log(`These libraries did not have valid import paths:`);
+    invalidImportPaths.forEach(({ library }) =>
+      console.log(`  ${library.name} (${library.homepage}) – ${library.importPath}`)
     );
     console.log();
   }
-
   const libraryScripts = responses
-    .filter(res => res[1])
-    .map(([library, text]): [Library, Script] => [library, Script.fromSource(text!)]);
+    .filter(res => res.ok)
+    .map(({ library, text }): [Library, Script] => [library, Script.fromSource(text!)]);
   const scriptErrors = libraryScripts.filter(
     ([, script]) => script.getErrors().length > 0
   );
@@ -164,6 +163,7 @@ async function cachedFetch(url: string) {
     }
     return {
       ...res,
+      ok: res.ok && 200 <= res.status && res.status < 300,
       text: () => Promise.resolve(text),
     };
   }

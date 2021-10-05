@@ -12,6 +12,7 @@ export namespace Library {
     description: string;
     homepage: string;
     packageName?: string;
+    repository?: string;
     importPath?: string;
     defines?: Record<'globals' | 'p5', string[]>;
   };
@@ -28,6 +29,7 @@ export class Library implements Library.Properties {
   public readonly homepage: string;
   /** The npm package name of the library. */
   public readonly packageName?: string;
+  public readonly repository?: string;
   public readonly role?: string;
   /** Global variables (functions and classes) and p5.* properties that the
    * library defines. */
@@ -38,11 +40,13 @@ export class Library implements Library.Properties {
     this.name = spec.name;
     this.description = spec.description;
     this.homepage = spec.homepage;
+    this.repository = spec.repository;
     this.role = spec.role;
     this._importPath = spec.importPath;
     Object.assign(this, spec);
   }
 
+  //#region instantation
   static fromSpec(spec: Library.Properties): Library {
     return new Library(spec);
   }
@@ -59,6 +63,7 @@ export class Library implements Library.Properties {
     const specs = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
     specs.forEach((spec: Library.Properties) => Library.add({ role, ...spec }));
   }
+  //#endregion
 
   /** Finds a library by its name. */
   static find(name: string): Library | null {
@@ -123,18 +128,28 @@ export class Library implements Library.Properties {
     // ];
   }
 
+  get repositoryUrl() {
+    if (this.repository) {
+      return this.repository;
+    }
+    // if it's a GitHub Pages page, derive the corresponding repo URL
+    const homepage = this.homepage.replace(
+      /^https:\/\/([^.]+)\.github\.io\/([^/]+).*/,
+      'https://github.com/$1/$2'
+    );
+    if (homepage.startsWith('https://github.com/')) {
+      return homepage;
+    }
+    return null;
+  }
+
   /** A path that can be used to load the library. */
   get importPath() {
     let path = this._importPath;
     if (path) {
+      path = path.replace(/^@/, '/');
       if (path.startsWith('/')) {
-        let homepage = this.homepage;
-        // if it's a GitHub Pages page, derive the corresponding repo URL
-        homepage = homepage.replace(
-          /^https:\/\/([^.]+)\.github\.io\/([^/]+).*/,
-          'https://github.com/$1/$2'
-        );
-        path = `${homepage.replace(/\/$/, '')}${path}`;
+        path = `${this.repositoryUrl!.replace(/\/$/, '')}${path}`;
       }
       // If it's a repo file, derive the corresponding raw location. This is
       // outside the above conditional because it should apply to absolute paths
@@ -184,10 +199,12 @@ export class LibraryArray extends Array<Library> {
     return Array.from(Array.prototype.map.call(this, fn)) as U[];
   }
 }
+
 [
   { role: 'core', file: 'core-libraries' },
   { role: 'community', file: 'community-libraries' },
   { role: 'peer', file: 'peer-libraries' },
+  { role: 'recommended', file: 'recommended-libraries' },
   { role: 'osteele', file: 'osteele-libraries' },
 ].forEach(({ role, file }) => {
   Library.addFromJson(`${__dirname}/libraries/${file}.json`, { role });

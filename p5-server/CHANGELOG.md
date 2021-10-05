@@ -1,10 +1,10 @@
 # Change Log
 
+
 ## [Unreleased]
 
-Improved:
-
 - Updates to screenshot client code
+- Fix import paths for p5.xr, p5.3D
 
 ## [0.8.0] - 2021-10-04
 

@@ -1,5 +1,14 @@
 # Change Log
 
+## [unreleased]
+
+- add library.repository; derive load path from this when present
+- add recommended library role
+- add new syntax for repo-relative import paths
+- fix paths for p5.xr, p5.3D
+- rename `p5 libraries list` -> `p5 libraries report`
+- add import path to library report
+
 ## [0.6.2]
 
 - Add libraries: anime, CCapture.js, p5.pattern, p5.rotate-about

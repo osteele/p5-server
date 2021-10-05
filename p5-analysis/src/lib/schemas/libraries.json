@@ -16,6 +16,10 @@
         "description": "The library's home page",
         "type": "string"
       },
+      "repository": {
+        "description": "The repository location, where this is different from the homepage",
+        "type": "string"
+      },
       "description": {
         "description": "A short description of the library",
         "type": "string"
@@ -45,11 +49,7 @@
         }
       }
     },
-    "required": [
-      "name",
-      "homepage",
-      "description"
-    ],
+    "required": ["name", "homepage", "description"],
     "additionalProperties": false
   }
 }

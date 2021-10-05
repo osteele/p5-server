@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD032 -->
 
-## [Unreleased]
+## [0.8.1] - 2021-10-05
 
 - Updates to screenshot client code
 - Fix import paths for p5.xr, p5.3D

@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "CLI to create and serve p5.js sketches and collections, and infer required libraries",
   "keywords": [
     "creative coding",

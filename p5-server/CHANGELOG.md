@@ -2,6 +2,10 @@
 
 <!-- markdownlint-disable MD032 -->
 
+## [0.8.2] - 2021-10-05
+
+- Emergency fix to script tag injection in js distribution
+
 ## [0.8.1] - 2021-10-05
 
 - Updates to screenshot client code
@@ -15,8 +19,8 @@
 New:
 - New command `p5 screenshot FILE` saves the canvas as an image file
 - `p5 serve` has `--open <BROWSER>` option
-Fixed:
 
+Fixed:
 - `p5 serve path/to/sketch.html`
 
 ## [0.7.2] - 2021-10-03

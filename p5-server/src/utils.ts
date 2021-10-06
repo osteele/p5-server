@@ -105,6 +105,12 @@ export function addScriptToHtmlHead(
             .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
             .join('\n');
   }
+  if (true) {
+    // Emergency fix. This is not robust against $1 occuring in the script.
+    return html.replace(/(<\/head>)/, '$1' + scriptNode.outerHTML);
+  }
+  // FIXME: the following works during development but fails in distr.
+  // htmlRoot.querySelector(tagName) always returns null.
   if (!htmlRoot.querySelector('head')) {
     htmlRoot.querySelector('body').appendChild(new HTMLElement('head', {}, '', null));
   }

@@ -16,7 +16,7 @@ import {
   createDirectoryListing,
   defaultDirectoryExclusions,
 } from './createDirectoryListing';
-import { closeSync, listenSync } from './http-server-sync';
+import { promiseClose, promiseListen } from './httpServerUtils';
 import {
   createLiveReloadServer,
   injectLiveReloadScript,
@@ -305,7 +305,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
     app.use(urlPath, createRouter(routerConfig));
     app.use(urlPath, express.static(root));
   }
-  if (mountPoints.length > 0) {
+  if (mountPoints.every(mp => mp.urlPath !== '/')) {
     const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
     app.get('/', (_req, res) => res.send(mountListTmpl({ mountPoints })));
   }
@@ -318,12 +318,13 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
     });
   }
 
+  // Scan for an avialable port
   let server: http.Server | null = null;
   const port = config.port;
   for (let p = port; p < port + 10; p++) {
     try {
-      server = await listenSync(app, p);
-      break;
+      server = await promiseListen(app, p);
+      break; // success!
     } catch (e) {
       if (e.code !== 'EADDRINUSE' || !config.scanPorts) {
         throw e;
@@ -331,7 +332,9 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
       console.log(`Port ${p} is in use, retrying...`);
     }
   }
-  if (!server) server = await listenSync(app);
+  // If the port scan didn't find an available port within the range. Allow
+  // server.listen to choose a port.
+  if (!server) server = await promiseListen(app);
 
   const address = server.address();
   if (!address || typeof address === 'string') {
@@ -393,9 +396,14 @@ export class Server {
     return this;
   }
 
-  public async stop() {
+  /**
+   * Close the server and the liveServer.
+   *
+   * Note: Can return before the liveServer is stopped.
+   */
+  public async close() {
     if (this.server) {
-      await closeSync(this.server);
+      await promiseClose(this.server);
       this.server = null;
     }
     this.url = undefined;
@@ -403,7 +411,7 @@ export class Server {
     this.liveReloadServer = null;
   }
 
-  public filePathToUrl(filePath: string) {
+  public filePathToUrl(filePath: string): string | null {
     const baseUrl = this.url || `http://localhost:${this.config.port}`;
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
@@ -415,7 +423,7 @@ export class Server {
     return null;
   }
 
-  public urlPathToFilePath(urlPath: string) {
+  public urlPathToFilePath(urlPath: string): string | null {
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');

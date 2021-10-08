@@ -15,29 +15,29 @@ describe('Server', () => {
     server = new Server({ mountPoints: ['a', 'b'] });
     expect(server.mountPoints).toEqual([
       { filePath: 'a', urlPath: '/a' },
-      { filePath: 'b', urlPath: '/b' }
+      { filePath: 'b', urlPath: '/b' },
     ]);
 
     server = new Server({
       mountPoints: [
         { name: 'a', filePath: 'f1' },
-        { name: 'b', filePath: 'f2' }
-      ]
+        { name: 'b', filePath: 'f2' },
+      ],
     });
     expect(server.mountPoints).toEqual([
       { name: 'a', filePath: 'f1', urlPath: '/a' },
-      { name: 'b', filePath: 'f2', urlPath: '/b' }
+      { name: 'b', filePath: 'f2', urlPath: '/b' },
     ]);
 
     server = new Server({
       mountPoints: [
         { name: 'a', filePath: 'f1' },
-        { name: 'a', filePath: 'f2' }
-      ]
+        { name: 'a', filePath: 'f2' },
+      ],
     });
     expect(server.mountPoints).toEqual([
       { name: 'a', filePath: 'f1', urlPath: '/a' },
-      { name: 'a', filePath: 'f2', urlPath: '/a-2' }
+      { name: 'a', filePath: 'f2', urlPath: '/a-2' },
     ]);
   });
 
@@ -50,8 +50,8 @@ describe('Server', () => {
     server = new Server({
       mountPoints: [
         { filePath: 'f1', urlPath: '/p1' },
-        { filePath: 'f2', urlPath: '/p2' }
-      ]
+        { filePath: 'f2', urlPath: '/p2' },
+      ],
     });
     expect(server.filePathToUrl('f1/a')).toEqual('http://localhost:3000/p1/a');
     expect(server.filePathToUrl('f2/a')).toEqual('http://localhost:3000/p2/a');
@@ -66,8 +66,8 @@ describe('Server', () => {
     server = new Server({
       mountPoints: [
         { filePath: 'f1', urlPath: '/p1' },
-        { filePath: 'f2', urlPath: '/p2' }
-      ]
+        { filePath: 'f2', urlPath: '/p2' },
+      ],
     });
     expect(server.urlPathToFilePath('/p1/a')).toEqual('f1/a');
     expect(server.urlPathToFilePath('/p2/a')).toEqual('f2/a');
@@ -84,6 +84,6 @@ describe('Server', () => {
     expect(text).toMatch(/<html/);
     expect(text).toMatch(/Sketches/);
 
-    await server.stop();
+    await server.close();
   });
 });

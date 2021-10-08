@@ -2,6 +2,10 @@
 
 <!-- markdownlint-disable MD032 -->
 
+## Unreleased
+
+- Rename Server#stop() -> Server#close()
+
 ## [0.8.2] - 2021-10-05
 
 - Emergency fix to script tag injection in js distribution

@@ -76,10 +76,8 @@ export default async function screenshot(source: string, options: Options) {
     console.log(`Saved screenshot from ${source} to ${fname}`);
 
     if (--remainingFrames == 0) {
-      // The delay is to give the client time to receive the request response,
-      // so that it knows to close.
-
-      // FIXME: why doesn't server.stop() work?
+      // Give the client time to receive the request response, so that it knows
+      // to close.
       setTimeout(() => process.exit(0), 100);
     }
   }

@@ -1,5 +1,6 @@
 import express from 'express';
 import http = require('http');
+import net = require('net');
 
 /** A wrapper for express.Application#listen that returns a Promise.
  *
@@ -8,8 +9,8 @@ import http = require('http');
  * It fails if the server sends on 'error' event or fails to produce and address
  * within the specified interval.
  * */
-export function listenSync(
-  app: express.Application,
+export function promiseListen(
+  app: express.Application | http.Server,
   port?: number,
   timeout: number = 1000
 ): Promise<http.Server> {
@@ -53,14 +54,15 @@ export function listenSync(
  * It fails if the server sends an 'error' event or fails to close within the
  * specified interval.
  */
-export function closeSync(server: http.Server, timeout: number = 1000) {
+export function promiseClose(server: net.Server, timeout: number = 10000) {
   return new Promise<void>((resolve, reject) => {
+    // server.close((err?: Error) => (err ? reject(err) : resolve()));
     server.close();
     server.on('close', onClose);
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
       removeListeners();
-      onError(new Error('Failed to close server'));
+      onError(new Error('Failed to close server within the timeout period'));
     }, timeout);
 
     function onClose() {

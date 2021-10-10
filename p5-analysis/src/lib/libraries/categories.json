@@ -1,11 +1,13 @@
 [
   {
     "key": "core",
-    "description": "The “Core” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).\n\nThis does not include the `p5.accessibility` library because, as [noted on its home page](https://github.com/processing/p5.accessibility), it is obsolete."
+    "description": "The “Core” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).",
+    "details": "This does not include the `p5.accessibility` library because, as [noted on its home page](https://github.com/processing/p5.accessibility), it is obsolete."
   },
   {
     "key": "community",
-    "description": "“Community” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).\n\nThis list does not include a couple of libraries that could not be automatically included."
+    "description": "“Community” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).",
+    "details": "This list does not include a couple of libraries that could not be automatically included."
   },
   {
     "key": "peer",

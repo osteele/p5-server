@@ -14,11 +14,13 @@
       },
       "homepage": {
         "description": "The library's home page",
-        "type": "string"
+        "type": "string",
+        "pattern": "^https?:"
       },
       "repository": {
         "description": "The repository location, where this is different from the homepage",
-        "type": "string"
+        "type": "string",
+        "pattern": "^https?:"
       },
       "description": {
         "description": "A short description of the library",
@@ -26,7 +28,8 @@
       },
       "importPath": {
         "description": "A CDN URL that loads the library",
-        "type": "string"
+        "type": "string",
+        "pattern": "^https?:|^@"
       },
       "packageName": {
         "description": "NPM package name",
@@ -40,7 +43,8 @@
           "globals|p5": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
             }
           }
         },

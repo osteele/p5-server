@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import rimraf from 'rimraf';
-import { Sketch, SketchType } from '../src/lib/Sketch';
+import { Sketch, SketchType } from '../src';
 
 const testfilesPath = './tests/testdata';
 
@@ -194,7 +194,7 @@ describe('Sketch.convert', () => {
         { type: 'javascript' },
         {
           exception:
-            'index.html contains libraries that are not implied by sketch.js: p5.sound'
+            'index.html contains libraries that are not implied by sketch.js: p5.sound',
         }
       ));
 
@@ -249,10 +249,7 @@ describe('Sketch.convert', () => {
     } else if (filePath.indexOf(path.sep) !== -1) {
       const srcDir = filePath.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
-      mainFile = filePath
-        .split(path.sep)
-        .slice(1)
-        .join(path.sep);
+      mainFile = filePath.split(path.sep).slice(1).join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
@@ -293,7 +290,7 @@ function expectDirectoriesEqual(a: string, b: string) {
   if (process.env.JEST_UPDATE_FILE_SNAPSHOTS) {
     fs.cpSync(a, b, {
       recursive: true,
-      filter: (src: string) => !src.startsWith('.')
+      filter: (src: string) => !src.startsWith('.'),
     });
   }
   let aFiles = getDirectoryJson(a);
@@ -319,7 +316,7 @@ function getDirectoryJson(dir: string): DirectoryJson {
         name,
         fs.statSync(file).isDirectory()
           ? getDirectoryJson(file)
-          : fs.readFileSync(file, 'utf-8')
+          : fs.readFileSync(file, 'utf-8'),
       ];
     });
 }

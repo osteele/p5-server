@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { parse } from 'node-html-parser';
 import { JavaScriptSyntaxError, Script } from './Script';
+import { Category } from './Category';
 
 export const p5Version = '1.4.0';
 
@@ -8,7 +9,7 @@ export const p5Version = '1.4.0';
 export namespace Library {
   export type Properties = {
     name: string;
-    role?: string;
+    categoryKey?: string;
     description: string;
     homepage: string;
     packageName?: string;
@@ -21,6 +22,8 @@ export namespace Library {
 /** A library that can be used with p5.js sketches. */
 export class Library implements Library.Properties {
   static all: Library[] = [];
+  static categories: Category[] = [];
+
   /** The human-readable name of the library. */
   public readonly name: string;
   /** The human-readable description of the library. */
@@ -30,47 +33,56 @@ export class Library implements Library.Properties {
   /** The npm package name of the library. */
   public readonly packageName?: string;
   public readonly repository?: string;
-  public readonly role?: string;
+  public readonly categoryKey?: string;
   /** Global variables (functions and classes) and p5.* properties that the
    * library defines. */
   public readonly defines?: Record<'globals' | 'p5', string[]>;
   private _importPath?: string;
 
-  constructor(spec: Library.Properties) {
+  private constructor(spec: Library.Properties) {
     this.name = spec.name;
     this.description = spec.description;
     this.homepage = spec.homepage;
     this.repository = spec.repository;
-    this.role = spec.role;
+    this.categoryKey = spec.categoryKey;
     this._importPath = spec.importPath;
     Object.assign(this, spec);
   }
 
   //#region instantation
-  static fromSpec(spec: Library.Properties): Library {
-    return new Library(spec);
-  }
-
   /** Adds a library from a record in a library.json file. */
-  static add(spec: Library.Properties) {
-    Library.all.push(new Library(spec));
+  static fromProperties(props: Library.Properties): Library {
+    const lib = new Library(props);
+    Library.all.push(lib);
+    return lib;
   }
 
   /** Adds all the libraries in the given library specification JSON file to the
-   * global library array in Library.all.
+   * global library array `Library.all`.
    */
-  static addFromJson(jsonPath: string, { role }: { role?: string } = {}) {
-    const specs = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
-    specs.forEach((spec: Library.Properties) => Library.add({ role, ...spec }));
+  static addFromJsonFile(
+    jsonPath: string,
+    defaultProps: Partial<Library.Properties>
+  ): Library[] {
+    const properties = JSON.parse(
+      fs.readFileSync(jsonPath, 'utf-8')
+    ) as Library.Properties[];
+    const libs = properties.map(props =>
+      Library.fromProperties({ ...defaultProps, ...props })
+    );
+    return libs;
   }
   //#endregion
 
   /** Finds a library by its name. */
-  static find(name: string): Library | null {
+  static find({ name }: { name: string }): Library | null {
     return this.all.find(lib => lib.name === name) || null;
   }
 
-  static inferFromScripts(scriptPaths: string[]): LibraryArray {
+  static inferFromScripts(
+    scriptPaths: string[],
+    { ifNotExists = 'skip' } = {}
+  ): LibraryArray {
     const libs: LibraryArray = new LibraryArray();
     // TODO: remove each script's global from other scripts' free variables.
     //
@@ -78,21 +90,20 @@ export class Library implements Library.Properties {
     // inference is only used for JavaScript-only sketches, which can only be a
     // single script.
     for (const scriptFile of scriptPaths) {
-      if (fs.existsSync(scriptFile)) {
-        try {
-          const { freeVariables, p5properties } = Script.fromFile(scriptFile);
-          for (const lib of this.all) {
-            if (
-              lib.defines?.globals?.some(name => freeVariables!.has(name)) ||
-              lib.defines?.p5?.some(name => p5properties!.has(name))
-            ) {
-              libs.push(lib);
-            }
+      if (ifNotExists === 'skip' && !fs.existsSync(scriptFile)) continue;
+      try {
+        const { freeVariables, p5properties } = Script.fromFile(scriptFile);
+        for (const lib of this.all) {
+          if (
+            lib.defines?.globals?.some(name => freeVariables!.has(name)) ||
+            lib.defines?.p5?.some(name => p5properties!.has(name))
+          ) {
+            libs.push(lib);
           }
-        } catch (e) {
-          if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
-            throw e;
-          }
+        }
+      } catch (e) {
+        if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
+          throw e;
         }
       }
     }
@@ -196,13 +207,3 @@ export class LibraryArray extends Array<Library> {
     return Array.from(Array.prototype.map.call(this, fn)) as U[];
   }
 }
-
-[
-  { role: 'core', file: 'core-libraries' },
-  { role: 'community', file: 'community-libraries' },
-  { role: 'peer', file: 'peer-libraries' },
-  { role: 'recommended', file: 'recommended-libraries' },
-  { role: 'osteele', file: 'osteele-libraries' },
-].forEach(({ role, file }) => {
-  Library.addFromJson(`${__dirname}/libraries/${file}.json`, { role });
-});

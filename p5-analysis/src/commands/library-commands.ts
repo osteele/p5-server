@@ -4,42 +4,34 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import { Library, Script } from '..';
 import nunjucks from 'nunjucks';
-import path from 'path';
 
 nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
 
-const roleDescriptions: Record<string, { name?: string; description: string }> =
-  Object.fromEntries(
-    JSON.parse(
-      fs.readFileSync(path.join(__dirname, '../lib/libraries/roles.json'), 'utf-8')
-    ).map((role: { key: string }) => [role.key, role])
-  );
-
-export function listLibraries() {
+export function listLibraries({ verbose = false }) {
+  if (!verbose) {
+    console.log(Library.all.map(l => l.name).join('\n'));
+    return;
+  }
   console.log(
     nunjucks.render('list-libraries.njk', {
       libraries: Library.all,
-      roleDescriptions,
+      categories: Library.categories,
     })
   );
 }
 
-export function generateLibraryPage() {
-  const roles = (
-    Array.from(new Set(Library.all.map(lib => lib.role))).filter(Boolean) as string[]
-  ).map(roleKey => ({
-    name: roleDescriptions[roleKey].name || `${capitalize(roleKey)} Libraries`,
-    description: roleDescriptions[roleKey].description,
-    libraries: Library.all.filter(lib => lib.role === roleKey),
-  }));
-  const markdown = nunjucks.render('libraries.njk', {
-    roles,
-    stringify: JSON.stringify,
-  });
-  console.log(markdown);
-
-  function capitalize(str: string) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+export function generateLibraryPage({ output }: { output?: string }) {
+  const markdown = nunjucks
+    .render('libraries.njk', {
+      categories: Library.categories,
+      stringify: JSON.stringify,
+    })
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  if (output) {
+    fs.writeFileSync(output, markdown + '\n');
+  } else {
+    console.log(markdown);
   }
 }
 

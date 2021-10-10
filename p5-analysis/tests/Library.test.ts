@@ -1,29 +1,25 @@
-import path from 'path';
-import { Library } from '../src/lib/Library';
+import { Library } from '../src';
 
 const testfilesPath = './tests/testdata';
 
-test('Library.inferLibrariesFromScripts', () => {
-  const dir = path.join(testfilesPath, 'library-inference');
+test('Library.length', () => {
+  expect(Library.all.length).toBeGreaterThan(10);
+});
 
-  expect(Library.inferFromScripts([`${dir}/no-libraries.js`]).map(l => l.name)).toEqual(
-    []
-  );
-  expect(Library.inferFromScripts([`${dir}/loadSound.js`]).map(l => l.name)).toEqual([
-    'p5.sound',
-  ]);
-  expect(Library.inferFromScripts([`${dir}/dat.js`]).map(l => l.name)).toEqual([
-    'dat.gui',
-  ]);
-  expect(Library.inferFromScripts([`${dir}/ml5.poseNet.js`]).map(l => l.name)).toEqual([
-    'ml5.js',
-  ]);
-  expect(Library.inferFromScripts([`${dir}/p5.Pulse.js`]).map(l => l.name)).toEqual([
-    'p5.sound',
-  ]);
-  expect(Library.inferFromScripts([`${dir}/p5.Speech.js`]).map(l => l.name)).toEqual([
-    'p5.speech',
-  ]);
+test('Library.inferLibrariesFromScripts', () => {
+  const dir = `${testfilesPath}/library-inference`;
+  const inferLibraries = (filename: string) =>
+    Library.inferFromScripts([`${dir}/${filename}`], { ifNotExists: 'error' }).map(
+      lib => lib.name
+    );
+
+  expect(Library.all.length).toBeGreaterThan(10);
+  expect(inferLibraries(`no-libraries.js`)).toHaveLength(0);
+  expect(inferLibraries(`loadSound.js`)).toEqual(['p5.sound']);
+  expect(inferLibraries(`dat.js`)).toEqual(['dat.gui']);
+  expect(inferLibraries(`ml5.poseNet.js`)).toEqual(['ml5.js']);
+  expect(inferLibraries(`p5.Pulse.js`)).toEqual(['p5.sound']);
+  expect(inferLibraries(`p5.Speech.js`)).toEqual(['p5.speech']);
 });
 
 test('Script.findLibrariesInHtml', () => {

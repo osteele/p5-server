@@ -23,7 +23,9 @@ const libraries = program.command('libraries');
 libraries.command('check-collisions').action(checkCollisions);
 libraries.command('find-minimized-alternatives').action(findMinimizedAlternatives);
 libraries.command('validate-import-paths').action(checkLibraryPaths);
-libraries.command('generate').action(generateLibraryPage);
-libraries.command('report').action(listLibraries);
+
+libraries.command('generate').option('-o, --output <FILE>').action(generateLibraryPage);
+
+libraries.command('list').option('-v, --verbose').action(listLibraries);
 
 program.parse(process.argv);

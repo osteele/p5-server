@@ -24,7 +24,7 @@ test('Script.findGlobals', () => {
   expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(
     new Map([
       ['f', 'FunctionDeclaration'],
-      ['g', 'FunctionDeclaration']
+      ['g', 'FunctionDeclaration'],
     ])
   );
   expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(
@@ -35,7 +35,7 @@ test('Script.findGlobals', () => {
   expect(Script.fromSource('let a, b').globals).toEqual(
     new Map([
       ['a', 'VariableDeclaration'],
-      ['b', 'VariableDeclaration']
+      ['b', 'VariableDeclaration'],
     ])
   );
   expect(Script.fromSource('class A {}').globals).toEqual(
@@ -89,13 +89,13 @@ describe('Script.freeVariables', () => {
       'b',
       'c',
       'd',
-      'i'
+      'i',
     ]);
     expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual([
       'a',
       'b',
       'c',
-      'd'
+      'd',
     ]);
     expect(free('function f() {for (p of obj) p, a;}')).toEqual(['a', 'obj', 'p']);
     // expect(free('function f() {for (const p of obj) p, a;}')).toEqual(['a', 'obj']);

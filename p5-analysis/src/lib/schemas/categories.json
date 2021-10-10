@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product.schema.json",
+  "title": "Categories",
+  "description": "p5.js library categories",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "uniqueItems": true,
+    "properties": {
+      "name": {
+        "description": "The human-readable name of the library",
+        "type": "string"
+      },
+      "key": {
+        "description": "A unique key",
+        "type": "string"
+      },
+      "description": {
+        "description": "A short description of the library",
+        "type": "string"
+      },
+      "details": {
+        "description": "Additional details about the library",
+        "type": "string"
+      }
+    },
+    "required": ["key"],
+    "additionalProperties": false
+  }
+}

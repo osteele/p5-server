@@ -5,13 +5,15 @@ automatically include these libraries if a sketch refers to
 functions or classes that they define, and the sketch does not
 include its own definitions of these variables.
 
-{% for role in roles %}
+{% for category in categories %}
 
-## {{ role.name }}
+## {{ category.name }}
 
-> {{ role.description }}
+> {{ category.description }}
 
-{% for lib in role.libraries -%}
+{{ category.details }}
+
+{% for lib in category.libraries -%}
 
 ### [{{ lib.name }}]({{ lib.homepage }})
 

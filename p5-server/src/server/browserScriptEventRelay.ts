@@ -14,9 +14,10 @@ import {
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emitScriptEvent(eventName: string | symbol, ...args: any[]): boolean;
+  emitScriptEvent(eventName: string | symbol, ...args: any[]): void;
   filePathToUrl(filePath: string): string | null;
   urlPathToFilePath(urlPath: string): string | null;
+  serverUrlToFileUrl(url: string): string | null;
 }
 
 export function attachBrowserScriptRelay(
@@ -25,18 +26,20 @@ export function attachBrowserScriptRelay(
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const routes = new Map<string, (event: Record<string, any>) => void>();
-
   const wsServer = new ws.Server({ noServer: true });
+
   wsServer.on('connection', socket => {
     socket.on('message', message => {
       const [route, data] = parseCyclicJson(message as string);
       const handler = routes.get(route);
-      if (handler)
+      if (handler) {
         handler({
           ...data,
           file: urlToFilePath(data.url),
+          stack: replaceUrlsInStack(relay, data.stack),
           timestamp: new Date(data.timestamp),
         });
+      }
     });
   });
 
@@ -66,9 +69,7 @@ export function attachBrowserScriptRelay(
   });
 
   defineHandler('error', (event: BrowserErrorEvent) => {
-    const stack = replaceUrlsInStack(event.stack);
-    const data: BrowserErrorEvent = { ...event, stack };
-    relay.emitScriptEvent('error', data);
+    relay.emitScriptEvent('error', event);
   });
 
   defineHandler('window', (event: BrowserWindowEvent) => {
@@ -85,15 +86,36 @@ export function attachBrowserScriptRelay(
     }
     return relay.urlPathToFilePath(new URL(url).pathname);
   }
+}
 
-  function replaceUrlsInStack(stack: string | undefined): string | undefined {
-    return stack
-      ? stack.replace(
-          /((?<=[\b(])|\b)https?:\/\/localhost(?::\d+)?(\/[^\s:]+)/g,
-          (s, p) => relay.urlPathToFilePath(p) || s
-        )
-      : stack;
-  }
+export function replaceUrlsInStack(
+  relay: BrowserScriptRelay,
+  stack: string | undefined
+): string | undefined {
+  if (!stack) return stack;
+  return (
+    // Safari
+    stack
+      .replace(
+        /(?:^|\b)\S*@http:\/\/[^/]+\/__p5_server_static\/console-relay(?:\.min)\.js:\d+:\d+\n/g,
+        ''
+      )
+      // Chrome (first line, without parens)
+      .replace(
+        /(?:^|\b) *at[^\n]+?http:\/\/[^/]+\/__p5_server_static\/console-relay(?:\.min)\.js:\d+:\d+\n/g,
+        ''
+      )
+      // Chrome (subsequent lines, with parens)
+      .replace(
+        / +at[^\n]+?\(http:\/\/[^/]+\/__p5_server_static\/console-relay(?:\.min)\.js:\d+:\d+\)\n/gm,
+        ''
+      )
+      // http:// -> file:///
+      .replace(
+        /\bhttps?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/[^\s:]+/g,
+        url => relay.serverUrlToFileUrl(url) || url
+      )
+  );
 }
 
 export function injectScriptEventRelayScript(html: string) {

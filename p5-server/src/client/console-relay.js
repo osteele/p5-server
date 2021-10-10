@@ -1,10 +1,10 @@
 const serializationPrefix = '__p5_server_serialization_:';
 const unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
 
-// for debugging this module
+// so we can use e.g savedMethods.debug() to debug this file
 const savedMethods = new Object(null);
-const savedOnError = window.onerror;
 
+const savedOnError = window.onerror;
 window.onerror = (message, url, line, col, err) => {
   send('error', {
     type: 'error',

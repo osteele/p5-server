@@ -434,15 +434,14 @@ export class Server {
     return null;
   }
 
-  // public urlToFilePath(url: string) {
-  //   const baseUrl = this.url || `http://localhost:${this.options.port}`;
-  //   if (url.startsWith(baseUrl + '/')) {
-  //     return url.slice(baseUrl.length);
-  //     console.info(url.slice(baseUrl.length));
-  //     return this.urlPathToFilePath(url.slice(baseUrl.length));
-  //   }
-  //   return null;
-  // }
+  public serverUrlToFileUrl(url: string) {
+    const baseUrl = this.url || `http://localhost:${this.config.port}`;
+    if (url.startsWith(baseUrl + '/')) {
+      const filepath = this.urlPathToFilePath(url.slice(baseUrl.length));
+      if (filepath) return 'file://' + path.resolve(filepath);
+    }
+    return null;
+  }
 
   private static normalizeMountPoints(
     mountPoints: Server.MountPointOption[]

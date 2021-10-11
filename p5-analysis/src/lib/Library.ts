@@ -22,7 +22,9 @@ export namespace Library {
 /** A library that can be used with p5.js sketches. */
 export class Library implements Library.Properties {
   static all: Library[] = [];
-  static categories: Category[] = [];
+  public static get categories() {
+    return Category.all;
+  }
 
   /** The human-readable name of the library. */
   public readonly name: string;
@@ -51,9 +53,19 @@ export class Library implements Library.Properties {
 
   //#region instantation
   /** Adds a library from a record in a library.json file. */
-  static fromProperties(props: Library.Properties): Library {
+  static fromProperties(
+    props: Library.Properties,
+    { ifExists = 'error' }: { ifExists?: 'error' | 'replace' } = {}
+  ): Library {
     const lib = new Library(props);
-    Library.all.push(lib);
+    const ix = Library.all.findIndex(l => l.name === lib.name);
+    if (ifExists === 'error' && ix >= 0) {
+      throw new Error(`Library ${lib.name} already exists.`);
+    } else if (ix >= 0) {
+      Library.all.splice(ix, 1, lib);
+    } else {
+      Library.all.push(lib);
+    }
     return lib;
   }
 

@@ -1,5 +1,4 @@
-import { Category } from '../src/lib/Category';
-import { Library } from '../src/lib/Library';
+import { Category, Library } from '../src';
 
 test('Categories.length', () => {
   expect(Library.categories.length).toBeGreaterThan(1);

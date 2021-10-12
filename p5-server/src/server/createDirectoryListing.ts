@@ -2,7 +2,7 @@ import fs from 'fs';
 import marked from 'marked';
 import path from 'path';
 import pug from 'pug';
-import { Sketch } from 'p5-analysis';
+import { Sketch, SketchStructureType } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { markedOptions, templateDir } from './templates';
 
@@ -11,7 +11,7 @@ export const defaultDirectoryExclusions = [
   '*~',
   'node_modules',
   'package.json',
-  'package-lock.json'
+  'package-lock.json',
 ];
 
 export async function createDirectoryListing(
@@ -27,10 +27,10 @@ export async function createDirectoryListing(
     staticMode: false,
     templateName: 'directory.pug',
     templateOptions: {},
-    ...options
+    ...options,
   };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
-    exclusions: defaultDirectoryExclusions
+    exclusions: defaultDirectoryExclusions,
   });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -40,7 +40,7 @@ export async function createDirectoryListing(
     ? {
         name: readmeName,
         html: markdown(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
-        url: staticMode ? `${readmeName}.html` : readmeName
+        url: staticMode ? `${readmeName}.html` : readmeName,
       }
     : null;
 
@@ -78,7 +78,7 @@ export async function createDirectoryListing(
 
     // pug options
     cache: true,
-    filters: { markdown }
+    filters: { markdown },
   });
 
   function directory_index(dir: string) {
@@ -104,7 +104,7 @@ export async function createDirectoryListing(
 
   function play_link(sk: Sketch) {
     return path_to(
-      staticMode && sk.sketchType === 'javascript'
+      staticMode && sk.structureType === SketchStructureType.scriptOnly
         ? sk.mainFile.replace(/\.js$/i, '.html')
         : sk.mainFile,
       sk

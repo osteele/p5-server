@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import rimraf from 'rimraf';
-import { Sketch, SketchType } from '../src';
+import { Sketch, SketchStructureType } from '../src';
 
 const testfilesPath = './tests/testdata';
 
@@ -12,7 +12,7 @@ function f(strings: TemplateStringsArray) {
 
 test('Sketch.fromHtmlFile', async () => {
   const sketch = await Sketch.fromHtmlFile(f`Sketch.analyzeDirectory/sketch.html`);
-  expect(sketch.sketchType).toBe('html');
+  expect(sketch.structureType).toBe(SketchStructureType.htmlIndex);
   expect(sketch.name).toBe('sketch');
   expect(sketch.title).toBe('HTML-based sketch');
   expect(sketch.dir).toBe(f`Sketch.analyzeDirectory`);
@@ -23,7 +23,7 @@ test('Sketch.fromHtmlFile', async () => {
 
 test('Sketch.fromScriptFile', async () => {
   const sketch = await Sketch.fromScriptFile(f`circles.js`);
-  expect(sketch.sketchType).toBe('javascript');
+  expect(sketch.structureType).toBe(SketchStructureType.scriptOnly);
   expect(sketch.name).toBe('circles');
   expect(sketch.title).toBe('Circles');
   expect(sketch.dir).toBe(f``);
@@ -161,37 +161,46 @@ describe('Sketch.convert', () => {
   });
 
   describe('script -> html', () => {
-    test('simple case', () => testConvert('sketch.js', { type: 'html' }, 'html'));
+    test('simple case', () =>
+      testConvert('sketch.js', { type: SketchStructureType.htmlIndex }, 'html'));
     // TODO: test the description
     // TODO: remove the description from the js file?
 
     test('html file already exists', () =>
       testConvert(
         'collision/sketch.js',
-        { type: 'html' },
+        { type: SketchStructureType.htmlIndex },
         { exception: /html already exists/ }
       ));
 
     test('library', () =>
-      testConvert('use-sound-library.js', { type: 'html' }, 'use-sound-library'));
+      testConvert(
+        'use-sound-library.js',
+        { type: SketchStructureType.htmlIndex },
+        'use-sound-library'
+      ));
   });
 
   describe('html -> script', () => {
     test('simple case', () =>
-      testConvert(['sketch.html', 'sketch.js'], { type: 'javascript' }, 'script'));
+      testConvert(
+        ['sketch.html', 'sketch.js'],
+        { type: SketchStructureType.scriptOnly },
+        'script'
+      ));
     // TODO: add the description to the script file?
 
     test('library', () =>
       testConvert(
         'use-sound-library/index.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         'use-sound-library-js'
       ));
 
     test('uninferred library', () =>
       testConvert(
         'uninferred-library/index.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         {
           exception:
             'index.html contains libraries that are not implied by sketch.js: p5.sound',
@@ -201,7 +210,7 @@ describe('Sketch.convert', () => {
     test('added inferred library', () =>
       testConvert(
         'add-implied-library/index.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         { exception: 'sketch.js implies libraries that are not in index.html' }
       ));
 
@@ -211,28 +220,28 @@ describe('Sketch.convert', () => {
     test('inline scripts', () =>
       testConvert(
         'inline-script.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         { exception: /contains an inline script/ }
       ));
 
     test('multiple scripts', () =>
       testConvert(
         'multiple-scripts.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         { exception: /contains multiple script tags/ }
       ));
 
     test('missing scripts', () =>
       testConvert(
         'missing-script.html',
-        { type: 'javascript' },
+        { type: SketchStructureType.scriptOnly },
         { exception: /refers to a script file that does not exist/ }
       ));
   });
 
   async function testConvert(
     filePath: string | string[],
-    options: { type: SketchType },
+    options: { type: SketchStructureType },
     expectation: string | { exception: string | RegExp }
   ) {
     let mainFile = filePath instanceof Array ? filePath[0] : filePath;

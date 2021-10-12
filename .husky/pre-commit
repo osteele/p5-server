@@ -3,4 +3,4 @@
 
 yarn lint --max-warnings=0
 yarn constraints
-yarn test
+yarn test --lastCommit

@@ -57,8 +57,8 @@ program
 program
   .command('convert')
   .description('Convert an HTML sketch to JavaScript-only or vice versa')
-  .argument('file')
-  .option('--to <type>', 'output type: html or javascript')
+  .argument('FILE')
+  .option('--to <type>', 'output type: script, html, folder')
   .action(convert);
 
 program.command('libraries', 'List the libraries', {

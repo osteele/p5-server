@@ -20,7 +20,10 @@ const defaultDirectoryExclusions = [
   'package-lock.json',
 ];
 
-export type SketchType = 'html' | 'javascript';
+export enum SketchStructureType {
+  htmlIndex = 'html' /** The main file is an HTML file */,
+  scriptOnly = 'script' /** The main file is a script file */,
+}
 
 /** Sketch represents a p5.js Sketch. Is an interface to generate sketch files,
  *  find associated files, infer libraries, and scan directories for sketches that
@@ -93,7 +96,8 @@ export abstract class Sketch {
   }
 
   /** Create a sketch from a directory. This method throws an exception if the
-   * directory does not contain exactly one sketch file.
+   * directory does not contain a sketch index.html file, or contains multiple
+   * sketch files.
    *
    * @category Sketch creation
    */
@@ -102,9 +106,7 @@ export abstract class Sketch {
     options?: { exclusions?: string[] }
   ): Promise<Sketch> {
     const sketch = await Sketch.isSketchDir(dir, options);
-    if (!sketch) {
-      throw new Error(`Directory ${dir} is not a sketch directory`);
-    }
+    if (!sketch) throw new Error(`Directory ${dir} is not a sketch directory`);
     return sketch;
   }
 
@@ -212,9 +214,8 @@ export abstract class Sketch {
   }
 
   /** Tests whether the directory is a sketch directory. It is a sketch
-   * directory if it contains a single JavaScript sketch file or a single HTML
-   * sketch file that includes this file, and if all non-README files in the
-   * directory are associated with these files.
+   * directory if it contains a single JavaScript sketch file, or a single HTML
+   * sketch file named `index.html` that includes this file.
    *
    * @category Sketch detection
    */
@@ -225,10 +226,12 @@ export abstract class Sketch {
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
       return null;
     }
-    const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, options);
+    const { sketches } = await Sketch.analyzeDirectory(dir, options);
+    const [sketch] = sketches;
     return sketches.length === 1 &&
-      unassociatedFiles.every(file => /^readme($|\.)/i.test(file))
-      ? sketches[0]
+      (sketch.structureType === SketchStructureType.scriptOnly ||
+        /^index\.html?$/i.test(sketch.mainFile))
+      ? sketch
       : null;
   }
 
@@ -236,7 +239,8 @@ export abstract class Sketch {
 
   //#region properties
 
-  abstract get sketchType(): SketchType;
+  /** The file structure of the sketch. */
+  abstract get structureType(): SketchStructureType;
 
   /** For an HTML sketch, this is the HTML file. For a JavaScript sketch, this is
    * the JavaScript file. In either case, it is relative to dir.
@@ -428,7 +432,7 @@ export abstract class Sketch {
    *
    * @category Sketch conversion
    */
-  public abstract convert(options: { type: SketchType }): Promise<void>;
+  public abstract convert(options: { type: SketchStructureType }): Promise<void>;
 }
 
 class HtmlSketch extends Sketch {
@@ -476,8 +480,8 @@ class HtmlSketch extends Sketch {
     return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
   }
 
-  get sketchType(): SketchType {
-    return 'html';
+  get structureType(): SketchStructureType {
+    return SketchStructureType.htmlIndex;
   }
 
   get mainFile() {
@@ -536,9 +540,9 @@ class HtmlSketch extends Sketch {
       .filter(s => !s.match(/https?:/));
   }
 
-  public async convert(options: { type: SketchType }) {
+  public async convert(options: { type: SketchStructureType }) {
     switch (options.type) {
-      case 'javascript': {
+      case SketchStructureType.scriptOnly: {
         // html -> javascript
         const htmlPath = this.htmlFilePath!;
 
@@ -640,8 +644,8 @@ class ScriptSketch extends Sketch {
     }
   }
 
-  get sketchType(): SketchType {
-    return 'javascript';
+  get structureType(): SketchStructureType {
+    return SketchStructureType.scriptOnly;
   }
 
   get mainFile() {
@@ -660,9 +664,9 @@ class ScriptSketch extends Sketch {
     return [...new Set(files)];
   }
 
-  public async convert(options: { type: SketchType }) {
+  public async convert(options: { type: SketchStructureType }) {
     switch (options.type) {
-      case 'html': {
+      case SketchStructureType.htmlIndex: {
         // javascript -> html
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
         const htmlPath = path.join(this.dir, htmlName);

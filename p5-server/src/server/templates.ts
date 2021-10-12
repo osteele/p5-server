@@ -24,12 +24,12 @@ export const markedOptions: marked.MarkedOptions = {
   highlight(code, lang) {
     const language = hljs.getLanguage(lang) ? lang : 'javascript';
     return hljs.highlight(code, { language }).value;
-  }
+  },
 };
 
 export function markdownToHtmlPage(data: string): string {
   const markdown = marked(data, markedOptions);
-  const title = (data.match(/^# (.*)$/m) || [])[1] ?? '';
+  const title = data.match(/^#\s*(.+)\s*$/m)?.[1] ?? '';
   return markdownPageTemplate({ markdown, title });
 }
 
@@ -57,12 +57,12 @@ export function createSyntaxErrorJsReporter(
   const [message, context] = errs[0].message.split('\n\n', 2);
   const errorHtml = syntaxErrorTemplate({
     message,
-    context: terminalCodesToHtml(context, true).replace(/\n/g, '<br>')
+    context: terminalCodesToHtml(context, true).replace(/\n/g, '<br>'),
   });
   return jsTemplateEnv.renderString(syntaxErrorJsTemplate, {
     fileName: path.basename(filepath),
     message: removeTerminalCodes(errs[0].message),
-    errorHtml
+    errorHtml,
   });
 }
 //#endregion

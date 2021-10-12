@@ -61,7 +61,10 @@
       "statusBarItem.remoteBackground": "#42b883",
       "statusBarItem.remoteForeground": "#15202b"
     },
-    "peacock.color": "#42b883"
+    "peacock.color": "#42b883",
+    "ponicode.testSettings.testLocation.locationType": "Custom",
+    "ponicode.testSettings.testLocation.path": "{rootDir}/tests/{fileName}.test.{ext}",
+    "editor.foldingImportsByDefault": true
   },
   "extensions": {
     "recommendations": [

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import marked from 'marked';
+import { Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
-import { Sketch, SketchStructureType } from 'p5-analysis';
 import { pathComponentsForBreadcrumbs } from '../utils';
 import { markedOptions, templateDir } from './templates';
 
@@ -104,7 +104,7 @@ export async function createDirectoryListing(
 
   function play_link(sk: Sketch) {
     return path_to(
-      staticMode && sk.structureType === SketchStructureType.scriptOnly
+      staticMode && sk.structureType === 'script'
         ? sk.mainFile.replace(/\.js$/i, '.html')
         : sk.mainFile,
       sk

@@ -20,10 +20,9 @@ const defaultDirectoryExclusions = [
   'package-lock.json',
 ];
 
-export enum SketchStructureType {
-  htmlIndex = 'html' /** The main file is an HTML file */,
-  scriptOnly = 'script' /** The main file is a script file */,
-}
+export type SketchStructureType =
+  | 'html' /** The main file is an HTML file */
+  | 'script'; /** The main file is a script file */
 
 /** Sketch represents a p5.js Sketch. Is an interface to generate sketch files,
  *  find associated files, infer libraries, and scan directories for sketches that
@@ -229,8 +228,7 @@ export abstract class Sketch {
     const { sketches } = await Sketch.analyzeDirectory(dir, options);
     const [sketch] = sketches;
     return sketches.length === 1 &&
-      (sketch.structureType === SketchStructureType.scriptOnly ||
-        /^index\.html?$/i.test(sketch.mainFile))
+      (sketch.structureType === 'script' || /^index\.html?$/i.test(sketch.mainFile))
       ? sketch
       : null;
   }
@@ -481,7 +479,7 @@ class HtmlSketch extends Sketch {
   }
 
   get structureType(): SketchStructureType {
-    return SketchStructureType.htmlIndex;
+    return 'html';
   }
 
   get mainFile() {
@@ -542,7 +540,7 @@ class HtmlSketch extends Sketch {
 
   public async convert(options: { type: SketchStructureType }) {
     switch (options.type) {
-      case SketchStructureType.scriptOnly: {
+      case 'script': {
         // html -> javascript
         const htmlPath = this.htmlFilePath!;
 
@@ -642,7 +640,7 @@ class ScriptSketch extends Sketch {
   }
 
   get structureType(): SketchStructureType {
-    return SketchStructureType.scriptOnly;
+    return 'script';
   }
 
   get mainFile() {
@@ -663,7 +661,7 @@ class ScriptSketch extends Sketch {
 
   public async convert(options: { type: SketchStructureType }) {
     switch (options.type) {
-      case SketchStructureType.htmlIndex: {
+      case 'html': {
         // javascript -> html
         const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
         const htmlPath = path.join(this.dir, htmlName);

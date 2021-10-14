@@ -4,8 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 const sketchTypes: Record<string, SketchStructureType | 'folder'> = {
-  '^html$': SketchStructureType.htmlIndex,
-  '^(script|javascript|js)(-only)?$': SketchStructureType.scriptOnly,
+  '^html$': 'html',
+  '^(script|javascript|js)(-only)?$': 'script',
   '^folder$': 'folder',
 };
 

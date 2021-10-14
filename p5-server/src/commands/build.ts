@@ -2,7 +2,7 @@ import fs from 'fs';
 import { rm as rmSync, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
 import open from 'open';
-import { Sketch, SketchStructureType } from 'p5-analysis';
+import { Sketch } from 'p5-analysis';
 import path from 'path';
 import {
   createDirectoryListing,
@@ -103,9 +103,7 @@ function createActions(file: string, output: string): ActionIterator {
     });
     yield Action('mkdir', dir, output);
 
-    const scriptOnlySketches = sketches.filter(
-      sk => sk.structureType === SketchStructureType.scriptOnly
-    );
+    const scriptOnlySketches = sketches.filter(sk => sk.structureType === 'script');
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
       const outputFile = path

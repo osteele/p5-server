@@ -1,3 +1,4 @@
+import traverse, { Node } from '@babel/traverse';
 import { Program } from 'esprima';
 import {
   ArrowFunctionExpression,
@@ -8,11 +9,28 @@ import {
   MethodDefinition,
   Pattern,
   PropertyDefinition,
-  Statement
+  Statement,
 } from 'estree';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
-export function findGlobals(program: Program) {
+export function findGlobals(ast: Node) {
+  const globals = new Map<string, string>();
+  traverse(ast, {
+    Program(path) {
+      for (const [k, v] of Object.entries(path.scope.bindings)) {
+        globals.set(
+          k,
+          { VariableDeclarator: 'VariableDeclaration' }[v.path.node.type as string] ||
+            v.path.node.type
+        );
+      }
+      path.skip();
+    },
+  });
+  return globals;
+}
+
+export function originalFindGlobals(program: Program) {
   return new Map<string, string>(iterProgram());
   function* iterProgram(): Iterable<[string, string]> {
     for (const { name, nodeType } of new DeclarationIterator(program).visit()) {
@@ -21,7 +39,10 @@ export function findGlobals(program: Program) {
   }
 }
 
-export function findFreeVariables(program: Program): Set<string> {
+export function findFreeVariables(
+  program: Program,
+  _globals: Set<string>
+): Set<string> {
   return new Set(iterProgram(program));
   function* iterProgram(program: Program): Iterable<string> {
     yield* new FreeVariableIterator(program).visit();
@@ -87,7 +108,7 @@ class DeclarationIterator extends ESTreeVisitor<{
 
 class FreeVariableIterator extends ESTreeVisitor<string> {
   *visitProgram(program: Program): Iterable<string> {
-    const globalVariables = new Set(findGlobals(program).keys());
+    const globalVariables = new Set(originalFindGlobals(program).keys());
     for (const name of ESTreeVisitor.prototype.visitProgram.call(this, program)) {
       if (!globalVariables.has(name)) {
         yield name;
@@ -115,7 +136,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
           }
         }
         const that = this;
-        yield* this.filterLocals(locals, function*() {
+        yield* this.filterLocals(locals, function* () {
           if (node.test) {
             yield* that.visitExpression(node.test);
           }
@@ -218,7 +239,7 @@ class FreeVariableIterator extends ESTreeVisitor<string> {
       }
     }
     const that = this;
-    yield* this.filterLocals(locals, function*() {
+    yield* this.filterLocals(locals, function* () {
       if (node.body.type === 'BlockStatement') {
         for (const block of node.body.body) {
           for (const name of that.iterDeclaredNames(block)) {

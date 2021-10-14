@@ -1,10 +1,11 @@
+import { parse } from '@babel/parser';
 import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
 import {
   findFreeVariables,
   findGlobals,
   findLoadCalls,
-  findP5PropertyReferences
+  findP5PropertyReferences,
 } from './script-analysis';
 import babel = require('@babel/core');
 import objectRestSpreadPlugin = require('@babel/plugin-proposal-object-rest-spread');
@@ -28,6 +29,7 @@ interface ScriptAnalysis {
 
 export class Script implements ScriptAnalysis {
   private _program?: Program;
+  private _ast?: ReturnType<typeof parse>;
   private readonly analysis: Partial<ScriptAnalysis> = {};
 
   constructor(public readonly source: string, public readonly filename?: string) {}
@@ -40,21 +42,24 @@ export class Script implements ScriptAnalysis {
     return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
   }
 
+  private get ast() {
+    if (!this._ast) this._ast = parse(this.source, { sourceFilename: this.filename });
+    return this._ast;
+  }
+
   private get program() {
     // TODO: use the babel AST, instead of re-parsing with esprima
-    if (this._program) {
-      return this._program;
-    }
+    if (this._program) return this._program;
+
     const result = babel.transform(this.source, {
       ast: false,
       babelrc: false,
       configFile: false,
       compact: true,
       filename: this.filename,
-      plugins: [objectRestSpreadConfigItem]
+      plugins: [objectRestSpreadConfigItem],
     });
 
-    // this._program = (result!.ast!.program as unknown) as Program;
     const source = result!.code!;
     try {
       this._program = parseScript(source);
@@ -70,30 +75,28 @@ export class Script implements ScriptAnalysis {
   }
 
   get globals() {
-    if (!this.analysis.globals) {
-      this.analysis.globals = findGlobals(this.program);
-    }
+    if (!this.analysis.globals) this.analysis.globals = findGlobals(this.ast);
     return this.analysis.globals;
   }
 
   get freeVariables() {
-    if (!this.analysis.freeVariables) {
-      this.analysis.freeVariables = findFreeVariables(this.program);
-    }
+    if (!this.analysis.freeVariables)
+      this.analysis.freeVariables = findFreeVariables(
+        this.program,
+        new Set(Object.keys(this.globals))
+      );
     return this.analysis.freeVariables;
   }
 
   get loadCallArguments() {
-    if (!this.analysis.loadCallArguments) {
+    if (!this.analysis.loadCallArguments)
       this.analysis.loadCallArguments = findLoadCalls(this.program);
-    }
     return this.analysis.loadCallArguments;
   }
 
   get p5properties() {
-    if (!this.analysis.p5properties) {
+    if (!this.analysis.p5properties)
       this.analysis.p5properties = findP5PropertyReferences(this.program);
-    }
     return this.analysis.p5properties;
   }
 

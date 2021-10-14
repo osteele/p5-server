@@ -6,6 +6,8 @@
 
 - `p5 convert` is smarter, can convert into folders
 - It's only a single-directory sketch if the HTML file is named index.html
+
+API changes:
 - Rename Server#stop() -> Server#close()
 
 ## [0.8.2] - 2021-10-05

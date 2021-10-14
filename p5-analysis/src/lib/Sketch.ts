@@ -629,10 +629,7 @@ class ScriptSketch extends Sketch {
 
     try {
       const { globals, freeVariables } = Script.fromFile(file);
-      return (
-        globals.get('setup') === 'FunctionDeclaration' &&
-        freeVariables.has('createCanvas')
-      );
+      return globals.get('setup') === 'function' && freeVariables.has('createCanvas');
     } catch (e) {
       if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
         const source = await readFile(file, 'utf-8');

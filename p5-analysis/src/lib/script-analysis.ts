@@ -13,16 +13,23 @@ import {
 } from 'estree';
 import { ESTreeVisitor } from './ESTreeVisitor';
 
+const bindingValueTypes: Partial<
+  Record<Node['type'], 'function' | 'class' | 'variable'>
+> = {
+  ClassDeclaration: 'class',
+  FunctionDeclaration: 'function',
+  VariableDeclarator: 'variable',
+};
+
 export function findGlobals(ast: Node) {
   const globals = new Map<string, string>();
   traverse(ast, {
     Program(path) {
-      for (const [k, v] of Object.entries(path.scope.bindings)) {
-        globals.set(
-          k,
-          { VariableDeclarator: 'VariableDeclaration' }[v.path.node.type as string] ||
-            v.path.node.type
-        );
+      for (const [name, binding] of Object.entries(path.scope.bindings)) {
+        const type = bindingValueTypes[binding.path.node.type];
+        if (type) {
+          globals.set(name, type);
+        }
       }
       path.skip();
     },

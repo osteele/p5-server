@@ -20,62 +20,60 @@ test('Script.getErrors', () => {
 describe('Script.findGlobals', () => {
   test('it recognizes function definitions', () => {
     expect(Script.fromSource('function f() {}').globals).toEqual(
-      new Map([['f', 'FunctionDeclaration']])
+      new Map([['f', 'function']])
     );
 
     expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(
       new Map([
-        ['f', 'FunctionDeclaration'],
-        ['g', 'FunctionDeclaration'],
+        ['f', 'function'],
+        ['g', 'function'],
       ])
     );
   });
 
   test('it ignores nested functions', () =>
     expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(
-      new Map([['f', 'FunctionDeclaration']])
+      new Map([['f', 'function']])
     ));
 
   test('it recognizes global variables', () =>
     expect(Script.fromSource('let a, b').globals).toEqual(
       new Map([
-        ['a', 'VariableDeclaration'],
-        ['b', 'VariableDeclaration'],
+        ['a', 'variable'],
+        ['b', 'variable'],
       ])
     ));
 
   test('it recognizes pattern variables', () => {
     expect(Script.fromSource('let [a, b, ...c] = [e, f]').globals).toEqual(
       new Map([
-        ['a', 'VariableDeclaration'],
-        ['b', 'VariableDeclaration'],
-        ['c', 'VariableDeclaration'],
+        ['a', 'variable'],
+        ['b', 'variable'],
+        ['c', 'variable'],
       ])
     );
 
     expect(Script.fromSource('let {a, b:c, d:{e}} = {f}').globals).toEqual(
       new Map([
-        ['a', 'VariableDeclaration'],
-        ['c', 'VariableDeclaration'],
-        ['e', 'VariableDeclaration'],
+        ['a', 'variable'],
+        ['c', 'variable'],
+        ['e', 'variable'],
       ])
     );
   });
 
   test('it ignores local variables', () =>
     expect(Script.fromSource('function f() {function g(){let a;}}').globals).toEqual(
-      new Map([['f', 'FunctionDeclaration']])
+      new Map([['f', 'function']])
     ));
 
   test('it ignores variable initializers', () =>
     expect(Script.fromSource('let a = b').globals).toEqual(
-      new Map([['a', 'VariableDeclaration']])
+      new Map([['a', 'variable']])
     ));
 
   test('it recognizes class definitions', () =>
-    expect(Script.fromSource('class A {}').globals).toEqual(
-      new Map([['A', 'ClassDeclaration']])
-    ));
+    expect(Script.fromSource('class C {}').globals).toEqual(new Map([['C', 'class']])));
 });
 
 describe('Script.freeVariables', () => {

@@ -1,4 +1,3 @@
-export { Library } from 'p5-analysis';
-export { Sketch, SketchType } from 'p5-analysis';
-export { Server } from './server/Server';
+export * from 'p5-analysis';
 export * from './server/eventTypes';
+export { Server } from './server/Server';

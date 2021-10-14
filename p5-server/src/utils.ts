@@ -19,7 +19,12 @@ export function escapeHTML(str: string) {
     .replace(/'/g, '&#39;');
 }
 
-// This is similar to open.open, except that it also accepts 'safari' as an app name
+/**
+ *	Open a URL in the browser.
+ *
+ * This is a wrapper for `open()` from the 'open' package. It has the same API,
+ *	 except that it also accepts 'safari' as an app name.
+ */
 export function openInBrowser(url: string, browser?: string) {
   const appName: open.AppName | 'safari' | undefined =
     browser === 'safari'
@@ -35,6 +40,9 @@ export function openInBrowser(url: string, browser?: string) {
   open(url, openOptions);
 }
 
+/**
+ * 'a/b/c' => [{name: 'Home', path: '/'}, {name: 'a', path: '/a'}, {name: 'b', path: '/a/b'}, {name: 'c', path: '/a/b/c'}]
+ */
 export function pathComponentsForBreadcrumbs(
   relDirPath: string
 ): { name: string; path: string }[] {
@@ -59,6 +67,7 @@ export function pathComponentsForBreadcrumbs(
   );
 }
 
+/** Tests whether filepath is inside the directory `dir`. */
 export function pathIsInDirectory(filepath: string, dir: string) {
   return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
 }
@@ -105,7 +114,7 @@ export function addScriptToHtmlHead(
             .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
             .join('\n');
   }
-  if (true) {
+  if (process.env.P5_SERVER_HTML_INJECTION_PARSER !== 'html') {
     // Emergency fix. This is not robust against $1 occuring in the script.
     return html.replace(/(<\/head>)/, '$1' + scriptNode.outerHTML);
   }

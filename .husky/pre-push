@@ -6,4 +6,4 @@ yarn lint --max-warnings=0
 yarn constraints
 yarn test
 yarn build
-yarn workspaces foreach -tv run cli
+yarn workspaces foreach -tv run cli --version

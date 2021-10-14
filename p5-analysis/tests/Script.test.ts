@@ -83,7 +83,7 @@ describe('Script.freeVariables', () => {
     Array.from(Script.fromSource(code).freeVariables).sort();
   // const free = (code: string) => Script.fromSource(code).freeVariables;
 
-  test('basics', () => {
+  test('finds variables in functions', () => {
     expect(free('function f() {}')).toEqual([]);
     expect(free('function f(a) {a}')).toEqual([]);
     expect(free('function f(a) {b}')).toEqual(['b']);
@@ -91,7 +91,7 @@ describe('Script.freeVariables', () => {
     expect(free('function f() {g}; function g() {}')).toEqual([]);
   });
 
-  test('local variables', () => {
+  test('ignores local variables', () => {
     expect(free('function f(a) {let b; b}')).toEqual([]);
     expect(free('function f(a) {let b; c}')).toEqual(['c']);
     expect(free('function f(a) {let b=c}')).toEqual(['c']);
@@ -99,26 +99,25 @@ describe('Script.freeVariables', () => {
     expect(free('function f() {let b=c; let c=b}')).toEqual(['c']);
   });
 
-  test('expressions', () => {
+  test('finds variables in expressions', () => {
     expect(free('function f() {a + b}')).toEqual(['a', 'b']);
     expect(free('function f() {a ? b : c}')).toEqual(['a', 'b', 'c']);
-
     expect(free('function f() {let a = b + c}')).toEqual(['b', 'c']);
     expect(free('let a = b + c')).toEqual(['b', 'c']);
   });
 
-  test('function calls and nested functions', () => {
+  test('finds variables in function calls and nested functions', () => {
     expect(free('function f(a) {g()}')).toEqual(['g']);
     expect(free('function f(a) {f(a); g(b)}')).toEqual(['b', 'g']);
     expect(free('function f(a) {let b; function g(c) {a+b+c+d}}')).toEqual(['d']);
   });
 
-  test('function expressions', () => {
+  test('finds variables in function expressions', () => {
     expect(free('let f = function(a) {a + b}')).toEqual(['b']);
     expect(free('let f = a => a + b')).toEqual(['b']);
   });
 
-  test('control structures', () => {
+  test('finds variables in control structures', () => {
     expect(free('function f() {for (i=a; i<b; i+=c) d;}')).toEqual([
       'a',
       'b',
@@ -137,26 +136,26 @@ describe('Script.freeVariables', () => {
     expect(free('function f() {if(a)b;else c}')).toEqual(['a', 'b', 'c']);
   });
 
-  test('classes', () => {
+  test('finds variables in classes', () => {
     expect(free('class A { constructor() { this.a = b; A} }')).toEqual(['b']);
     expect(free('class A { m(a) { a,b; } }')).toEqual(['b']);
     expect(free('class A extends B {}')).toEqual(['B']);
     expect(free('class A {}; class B extends A {}')).toEqual([]);
   });
 
-  test('class expressions', () => {
+  test('finds variables in class expressions', () => {
     expect(free('const A = class { constructor() { this.a = b; A}}')).toEqual(['b']);
   });
 
-  test('template literals', () => {
+  test('finds variables in template literals', () => {
     expect(free('let a = `${b+c} ${d}}`')).toEqual(['b', 'c', 'd']);
     expect(free('let a = f`${b+c} ${d}`')).toEqual(['b', 'c', 'd', 'f']);
   });
 
-  test('array spread', () => {
+  test('finds variables in array spread', () => {
     expect(free('let a = [b, ...c, ...d]')).toEqual(['b', 'c', 'd']);
   });
-  test.skip('object spread', () => {
+  test.skip('finds variables in object spread', () => {
     expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
   });
 

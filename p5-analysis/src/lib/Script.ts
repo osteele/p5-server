@@ -75,28 +75,33 @@ export class Script implements ScriptAnalysis {
   }
 
   get globals() {
-    if (!this.analysis.globals) this.analysis.globals = findGlobals(this.ast);
+    if (!this.analysis.globals) {
+      this.analysis.globals = findGlobals(this.ast);
+    }
     return this.analysis.globals;
   }
 
   get freeVariables() {
-    if (!this.analysis.freeVariables)
+    if (!this.analysis.freeVariables) {
       this.analysis.freeVariables = findFreeVariables(
         this.program,
-        new Set(Object.keys(this.globals))
+        new Set(this.globals.keys())
       );
+    }
     return this.analysis.freeVariables;
   }
 
   get loadCallArguments() {
-    if (!this.analysis.loadCallArguments)
+    if (!this.analysis.loadCallArguments) {
       this.analysis.loadCallArguments = findLoadCalls(this.program);
+    }
     return this.analysis.loadCallArguments;
   }
 
   get p5properties() {
-    if (!this.analysis.p5properties)
+    if (!this.analysis.p5properties) {
       this.analysis.p5properties = findP5PropertyReferences(this.program);
+    }
     return this.analysis.p5properties;
   }
 

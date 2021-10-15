@@ -6,7 +6,7 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import prettier from 'prettier';
 import pug from 'pug';
-import { asyncFilter, asyncFind, capitalize } from '../utils';
+import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
 import { Library, LibraryArray, p5Version } from './Library';
 import { JavaScriptSyntaxError, Script } from './Script';
 
@@ -102,7 +102,7 @@ export abstract class Sketch {
    */
   static async fromDirectory(
     dir: string,
-    options?: { exclusions?: string[] }
+    options?: { exclusions?: string[]; depth?: number }
   ): Promise<Sketch> {
     const sketch = await Sketch.isSketchDir(dir, options);
     if (!sketch) throw new Error(`Directory ${dir} is not a sketch directory`);
@@ -220,17 +220,81 @@ export abstract class Sketch {
    */
   static async isSketchDir(
     dir: string,
-    options?: { exclusions?: string[] }
+    { exclusions = defaultDirectoryExclusions, depth = 10 } = {}
   ): Promise<Sketch | null> {
+    // This implementation is functionally equivalent to testing whether `(await
+    // Sketch.analyzeDirectory(dir)).sketches.length === 1`, but it is more
+    // efficient. This is especially important in the context of the VS Code
+    // extension.
+
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
       return null;
     }
-    const { sketches } = await Sketch.analyzeDirectory(dir, options);
-    const [sketch] = sketches;
-    return sketches.length === 1 &&
-      (sketch.structureType === 'script' || /^index\.html?$/i.test(sketch.mainFile))
-      ? sketch
-      : null;
+
+    const files = await fs
+      .readdirSync(dir)
+      .filter(file => !exclusions.some(pattern => minimatch(file, pattern)))
+      .map(file => path.join(dir, file));
+
+    // is there an index.html file?
+    const indexFiles = await asyncFilter(
+      files.filter(file => /^index\.html?$/i.test(path.basename(file))),
+      Sketch.isSketchHtmlFile
+    );
+    if (indexFiles.length > 1) {
+      return null;
+    }
+
+    // are there other HTML sketch files?
+    const [indexFile] = indexFiles;
+    const otherHtmlSketches = await asyncFilter(
+      files.filter(file => file !== indexFile),
+      Sketch.isSketchHtmlFile
+    );
+    if (otherHtmlSketches.length > 0) {
+      return null;
+    }
+
+    // are there JavaScript sketch files that aren't associated with the index.html sketch?
+    const sketch = indexFile ? await Sketch.fromHtmlFile(indexFile) : null;
+    const associatedScripts = new Set(
+      sketch ? sketch.files.map(file => path.join(sketch.dir, file)) : []
+    );
+    const scriptSketches = await asyncFilter(
+      files.filter(file => !associatedScripts.has(file)),
+      Sketch.isSketchScriptFile
+    );
+    if (indexFiles.length + scriptSketches.length !== 1) {
+      return null;
+    }
+
+    // are there subdirectories that contain sketch files?
+    if (await subdirectoriesContainSketchFiles(dir, depth)) {
+      return null;
+    }
+
+    return sketch || (await Sketch.fromFile(scriptSketches[0]));
+
+    async function subdirectoriesContainSketchFiles(
+      dir: string,
+      depth: number,
+      includeFiles = false
+    ): Promise<boolean> {
+      if (depth <= 0) {
+        return false;
+      }
+      const files = fs
+        .readdirSync(dir)
+        .filter(file => !exclusions.some(pattern => minimatch(file, pattern)))
+        .map(file => path.join(dir, file));
+      return asyncSome(files, file =>
+        fs.statSync(file).isDirectory()
+          ? subdirectoriesContainSketchFiles(file, depth - 1)
+          : includeFiles
+          ? Sketch.isSketchFile(file)
+          : Promise.resolve(false)
+      );
+    }
   }
 
   //#endregion
@@ -446,9 +510,9 @@ class HtmlSketch extends Sketch {
     this.htmlFile = htmlFile;
   }
 
-  static async fromFile(htmlFile: string): Promise<Sketch> {
-    const dir = path.dirname(htmlFile);
-    const htmlContent = await readFile(htmlFile, 'utf-8');
+  static async fromFile(htmlFilePath: string): Promise<Sketch> {
+    const dir = path.dirname(htmlFilePath);
+    const htmlContent = await readFile(htmlFilePath, 'utf-8');
     const htmlRoot = parseHtml(htmlContent);
     const description = htmlRoot
       .querySelector('head meta[name=description]')
@@ -458,18 +522,20 @@ class HtmlSketch extends Sketch {
       (await asyncFind(scripts, name =>
         Sketch.isSketchScriptFile(path.join(dir, name))
       )) || scripts[0];
-    return new HtmlSketch(dir, path.basename(htmlFile), scriptFile, { description });
+    return new HtmlSketch(dir, path.basename(htmlFilePath), scriptFile, {
+      description,
+    });
   }
 
-  static async isSketchHtmlFile(htmlFilepath: string): Promise<boolean> {
-    if (!fs.existsSync(htmlFilepath) || fs.statSync(htmlFilepath).isDirectory()) {
+  static async isSketchHtmlFile(htmlFilePath: string): Promise<boolean> {
+    if (!fs.existsSync(htmlFilePath) || fs.statSync(htmlFilePath).isDirectory()) {
       return false;
     }
-    if (!/\.html?$/i.test(htmlFilepath)) {
+    if (!/\.html?$/i.test(htmlFilePath)) {
       return false;
     }
 
-    const html = await readFile(htmlFilepath, 'utf-8');
+    const html = await readFile(htmlFilePath, 'utf-8');
     const htmlRoot = parseHtml(html);
     const scriptSrcs = htmlRoot
       .querySelectorAll('script[src]')

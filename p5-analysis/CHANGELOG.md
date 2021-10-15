@@ -5,11 +5,9 @@
 Changed:
 
 - New enum SketchStructureType
-
-Changed:
-
 - Sketch.sketchType -> Sketch.structureType; changed the enum values
 - It's only a single-directory sketch if the HTML file is named index.html
+- More efficient implementation of Sketch.isSketchDir
 
 ## [0.6.3] - 2021-10-05
 

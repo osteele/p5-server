@@ -21,6 +21,20 @@ export async function asyncFind<T>(
   return undefined;
 }
 
+export async function asyncSome<T>(
+  array: T[],
+  predicate: (value: T, index: number, array: T[]) => Promise<unknown>,
+  thisArg?: unknown
+): Promise<boolean> {
+  for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    if (await predicate.call(thisArg, element, i, array)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }

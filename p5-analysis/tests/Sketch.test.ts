@@ -64,16 +64,26 @@ test('Sketch.analyzeDirectory', async () => {
   expect(unassociatedFiles).toEqual(['collection', 'loose.js']);
 });
 
-test('Sketch.isSketchDir', async () => {
+describe('Sketch.isSketchDir', () => {
   const testfileDir = f`Sketch.analyzeDirectory`;
-  expect(
-    await Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))
-  ).toBeInstanceOf(Sketch);
-  expect(await Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))).toBeInstanceOf(
-    Sketch
-  );
-  expect(await Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))).toBeFalsy();
-  expect(await Sketch.isSketchDir(path.join(testfileDir, 'collection'))).toBeFalsy();
+
+  test('recognizes script-only sketch', async () =>
+    expect(
+      await Sketch.isSketchDir(path.join(testfileDir, 'js-only-sketch'))
+    ).toBeInstanceOf(Sketch));
+
+  test('recognizes directory that contains script and HTML', async () =>
+    expect(
+      await Sketch.isSketchDir(path.join(testfileDir, 'sketch-dir'))
+    ).toBeInstanceOf(Sketch));
+
+  test('rejects missing directory', async () =>
+    expect(
+      await Sketch.isSketchDir(path.join(testfileDir, 'missing-dir'))
+    ).toBeFalsy());
+
+  test('rejects directory containing more than one sketch', async () =>
+    expect(await Sketch.isSketchDir(path.join(testfileDir, 'collection'))).toBeFalsy());
 });
 
 test('Sketch.files', async () => {

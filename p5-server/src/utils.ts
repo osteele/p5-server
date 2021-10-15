@@ -121,9 +121,14 @@ export function addScriptToHtmlHead(
   // FIXME: the following works during development but fails in distr.
   // htmlRoot.querySelector(tagName) always returns null.
   if (!htmlRoot.querySelector('head')) {
-    htmlRoot.querySelector('body').appendChild(new HTMLElement('head', {}, '', null));
+    const body = htmlRoot.querySelector('body');
+    if (body) body.appendChild(new HTMLElement('head', {}, '', null));
+    else console.warn('HTML document did not have a body');
   }
-  htmlRoot.querySelector('head').appendChild(scriptNode);
-
+  const head = htmlRoot.querySelector('head');
+  if (!head) {
+    return html.replace(/(<\/head>)/, '$1' + scriptNode.outerHTML);
+  }
+  head.appendChild(scriptNode);
   return htmlRoot.outerHTML;
 }

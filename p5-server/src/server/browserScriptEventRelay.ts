@@ -30,7 +30,7 @@ export function attachBrowserScriptRelay(
 
   wsServer.on('connection', socket => {
     socket.on('message', message => {
-      const [route, data] = parseCyclicJson(message as string);
+      const [route, data] = parseCyclicJson(message.toString());
       const handler = routes.get(route);
       if (handler) {
         handler({

@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import tree from '../commands/tree';
 
 const program = new Command();
 
@@ -11,12 +12,11 @@ const pkg = JSON.parse(
 const appVersion = pkg.version;
 program.version(appVersion);
 
-program.command('libraries', 'Display information about the p5 libraries', {
-  executableFile: 'p5-libraries',
-});
-
-program.command('tree', 'Print the tree structure of a directory and its sketches', {
-  executableFile: 'p5-tree',
-});
+program
+  .description('Print the tree structure of a directory and its sketches')
+  .argument('[DIRECTORY]', 'directory', '.')
+  .option('-L, --level <LEVEL>', 'Descend only level directories deep.')
+  .option('--descriptions', 'Print descriptions of sketches')
+  .action(tree);
 
 program.parse(process.argv);

@@ -9,12 +9,11 @@ import convert from '../commands/convert';
 import create from '../commands/create';
 import screenshot from '../commands/screenshot';
 import serve from '../commands/serve';
-import tree from '../commands/tree';
 
 const program = new Command();
 
 const pkg = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8')
+  fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
 );
 const appVersion = pkg.version;
 program.version(appVersion);
@@ -61,11 +60,6 @@ program
   .option('--to <type>', 'output type: script, html, folder')
   .action(convert);
 
-program.command('libraries', 'List the libraries', {
-  hidden: true,
-  executableFile: 'p5-analyze',
-});
-
 program
   .command('screenshot')
   .argument('SKETCH_FILE')
@@ -96,12 +90,16 @@ program
   )
   .action(serve);
 
-program
-  .command('tree')
-  .description('Print the tree structure of a directory and its sketches')
-  .argument('[DIRECTORY]', 'directory', '.')
-  .option('-L, --level <LEVEL>', 'Descend only level directories deep.')
-  .option('--descriptions', 'Print descriptions of sketches')
-  .action(tree);
+program.command(
+  'libraries',
+  'Print information about p5.js libraries known to p5-server',
+  {
+    executableFile: 'p5-libraries',
+  }
+);
+
+program.command('tree', 'Print the tree structure of a directory and its sketches', {
+  executableFile: 'p5-tree',
+});
 
 program.parse(process.argv);

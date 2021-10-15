@@ -1,13 +1,12 @@
 import fs from 'fs';
-import { Sketch } from 'p5-analysis';
 import path from 'path';
-
+import { Sketch } from '..';
 import {
+  AsyncTreeInputIterable,
   dedentSymbol,
   indentSymbol,
   printTree,
-  AsyncTreeInputIterable
-} from '../printTree';
+} from './helpers/printTree';
 
 export default async function tree(
   file: string,

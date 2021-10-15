@@ -19,7 +19,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "p5-analyze": "dist/bin/p5-analyze.js"
+    "p5-libraries": "dist/bin/p5-libraries.js",
+    "p5-tree": "dist/bin/p5-tree.js"
   },
   "repository": "github:osteele/p5-server",
   "scripts": {
@@ -28,6 +29,8 @@
     "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "clean": "rimraf dist",
     "cli": "ts-node --files src/bin/p5-analyze.ts",
+    "cli:libraries": "ts-node --files src/bin/p5-libraries.ts",
+    "cli:tree": "ts-node --files src/bin/p5-tree.ts",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepack": "yarn run build",
     "test": "jest",
@@ -43,7 +46,8 @@
     "node-fetch": "^2.6.2",
     "node-html-parser": "^5.0.0",
     "nunjucks": "^3.2.3",
-    "prettier": "^2.4.1"
+    "prettier": "^2.4.1",
+    "pug": "^3.0.2"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.7",
@@ -55,6 +59,7 @@
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.2.0",
     "@types/prettier": "^2",
+    "@types/pug": "^2.0.5",
     "@types/rimraf": "^3.0.2",
     "copyfiles": "^2.4.1",
     "eslint": "^8.0.1",

@@ -88,7 +88,7 @@ describe('Sketch.isSketchDir', () => {
 
 test('Sketch.files', async () => {
   const sketch = await Sketch.fromDirectory(f`html-includes`);
-  expect(sketch.files.sort()).toEqual(
+  expect([...sketch.files].sort()).toEqual(
     ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort()
   );
 });

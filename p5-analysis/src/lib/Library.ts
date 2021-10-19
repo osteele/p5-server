@@ -20,7 +20,7 @@ export namespace Library {
 
 /** A library that can be used with p5.js sketches. */
 export class Library implements Library.Properties {
-  static all: Library[] = [];
+  static _all: Library[] = [];
   public static get categories() {
     return Category.all;
   }
@@ -61,9 +61,9 @@ export class Library implements Library.Properties {
     if (ifExists === 'error' && ix >= 0) {
       throw new Error(`Library ${lib.name} already exists.`);
     } else if (ix >= 0) {
-      Library.all.splice(ix, 1, lib);
+      Library._all.splice(ix, 1, lib);
     } else {
-      Library.all.push(lib);
+      Library._all.push(lib);
     }
     return lib;
   }
@@ -74,7 +74,7 @@ export class Library implements Library.Properties {
   static addFromJsonFile(
     jsonPath: string,
     defaultProps: Partial<Library.Properties>
-  ): Library[] {
+  ): readonly Library[] {
     const properties = JSON.parse(
       fs.readFileSync(jsonPath, 'utf-8')
     ) as Library.Properties[];
@@ -85,6 +85,10 @@ export class Library implements Library.Properties {
   }
   //#endregion
 
+  static get all(): readonly Library[] {
+    return this._all;
+  }
+
   /** Find a library by its name or import path. */
   static find({
     name,
@@ -94,6 +98,10 @@ export class Library implements Library.Properties {
     importPath?: string;
   }): Library | null {
     const libs = this.all;
+    if (libs.length === 0) {
+      // This has cost me a lot of debugging a couple of times.
+      console.warn('Library.all has not been initialized');
+    }
     if (name) {
       return libs.find(lib => lib.name === name) || null;
     } else if (importPath) {

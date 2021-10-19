@@ -366,7 +366,7 @@ export abstract class Sketch {
    *
    * File names are relative to sketch.dirPath.
    */
-  abstract get files(): string[];
+  abstract get files(): readonly string[];
 
   //#endregion
 
@@ -378,7 +378,7 @@ export abstract class Sketch {
    *
    * @category Libraries
    */
-  get libraries(): Library[] {
+  get libraries(): readonly Library[] {
     return this.impliedLibraries();
   }
 

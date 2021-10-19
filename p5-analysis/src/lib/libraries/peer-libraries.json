@@ -10,7 +10,7 @@
   },
   {
     "name": "CCapture.js",
-    "description": "CCapture.js is a library to help capturing animations created with HTML5 canvas at a fixed framerate",
+    "description": "A library to capture canvas-based animations at a fixed framerate",
     "homepage": "https://github.com/spite/ccapture.js#readme",
     "packageName": "ccapture.js",
     "defines": {

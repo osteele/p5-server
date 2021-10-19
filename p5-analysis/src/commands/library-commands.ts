@@ -2,6 +2,7 @@
 import nunjucks from 'nunjucks';
 import { Library } from '..';
 import { die } from './helpers';
+import { exec } from 'child_process';
 
 nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
 
@@ -43,4 +44,31 @@ export function listLibraries({ verbose = false }) {
       categories: Library.categories,
     })
   );
+}
+
+export async function updateDescriptions() {
+  const libs = Library.all.filter(lib => lib.packageName);
+  const packageDescriptions = await Promise.all(
+    libs.map(
+      lib =>
+        new Promise((resolve, reject) =>
+          exec(
+            `npm view --json ${lib.packageName} description`,
+            {
+              encoding: 'utf-8',
+            },
+            (error, stdout) => (error ? reject(error) : resolve(JSON.parse(stdout)))
+          )
+        )
+    )
+  );
+
+  libs.forEach((lib, i) => {
+    const packageDescription = packageDescriptions[i];
+    if (lib.description !== packageDescription) {
+      console.log(`${lib.name}:`);
+      console.log(`Library file description = ${JSON.stringify(lib.description)} !=`);
+      console.log(` npm package description = ${JSON.stringify(packageDescription)}\n`);
+    }
+  });
 }

@@ -10,7 +10,7 @@
   },
   {
     "name": "p5.ble.js",
-    "description": "A Javascript library that enables communication between BLE devices and p5 sketches.",
+    "description": "A javascript library that enables communication between BLE devices and a p5 sketch.",
     "homepage": "https://itpnyu.github.io/p5ble-website/",
     "packageName": "p5ble",
     "defines": {
@@ -46,7 +46,7 @@
   },
   {
     "name": "p5.collide2D",
-    "description": "p5.collide2D provides tools for calculating collision detection for 2D geometry with p5.js.",
+    "description": "A collision detection library for 2D geometry in p5.js",
     "homepage": "https://github.com/bmoren/p5.collide2D",
     "packageName": "p5.collide2d",
     "defines": {
@@ -75,7 +75,7 @@
   },
   {
     "name": "p5.createloop",
-    "description": "Create animation loops with noise and GIF exports in one line of code",
+    "description": "createLoop provides a simple and structured library for creating animation loops in the browser.",
     "homepage": "https://www.npmjs.com/package/p5.createloop",
     "packageName": "createloop",
     "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
@@ -166,7 +166,7 @@
   },
   {
     "name": "p5.geolocation",
-    "description": "p5.geolocation provides techniques for acquiring, watching, calculating, and geofencing user locations for p5.js",
+    "description": "p5.geolocation provides techniques for acquiring, watching, calculating, and geofencing user locations for p5.js.",
     "homepage": "https://github.com/bmoren/p5.geolocation",
     "packageName": "p5.geolocation",
     "defines": {
@@ -230,7 +230,7 @@
   },
   {
     "name": "ml5.js",
-    "description": "ml5.js aims to make machine learning approachable for a broad audience of artists, creative coders, and students. The library provides access to machine learning algorithms and models in the browser.",
+    "description": "A friendly machine learning library for the web.",
     "homepage": "https://ml5js.org/",
     "packageName": "ml5",
     "importPath": "https://unpkg.com/ml5@latest/dist/ml5.min.js",
@@ -267,7 +267,7 @@
   },
   {
     "name": "RiTa",
-    "description": "RiTa.js provides a set of natural language processing objects for generative literature",
+    "description": "tools for generative natural language",
     "homepage": "https://rednoise.org/rita/",
     "packageName": "rita",
     "defines": {
@@ -285,7 +285,7 @@
   },
   {
     "name": "p5.SceneManager",
-    "description": "p5.SceneManager is a library for managing multiple p5.js scenes in a single sketch",
+    "description": "Helps you create sketches with multiple states / scenes",
     "homepage": "https://github.com/mveteanu/p5.SceneManager",
     "packageName": "p5.scenemanager",
     "defines": {
@@ -378,7 +378,7 @@
   },
   {
     "name": "p5.tiledmap",
-    "description": "p5.tiledmap provides drawing and helper functions to include maps in your sketches",
+    "description": "Add Tiled maps to p5.js.",
     "homepage": "https://github.com/linux-man/p5.tiledmap",
     "packageName": "p5.tiledmap",
     "defines": {
@@ -387,7 +387,7 @@
   },
   {
     "name": "p5.touchgui",
-    "description": "A multi-touch and mouse GUI Library for p5.js",
+    "description": "An easy-to-use touchscreen and mouse UI library for p5.js.",
     "homepage": "https://github.com/L05/p5.touchgui",
     "packageName": "p5.touchgui",
     "importPath": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
@@ -415,7 +415,7 @@
   },
   {
     "name": "p5.xr",
-    "description": "A library for creating VR and AR sketches with p5",
+    "description": "A library for p5.js that allows coders to easily render p5.js sketches in AR/VR using WebXR",
     "homepage": "http://p5xr.org/",
     "packageName": "p5.xr",
     "defines": {

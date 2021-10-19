@@ -6,6 +6,7 @@ import {
   describeLibrary,
   listLibraries,
   printLibraryProperty,
+  updateDescriptions,
 } from '../commands/library-commands';
 import { generateLibraryPage } from '../commands/library-docs';
 import { checkLibraries } from '../commands/library-validation';
@@ -62,6 +63,8 @@ program
   .option('--html')
   .description("Print the library's import path")
   .action(printLibraryProperty);
+
+program.command('check-descriptions').action(updateDescriptions);
 
 // program
 //   .command('validate-import-paths')

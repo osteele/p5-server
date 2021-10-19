@@ -2,9 +2,9 @@ import { Library, Script } from '..';
 import checkCollisions from '../commands/check-library-collisions';
 import { cachedFetch } from './cachedFetch';
 
-export async function checkLibraries() {
+export async function checkLibraries({ parseScripts = false }) {
   await checkLibraryHomepagePaths();
-  await checkLibraryImportPaths();
+  await checkLibraryImportPaths({ parseScripts });
   await findMinimizedImportPathAlternatives();
   await checkCollisions();
 }
@@ -25,7 +25,7 @@ export async function checkLibraryHomepagePaths() {
   }
 }
 
-export async function checkLibraryImportPaths() {
+export async function checkLibraryImportPaths({ parseScripts = false }) {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
@@ -54,22 +54,27 @@ export async function checkLibraryImportPaths() {
     process.exitCode = 1;
   }
 
-  const libraryScripts = responses
-    .filter(res => res.ok)
-    .map(({ library, text }): [Library, Script] => [library, Script.fromSource(text!)]);
-  const scriptErrors = libraryScripts.filter(
-    ([, script]) => script.getErrors().length > 0
-  );
+  if (parseScripts) {
+    const libraryScripts = responses
+      .filter(res => res.ok)
+      .map(({ library, text }): [Library, Script] => [
+        library,
+        Script.fromSource(text!),
+      ]);
+    const scriptErrors = libraryScripts.filter(
+      ([, script]) => script.getErrors().length > 0
+    );
 
-  for (const [library, script] of scriptErrors) {
-    console.log(`${library.name}:`, library.importPath);
-    for (const err of script.getErrors()) {
-      console.log(' ', err.message);
+    for (const [library, script] of scriptErrors) {
+      console.log(`${library.name}:`, library.importPath);
+      for (const err of script.getErrors()) {
+        console.log(' ', err.message);
+      }
     }
-  }
-  if (scriptErrors.length) {
-    console.log();
-    process.exitCode = 1;
+    if (scriptErrors.length) {
+      console.log();
+      process.exitCode = 1;
+    }
   }
 
   // for (const [library, script] of libraryScripts.filter(([, script]) => !script.getErrors().length)) {

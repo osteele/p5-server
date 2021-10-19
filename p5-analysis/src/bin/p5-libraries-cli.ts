@@ -25,6 +25,7 @@ program.version(appVersion);
 
 program
   .command('check')
+  .option('--parse-scripts')
   .description('Check library home pages and import paths')
   .action(checkLibraries);
 

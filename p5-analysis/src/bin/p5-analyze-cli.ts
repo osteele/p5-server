@@ -11,9 +11,11 @@ const pkg = JSON.parse(
 const appVersion = pkg.version;
 program.version(appVersion);
 
-program.command('libraries', 'Display information about the p5 libraries', {
-  executableFile: 'p5-libraries',
-});
+program
+  .command('libraries', 'Display information about the p5 libraries', {
+    executableFile: 'p5-libraries',
+  })
+  .alias('library');
 
 program.command('tree', 'Print the tree structure of a directory and its sketches', {
   executableFile: 'p5-tree',

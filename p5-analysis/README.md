@@ -3,6 +3,18 @@
 [![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command Line](#command-line)
+  - [API](#api)
+- [Implementation Notes](#implementation-notes)
+  - [Sketch detection](#sketch-detection)
+  - [Sketch descriptions](#sketch-descriptions)
+  - [Automatic library inclusion](#automatic-library-inclusion)
+  - [Associated files](#associated-files)
+- [Limitations](#limitations)
+- [License](#license)
+
 This library provides a programmatic API for finding, analyzing, and generating
 [P5.js sketches](https://p5js.org). It was created for the
 [p5-server](https://github.com/osteele/p5-server#p5js-server) command-line tool,
@@ -11,16 +23,16 @@ extension](https://github.com/osteele/vscode-p5server#readme).
 
 The API consists of three classes:
 
-* {@link Sketch} represents an sketch. This is at least a script file, and may
+- {@link Sketch} represents an sketch. This is at least a script file, and may
   also include an HTML file and additional scripts an  assets. It is the
   interface to generate sketch files, find associated files, infer libraries,
   and scan directories for sketches that they contain.
 
-* {@link Script} represents a JavaScript file. It provides script analysis
+- {@link Script} represents a JavaScript file. It provides script analysis
   features that are used to detect whether a script is a p5.js sketch, and to
   perform library inference.
 
-* {@link Library} represents a [p5.js library](https://p5js.org/libraries/).
+- {@link Library} represents a [p5.js library](https://p5js.org/libraries/).
 
 The API reference is [here](https://osteele.github.io/p5-server/p5-analysis/).
 
@@ -35,6 +47,23 @@ yard add p5-analysis
 
 ## Usage
 
+`p5-libraries list` – list the known libraries
+
+`p5-libraries docs [-o OUTPUT] [-t TEMPLATE]` – create a documentation page that
+lists all the libraries. TEMPLATE should be a
+[Nunjucks](https://mozilla.github.io/nunjucks/).
+
+`p5-tree PATH` – print the sketches in PATH and its subfolders, and the files
+in, and libraries used, by each sketch
+
+If [p5-server](https://osteele.github.io/p5-server/) is installed, these
+commands can also be accessed via `p5 libraries` and `p5 tree` (without the
+hyphen).
+
+### Command Line
+
+### API
+
 ```js
 import { Sketch } from "p5-analysis";
 
@@ -46,8 +75,8 @@ console.log(sketch.libraries);
 console.log(sketch.files);
 ```
 
-See the source to [p5-server](https://github.com/osteele/p5-server) for
-additional usage examples.
+See the source to [p5-server](https://github.com/osteele/p5-server)
+for additional usage examples.
 
 ## Implementation Notes
 
@@ -122,19 +151,19 @@ loader("cat.png");
 
 ## Limitations
 
-* This code hasn't been tested on Windows.
-* Generated sketches require an internet connection to run. They load the p5.js
+- This code hasn't been tested on Windows.
+- Generated sketches require an internet connection to run. They load the p5.js
   and other libraries from a content delivery network (“CDN”). Browsers cache
   these files, so reloading a page or running other sketches that use the same
   (or no) libraries do not require additional internet access, but you will need
   internet access the first time you use this extension or after the browser
   cache has expired.
-* This code hasn't been tested with
+- This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.
-* Library inference hasn't been tested with sketches that are written as
+- Library inference hasn't been tested with sketches that are written as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-* See the implementation notes for limitations on the recognition of associated
+- See the implementation notes for limitations on the recognition of associated
   files.
 
 ## License

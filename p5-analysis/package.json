@@ -19,8 +19,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "p5-libraries": "dist/bin/p5-libraries.js",
-    "p5-tree": "dist/bin/p5-tree.js"
+    "p5-analyze": "dist/bin/p5-analyze-cli.js",
+    "p5-libraries": "dist/bin/p5-libraries-cli.js",
+    "p5-library": "dist/bin/p5-libraries-cli.js",
+    "p5-tree": "dist/bin/p5-tree-cli.js"
   },
   "repository": "github:osteele/p5-server",
   "scripts": {
@@ -28,9 +30,10 @@
     "build:docs": "typedoc src/index.ts && yarn run cli libraries generate | pandoc -s --toc --shift-heading-level-by -1 > build/docs/libraries.html",
     "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "clean": "rimraf dist",
-    "cli": "ts-node --files src/bin/p5-analyze.ts",
-    "cli:libraries": "ts-node --files src/bin/p5-libraries.ts",
-    "cli:tree": "ts-node --files src/bin/p5-tree.ts",
+    "cli": "ts-node --files src/bin/p5-analyze-cli.ts",
+    "cli:libraries": "ts-node --files src/bin/p5-libraries-cli.ts",
+    "cli:library": "ts-node --files src/bin/p5-libraries-cli.ts",
+    "cli:tree": "ts-node --files src/bin/p5-tree-cli.ts",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "prepack": "yarn run build",
     "test": "jest",

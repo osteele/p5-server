@@ -1,10 +1,10 @@
 import checkCollisions from '../src/commands/check-library-collisions';
 import {
+  checkLibraryPaths,
   findMinimizedAlternatives,
   listLibraries,
-  checkLibraryPaths,
-  generateLibraryPage,
 } from '../src/commands/library-commands';
+import { generateLibraryPage } from '../src/commands/library-docs';
 
 test('cli', () => {
   // The main purpose of these is to import the CLI functions, so that running

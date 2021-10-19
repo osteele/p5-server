@@ -20,21 +20,6 @@ export function listLibraries({ verbose = false }) {
   );
 }
 
-export function generateLibraryPage({ output }: { output?: string }) {
-  const markdown = nunjucks
-    .render('libraries.njk', {
-      categories: Library.categories,
-      stringify: JSON.stringify,
-    })
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-  if (output) {
-    fs.writeFileSync(output, markdown + '\n');
-  } else {
-    console.log(markdown);
-  }
-}
-
 export async function checkLibraryPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {

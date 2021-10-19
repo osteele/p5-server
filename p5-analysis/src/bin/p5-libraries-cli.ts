@@ -6,9 +6,9 @@ import checkCollisions from '../commands/check-library-collisions';
 import {
   checkLibraryPaths,
   findMinimizedAlternatives,
-  generateLibraryPage,
   listLibraries,
 } from '../commands/library-commands';
+import { generateLibraryPage } from '../commands/library-docs';
 
 const program = new Command();
 
@@ -31,9 +31,10 @@ program
   .action(findMinimizedAlternatives);
 
 program
-  .command('generate')
+  .command('docs')
   .option('-o, --output <FILE>')
-  .description('Create a markdown report')
+  .option('-t, --template <TEMPLATE>', 'Nunjucks template file')
+  .description('Create markdown documentation of the libraries')
   .action(generateLibraryPage);
 
 program

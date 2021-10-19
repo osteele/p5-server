@@ -1,10 +1,12 @@
 import { Library, Script } from '..';
+import checkCollisions from '../commands/check-library-collisions';
 import { cachedFetch } from './cachedFetch';
 
 export async function checkLibraries() {
   await checkLibraryHomepagePaths();
   await checkLibraryImportPaths();
   await findMinimizedImportPathAlternatives();
+  await checkCollisions();
 }
 
 export async function checkLibraryHomepagePaths() {
@@ -105,4 +107,5 @@ export async function findMinimizedImportPathAlternatives() {
   } else {
     console.log('No libraries have minimized alternatives.');
   }
+  console.log();
 }

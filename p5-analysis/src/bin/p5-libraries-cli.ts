@@ -5,8 +5,10 @@ import path from 'path';
 import checkCollisions from '../commands/check-library-collisions';
 import {
   checkLibraryPaths,
+  describeLibrary,
   findMinimizedAlternatives,
   listLibraries,
+  printLibraryProperty,
 } from '../commands/library-commands';
 import { generateLibraryPage } from '../commands/library-docs';
 
@@ -38,10 +40,24 @@ program
   .action(generateLibraryPage);
 
 program
+  .command('describe')
+  .argument('<LIBRARY>')
+  .description('Describe the library')
+  .action(describeLibrary);
+
+program
   .command('list')
   .description('Print the known libraries to stdout')
   .option('-v, --verbose')
   .action(listLibraries);
+
+program
+  .command('property')
+  .argument('<LIBRARY>')
+  .argument('<PROPERTY>')
+  .option('--html')
+  .description("Print the library's import path")
+  .action(printLibraryProperty);
 
 program
   .command('validate-import-paths')

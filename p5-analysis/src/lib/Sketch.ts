@@ -1,3 +1,4 @@
+import { parse } from 'node-html-parser';
 import fs from 'fs';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
@@ -377,15 +378,8 @@ export abstract class Sketch {
    *
    * @category Libraries
    */
-  get libraries(): LibraryArray {
-    return this.htmlFile ? this.explicitLibraries() : this.impliedLibraries();
-  }
-
-  protected explicitLibraries(): LibraryArray {
-    const htmlPath = this.htmlFilePath;
-    return htmlPath && fs.existsSync(htmlPath)
-      ? Library.inHtml(htmlPath)
-      : new LibraryArray();
+  get libraries(): Library[] {
+    return this.impliedLibraries();
   }
 
   protected impliedLibraries(): LibraryArray {
@@ -555,6 +549,22 @@ class HtmlSketch extends Sketch {
   get files() {
     const files = [this.htmlFile, this.scriptFile, ...this.getAssociatedFiles()];
     return [...new Set(files)];
+  }
+
+  get libraries(): Library[] {
+    return this.explicitLibraries();
+  }
+
+  private explicitLibraries(): Library[] {
+    const htmlFilePath = this.htmlFilePath!;
+    if (!fs.existsSync(htmlFilePath)) return [];
+    const content = fs.readFileSync(htmlFilePath, 'utf-8');
+    const htmlRoot = parse(content);
+    const libs: (Library | null)[] = htmlRoot
+      .querySelectorAll('script[src]')
+      .map(node => node.attributes.src)
+      .map(importPath => Library.find({ importPath }));
+    return libs.filter(Boolean) as Library[];
   }
 
   protected getTitleFromFile() {

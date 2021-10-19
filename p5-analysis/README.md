@@ -49,12 +49,21 @@ yard add p5-analysis
 
 `p5-libraries list` – list the known libraries
 
-`p5-libraries docs [-o OUTPUT] [-t TEMPLATE]` – create a documentation page that
+`p5-library describe LIBRARY_NAME` – print the name, home page, import path,
+and defines of a specific library
+
+`p5-library property LIBRARY_NAME import-path [--html]` – print the import path for
+named library. With --html, print a `<script>` element.
+
+`p5-library docs [-o OUTPUT] [-t TEMPLATE]` – create a documentation page that
 lists all the libraries. TEMPLATE should be a
 [Nunjucks](https://mozilla.github.io/nunjucks/).
 
 `p5-tree PATH` – print the sketches in PATH and its subfolders, and the files
 in, and libraries used, by each sketch
+
+`p5-analyze sketch PATH` - print the files and libraries associated with a
+sketch
 
 If [p5-server](https://osteele.github.io/p5-server/) is installed, these
 commands can also be accessed via `p5 libraries` and `p5 tree` (without the

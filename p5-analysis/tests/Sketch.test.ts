@@ -102,6 +102,12 @@ test('Sketch.libraries', async () => {
 
   sketch = await Sketch.fromFile(f`Sketch.convert/explicit-imports.html`);
   expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
+
+  sketch = await Sketch.fromFile(`${testfilesPath}/html-includes/index.html`);
+  expect(sketch.libraries.map(l => l.name)).toEqual([]);
+
+  sketch = await Sketch.fromFile(`${testfilesPath}/explicit-imports.html`);
+  expect(sketch.libraries.map(l => l.name)).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
 });
 
 test('Sketch.description', async () => {

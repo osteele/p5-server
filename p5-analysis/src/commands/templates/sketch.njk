@@ -1,0 +1,29 @@
+# Sketch {{ sketch.title }}
+
+Sketch type: {{ sketch.structureType }}
+
+{%- if sketch.description %}
+Description: {{ sketch.description }}
+{% endif -%}
+
+{% if sketch.htmlFile %}
+HTML index file: {{ sketch.htmlFile }}
+{%- endif %}
+
+{%- if sketch.scriptFile %}
+Script file: {{ sketch.scriptFile }}
+{% endif %}
+
+{% if sketch.files.length %}
+Files:
+{%- for file in sketch.files %}
+- {{ file }}
+{%- endfor %}
+{% endif %}
+
+{% if sketch.libraries.length %}
+Libraries:
+{% for library in sketch.libraries %}
+- {{ library.name }}
+{%- endfor %}
+{% endif %}

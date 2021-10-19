@@ -61,12 +61,13 @@ html(lang='en')
                         each file in sketch.files
                           if file != sketch.mainFile
                             a.item(href=path_to_src_view(file, sketch))= file
-                  if sketch.libraries.withImportPaths.length > 0
+                  if sketch.libraries.length > 0
                     div
                       | Libraries:&ensp;
                       .ui.horizontal.list
-                        each library in sketch.libraries.withImportPaths
-                          a.item(href=library.homepage)= library.name
+                        each library in sketch.libraries
+                          if library.importPath
+                            a.item(href=library.homepage)= library.name
                   if sketch.libraries.withoutImportPaths.length > 0
                     div
                       | Library Candidates

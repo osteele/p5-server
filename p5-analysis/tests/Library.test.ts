@@ -6,6 +6,36 @@ test('Library.length', () => {
   expect(Library.all.length).toBeGreaterThan(10);
 });
 
+describe('Library.find', () => {
+  test('by name', () => {
+    expect(Library.find({ name: 'p5.sound' })).toBeInstanceOf(Library);
+    expect(Library.find({ name: 'p5.serial' })).toBeInstanceOf(Library);
+  });
+
+  test('by import path', () => {
+    expect(
+      Library.find({
+        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js',
+      })
+    ).toBeInstanceOf(Library);
+    expect(
+      Library.find({
+        importPath: 'https://unpkg.com/p5.rotate-about',
+      })
+    ).toBeInstanceOf(Library);
+    expect(
+      Library.find({
+        importPath: 'https://unpkg.com/p5.rotate-about@latest',
+      })
+    ).toBeInstanceOf(Library);
+    expect(
+      Library.find({
+        importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0',
+      })
+    ).toBeInstanceOf(Library);
+  });
+});
+
 test('Library.inferLibrariesFromScripts', () => {
   const dir = `${testfilesPath}/library-inference`;
   const inferLibraries = (filename: string) =>
@@ -20,13 +50,4 @@ test('Library.inferLibrariesFromScripts', () => {
   expect(inferLibraries(`ml5.poseNet.js`)).toEqual(['ml5.js']);
   expect(inferLibraries(`p5.Pulse.js`)).toEqual(['p5.sound']);
   expect(inferLibraries(`p5.Speech.js`)).toEqual(['p5.speech']);
-});
-
-test('Script.findLibrariesInHtml', () => {
-  expect(
-    Library.inHtml(`${testfilesPath}/html-includes/index.html`).map(l => l.name)
-  ).toEqual([]);
-  expect(
-    Library.inHtml(`${testfilesPath}/explicit-imports.html`).map(l => l.name)
-  ).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
 });

@@ -12,8 +12,9 @@ html(lang='en')
   // pug: newline
   // import the javascript library file(s)
   script(src=`https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, crossorigin='anonymous')
-  each lib in libraries.withImportPaths
-    script(src=lib.importPath, crossorigin='anonymous')
+  each lib in libraries
+    if lib.importPath
+      script(src=lib.importPath, crossorigin='anonymous')
 
   // pug: newline
   // import the javascript sketch file

@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { parse } from 'node-html-parser';
 import { JavaScriptSyntaxError, Script } from './Script';
 import { Category } from './Category';
 
@@ -86,9 +85,21 @@ export class Library implements Library.Properties {
   }
   //#endregion
 
-  /** Finds a library by its name. */
-  static find({ name }: { name: string }): Library | null {
-    return this.all.find(lib => lib.name === name) || null;
+  /** Find a library by its name or import path. */
+  static find({
+    name,
+    importPath,
+  }: {
+    name?: string;
+    importPath?: string;
+  }): Library | null {
+    const libs = this.all;
+    if (name) {
+      return libs.find(lib => lib.name === name) || null;
+    } else if (importPath) {
+      return libs.find(lib => lib.matchesImportPath(importPath)) || null;
+    }
+    return null;
   }
 
   static inferFromScripts(
@@ -119,25 +130,6 @@ export class Library implements Library.Properties {
         }
       }
     }
-    return libs;
-  }
-
-  static inHtml(htmlPath: string): LibraryArray {
-    let libs: LibraryArray = new LibraryArray();
-    const content = fs.readFileSync(htmlPath, 'utf-8');
-    const htmlRoot = parse(content);
-    const scriptSrcs = htmlRoot
-      .querySelectorAll('script[src]')
-      .map(node => node.attributes.src);
-    const inferredLibs = libs;
-    libs = new LibraryArray();
-    scriptSrcs.forEach(src => {
-      const lib = this.all.find(lib => lib.matchesPath(src));
-      if (lib) {
-        libs.push(lib);
-      }
-    });
-    libs.inferredFromScripts = inferredLibs.filter(lib => !libs.includes(lib));
     return libs;
   }
 
@@ -189,19 +181,17 @@ export class Library implements Library.Properties {
     this._importPath = value;
   }
 
-  protected matchesPath(path: string) {
-    if (!this.importPath) return false;
-    return (
-      this.importPath === path ||
-      (this.packageName && getPackageName(path) === this.packageName)
+  private matchesImportPath(path: string): boolean {
+    return Boolean(
+      this.importPath &&
+        (this.importPath === path ||
+          (this.packageName && Library.getCdnUrlPackageName(path) === this.packageName))
     );
+  }
 
-    function getPackageName(s: string) {
-      const m =
-        s.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
-        s.match(/^https:\/\/unpkg\.com\/([^/]+)/);
-      return m ? m[1] : undefined;
-    }
+  private static getCdnUrlPackageName(urlString: string) {
+    return (urlString.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
+      urlString.match(/^https:\/\/unpkg\.com\/([^/@]+)/))?.[1];
   }
 }
 

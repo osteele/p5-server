@@ -10,8 +10,8 @@
   },
   {
     "name": "p5.rotate-about",
-    "description": "Add p5.js rotateAbout() and scaleAbout() functions",
-    "homepage": "https://osteele.github.io/p5.libs/p5.vector-arguments/",
+    "description": "Add `rotateAbout()` and `scaleAbout()` functions to p5.js",
+    "homepage": "https://osteele.github.io/p5.libs/p5.rotate-about/",
     "packageName": "p5.rotate-about",
     "defines": {
       "globals": ["rotateAbout", "scaleAbout"]
@@ -19,7 +19,7 @@
   },
   {
     "name": "p5.vector-arguments",
-    "description": "Allow the p5.js functions to accept Vector arguments",
+    "description": "Modify the p5.js functions to accept Vector arguments",
     "homepage": "https://osteele.github.io/p5.libs/p5.vector-arguments/",
     "packageName": "p5.vector-arguments",
     "defines": {

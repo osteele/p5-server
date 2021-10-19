@@ -90,13 +90,15 @@ program
   )
   .action(serve);
 
-program.command(
-  'libraries',
-  'Print information about p5.js libraries known to p5-server',
-  {
-    executableFile: 'p5-libraries',
-  }
-);
+for (const command of ['library', 'libraries']) {
+  program.command(
+    command,
+    'Print information about p5.js libraries known to p5-server',
+    {
+      executableFile: 'p5-libraries',
+    }
+  );
+}
 
 program.command('tree', 'Print the tree structure of a directory and its sketches', {
   executableFile: 'p5-tree',

@@ -1,0 +1,17 @@
+# {{ library.name }}
+
+{{ library.description }}
+
+Home page: <{{ library.homepage }}>
+{% if library.npmPackage %}
+Npm package: {{ library.npmPackage }}
+{% endif %}
+Import path: {{ library.importPath }}
+
+Defines:
+{% for s in library.defines.globals %}
+- `{{ s }}`
+{%- endfor -%}
+{% for s in library.defines.p5 %}
+- `p5.{{ s }}`
+{%- endfor %}

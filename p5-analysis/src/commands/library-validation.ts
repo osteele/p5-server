@@ -1,7 +1,29 @@
 import { Library, Script } from '..';
 import { cachedFetch } from './cachedFetch';
 
-export async function checkLibraryPaths() {
+export async function checkLibraries() {
+  await checkLibraryHomepagePaths();
+  await checkLibraryImportPaths();
+  await findMinimizedImportPathAlternatives();
+}
+
+export async function checkLibraryHomepagePaths() {
+  const homepages = await Promise.all(
+    Library.all.map(library => cachedFetch(library.homepage))
+  );
+  const invalid = Library.all.filter((_library, i) => {
+    const homepage = homepages[i];
+    return homepage.status !== 200;
+  });
+  if (invalid.length) {
+    console.log(`${invalid.length} invalid library homepage paths:`);
+    invalid.forEach(library => console.log(library.homepage));
+    console.log();
+    process.exitCode = 1;
+  }
+}
+
+export async function checkLibraryImportPaths() {
   const missingImportPaths = Library.all.filter(library => !library.importPath);
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
@@ -9,6 +31,7 @@ export async function checkLibraryPaths() {
       console.log(' ', `${library.name} (${library.homepage})`)
     );
     console.log();
+    process.exitCode = 1;
   }
 
   process.stdout.write('Fetching sources...');
@@ -28,6 +51,7 @@ export async function checkLibraryPaths() {
       console.log(`  ${library.name} (${library.homepage}) – ${library.importPath}`)
     );
     console.log();
+    process.exitCode = 1;
   }
 
   const libraryScripts = responses
@@ -43,6 +67,10 @@ export async function checkLibraryPaths() {
       console.log(' ', err.message);
     }
   }
+  if (scriptErrors.length) {
+    console.log();
+    process.exitCode = 1;
+  }
 
   // for (const [library, script] of libraryScripts.filter(([, script]) => !script.getErrors().length)) {
   //   const globals = Array.from(script.globals.keys());
@@ -54,7 +82,7 @@ export async function checkLibraryPaths() {
   // }
 }
 
-export async function findMinimizedAlternatives() {
+export async function findMinimizedImportPathAlternatives() {
   const candidates = Library.all.filter(
     library =>
       library.importPath &&

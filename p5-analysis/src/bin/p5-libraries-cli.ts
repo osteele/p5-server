@@ -9,8 +9,9 @@ import {
   printLibraryProperty,
 } from '../commands/library-commands';
 import {
-  checkLibraryPaths,
-  findMinimizedAlternatives,
+  checkLibraries,
+  checkLibraryImportPaths,
+  findMinimizedImportPathAlternatives,
 } from '../commands/library-validation';
 import { generateLibraryPage } from '../commands/library-docs';
 
@@ -28,11 +29,16 @@ program
   .action(checkCollisions);
 
 program
+  .command('check')
+  .description('Check library home pages and import paths')
+  .action(checkLibraries);
+
+program
   .command('find-minimized-alternatives')
   .description(
     'Find libraries whose import path is adjacent to an unused minimized path'
   )
-  .action(findMinimizedAlternatives);
+  .action(findMinimizedImportPathAlternatives);
 
 program
   .command('docs')
@@ -64,7 +70,7 @@ program
 program
   .command('validate-import-paths')
   .description('Verify that the import paths exist')
-  .action(checkLibraryPaths);
+  .action(checkLibraryImportPaths);
 
 if (require.main === module) {
   program.parse(process.argv);

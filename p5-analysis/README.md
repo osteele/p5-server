@@ -49,6 +49,9 @@ yard add p5-analysis
 
 `p5-libraries list` – list the known libraries
 
+`p5-libraries check` – validate the library homepages, import paths, and other
+data
+
 `p5-library describe LIBRARY_NAME` – print the name, home page, import path,
 and defines of a specific library
 

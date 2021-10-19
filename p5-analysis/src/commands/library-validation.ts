@@ -34,7 +34,6 @@ export async function checkLibraryImportPaths() {
     process.exitCode = 1;
   }
 
-  process.stdout.write('Fetching sources...');
   const librariesWithPaths = Library.all.filter(library => library.importPath);
   const responses = await Promise.all(
     librariesWithPaths.map(async library => {
@@ -42,7 +41,6 @@ export async function checkLibraryImportPaths() {
       return { library, ok: res.ok, text: res.ok ? await res.text() : undefined };
     })
   );
-  console.log('done.\n');
 
   const invalidImportPaths = responses.filter(res => !res.ok);
   if (invalidImportPaths.length) {

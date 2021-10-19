@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import tree from '../commands/tree';
 
-const program = new Command();
+export const program = new Command();
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
@@ -19,4 +19,6 @@ program
   .option('--descriptions', 'Print descriptions of sketches')
   .action(tree);
 
-program.parse(process.argv);
+if (require.main === module) {
+  program.parse(process.argv);
+}

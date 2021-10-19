@@ -4,15 +4,17 @@ import fs from 'fs';
 import path from 'path';
 import checkCollisions from '../commands/check-library-collisions';
 import {
-  checkLibraryPaths,
   describeLibrary,
-  findMinimizedAlternatives,
   listLibraries,
   printLibraryProperty,
 } from '../commands/library-commands';
+import {
+  checkLibraryPaths,
+  findMinimizedAlternatives,
+} from '../commands/library-validation';
 import { generateLibraryPage } from '../commands/library-docs';
 
-const program = new Command();
+export const program = new Command();
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
@@ -64,4 +66,6 @@ program
   .description('Verify that the import paths exist')
   .action(checkLibraryPaths);
 
-program.parse(process.argv);
+if (require.main === module) {
+  program.parse(process.argv);
+}

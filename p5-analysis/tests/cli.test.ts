@@ -1,17 +1,9 @@
-import checkCollisions from '../src/commands/check-library-collisions';
-import {
-  checkLibraryPaths,
-  findMinimizedAlternatives,
-  listLibraries,
-} from '../src/commands/library-commands';
-import { generateLibraryPage } from '../src/commands/library-docs';
+import { program } from '../src/bin/p5-analyze-cli';
+import { program as libraryProgram } from '../src/bin/p5-libraries-cli';
+import { program as treeProgram } from '../src/bin/p5-tree-cli';
 
 test('cli', () => {
-  // The main purpose of these is to import the CLI functions, so that running
-  // the tests causes typescript to type-check them.
-  expect(checkCollisions).toBeInstanceOf(Function);
-  expect(checkLibraryPaths).toBeInstanceOf(Function);
-  expect(findMinimizedAlternatives).toBeInstanceOf(Function);
-  expect(listLibraries).toBeInstanceOf(Function);
-  expect(generateLibraryPage).toBeInstanceOf(Function);
+  expect(program.commands.length).toBeGreaterThanOrEqual(3);
+  expect(libraryProgram.commands.length).toBeGreaterThan(3);
+  expect(treeProgram.commands.length).toBe(0);
 });

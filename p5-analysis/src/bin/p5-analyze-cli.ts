@@ -5,7 +5,7 @@ import path from 'path';
 import { Sketch } from '..';
 import nunjucks from 'nunjucks';
 
-const program = new Command();
+export const program = new Command();
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
@@ -41,4 +41,6 @@ sketch
   .argument('<SKETCH_FILE>', 'The sketch to analyze')
   .action(analyzeSketch);
 
-program.parse(process.argv);
+if (require.main === module) {
+  program.parse(process.argv);
+}

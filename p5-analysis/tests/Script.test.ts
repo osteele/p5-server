@@ -12,13 +12,14 @@ test('Script.getErrors', () => {
     /Unexpected keyword 'const'/
   );
   expect(Script.fromSource('let a;').getErrors()).toEqual([]);
+
   const errs = Script.fromSource('const const;').getErrors();
   expect(errs).toHaveLength(1);
   expect(errs[0].message).toMatch(/Unexpected keyword 'const'/);
 });
 
 describe('Script.findGlobals', () => {
-  test('it recognizes function definitions', () => {
+  test('it finds function definitions', () => {
     expect(Script.fromSource('function f() {}').globals).toEqual(
       new Map([['f', 'function']])
     );
@@ -36,7 +37,7 @@ describe('Script.findGlobals', () => {
       new Map([['f', 'function']])
     ));
 
-  test('it recognizes global variables', () =>
+  test('it finds global variables', () =>
     expect(Script.fromSource('let a, b').globals).toEqual(
       new Map([
         ['a', 'variable'],
@@ -44,7 +45,7 @@ describe('Script.findGlobals', () => {
       ])
     ));
 
-  test('it recognizes pattern variables', () => {
+  test('it finds pattern variables', () => {
     expect(Script.fromSource('let [a, b, ...c] = [e, f]').globals).toEqual(
       new Map([
         ['a', 'variable'],
@@ -72,7 +73,7 @@ describe('Script.findGlobals', () => {
       new Map([['a', 'variable']])
     ));
 
-  test('it recognizes class definitions', () =>
+  test('it finds class definitions', () =>
     expect(Script.fromSource('class C {}').globals).toEqual(new Map([['C', 'class']])));
 });
 
@@ -159,7 +160,7 @@ describe('Script.freeVariables', () => {
     expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
   });
 
-  test('kitchen sink', () => {
+  test('finds variables in the kitchen sink test', () => {
     expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
       new Set(['gf1', 'gf2', 'gv1', 'l3'])
     );

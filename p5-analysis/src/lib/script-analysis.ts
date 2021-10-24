@@ -26,7 +26,7 @@ export function findGlobals(ast: Node) {
   return globals;
 }
 
-export function findFreeVariables(ast: Node, _globals: Set<string>): Set<string> {
+export function findFreeVariables(ast: Node): Set<string> {
   const variables = new Set<string>();
   traverse(ast, {
     Identifier(path) {
@@ -42,12 +42,15 @@ export function findFreeVariables(ast: Node, _globals: Set<string>): Set<string>
   return variables;
 }
 
-export function findP5PropertyReferences(ast: Node): Set<string> {
+export function findPropertyReferences(ast: Node, objectName: string): Set<string> {
   const refs = new Set<string>();
   traverse(ast, {
     MemberExpression(path) {
       const { object, property } = path.node;
-      if (t.isIdentifier(object, { name: 'p5' }) && property.type === 'Identifier') {
+      if (
+        t.isIdentifier(object, { name: objectName }) &&
+        property.type === 'Identifier'
+      ) {
         refs.add(property.name);
       }
     },

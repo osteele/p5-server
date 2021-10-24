@@ -4,7 +4,7 @@ import {
   findFreeVariables,
   findGlobals,
   findLoadCalls,
-  findP5PropertyReferences,
+  findPropertyReferences,
 } from './script-analysis';
 
 export class JavaScriptSyntaxError extends Error {
@@ -51,26 +51,20 @@ export class Script implements ScriptAnalysis {
   }
 
   get freeVariables() {
-    if (!this.analysis.freeVariables) {
-      this.analysis.freeVariables = findFreeVariables(
-        this.ast,
-        new Set(this.globals.keys())
-      );
-    }
+    if (!this.analysis.freeVariables)
+      this.analysis.freeVariables = findFreeVariables(this.ast);
     return this.analysis.freeVariables;
   }
 
   get loadCallArguments() {
-    if (!this.analysis.loadCallArguments) {
+    if (!this.analysis.loadCallArguments)
       this.analysis.loadCallArguments = findLoadCalls(this.ast);
-    }
     return this.analysis.loadCallArguments;
   }
 
   get p5properties() {
-    if (!this.analysis.p5properties) {
-      this.analysis.p5properties = findP5PropertyReferences(this.ast);
-    }
+    if (!this.analysis.p5properties)
+      this.analysis.p5properties = findPropertyReferences(this.ast, 'p5');
     return this.analysis.p5properties;
   }
 

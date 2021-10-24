@@ -38,6 +38,11 @@ program
 //   .action(findMinimizedImportPathAlternatives);
 
 program
+  .command('check-descriptions')
+  .description('Compare local library descriptions to npm package descriptions')
+  .action(updateDescriptions);
+
+program
   .command('docs')
   .option('-o, --output <FILE>')
   .option('-t, --template <TEMPLATE>', 'Nunjucks template file')
@@ -63,8 +68,6 @@ program
   .option('--html')
   .description("Print the library's import path")
   .action(printLibraryProperty);
-
-program.command('check-descriptions').action(updateDescriptions);
 
 // program
 //   .command('validate-import-paths')

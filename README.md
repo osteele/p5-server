@@ -301,7 +301,7 @@ another port.
 > Display the contents of *DIRECTORY*, organized by sketch.
 
 ```text
-$ yarn cli tree examples
+$ p5 tree examples
 📁examples
 ├── 🎨circles (circles.js)
 ├── 🎨sketch

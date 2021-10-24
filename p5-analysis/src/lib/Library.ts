@@ -113,8 +113,8 @@ export class Library implements Library.Properties {
   static inferFromScripts(
     scriptPaths: string[],
     { ifNotExists = 'skip' } = {}
-  ): LibraryArray {
-    const libs: LibraryArray = new LibraryArray();
+  ): readonly Library[] {
+    const libs: Library[] = [];
     // TODO: remove each script's global from other scripts' free variables.
     //
     // This doesn't make a functional difference with the current usage, because
@@ -200,20 +200,5 @@ export class Library implements Library.Properties {
   private static getCdnUrlPackageName(urlString: string) {
     return (urlString.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
       urlString.match(/^https:\/\/unpkg\.com\/([^/@]+)/))?.[1];
-  }
-}
-
-export class LibraryArray extends Array<Library> {
-  inferredFromScripts?: Library[];
-
-  get withImportPaths() {
-    return this.filter(lib => lib.importPath);
-  }
-  get withoutImportPaths() {
-    return this.filter(lib => !lib.importPath);
-  }
-
-  map<U>(fn: (lib: Library, index: number, array: Library[]) => U): U[] {
-    return Array.from(Array.prototype.map.call(this, fn)) as U[];
   }
 }

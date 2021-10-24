@@ -68,7 +68,8 @@ html(lang='en')
                         each library in sketch.libraries
                           if library.importPath
                             a.item(href=library.homepage)= library.name
-                  if sketch.libraries.withoutImportPaths.length > 0
+                  - let withoutImportPaths = sketch.libraries.filter(library => !library.importPath)
+                  if withoutImportPaths.length > 0
                     div
                       | Library Candidates
                       div.
@@ -76,7 +77,7 @@ html(lang='en')
                         because they haven't been published to npm.
                         Create an HTML file that imports the sketch file and these libraries.
                       .ui.horizontal.list
-                        each library in sketch.libraries.withoutImportPaths
+                        each library in withoutImportPaths
                           a.item(href=library.homepage)= library.name
               .extra.content
                 a(href=path_to(sketch.mainFile, sketch))

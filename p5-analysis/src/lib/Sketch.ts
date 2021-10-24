@@ -8,7 +8,7 @@ import path from 'path';
 import prettier from 'prettier';
 import pug from 'pug';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
-import { Library, LibraryArray, p5Version } from './Library';
+import { Library, p5Version } from './Library';
 import { JavaScriptSyntaxError, Script } from './Script';
 
 const templateDir = path.join(__dirname, './templates');
@@ -382,7 +382,7 @@ export abstract class Sketch {
     return this.impliedLibraries();
   }
 
-  protected impliedLibraries(): LibraryArray {
+  protected impliedLibraries(): readonly Library[] {
     return Library.inferFromScripts(
       this.files
         .filter(name => /\.js$/i.test(name))

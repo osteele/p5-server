@@ -20,7 +20,7 @@
     "test": "yarn workspace p5-analysis build && yarn workspaces foreach -tv run test"
   },
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.2",
+    "@tsconfig/node14": "^1.0.1",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",

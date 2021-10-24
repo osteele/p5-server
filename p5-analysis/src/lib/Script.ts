@@ -1,5 +1,4 @@
 import { parse } from '@babel/parser';
-import { parseModule, parseScript, Program } from 'esprima';
 import fs from 'fs';
 import {
   findFreeVariables,
@@ -7,10 +6,6 @@ import {
   findLoadCalls,
   findP5PropertyReferences,
 } from './script-analysis';
-import babel = require('@babel/core');
-import objectRestSpreadPlugin = require('@babel/plugin-proposal-object-rest-spread');
-
-const objectRestSpreadConfigItem = babel.createConfigItem(objectRestSpreadPlugin);
 
 export class JavaScriptSyntaxError extends Error {
   constructor(msg: string, public readonly fileName: string | null = null) {
@@ -28,7 +23,6 @@ interface ScriptAnalysis {
 }
 
 export class Script implements ScriptAnalysis {
-  private _program?: Program;
   private _ast?: ReturnType<typeof parse>;
   private readonly analysis: Partial<ScriptAnalysis> = {};
 
@@ -43,35 +37,10 @@ export class Script implements ScriptAnalysis {
   }
 
   private get ast() {
-    if (!this._ast) this._ast = parse(this.source, { sourceFilename: this.filename });
+    if (!this._ast) {
+      this._ast = parse(this.source, { sourceFilename: this.filename });
+    }
     return this._ast;
-  }
-
-  private get program() {
-    // TODO: use the babel AST, instead of re-parsing with esprima
-    if (this._program) return this._program;
-
-    const result = babel.transform(this.source, {
-      ast: false,
-      babelrc: false,
-      configFile: false,
-      compact: true,
-      filename: this.filename,
-      plugins: [objectRestSpreadConfigItem],
-    });
-
-    const source = result!.code!;
-    try {
-      this._program = parseScript(source);
-    } catch {
-      // eslint-disable-next-line no-empty
-    }
-    try {
-      this._program = parseModule(source);
-    } catch (e) {
-      throw new JavaScriptSyntaxError(e.message, this.filename);
-    }
-    return this._program;
   }
 
   get globals() {
@@ -84,7 +53,7 @@ export class Script implements ScriptAnalysis {
   get freeVariables() {
     if (!this.analysis.freeVariables) {
       this.analysis.freeVariables = findFreeVariables(
-        this.program,
+        this.ast,
         new Set(this.globals.keys())
       );
     }
@@ -93,21 +62,21 @@ export class Script implements ScriptAnalysis {
 
   get loadCallArguments() {
     if (!this.analysis.loadCallArguments) {
-      this.analysis.loadCallArguments = findLoadCalls(this.program);
+      this.analysis.loadCallArguments = findLoadCalls(this.ast);
     }
     return this.analysis.loadCallArguments;
   }
 
   get p5properties() {
     if (!this.analysis.p5properties) {
-      this.analysis.p5properties = findP5PropertyReferences(this.program);
+      this.analysis.p5properties = findP5PropertyReferences(this.ast);
     }
     return this.analysis.p5properties;
   }
 
   getErrors() {
     try {
-      this.program;
+      this.ast;
     } catch (e) {
       if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
         return [e];

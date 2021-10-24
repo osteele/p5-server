@@ -56,7 +56,6 @@
     "@types/babel-core": "^6.25.7",
     "@types/copyfiles": "^2.4.1",
     "@types/eslint": "^7.28.1",
-    "@types/esprima": "^4.0.3",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.9",
     "@types/node-fetch": "^2.5.12",

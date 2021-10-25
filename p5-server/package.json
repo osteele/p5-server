@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "CLI to create and serve p5.js sketches and collections, and infer required libraries",
   "keywords": [
     "creative coding",
@@ -22,6 +22,10 @@
   "types": "./dist/index.d.ts",
   "bin": {
     "p5": "dist/bin/p5-server.js"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
   },
   "repository": {
     "type": "git",
@@ -88,9 +92,6 @@
   },
   "engines": {
     "node": ">=14.17"
-  },
-  "publishConfig": {
-    "main": "./dist/index.js"
   },
   "jest": {
     "preset": "ts-jest",

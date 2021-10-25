@@ -1,6 +1,6 @@
 {
   "name": "p5-analysis",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "API to find, create, and analyze p5.js sketch files.",
   "keywords": [
     "creative coding",
@@ -23,6 +23,10 @@
     "p5-libraries": "dist/bin/p5-libraries-cli.js",
     "p5-library": "dist/bin/p5-libraries-cli.js",
     "p5-tree": "dist/bin/p5-tree-cli.js"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
   },
   "repository": "github:osteele/p5-server",
   "scripts": {

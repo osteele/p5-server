@@ -1,13 +1,23 @@
 # Change Log
 
-## Unreleased
+## [0.6.4] - 2021-10-25
 
-Changed:
+API changes:
 
 - New enum SketchStructureType
 - Sketch.sketchType -> Sketch.structureType; changed the enum values
-- It's only a single-directory sketch if the HTML file is named index.html
+- Removed LibraryArray
+- Library[] return values are readonly
+
+Functional improvements:
+
+- A directory is classified as a single-directory sketch only if the HTML file
+  is named index.html
+
+Performance improvements:
+
 - More efficient implementation of Sketch.isSketchDir
+- Remove dependency on esprima; only parse the script source once
 
 ## [0.6.3] - 2021-10-05
 

@@ -21,6 +21,8 @@ const defaultDirectoryExclusions = [
   'package-lock.json',
 ];
 
+const SCRIPT_FILE_PATTERN = /\.js$/i;
+
 export type SketchStructureType =
   | 'html' /** The main file is an HTML file */
   | 'script'; /** The main file is a script file */
@@ -69,9 +71,11 @@ export abstract class Sketch {
         options.scriptFile,
         options
       );
-    } else if (/\.js$/i.test(mainFile)) {
+    } else if (SCRIPT_FILE_PATTERN.test(mainFile)) {
       if (mainFile && options.scriptFile) {
-        throw new Error(`Cannot specify both a .js file and a scriptPath`);
+        throw new Error(
+          `Cannot specify both a JavaScript mainFile and options.scriptFile`
+        );
       }
       return new ScriptSketch(path.dirname(mainFile), path.basename(mainFile), options);
     } else {
@@ -119,7 +123,7 @@ export abstract class Sketch {
   static fromFile(filePath: string): Promise<Sketch> {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
-    } else if (/\.js$/i.test(filePath)) {
+    } else if (SCRIPT_FILE_PATTERN.test(filePath)) {
       return Sketch.fromScriptFile(filePath);
     } else if (/\.html?$/i.test(filePath)) {
       return Sketch.fromHtmlFile(filePath);
@@ -385,7 +389,7 @@ export abstract class Sketch {
   protected impliedLibraries(): readonly Library[] {
     return Library.inferFromScripts(
       this.files
-        .filter(name => /\.js$/i.test(name))
+        .filter(name => SCRIPT_FILE_PATTERN.test(name))
         .map(name => path.join(this.dir, name))
     );
   }
@@ -635,7 +639,7 @@ class HtmlSketch extends Sketch {
           case 0:
             throw new Error(`${htmlPath} does not contain any local scripts`);
           case 1:
-            if (!/\.js$/i.test(localScripts[0])) {
+            if (!SCRIPT_FILE_PATTERN.test(localScripts[0])) {
               throw new Error(
                 `${htmlPath} refers to a script file with the wrong extension`
               );
@@ -697,7 +701,7 @@ class ScriptSketch extends Sketch {
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       return false;
     }
-    if (!/\.js/i.test(file)) {
+    if (!SCRIPT_FILE_PATTERN.test(file)) {
       return false;
     }
 

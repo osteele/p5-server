@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.8.3] - 2021-10-25
+## [0.8.4] - 2021-10-25
 
 - `p5 convert` is smarter; can convert files into folders
 - A directory is classified as a single-directory sketch only if the HTML file

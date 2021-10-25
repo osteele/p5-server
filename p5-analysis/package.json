@@ -1,6 +1,6 @@
 {
   "name": "p5-analysis",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "API to find, create, and analyze p5.js sketch files.",
   "keywords": [
     "creative coding",

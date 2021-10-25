@@ -12,11 +12,13 @@ import serve from '../commands/serve';
 
 const program = new Command();
 
+const PROJECT_HOME = path.join(__dirname, '../../');
+const P5_ANALYSIS_BIN = path.join(PROJECT_HOME, 'node_modules/.bin');
+
 const pkg = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
+  fs.readFileSync(path.join(PROJECT_HOME, 'package.json'), 'utf-8')
 );
-const appVersion = pkg.version;
-program.version(appVersion);
+program.version(pkg.version);
 
 updateNotifier({ pkg }).notify({
   isGlobal: true,
@@ -95,13 +97,13 @@ for (const command of ['library', 'libraries']) {
     command,
     'Print information about p5.js libraries known to p5-server',
     {
-      executableFile: 'p5-libraries',
+      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`,
     }
   );
 }
 
 program.command('tree', 'Print the tree structure of a directory and its sketches', {
-  executableFile: 'p5-tree',
+  executableFile: `${P5_ANALYSIS_BIN}/p5-tree`,
 });
 
 program.parse(process.argv);

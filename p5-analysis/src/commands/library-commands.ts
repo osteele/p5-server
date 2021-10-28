@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 import nunjucks from 'nunjucks';
 import { Library } from '..';
 import { die } from './helpers';

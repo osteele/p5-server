@@ -9,6 +9,7 @@ import {
   updateDescriptions,
 } from '../commands/library-commands';
 import { generateLibraryPage } from '../commands/library-docs';
+import checkLibraryCollisions from '../commands/check-library-collisions';
 import { checkLibraries } from '../commands/library-validation';
 
 export const program = new Command();
@@ -19,10 +20,10 @@ const pkg = JSON.parse(
 const appVersion = pkg.version;
 program.version(appVersion);
 
-// program
-//   .command('check-collisions')
-//   .description('Find libraries that define and are inferred from the same symbols')
-//   .action(checkCollisions);
+program
+  .command('check-collisions')
+  .description('Report libraries that define the same symbols')
+  .action(checkLibraryCollisions);
 
 program
   .command('check')

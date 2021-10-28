@@ -1,7 +1,6 @@
-#!/usr/bin/env ts-node
 import { Library } from '..';
 
-export default async function checkExportCollisions() {
+export default async function checkLibraryCollisions(): Promise<void> {
   const definitions = new Map<string, Library[]>();
   Library.all.forEach(library => {
     library.globals.forEach(name => {

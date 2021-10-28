@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+- Add antiboredom/p5.patgrad to list of libraries
+- Reduce number of library categories
+
 ## [0.6.5] - 2021-10-25
 
 API changes:

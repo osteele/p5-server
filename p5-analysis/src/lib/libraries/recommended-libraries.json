@@ -1,5 +1,35 @@
 [
   {
+    "name": "p5.layers",
+    "description": "Make it easier to use Graphics instances to make layers",
+    "homepage": "https://osteele.github.io/p5.libs/p5.layers/",
+    "packageName": "p5.layers",
+    "defines": {
+      "globals": ["beginLayer"]
+    }
+  },
+  {
+    "name": "https://github.com/antiboredom/p5.patgrad",
+    "description": "A p5.js library for adding gradients and repeating patterns to your sketches",
+    "homepage": "https://github.com/antiboredom/p5.patgrad",
+    "importPath": "https://cdn.jsdelivr.net/gh/antiboredom/p5.patgrad/p5.patgrad.min.js",
+    "defines": {
+      "globals": [
+        "createPattern",
+        "fillPattern",
+        "strokePattern",
+        "backgroundPattern",
+        "createLinearGradient",
+        "createRadialGradient",
+        "createConicGradient",
+        "Gradient",
+        "fillGradient",
+        "strokeGradient",
+        "backgroundGradient"
+      ]
+    }
+  },
+  {
     "name": "p5.pattern",
     "description": "A pattern drawing library for p5.js.",
     "homepage": "https://openprocessing.org/sketch/1278485",
@@ -21,6 +51,24 @@
         "beginShapePattern",
         "endShapePattern"
       ]
+    }
+  },
+  {
+    "name": "p5.rotate-about",
+    "description": "Add `rotateAbout()` and `scaleAbout()` functions to p5.js",
+    "homepage": "https://osteele.github.io/p5.libs/p5.rotate-about/",
+    "packageName": "p5.rotate-about",
+    "defines": {
+      "globals": ["rotateAbout", "scaleAbout"]
+    }
+  },
+  {
+    "name": "p5.vector-arguments",
+    "description": "Modify the p5.js functions to accept Vector arguments",
+    "homepage": "https://osteele.github.io/p5.libs/p5.vector-arguments/",
+    "packageName": "p5.vector-arguments",
+    "defines": {
+      "globals": ["enableVectorArguments"]
     }
   }
 ]

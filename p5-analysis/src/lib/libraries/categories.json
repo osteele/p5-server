@@ -15,11 +15,6 @@
   },
   {
     "key": "recommended",
-    "description": "Libraries that are not on the official [p5.js Libraries page](https://p5js.org/libraries/), but appear to be useful and well-maintained."
-  },
-  {
-    "key": "osteele",
-    "name": "Oliver’s Libraries",
-    "description": "[Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)."
+    "description": "Libraries that are not on the official [p5.js Libraries page](https://p5js.org/libraries/), but appear to be useful and well-maintained. Also my own libraries from [Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)."
   }
 ]

@@ -14,9 +14,10 @@ program.version(appVersion);
 
 program
   .description('Print the tree structure of a directory and its sketches')
-  .argument('[DIRECTORY]', 'directory', '.')
+  .argument('[DIRECTORY...]', 'directory', '.')
   .option('-L, --level <LEVEL>', 'Descend only level directories deep.')
   .option('--descriptions', 'Print descriptions of sketches')
+  .option('--tabWidth <WIDTH>', 'Indentation width', '4')
   .action(tree);
 
 if (require.main === module) {

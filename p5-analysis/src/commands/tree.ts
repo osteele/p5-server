@@ -9,12 +9,16 @@ import {
 } from './helpers/printTree';
 
 export default async function tree(
-  file: string,
-  options: { descriptions: boolean; level?: number }
+  dirs: string[],
+  options: { descriptions: boolean; level?: string; tabWidth?: string }
 ) {
-  const depth = options.level || Infinity;
-  const iter = sketchTreeIter(file, { depth, printDescriptions: options.descriptions });
-  await printTree(iter);
+  const depth = Number(options.level || Infinity);
+  const printDescriptions = options.descriptions;
+  const tabWidth = Number(options.tabWidth || 4);
+  for (const dir of dirs.length ? dirs : [process.cwd()]) {
+    const iter = sketchTreeIter(dir, { depth, printDescriptions });
+    await printTree(iter, tabWidth);
+  }
 }
 
 function sketchTreeIter(

@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- `p5 tree` takes `--tabWidth [N]`, multiple directories
+
 ## [0.8.4] - 2021-10-25
 
 - `p5 convert` is smarter; can convert files into folders

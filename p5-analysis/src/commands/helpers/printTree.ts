@@ -4,13 +4,14 @@ export const dedentSymbol = Symbol('dedent');
 export type IndentationSymbol = typeof indentSymbol | typeof dedentSymbol;
 export type AsyncTreeInputIterable<T> = AsyncIterable<T | IndentationSymbol>;
 
-export async function printTree(iter: AsyncTreeInputIterable<string>) {
+export async function printTree(iter: AsyncTreeInputIterable<string>, tabWidth = 4) {
   const prefixStack = [];
+  const branchString = '├' + '─'.repeat(Math.max(0, tabWidth - 2)) + ' ';
   let prefix = '';
   for await (const { item, index, isFirst, isLast } of addTreeProperties(iter)) {
     if (isFirst && index > 0) {
       prefixStack.push(prefix);
-      prefix = prefix.replace(/├/g, '│').replace(/─/g, ' ') + '├── ';
+      prefix = prefix.replace(/├/g, '│').replace(/─/g, ' ') + branchString;
     }
     if (isLast) {
       prefix = prefix!.replace('├', '└');

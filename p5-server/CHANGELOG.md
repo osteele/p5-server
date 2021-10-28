@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## [0.8.5] - 2021-10-28
 
 - Restore syntax-error reporting functionality
 - `p5 tree` takes `--tabWidth [N]`, multiple directories

@@ -2,7 +2,9 @@
 
 ## Unreleased
 
+- Restore syntax-error reporting functionality
 - `p5 tree` takes `--tabWidth [N]`, multiple directories
+- Additional changes inherited from [p5-analysis](https://github.com/osteele/p5-server/blob/main/p5-analysis/CHANGELOG.md)
 
 ## [0.8.4] - 2021-10-25
 

@@ -8,7 +8,7 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
-import { removeTerminalCodes, terminalCodesToHtml } from '../terminalCodes';
+import { escapeHTML } from '../utils';
 
 hljs.registerLanguage('css', hljscss);
 hljs.registerLanguage('javascript', hljsjavascript);
@@ -51,18 +51,40 @@ const syntaxErrorJsTemplate = fs.readFileSync(
 );
 
 export function createSyntaxErrorJsReporter(
-  errs: SyntaxError[],
+  [error]: SyntaxError[],
   filepath: string
 ): string {
-  const [message, context] = errs[0].message.split('\n\n', 2);
-  const errorHtml = syntaxErrorTemplate({
-    message,
-    context: terminalCodesToHtml(context, true).replace(/\n/g, '<br>'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { line: errorLine, column } = (error as any).loc;
+  let lines = fs.readFileSync(filepath, 'utf-8').split('\n');
+  const lineNumberColWidth = String(lines.length + 1).length + 2;
+  lines = lines.map((line, index) => {
+    let lineLabel = String(1 + index);
+    lineLabel = ' '.repeat(lineNumberColWidth - lineLabel.length) + lineLabel;
+    if (1 + index === errorLine) {
+      lineLabel = '<span style="color:red">▶︎</span> ' + lineLabel.slice(2);
+    }
+    return `${lineLabel} │ ${escapeHTML(line)}`;
+  });
+  lines.splice(
+    errorLine,
+    0,
+    ' '.repeat(lineNumberColWidth + 1) +
+      '│' +
+      ' '.repeat(column + 1) +
+      `<span style="color:red">▲</span>`
+  );
+  lines.splice(errorLine + 5);
+  lines.splice(0, errorLine - 5);
+  const contextHtml = syntaxErrorTemplate({
+    error,
+    filepath: path.resolve(filepath),
+    context: lines.join('\n'),
   });
   return jsTemplateEnv.renderString(syntaxErrorJsTemplate, {
     fileName: path.basename(filepath),
-    message: removeTerminalCodes(errs[0].message),
-    errorHtml,
+    error,
+    contextHtml,
   });
 }
 //#endregion

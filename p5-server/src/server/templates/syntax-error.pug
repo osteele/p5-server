@@ -1,4 +1,6 @@
 div(style={margin: '10px'})
   h1 Syntax Error
-  code(style={'font-style': 'italic'})= message
+  code(style={'font-style': 'italic'})= filepath
+  br
+  code(style={'font-style': 'italic'})= error.message
   pre!= context

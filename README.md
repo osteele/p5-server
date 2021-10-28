@@ -21,8 +21,9 @@
   - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename---to-format)
   - [`p5 create [NAME]`](#p5-create-name)
   - [`p5 serve [filename]`](#p5-serve-filename)
-  - [`p5 sceenshot [filename]`](#p5-sceenshot-filename)
+  - [`p5 screenshot [filename]`](#p5-screenshot-filename)
   - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
+  - [Additional commands](#additional-commands)
 - [Implementation Notes](#implementation-notes)
 - [Limitations](#limitations)
 - [API](#api)
@@ -292,7 +293,7 @@ automatically.
 If another server is already running on port 3000, the server will choose
 another port.
 
-### `p5 sceenshot [filename]`
+### `p5 screenshot [filename]`
 
 > Open the sketch in a browser, and save the canvas as an image.
 
@@ -334,6 +335,10 @@ $ p5 tree examples
 
 This is similar to what the Sketch Explorer view in the [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme) displays.
+
+### Additional commands
+
+Additional command-line tools are listed [here](https://osteele.github.io/p5-server/p5-analysis/#usage).
 
 ## Implementation Notes
 

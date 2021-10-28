@@ -10,7 +10,10 @@ import {
 } from '../commands/library-commands';
 import { generateLibraryPage } from '../commands/library-docs';
 import checkLibraryCollisions from '../commands/check-library-collisions';
-import { checkLibraries } from '../commands/library-validation';
+import {
+  checkLibraries,
+  checkLibraryImportPaths,
+} from '../commands/library-validation';
 
 export const program = new Command();
 
@@ -20,28 +23,12 @@ const pkg = JSON.parse(
 const appVersion = pkg.version;
 program.version(appVersion);
 
-program
-  .command('check-collisions')
-  .description('Report libraries that define the same symbols')
-  .action(checkLibraryCollisions);
-
-program
-  .command('check')
-  .option('--parse-scripts')
-  .description('Check library home pages and import paths')
-  .action(checkLibraries);
-
 // program
 //   .command('find-minimized-alternatives')
 //   .description(
 //     'Find libraries whose import path is adjacent to an unused minimized path'
 //   )
 //   .action(findMinimizedImportPathAlternatives);
-
-program
-  .command('check-descriptions')
-  .description('Compare local library descriptions to npm package descriptions')
-  .action(updateDescriptions);
 
 program
   .command('docs')
@@ -70,10 +57,28 @@ program
   .description("Print the library's import path")
   .action(printLibraryProperty);
 
-// program
-//   .command('validate-import-paths')
-//   .description('Verify that the import paths exist')
-//   .action(checkLibraryImportPaths);
+const libraryCommands = program.command('check');
+
+libraryCommands
+  .command('all')
+  .option('--parse-scripts')
+  .description('Run all library checks')
+  .action(checkLibraries);
+
+libraryCommands
+  .command('collisions')
+  .description('Report libraries that define the same symbols')
+  .action(checkLibraryCollisions);
+
+libraryCommands
+  .command('descriptions')
+  .description('Compare local library descriptions to npm package descriptions')
+  .action(updateDescriptions);
+
+libraryCommands
+  .command('import-paths')
+  .description('Verify that the import paths exist')
+  .action(checkLibraryImportPaths);
 
 if (require.main === module) {
   program.parse(process.argv);

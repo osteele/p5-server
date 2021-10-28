@@ -4,6 +4,7 @@
 
 - Add antiboredom/p5.patgrad to list of libraries
 - Reduce number of library categories
+- Reorganized the `p5 library` subcommands
 
 ## [0.6.5] - 2021-10-25
 

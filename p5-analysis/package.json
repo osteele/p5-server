@@ -45,15 +45,14 @@
   },
   "dependencies": {
     "@babel/core": "^7.15.8",
-    "@babel/plugin-proposal-object-rest-spread": "^7.15.6",
     "commander": "^8.2.0",
     "esprima": "^4.0.1",
+    "js-beautify": "^1.14.0",
     "jstransformer-marked": "^1.0.3",
     "minimatch": "^3.0.4",
     "node-fetch": "^2.6.2",
     "node-html-parser": "^5.0.0",
     "nunjucks": "^3.2.3",
-    "prettier": "^2.4.1",
     "pug": "^3.0.2"
   },
   "devDependencies": {
@@ -61,6 +60,7 @@
     "@types/copyfiles": "^2.4.1",
     "@types/eslint": "^7.28.1",
     "@types/jest": "^27.0.2",
+    "@types/js-beautify": "^1",
     "@types/node": "^16.10.9",
     "@types/node-fetch": "^2.5.12",
     "@types/nunjucks": "^3.2.0",

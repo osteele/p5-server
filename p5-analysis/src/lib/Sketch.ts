@@ -5,11 +5,11 @@ import minimatch from 'minimatch';
 import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import prettier from 'prettier';
 import pug from 'pug';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
 import { Library, p5Version } from './Library';
 import { JavaScriptSyntaxError, Script } from './Script';
+import beautify from 'js-beautify';
 
 const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true };
@@ -471,7 +471,7 @@ export abstract class Sketch {
         .renderFile(templatePath, { pretty: false, ...data })
         .replace(/(<!-- .*?\S)(-->)/g, '$1 $2')
         .replace(/<!-- pug: newline\s*-->/g, '\n\n');
-      return prettier.format(html, { parser: 'html', printWidth: 120 });
+      return beautify.html(html, { indent_size: 4, end_with_newline: true });
     }
     throw new Error(`Unknown template extension: ${templatePath}`);
   }

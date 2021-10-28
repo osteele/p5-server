@@ -203,8 +203,9 @@
 <li><a href="#p5-convert-filename---to-format"><code>p5 convert FILENAME --to FORMAT</code></a></li>
 <li><a href="#p5-create-name"><code>p5 create [NAME]</code></a></li>
 <li><a href="#p5-serve-filename"><code>p5 serve [filename]</code></a></li>
-<li><a href="#p5-sceenshot-filename"><code>p5 sceenshot [filename]</code></a></li>
+<li><a href="#p5-screenshot-filename"><code>p5 screenshot [filename]</code></a></li>
 <li><a href="#p5-tree-directory"><code>p5 tree [DIRECTORY]</code></a></li>
+<li><a href="#additional-commands">Additional commands</a></li>
 </ul></li>
 <li><a href="#implementation-notes">Implementation Notes</a></li>
 <li><a href="#limitations">Limitations</a></li>
@@ -216,6 +217,42 @@
 </ul>
 </nav>
 <p><a href="https://www.npmjs.com/package/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version" /></a> <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) --></p>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#quick-start--installation">Quick Start – Installation</a></li>
+<li><a href="#quick-start--usage">Quick Start – Usage</a></li>
+<li><a href="#recipes">Recipes</a>
+<ul>
+<li><a href="#run-the-server">Run the Server</a>
+<ul>
+<li><a href="#serve-a-directory-inside-the-current-directory">Serve a directory inside the current directory</a></li>
+<li><a href="#open-the-browser-automatically">Open the browser automatically</a></li>
+<li><a href="#browse-directories-in-split-mode">Browse directories in split mode</a></li>
+<li><a href="#create-a-sketch-file">Create a sketch file</a></li>
+</ul></li>
+<li><a href="#build-a-static-site">Build a static site</a></li>
+<li><a href="#create-a-screenshot">Create a screenshot</a></li>
+<li><a href="#convert-between-javascript-only-and-html-sketches">Convert between JavaScript-only and HTML sketches</a></li>
+</ul></li>
+<li><a href="#command-line-reference">Command-Line Reference</a>
+<ul>
+<li><a href="#p5-build-directory"><code>p5 build [DIRECTORY]</code></a></li>
+<li><a href="#p5-convert-filename---to-format"><code>p5 convert FILENAME --to FORMAT</code></a></li>
+<li><a href="#p5-create-name"><code>p5 create [NAME]</code></a></li>
+<li><a href="#p5-serve-filename"><code>p5 serve [filename]</code></a></li>
+<li><a href="#p5-screenshot-filename"><code>p5 screenshot [filename]</code></a></li>
+<li><a href="#p5-tree-directory"><code>p5 tree [DIRECTORY]</code></a></li>
+<li><a href="#additional-commands">Additional commands</a></li>
+</ul></li>
+<li><a href="#implementation-notes">Implementation Notes</a></li>
+<li><a href="#limitations">Limitations</a></li>
+<li><a href="#api">API</a></li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+<li><a href="#other-work">Other Work</a></li>
+<li><a href="#keeping-in-touch">Keeping in Touch</a></li>
+<li><a href="#license">License</a></li>
+</ul>
 <h1 id="overview">Overview</h1>
 <p><strong>p5-server</strong> is a command-line interface for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, that knows how to serve JavaScript-only sketches and to figure out which libraries a sketch needs in order to run.</p>
 <figure>
@@ -349,7 +386,7 @@
 </ul>
 <p>By default, the server runs on port 3000. You can open it in a browser by visiting <a href="http://localhost:3000" class="uri">http://localhost:3000</a>. The <code>p5 server --open</code> will do this automatically.</p>
 <p>If another server is already running on port 3000, the server will choose another port.</p>
-<h2 id="p5-sceenshot-filename"><code>p5 sceenshot [filename]</code></h2>
+<h2 id="p5-screenshot-filename"><code>p5 screenshot [filename]</code></h2>
 <blockquote>
 <p>Open the sketch in a browser, and save the canvas as an image.</p>
 </blockquote>
@@ -357,7 +394,7 @@
 <blockquote>
 <p>Display the contents of <em>DIRECTORY</em>, organized by sketch.</p>
 </blockquote>
-<pre class="text"><code>$ yarn cli tree examples
+<pre class="text"><code>$ p5 tree examples
 📁examples
 ├── 🎨circles (circles.js)
 ├── 🎨sketch
@@ -387,6 +424,8 @@
 │   └── README.md
 └── README.md</code></pre>
 <p>This is similar to what the Sketch Explorer view in the <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a> displays.</p>
+<h2 id="additional-commands">Additional commands</h2>
+<p>Additional command-line tools are listed <a href="https://osteele.github.io/p5-server/p5-analysis/#usage">here</a>.</p>
 <h1 id="implementation-notes">Implementation Notes</h1>
 <p>The <a href="./p5-analysis/README.md#implementation-notes">p5-analysis implementation notes</a> describe sketch detection, automatic library inclusion, and other details of the implementation.</p>
 <h1 id="limitations">Limitations</h1>

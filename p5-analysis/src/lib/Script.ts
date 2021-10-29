@@ -15,8 +15,8 @@ interface ScriptAnalysis {
 }
 
 export class Script implements ScriptAnalysis {
-  private _ast?: ReturnType<typeof parse>;
-  private readonly analysis: Partial<ScriptAnalysis> = {};
+  private _analysis?: ScriptAnalysis;
+  private _syntaxError?: SyntaxError;
 
   constructor(public readonly source: string, public readonly filename?: string) {}
 
@@ -28,41 +28,44 @@ export class Script implements ScriptAnalysis {
     return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
   }
 
-  private get ast() {
-    if (!this._ast) {
-      this._ast = parse(this.source, { sourceFilename: this.filename });
+  private get analysis() {
+    if (!this._analysis && !this._syntaxError) {
+      try {
+        const ast = parse(this.source, { sourceFilename: this.filename });
+        this._analysis = {
+          globals: findGlobals(ast),
+          freeVariables: findFreeVariables(ast),
+          loadCallArguments: findLoadCalls(ast),
+          p5properties: findPropertyReferences(ast, 'p5'),
+        };
+      } catch (e) {
+        if (!(e instanceof SyntaxError)) throw e;
+        this._syntaxError = e;
+      }
     }
-    return this._ast;
+    if (this._syntaxError) throw this._syntaxError;
+    return this._analysis!;
   }
 
   get globals() {
-    if (!this.analysis.globals) {
-      this.analysis.globals = findGlobals(this.ast);
-    }
     return this.analysis.globals;
   }
 
   get freeVariables() {
-    if (!this.analysis.freeVariables)
-      this.analysis.freeVariables = findFreeVariables(this.ast);
     return this.analysis.freeVariables;
   }
 
   get loadCallArguments() {
-    if (!this.analysis.loadCallArguments)
-      this.analysis.loadCallArguments = findLoadCalls(this.ast);
     return this.analysis.loadCallArguments;
   }
 
   get p5properties() {
-    if (!this.analysis.p5properties)
-      this.analysis.p5properties = findPropertyReferences(this.ast, 'p5');
     return this.analysis.p5properties;
   }
 
   getErrors(): SyntaxError[] {
     try {
-      this.ast;
+      this.analysis; // for effect
     } catch (e) {
       if (e instanceof SyntaxError) return [e];
       throw e;

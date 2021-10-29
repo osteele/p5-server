@@ -17,24 +17,14 @@ interface ScriptAnalysis {
   p5properties: Set<string>;
 }
 
-// const ramCache=new WeakMap<string, any> = {};
-const cache = new lruCache<string, [string, ScriptAnalysis]>({
-  max: 1000,
-  length: ([_hash, data]) =>
-    5 +
-    data.globals.size +
-    data.freeVariables.size +
-    data.loadCallArguments.size +
-    data.p5properties.size,
-});
-
 export class Script implements ScriptAnalysis {
+  static cache: lruCache<string, [string, ScriptAnalysis]>;
   private _analysis?: ScriptAnalysis;
   private _syntaxError?: SyntaxError;
 
   constructor(public readonly source: string, public readonly filename?: string) {
     if (this.cacheKey) {
-      const [hash, data] = cache.get(this.cacheKey) || [];
+      const [hash, data] = Script.cache.get(this.cacheKey) || [];
       if (hash === this.cacheDigest) {
         this._analysis = data;
       }
@@ -72,9 +62,8 @@ export class Script implements ScriptAnalysis {
           loadCallArguments: findLoadCalls(ast),
           p5properties: findPropertyReferences(ast, 'p5'),
         };
-        if (this.cacheKey) {
-          cache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
-        }
+        if (this.cacheKey)
+          Script.cache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
       } catch (e) {
         if (!(e instanceof SyntaxError)) throw e;
         this._syntaxError = e;
@@ -125,3 +114,14 @@ export class Script implements ScriptAnalysis {
     return [];
   }
 }
+
+// TODO: move to static block when esbuild-jest supports classic static blocks
+Script.cache = new lruCache({
+  max: 1000,
+  length: ([_hash, data]) =>
+    5 +
+    data.globals.size +
+    data.freeVariables.size +
+    data.loadCallArguments.size +
+    data.p5properties.size,
+});

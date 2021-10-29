@@ -18,4 +18,6 @@ gh-pages
 p5-analysis/package/
 p5-server/package/
 
-*/19291.0x/*
+*/*.0x/flamegraph.html
+*/*.0x/isolate-*.log.*
+*/*.0x/meta.json

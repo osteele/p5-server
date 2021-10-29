@@ -1443,6 +1443,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lru-cache@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "@types/lru-cache@npm:5.1.1"
+  checksum: e1d6c0085f61b16ec5b3073ec76ad1be4844ea036561c3f145fc19f71f084b58a6eb600b14128aa95809d057d28f1d147c910186ae51219f58366ffd2ff2e118
+  languageName: node
+  linkType: hard
+
 "@types/marked@npm:^3.0.1":
   version: 3.0.1
   resolution: "@types/marked@npm:3.0.1"
@@ -7484,6 +7491,7 @@ __metadata:
     "@types/eslint": ^7.28.1
     "@types/jest": ^27.0.2
     "@types/js-beautify": ^1
+    "@types/lru-cache": ^5.1.1
     "@types/node": ^16.10.9
     "@types/node-fetch": ^2.5.12
     "@types/nunjucks": ^3.2.0
@@ -7499,12 +7507,12 @@ __metadata:
     jest: ^27.2.5
     js-beautify: ^1.14.0
     jstransformer-marked: ^1.0.3
+    lru-cache: ^6.0.0
     minimatch: ^3.0.4
     node-fetch: ^2.6.2
     node-html-parser: ^5.0.0
     npm-run-all: ^4.1.5
     nunjucks: ^3.2.3
-    prettier: ^2.4.1
     pug: ^3.0.2
     rimraf: ^3.0.2
     ts-node: ^10.3.0
@@ -7811,15 +7819,6 @@ __metadata:
   bin:
     prettier: ./bin-prettier.js
   checksum: bc78219e0f8173a808f4c6c8e0a137dd8ebd4fbe013e63fe1a37a82b48612f17b8ae8e18a992adf802ee2cf7428f14f084e7c2846ca5759cf4013c6e54810e1f
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "prettier@npm:2.4.1"
-  bin:
-    prettier: bin-prettier.js
-  checksum: cc6830588b401b0d742862fe9c46bc9118204fb307c3abe0e49e95b35ed23629573807ffdf9cdd65289c252a0bb51fc0171437f6626ee36378dea80f0ee80b91
   languageName: node
   linkType: hard
 

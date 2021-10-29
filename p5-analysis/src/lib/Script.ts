@@ -1,5 +1,8 @@
 import { parse } from '@babel/parser';
+import crypto from 'crypto';
 import fs from 'fs';
+import lruCache from 'lru-cache';
+import path from 'path';
 import {
   findFreeVariables,
   findGlobals,
@@ -14,11 +17,29 @@ interface ScriptAnalysis {
   p5properties: Set<string>;
 }
 
+// const ramCache=new WeakMap<string, any> = {};
+const cache = new lruCache<string, [string, ScriptAnalysis]>({
+  max: 1000,
+  length: ([_hash, data]) =>
+    5 +
+    data.globals.size +
+    data.freeVariables.size +
+    data.loadCallArguments.size +
+    data.p5properties.size,
+});
+
 export class Script implements ScriptAnalysis {
   private _analysis?: ScriptAnalysis;
   private _syntaxError?: SyntaxError;
 
-  constructor(public readonly source: string, public readonly filename?: string) {}
+  constructor(public readonly source: string, public readonly filename?: string) {
+    if (this.cacheKey) {
+      const [hash, data] = cache.get(this.cacheKey) || [];
+      if (hash === this.cacheDigest) {
+        this._analysis = data;
+      }
+    }
+  }
 
   static fromSource(source: string, filePath?: string) {
     return new Script(source, filePath);
@@ -26,6 +47,19 @@ export class Script implements ScriptAnalysis {
 
   static fromFile(filePath: string) {
     return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
+  }
+
+  private get cacheKey() {
+    return this.filename ? path.resolve(this.filename) : undefined;
+  }
+  private get cacheDigest() {
+    const { filename } = this;
+    if (!filename || !fs.existsSync(filename)) return undefined;
+    const info = fs.statSync(filename);
+    return crypto
+      .createHash('sha256')
+      .update(JSON.stringify({ filename, size: info.size, mtime: info.mtime }))
+      .digest('hex');
   }
 
   private get analysis() {
@@ -38,6 +72,9 @@ export class Script implements ScriptAnalysis {
           loadCallArguments: findLoadCalls(ast),
           p5properties: findPropertyReferences(ast, 'p5'),
         };
+        if (this.cacheKey) {
+          cache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
+        }
       } catch (e) {
         if (!(e instanceof SyntaxError)) throw e;
         this._syntaxError = e;

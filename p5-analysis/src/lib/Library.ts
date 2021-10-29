@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { JavaScriptSyntaxError, Script } from './Script';
 import { Category } from './Category';
+import { Script } from './Script';
 
 export const p5Version = '1.4.0';
 
@@ -133,9 +133,7 @@ export class Library implements Library.Properties {
           }
         }
       } catch (e) {
-        if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
-          throw e;
-        }
+        if (!(e instanceof SyntaxError)) throw e;
       }
     }
     return libs;

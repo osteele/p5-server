@@ -8,7 +8,7 @@ import path from 'path';
 import pug from 'pug';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
 import { Library, p5Version } from './Library';
-import { JavaScriptSyntaxError, Script } from './Script';
+import { Script } from './Script';
 import beautify from 'js-beautify';
 
 const templateDir = path.join(__dirname, './templates');
@@ -709,7 +709,7 @@ class ScriptSketch extends Sketch {
       const { globals, freeVariables } = Script.fromFile(file);
       return globals.get('setup') === 'function' && freeVariables.has('createCanvas');
     } catch (e) {
-      if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
+      if (e instanceof SyntaxError) {
         const source = await readFile(file, 'utf-8');
         return (
           /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source)

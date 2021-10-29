@@ -7,14 +7,6 @@ import {
   findPropertyReferences,
 } from './script-analysis';
 
-export class JavaScriptSyntaxError extends Error {
-  constructor(msg: string, public readonly fileName: string | null = null) {
-    super(msg);
-    Object.setPrototypeOf(this, JavaScriptSyntaxError.prototype);
-    this.fileName = fileName;
-  }
-}
-
 interface ScriptAnalysis {
   globals: Map<string, string>;
   freeVariables: Set<string>;
@@ -68,13 +60,11 @@ export class Script implements ScriptAnalysis {
     return this.analysis.p5properties;
   }
 
-  getErrors() {
+  getErrors(): SyntaxError[] {
     try {
       this.ast;
     } catch (e) {
-      if (e instanceof JavaScriptSyntaxError || e instanceof SyntaxError) {
-        return [e];
-      }
+      if (e instanceof SyntaxError) return [e];
       throw e;
     }
     return [];
@@ -89,9 +79,7 @@ export class Script implements ScriptAnalysis {
       try {
         return Script.fromFile(file).getAssociatedFiles();
       } catch (e) {
-        if (!(e instanceof JavaScriptSyntaxError || e instanceof SyntaxError)) {
-          throw e;
-        }
+        if (!(e instanceof SyntaxError)) throw e;
       }
     }
     return [];

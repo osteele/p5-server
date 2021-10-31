@@ -7,7 +7,7 @@ import {
   findFreeVariables,
   findGlobals,
   findLoadCalls,
-  findPropertyReferences,
+  findPropertyReferences
 } from './script-analysis';
 
 interface ScriptAnalysis {
@@ -18,13 +18,12 @@ interface ScriptAnalysis {
 }
 
 export class Script implements ScriptAnalysis {
-  static cache: lruCache<string, [string, ScriptAnalysis]>;
   private _analysis?: ScriptAnalysis;
   private _syntaxError?: SyntaxError;
 
   constructor(public readonly source: string, public readonly filename?: string) {
     if (this.cacheKey) {
-      const [hash, data] = Script.cache.get(this.cacheKey) || [];
+      const [hash, data] = scriptAnalysisCache.get(this.cacheKey) || [];
       if (hash === this.cacheDigest) {
         this._analysis = data;
       }
@@ -60,10 +59,10 @@ export class Script implements ScriptAnalysis {
           globals: findGlobals(ast),
           freeVariables: findFreeVariables(ast),
           loadCallArguments: findLoadCalls(ast),
-          p5properties: findPropertyReferences(ast, 'p5'),
+          p5properties: findPropertyReferences(ast, 'p5')
         };
         if (this.cacheKey)
-          Script.cache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
+          scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
       } catch (e) {
         if (!(e instanceof SyntaxError)) throw e;
         this._syntaxError = e;
@@ -115,13 +114,15 @@ export class Script implements ScriptAnalysis {
   }
 }
 
-// TODO: move to static block when esbuild-jest supports classic static blocks
-Script.cache = new lruCache({
+// This is a global rather than a class property so that it doesn't appear in
+// the typescript exports, where it would require that clients use
+// esModuleIterop to use this package or a package that re-exports its types.
+const scriptAnalysisCache: lruCache<string, [string, ScriptAnalysis]> = new lruCache({
   max: 1000,
   length: ([_hash, data]) =>
     5 +
     data.globals.size +
     data.freeVariables.size +
     data.loadCallArguments.size +
-    data.p5properties.size,
+    data.p5properties.size
 });

@@ -6,7 +6,7 @@ import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
-import { addScriptToHtmlHead } from '../utils';
+import { addScriptToHtmlHead, assertError } from '../utils';
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
@@ -153,9 +153,10 @@ function createRouter(config: RouterConfig): express.Router {
         sendHtml(req, res, fs.readFileSync(file, 'utf-8'));
         return;
       }
-    } catch (e) {
-      if (e.code !== 'ENOENT') {
-        throw e;
+    } catch (err) {
+      assertError(err);
+      if (err.code !== 'ENOENT') {
+        throw err;
       }
     }
     next();
@@ -198,11 +199,12 @@ function createRouter(config: RouterConfig): express.Router {
         res.set('Content-Type', 'text/html');
         return res.send(createSyntaxErrorJsReporter(errs, filepath));
       }
-    } catch (e) {
-      if (e.code === 'ENOENT') {
+    } catch (err) {
+      assertError(err);
+      if (err.code === 'ENOENT') {
         return next();
       } else {
-        throw e;
+        throw err;
       }
     }
 
@@ -325,9 +327,10 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
     try {
       server = await promiseListen(app, p);
       break; // success!
-    } catch (e) {
-      if (e.code !== 'EADDRINUSE' || !config.scanPorts) {
-        throw e;
+    } catch (err) {
+      assertError(err);
+      if (err.code !== 'EADDRINUSE' || !config.scanPorts) {
+        throw err;
       }
       console.log(`Port ${p} is in use, retrying...`);
     }

@@ -1,5 +1,5 @@
 import { Sketch } from 'p5-analysis';
-import { die, stringToOptions } from '../utils';
+import { assertError, die, stringToOptions } from '../utils';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,9 +13,10 @@ export default async function create(file: string, options: Options) {
   if (options.type === 'folder' || !/\.(js|html?)$/i.test(file)) {
     try {
       fs.mkdirSync(file);
-    } catch (e) {
-      if (e.code !== 'EEXIST') {
-        throw e;
+    } catch (err) {
+      assertError(err);
+      if (err.code !== 'EEXIST') {
+        throw err;
       }
       if (!fs.statSync(file).isDirectory()) {
         die(`The ${file} folder already exists and is not a directory`);
@@ -36,12 +37,13 @@ export default async function create(file: string, options: Options) {
   let files: string[] = [];
   try {
     files = await sketch.generate(options.force, templateOptions);
-  } catch (e) {
-    if (e.code === 'EEXIST') {
+  } catch (err) {
+    assertError(err);
+    if (err.code === 'EEXIST') {
       die(`${file} already exists. Try again with --force.`);
     }
-    console.error(Object.entries(e));
-    throw e;
+    console.error(Object.entries(err));
+    throw err;
   }
   files.forEach(file => console.log(`Created ${file}`));
 }

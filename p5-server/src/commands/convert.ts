@@ -1,12 +1,12 @@
 import { Sketch, SketchStructureType } from 'p5-analysis';
-import { die } from '../utils';
+import { assertError, die } from '../utils';
 import fs from 'fs';
 import path from 'path';
 
 const sketchTypes: Record<string, SketchStructureType | 'folder'> = {
   '^html$': 'html',
   '^(script|javascript|js)(-only)?$': 'script',
-  '^folder$': 'folder',
+  '^folder$': 'folder'
 };
 
 export default async function convert(sketchPath: string, options: { to: string }) {
@@ -42,6 +42,7 @@ export default async function convert(sketchPath: string, options: { to: string 
   try {
     await sketch.convert({ type: targetType });
   } catch (err) {
+    assertError(err);
     die(err.message);
   }
 }

@@ -1,15 +1,16 @@
 import http from 'http';
 import net from 'net';
+
 import { URL } from 'url';
 import ws from 'ws';
-import { addScriptToHtmlHead } from '../utils';
+import { addScriptToHtmlHead, assertError } from '../utils';
 import { parseCyclicJson } from './cyclicJson';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
   BrowserDocumentEvent,
   BrowserErrorEvent,
-  BrowserWindowEvent,
+  BrowserWindowEvent
 } from './eventTypes';
 
 export interface BrowserScriptRelay {
@@ -37,7 +38,7 @@ export function attachBrowserScriptRelay(
           ...data,
           file: urlToFilePath(data.url),
           stack: replaceUrlsInStack(relay, data.stack),
-          timestamp: new Date(data.timestamp),
+          timestamp: new Date(data.timestamp)
         });
       }
     });
@@ -80,8 +81,9 @@ export function attachBrowserScriptRelay(
     if (!url) return url;
     try {
       new URL(url);
-    } catch (e) {
-      if (e.name !== 'TypeError') throw e;
+    } catch (err) {
+      assertError(err);
+      if (err.name !== 'TypeError') throw err;
       return null;
     }
     return relay.urlPathToFilePath(new URL(url).pathname);

@@ -3,6 +3,18 @@ import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import open from 'open';
 import path from 'path';
 
+// Adapted from https://github.dev/sindresorhus/ts-extras/tree/main/source.
+// Modified to add optional `code` property.
+export function assertError(
+  value: unknown
+): asserts value is Error & { code?: string } {
+  if (!(value instanceof Error || toString.call(value) === '[object Error]')) {
+    throw new TypeError(
+      `Expected an \`Error\`, got \`${JSON.stringify(value)}\` (${typeof value})`
+    );
+  }
+}
+
 /** Print the message to standard output; then exit with status code 1.
  */
 export function die(message: string): never {
@@ -59,8 +71,8 @@ export function pathComponentsForBreadcrumbs(
           ...crumbs,
           {
             name,
-            path: (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name,
-          },
+            path: (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name
+          }
         ],
         [{ name: 'Home', path: '/' }]
       )

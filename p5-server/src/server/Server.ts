@@ -6,7 +6,8 @@ import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
-import { addScriptToHtmlHead, assertError } from '../utils';
+import { addScriptToHtmlHead } from '../utils';
+import { assertError } from "../ts-extras";
 import {
   attachBrowserScriptRelay,
   BrowserScriptRelay,
@@ -484,7 +485,7 @@ export class Server {
           return name;
         }
       }
-      return null as never;
+      throw new Error("This should not happen");
     }
 
     function* generateNames(base: string) {

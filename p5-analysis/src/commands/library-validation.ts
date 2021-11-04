@@ -1,5 +1,6 @@
 import { Library, Script } from '..';
 import checkExportCollisions from '../commands/check-library-collisions';
+import { isDefined } from '../ts-extras';
 import { cachedFetch } from './cachedFetch';
 
 export async function checkLibraries({ parseScripts = false }) {
@@ -59,7 +60,7 @@ export async function checkLibraryImportPaths({ parseScripts = false }) {
       .filter(res => res.ok)
       .map(({ library, text }): [Library, Script] => [
         library,
-        Script.fromSource(text!),
+        Script.fromSource(text!)
       ]);
     const scriptErrors = libraryScripts.filter(
       ([, script]) => script.getErrors().length > 0
@@ -96,13 +97,13 @@ export async function findMinimizedImportPathAlternatives() {
   );
   const found = (
     await Promise.all(
-      candidates.map(async function (library): Promise<[Library, string] | null> {
+      candidates.map(async function(library): Promise<[Library, string] | null> {
         const url = library.importPath!.replace(/\.js$/, '.min.js');
         const res = await cachedFetch(url);
         return res.ok ? [library, url] : null;
       })
     )
-  ).filter(Boolean) as [Library, string][];
+  ).filter(isDefined);
 
   if (found.length) {
     console.log('These libraries have minimized alternatives:');

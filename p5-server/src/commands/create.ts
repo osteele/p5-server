@@ -1,5 +1,6 @@
 import { Sketch } from 'p5-analysis';
-import { assertError, die, stringToOptions } from '../utils';
+import { die, stringToOptions } from '../utils';
+import { assertError } from '../ts-extras';
 import fs from 'fs';
 import path from 'path';
 

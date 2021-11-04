@@ -13,6 +13,12 @@ type Options = {
   skipFrames: string;
 };
 
+const typeMap: Record<string, 'jpeg' | 'png'> = {
+  jpeg: 'jpeg',
+  jpg: 'jpeg',
+  png: 'png'
+};
+
 export default async function screenshot(source: string, options: Options) {
   if (await Sketch.isSketchDir(source)) {
     // const sketch = await Sketch.fromDirectory(source);
@@ -28,19 +34,19 @@ export default async function screenshot(source: string, options: Options) {
       .replace(/\.(js|html?)$/i, '') +
       (Number(options.frameCount || 1) > 1 ? '-%d.png' : '.png');
 
-  const ext = output.replace(/.*\./, '').toLowerCase().replace(/^jpg$/, 'jpeg');
-  if (!/^(png|jpe?g)$/i.test(ext)) {
+  const ext = output.split('.').pop() ?? 'png';
+  const imageType = typeMap[ext.toLowerCase()];
+  if (!imageType) {
     die('The output file extension must be .png or .jpeg');
   }
-  const imageType = ext as 'png' | 'jpeg';
 
   const serverOptions: Server.Options = {
     root: source,
     screenshot: {
       onFrameData,
       imageType,
-      ...parseScreenshotOptions(options),
-    },
+      ...parseScreenshotOptions(options)
+    }
   };
   let remainingFrames = serverOptions.screenshot?.frameCount || 1;
   if (remainingFrames > 1 && !/%\d*d/.test(output)) {
@@ -54,7 +60,7 @@ export default async function screenshot(source: string, options: Options) {
 
   async function onFrameData({
     data,
-    frameNumber,
+    frameNumber
   }: {
     data: Buffer;
     frameNumber: number;
@@ -112,6 +118,6 @@ function parseScreenshotOptions(options: Options): Server.Options['screenshot'] 
     canvasDimensions,
     frameCount,
     pixelDensity,
-    skipFrames,
+    skipFrames
   };
 }

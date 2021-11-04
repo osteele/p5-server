@@ -3,7 +3,8 @@ import net from 'net';
 
 import { URL } from 'url';
 import ws from 'ws';
-import { addScriptToHtmlHead, assertError } from '../utils';
+import { addScriptToHtmlHead } from '../utils';
+import { assertError } from '../ts-extras';
 import { parseCyclicJson } from './cyclicJson';
 import {
   BrowserConnectionEvent,

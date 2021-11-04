@@ -1,15 +1,15 @@
-import { parse } from 'node-html-parser';
 import fs from 'fs';
 import { readdir, readFile, writeFile } from 'fs/promises';
+import beautify from 'js-beautify';
 import minimatch from 'minimatch';
-import { HTMLElement, parse as parseHtml } from 'node-html-parser';
+import { HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
+import { isDefined } from '../ts-extras';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
 import { Library, p5Version } from './Library';
 import { Script } from './Script';
-import beautify from 'js-beautify';
 
 const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true };
@@ -18,7 +18,7 @@ const defaultDirectoryExclusions = [
   '*~',
   'node_modules',
   'package.json',
-  'package-lock.json',
+  'package-lock.json'
 ];
 
 const SCRIPT_FILE_PATTERN = /\.js$/i;
@@ -178,7 +178,7 @@ export abstract class Sketch {
     return {
       sketches,
       allFiles: files,
-      unassociatedFiles: removeProjectFiles(files),
+      unassociatedFiles: removeProjectFiles(files)
     };
 
     function removeProjectFiles(files: string[]) {
@@ -456,7 +456,7 @@ export abstract class Sketch {
       p5Version,
       scriptFile: this.scriptFile,
       ...defaultGenerationOptions,
-      ...options,
+      ...options
     };
     const templatePath = path.join(templateDir, base);
     if (templatePath.endsWith('.njk')) {
@@ -521,7 +521,7 @@ class HtmlSketch extends Sketch {
         Sketch.isSketchScriptFile(path.join(dir, name))
       )) || scripts[0];
     return new HtmlSketch(dir, path.basename(htmlFilePath), scriptFile, {
-      description,
+      description
     });
   }
 
@@ -568,7 +568,7 @@ class HtmlSketch extends Sketch {
       .querySelectorAll('script[src]')
       .map(node => node.attributes.src)
       .map(importPath => Library.find({ importPath }));
-    return libs.filter(Boolean) as Library[];
+    return libs.filter(isDefined);
   }
 
   protected getTitleFromFile() {
@@ -596,7 +596,7 @@ class HtmlSketch extends Sketch {
           .filter(s => !s.match(/https?:/)),
         ...scriptFiles.flatMap(name =>
           Script.getAssociatedFiles(path.join(this.dir, name))
-        ),
+        )
       ];
     } else {
       return [];
@@ -734,7 +734,7 @@ class ScriptSketch extends Sketch {
   get files() {
     const files = [
       this.scriptFile,
-      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile)),
+      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))
     ];
     return [...new Set(files)];
   }

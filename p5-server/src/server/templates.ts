@@ -8,7 +8,7 @@ import marked from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
-import { escapeHTML } from '../utils';
+import { escapeHTML } from '../helpers';
 
 hljs.registerLanguage('css', hljscss);
 hljs.registerLanguage('javascript', hljsjavascript);
@@ -24,7 +24,7 @@ export const markedOptions: marked.MarkedOptions = {
   highlight(code, lang) {
     const language = hljs.getLanguage(lang) ? lang : 'javascript';
     return hljs.highlight(code, { language }).value;
-  },
+  }
 };
 
 export function markdownToHtmlPage(data: string): string {
@@ -79,12 +79,12 @@ export function createSyntaxErrorJsReporter(
   const contextHtml = syntaxErrorTemplate({
     error,
     filepath: path.resolve(filepath),
-    context: lines.join('\n'),
+    context: lines.join('\n')
   });
   return jsTemplateEnv.renderString(syntaxErrorJsTemplate, {
     fileName: path.basename(filepath),
     error,
-    contextHtml,
+    contextHtml
   });
 }
 //#endregion

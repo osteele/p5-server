@@ -3,7 +3,7 @@ import net from 'net';
 
 import { URL } from 'url';
 import ws from 'ws';
-import { addScriptToHtmlHead } from '../utils';
+import { addScriptToHtmlHead } from '../helpers';
 import { assertError } from '../ts-extras';
 import { parseCyclicJson } from './cyclicJson';
 import {

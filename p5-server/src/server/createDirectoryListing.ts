@@ -3,7 +3,7 @@ import marked from 'marked';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
-import { pathComponentsForBreadcrumbs } from '../utils';
+import { pathComponentsForBreadcrumbs } from '../helpers';
 import { markedOptions, templateDir } from './templates';
 
 export const defaultDirectoryExclusions = [
@@ -11,7 +11,7 @@ export const defaultDirectoryExclusions = [
   '*~',
   'node_modules',
   'package.json',
-  'package-lock.json',
+  'package-lock.json'
 ];
 
 export async function createDirectoryListing(
@@ -27,20 +27,22 @@ export async function createDirectoryListing(
     staticMode: false,
     templateName: 'directory.pug',
     templateOptions: {},
-    ...options,
+    ...options
   };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
-    exclusions: defaultDirectoryExclusions,
+    exclusions: defaultDirectoryExclusions
   });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-  const readmeName = unassociatedFiles.find(s => s.toLowerCase() === 'readme.md');
+  const readmeName = unassociatedFiles.find(name =>
+    /^readme\.(md|mkd|mkdn|mdwn|mdown|markdown)$/i.test(name)
+  );
   const readme = readmeName
     ? {
         name: readmeName,
         html: markdown(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
-        url: staticMode ? `${readmeName}.html` : readmeName,
+        url: staticMode ? `${readmeName}.html` : readmeName
       }
     : null;
 
@@ -78,7 +80,7 @@ export async function createDirectoryListing(
 
     // pug options
     cache: true,
-    filters: { markdown },
+    filters: { markdown }
   });
 
   function directory_index(dir: string) {

@@ -6,11 +6,11 @@ import {
   BrowserDocumentEvent,
   BrowserErrorEvent,
   BrowserEventMessage,
-  BrowserWindowEvent,
+  BrowserWindowEvent
 } from 'src/server/eventTypes';
 import util from 'util';
 import { Server } from '../server/Server';
-import { die, openInBrowser } from '../utils';
+import { die, openInBrowser } from '../helpers';
 
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
@@ -34,7 +34,7 @@ export default async function serve(files: string[], options: Options) {
     port: Number(options.port),
     root: file,
     relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',
-    theme: options.theme || undefined,
+    theme: options.theme || undefined
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);
@@ -51,7 +51,7 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
     info: chalk.green,
     log: chalk.gray,
     warn: chalk.yellow,
-    clear: null,
+    clear: null
   };
 
   server.onScriptEvent('connection', (data: BrowserConnectionEvent) => {

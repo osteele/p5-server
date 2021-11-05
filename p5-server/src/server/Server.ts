@@ -6,7 +6,7 @@ import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
-import { addScriptToHtmlHead } from '../utils';
+import { addScriptToHtmlHead } from '../helpers';
 import { assertError } from "../ts-extras";
 import {
   attachBrowserScriptRelay,

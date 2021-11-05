@@ -1,5 +1,5 @@
 import { terminalCodesToHtml } from '../src/terminalCodes';
-import { pathComponentsForBreadcrumbs, pathIsInDirectory } from '../src/utils';
+import { pathComponentsForBreadcrumbs, pathIsInDirectory } from '../src/helpers';
 
 test('pathIsInDirectory', () => {
   expect(pathIsInDirectory('a/b', 'a/b/c')).toBe(true);

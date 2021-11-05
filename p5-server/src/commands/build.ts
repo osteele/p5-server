@@ -6,10 +6,10 @@ import { Sketch } from 'p5-analysis';
 import path from 'path';
 import {
   createDirectoryListing,
-  defaultDirectoryExclusions,
+  defaultDirectoryExclusions
 } from '../server/createDirectoryListing';
 import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates';
-import { die, pathIsInDirectory, stringToOptions } from '../utils';
+import { die, pathIsInDirectory, pathIsMarkdown, stringToOptions } from '../helpers';
 
 // TODO: copy the static icons into the build directory
 
@@ -91,7 +91,7 @@ function createActions(file: string, output: string): ActionIterator {
       yield* visitDir(source, output);
     } else {
       yield Action('copyFile', source, output);
-      if (source.endsWith('.md')) {
+      if (pathIsMarkdown(source)) {
         yield Action('convertMarkdown', source, output + '.html');
       }
     }
@@ -99,7 +99,7 @@ function createActions(file: string, output: string): ActionIterator {
 
   async function* visitDir(dir: string, output: string): ActionIterator {
     const { sketches, allFiles } = await Sketch.analyzeDirectory(dir, {
-      exclusions: directoryExclusions,
+      exclusions: directoryExclusions
     });
     yield Action('mkdir', dir, output);
 
@@ -144,7 +144,7 @@ function createActions(file: string, output: string): ActionIterator {
         kind: 'createIndex',
         dir,
         outputFile,
-        path: path.basename(dir),
+        path: path.basename(dir)
       };
     }
   }
@@ -212,7 +212,7 @@ async function runActions(actions: ActionIterator, options: Options) {
         const html = await createDirectoryListing(dir, path, {
           staticMode: true,
           templateName: options.theme,
-          templateOptions,
+          templateOptions
         });
         await writeFile(outputFile, html);
         filesCreated += 1;

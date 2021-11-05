@@ -10,7 +10,9 @@ export function die(message: string): never {
   process.exit(1);
 }
 
-export function escapeHTML(str: string) {
+/** Escape HTML special characters in a string.
+ */
+export function escapeHTML(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -25,7 +27,10 @@ export function escapeHTML(str: string) {
  * This is a wrapper for `open()` from the 'open' package. It has the same API,
  *	 except that it also accepts 'safari' as an app name.
  */
-export function openInBrowser(url: string, browser?: string) {
+export function openInBrowser(
+  url: string,
+  browser?: string
+): Promise<import('child_process').ChildProcess> {
   const appName: open.AppName | 'safari' | undefined =
     browser === 'safari'
       ? 'safari'
@@ -37,7 +42,7 @@ export function openInBrowser(url: string, browser?: string) {
   }
   const openApps = { safari: 'safari', ...open.apps };
   const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
-  open(url, openOptions);
+  return open(url, openOptions);
 }
 
 /**
@@ -70,6 +75,11 @@ export function pathComponentsForBreadcrumbs(
 /** Tests whether filepath is inside the directory `dir`. */
 export function pathIsInDirectory(filepath: string, dir: string) {
   return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
+}
+
+/** Returns true iff pathname ends in a markdown file suffix. */
+export function pathIsMarkdown(filepath: string): boolean {
+  return /\.(md|mkd|mkdn|mdwn|mdown|markdown)$/i.test(filepath);
 }
 
 /**

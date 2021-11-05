@@ -1,5 +1,5 @@
 import { Sketch, SketchStructureType } from 'p5-analysis';
-import { die } from '../utils';
+import { die } from '../helpers';
 import { assertError } from '../ts-extras';
 import fs from 'fs';
 import path from 'path';

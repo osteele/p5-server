@@ -1,6 +1,6 @@
 import livereload from 'livereload';
 import net from 'net';
-import { addScriptToHtmlHead } from '../utils';
+import { addScriptToHtmlHead } from '../helpers';
 
 export type LiveReloadServer = ReturnType<typeof livereload.createServer>;
 
@@ -31,7 +31,7 @@ export function injectLiveReloadScript(
 export async function createLiveReloadServer({
   port = 35729,
   scanPorts = true,
-  watchDirs = <string[]>[],
+  watchDirs = <string[]>[]
 }): Promise<LiveReloadServer> {
   const lastPort = port + 9; // the last port to try
   // Try to find an available port

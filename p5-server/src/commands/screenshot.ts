@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
 import { Server } from '../server/Server';
-import { die, openInBrowser } from '../utils';
+import { die, openInBrowser } from '../helpers';
 
 type Options = {
   output?: string;

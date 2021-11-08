@@ -1,2 +1,2 @@
 ignorePatterns:
-  - "**/src/server/static/*.min.js"
+  - "src/server/static/*.min.js"

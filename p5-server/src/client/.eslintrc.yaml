@@ -8,10 +8,13 @@ rules:
   no-debugger: error
   prefer-const: warn
 ignorePatterns:
-  - rollup.config.js
+  - "esbuild.config.ts"
+  - "console-relay.ts"
+parserOptions:
+  sourceType: module
 overrides:
   - files:
     - screenshot.js
     globals:
-      __p5_server_screenshot_settings: true
-      p5: true
+      __p5_server_screenshot_settings: readonly
+      p5: readonly

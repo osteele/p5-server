@@ -1,11 +1,10 @@
 import http from 'http';
 import net from 'net';
-
 import { URL } from 'url';
 import ws from 'ws';
 import { addScriptToHtmlHead } from '../helpers';
+import { jsonCycleStringifier } from '../jsonCycleStringifier';
 import { assertError } from '../ts-extras';
-import { parseCyclicJson } from './cyclicJson';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
@@ -21,6 +20,8 @@ export interface BrowserScriptRelay {
   urlPathToFilePath(urlPath: string): string | null;
   serverUrlToFileUrl(url: string): string | null;
 }
+
+const { parse: parseCyclicJson } = jsonCycleStringifier();
 
 export function attachBrowserScriptRelay(
   server: http.Server,
@@ -62,7 +63,8 @@ export function attachBrowserScriptRelay(
 
   defineHandler('console', (event: BrowserConsoleEvent) => {
     const args = event.args.map(decodeUnserializableValue);
-    const data: BrowserConsoleEvent = { ...event, type: 'console', args };
+    const argStrings = event.argStrings || [];
+    const data: BrowserConsoleEvent = { ...event, type: 'console', args, argStrings };
     relay.emitScriptEvent('console', data);
   });
 

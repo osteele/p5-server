@@ -41,7 +41,7 @@
     "clean": "rimraf dist 'src/server/static/*.min.js' 'src/server/static/*.min.js.map'",
     "cli": "ts-node src/bin/p5-server.ts",
     "dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
-    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint": "eslint src tests",
     "postpack": "rm README.md",
     "prepack": "run-s build build:readme",
     "start": "ts-node src/bin/p5-server.ts server",

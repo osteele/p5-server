@@ -15,10 +15,17 @@ const templateDir = path.join(__dirname, './templates');
 const defaultGenerationOptions = { draw: true, examples: true };
 const defaultDirectoryExclusions = [
   '.*',
-  '*~',
+  '*~', // editor backup file
+  '*.log',
   'node_modules',
   'package.json',
-  'package-lock.json'
+  'package-lock.json',
+  // Linux
+  '~*', // backup file
+  // macOS
+  'Icon\r', // Custom Finder icon
+  // Windows
+  'Thumbs.db'
 ];
 
 const SCRIPT_FILE_PATTERN = /\.js$/i;

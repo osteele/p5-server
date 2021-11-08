@@ -9,7 +9,7 @@
     "node_modules",
     "tests"
   ],
-  "extends": "..",
+  "extends": "@tsconfig/node14/tsconfig.json",
   "typedocOptions": {
     "name": "p5-analysis API documentation",
     "out": "build/docs",

@@ -66,6 +66,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
+    "@tsconfig/node14": "^1.0.1",
     "@types/babel__core": "^7.1.16",
     "@types/copyfiles": "^2.4.1",
     "@types/eslint": "^7.28.2",

@@ -7795,6 +7795,7 @@ __metadata:
   resolution: "p5-analysis@workspace:p5-analysis"
   dependencies:
     "@babel/core": ^7.16.0
+    "@tsconfig/node14": ^1.0.1
     "@types/babel-core": ^6.25.7
     "@types/copyfiles": ^2.4.1
     "@types/eslint": ^7.28.2
@@ -7840,6 +7841,7 @@ __metadata:
   resolution: "p5-server@workspace:p5-server"
   dependencies:
     "@babel/core": ^7.16.0
+    "@tsconfig/node14": ^1.0.1
     "@types/babel__core": ^7.1.16
     "@types/copyfiles": ^2.4.1
     "@types/eslint": ^7.28.2
@@ -8721,13 +8723,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
-    "@tsconfig/node14": ^1.0.1
-    "@types/node": ^16.11.6
     "@typescript-eslint/eslint-plugin": ^5.2.0
     "@typescript-eslint/parser": ^5.2.0
     copyfiles: ^2.4.1
-    eslint: ^8.1.0
-    eslint-plugin-jest: ^25.2.2
     husky: ^7.0.4
     prettier-eslint-cli: ^5.0.1
     rimraf: ^3.0.2

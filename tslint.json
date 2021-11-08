@@ -1,8 +1,0 @@
-{
-  "extends": "tslint:latest",
-  "linterOptions": {
-    "exclude": [
-      "testdata/syntax-errorx/*.js"
-    ]
-  }
-}

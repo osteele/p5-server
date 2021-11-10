@@ -16,7 +16,7 @@ import {
 import {
   createDirectoryListing,
   defaultDirectoryExclusions,
-} from './createDirectoryListing';
+} from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
 import {
   createLiveReloadServer,
@@ -91,7 +91,7 @@ const defaultServerOptions = {
   relayConsoleMessages: false,
   scanPorts: true,
   screenshot: null,
-  theme: 'directory',
+  theme: 'split',
 };
 
 function createRouter(config: RouterConfig): express.Router {

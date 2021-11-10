@@ -7,9 +7,10 @@ import path from 'path';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions
-} from '../server/createDirectoryListing';
+} from '../server/directoryListing';
 import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates';
 import { die, pathIsInDirectory, pathIsMarkdown, stringToOptions } from '../helpers';
+import chalk from 'chalk';
 
 // TODO: copy the static icons into the build directory
 
@@ -27,6 +28,15 @@ const directoryExclusions = [...defaultDirectoryExclusions, 'build'];
 export default async function build(source: string, options: Options) {
   const output = options.output;
   const hrstart = process.hrtime.bigint();
+
+  if (options.theme === 'directory') {
+    options.theme = 'grid';
+    process.stderr.write(
+      chalk.yellow(
+        'The "directory" theme has been renamed to grid. A future release will remove the "directory" value.\n'
+      )
+    );
+  }
 
   if (
     pathIsInDirectory(output, source) &&

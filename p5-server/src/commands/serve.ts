@@ -26,8 +26,21 @@ export default async function serve(files: string[], options: Options) {
     if (options.theme && options.theme !== 'split') {
       die('Use either --split or --theme but not both');
     }
-    options.theme = 'split';
+    process.stderr.write(
+      chalk.yellow(
+        'Warning: --split is now the default. This option will be removed in a future release.\n'
+      )
+    );
   }
+  if (options.theme === 'directory') {
+    options.theme = 'grid';
+    process.stderr.write(
+      chalk.yellow(
+        'The "directory" theme has been renamed to grid. A future release will remove the "directory" value.\n'
+      )
+    );
+  }
+
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {

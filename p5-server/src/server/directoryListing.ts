@@ -8,10 +8,20 @@ import { markedOptions, templateDir } from './templates';
 
 export const defaultDirectoryExclusions = [
   '.*',
-  '*~',
+  '*~', // editor backup file
+  '*.log',
   'node_modules',
   'package.json',
-  'package-lock.json'
+  'package-lock.json',
+
+  // Linux
+  '~*', // backup file
+
+  // macOS
+  'Icon\r', // Custom Finder icon
+
+  // Windows
+  'Thumbs.db'
 ];
 
 export async function createDirectoryListing(
@@ -54,11 +64,17 @@ export async function createDirectoryListing(
   );
   const title = dir === './' ? 'P5 Server' : path.basename(dir);
 
-  const templatePath = ['', '.pug']
-    .map(ext => path.join(templateDir, templateName + ext))
-    .find(p => fs.existsSync(p));
+  const templatePaths = ['', '.pug'].flatMap(ext => [
+    path.join(templateDir, templateName + ext),
+    path.join(templateDir, templateName, `directory${ext}`)
+  ]);
+  const templatePath = templatePaths.find(
+    p => fs.existsSync(p) && !fs.statSync(p).isDirectory()
+  );
   if (!templatePath) {
-    throw new Error(`Could not find template ${templateName}`);
+    throw new Error(
+      `Could not find template ${templateName} in ${templatePaths.join(', ')}`
+    );
   }
   const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);
   return pug.renderFile(templatePath, {

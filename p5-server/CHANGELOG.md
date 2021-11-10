@@ -7,6 +7,7 @@
 - Directory index ignores additional patterns
 - Switch back to parsing the HTML in order to inject the script tag; fall back
   with a warning
+- Change default theme to split view; deprecate `--split` option
 
 ## [0.8.5] - 2021-10-28
 

@@ -147,13 +147,11 @@ Starts the server, and opens the directory in the default browser.
 
 #### Browse directories in split mode
 
-`p5 server --split`
+`p5 server --theme grid`
 
-Displays directory listings with the sketch in the same window (inside of an
-[iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe)), as
-shown in the screen shot above.
+Displays directory listings in grid view.
 
-You can combine options, e.g. `p5 server examples --open --split`.
+You can combine options, e.g. `p5 server examples --theme grid --open`.
 
 #### Create a sketch file
 
@@ -185,7 +183,7 @@ See the reference, below.
 
 Run `p5 build --help` for a list of options.
 
-Two themes are supported, `--theme directory` and `--theme split`.
+Two themes are supported, `--theme grid` and `--theme split`.
 
 ### Create a screenshot
 

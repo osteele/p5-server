@@ -21,10 +21,13 @@ const defaultDirectoryExclusions = [
   'node_modules',
   'package.json',
   'package-lock.json',
+
   // Linux
   '~*', // backup file
+
   // macOS
   'Icon\r', // Custom Finder icon
+
   // Windows
   'Thumbs.db'
 ];

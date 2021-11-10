@@ -714,7 +714,7 @@ class ScriptSketch extends Sketch {
     }
 
     try {
-      const { globals, freeVariables } = Script.fromFile(file);
+      const { defs: globals, refs: freeVariables } = Script.fromFile(file);
       return globals.get('setup') === 'function' && freeVariables.has('createCanvas');
     } catch (e) {
       if (e instanceof SyntaxError) {

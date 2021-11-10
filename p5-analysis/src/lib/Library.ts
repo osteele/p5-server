@@ -121,14 +121,14 @@ export class Library implements Library.Properties {
     const scripts = scriptPaths
       .map(Script.fromFile)
       .filter(script => script.getErrors().length === 0);
-    const globals = setUnion(...scripts.map(script => new Set(script.globals.keys())));
-    const freeVariables = setUnion(...scripts.map(script => script.freeVariables));
-    const p5Properties = setUnion(...scripts.map(script => script.p5properties));
-    removeSetElements(freeVariables, globals);
+    const defs = setUnion(...scripts.map(script => new Set(script.defs.keys())));
+    const refs = setUnion(...scripts.map(script => script.refs));
+    const p5Properties = setUnion(...scripts.map(script => script.p5propRefs));
+    removeSetElements(refs, defs);
 
     const libs = this.all.filter(
       lib =>
-        lib.defines?.globals?.some(name => freeVariables.has(name)) ||
+        lib.defines?.globals?.some(name => refs.has(name)) ||
         lib.defines?.p5?.some(name => p5Properties.has(name))
     );
 

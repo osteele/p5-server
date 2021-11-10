@@ -2,16 +2,16 @@ import traverse, { Node } from '@babel/traverse';
 
 import * as t from '@babel/types';
 
-const bindingValueTypes: Partial<
-  Record<Node['type'], 'function' | 'class' | 'variable'>
-> = {
+export type DefinitionType = 'function' | 'class' | 'variable';
+
+const bindingValueTypes: Partial<Record<Node['type'], DefinitionType>> = {
   ClassDeclaration: 'class',
   FunctionDeclaration: 'function',
-  VariableDeclarator: 'variable',
+  VariableDeclarator: 'variable'
 };
 
-export function findGlobals(ast: Node) {
-  const globals = new Map<string, string>();
+export function findGlobals(ast: Node): Map<string, DefinitionType> {
+  const globals = new Map<string, DefinitionType>();
   traverse(ast, {
     Program(path) {
       for (const [name, binding] of Object.entries(path.scope.bindings)) {
@@ -21,7 +21,7 @@ export function findGlobals(ast: Node) {
         }
       }
       path.skip();
-    },
+    }
   });
   return globals;
 }
@@ -37,7 +37,7 @@ export function findFreeVariables(ast: Node): Set<string> {
       if (!path.scope.hasBinding(name)) {
         variables.add(name);
       }
-    },
+    }
   });
   return variables;
 }
@@ -53,7 +53,7 @@ export function findPropertyReferences(ast: Node, objectName: string): Set<strin
       ) {
         refs.add(property.name);
       }
-    },
+    }
   });
   return refs;
 }
@@ -69,7 +69,7 @@ export function findLoadCalls(ast: Node): Set<string> {
           calls.add(arg.value);
         }
       }
-    },
+    }
   });
   return calls;
 }

@@ -4,6 +4,7 @@ import fs from 'fs';
 import lruCache from 'lru-cache';
 import path from 'path';
 import {
+  DefinitionType,
   findFreeVariables,
   findGlobals,
   findLoadCalls,
@@ -11,10 +12,12 @@ import {
 } from './script-analysis';
 
 interface ScriptAnalysis {
-  globals: Map<string, string>;
-  freeVariables: Set<string>;
+  /** Names that are defined in the script. This is a map of symbols to definitions types. */
+  defs: Map<string, DefinitionType>;
+  /** Free variables that the script references. */
+  refs: Set<string>;
   loadCallArguments: Set<string>;
-  p5properties: Set<string>;
+  p5propRefs: Set<string>;
 }
 
 export class Script implements ScriptAnalysis {
@@ -56,10 +59,10 @@ export class Script implements ScriptAnalysis {
       try {
         const ast = parse(this.source, { sourceFilename: this.filename });
         this._analysis = {
-          globals: findGlobals(ast),
-          freeVariables: findFreeVariables(ast),
+          defs: findGlobals(ast),
+          refs: findFreeVariables(ast),
           loadCallArguments: findLoadCalls(ast),
-          p5properties: findPropertyReferences(ast, 'p5')
+          p5propRefs: findPropertyReferences(ast, 'p5')
         };
         if (this.cacheKey)
           scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
@@ -72,20 +75,20 @@ export class Script implements ScriptAnalysis {
     return this._analysis!;
   }
 
-  get globals() {
-    return this.analysis.globals;
+  get defs() {
+    return this.analysis.defs;
   }
 
-  get freeVariables() {
-    return this.analysis.freeVariables;
+  get refs() {
+    return this.analysis.refs;
   }
 
   get loadCallArguments() {
     return this.analysis.loadCallArguments;
   }
 
-  get p5properties() {
-    return this.analysis.p5properties;
+  get p5propRefs() {
+    return this.analysis.p5propRefs;
   }
 
   getErrors(): SyntaxError[] {
@@ -121,8 +124,8 @@ const scriptAnalysisCache: lruCache<string, [string, ScriptAnalysis]> = new lruC
   max: 1000,
   length: ([_hash, data]) =>
     5 +
-    data.globals.size +
-    data.freeVariables.size +
+    data.defs.size +
+    data.refs.size +
     data.loadCallArguments.size +
-    data.p5properties.size
+    data.p5propRefs.size
 });

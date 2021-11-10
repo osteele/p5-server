@@ -8,7 +8,7 @@ test('Script.fromFile', () => {
 });
 
 test('Script.getErrors', () => {
-  expect(() => Script.fromSource('const const;').globals).toThrow(
+  expect(() => Script.fromSource('const const;').defs).toThrow(
     /Unexpected keyword 'const'/
   );
   expect(Script.fromSource('let a;').getErrors()).toEqual([]);
@@ -18,70 +18,67 @@ test('Script.getErrors', () => {
   expect(errs[0].message).toMatch(/Unexpected keyword 'const'/);
 });
 
-describe('Script.findGlobals', () => {
-  test('it finds function definitions', () => {
-    expect(Script.fromSource('function f() {}').globals).toEqual(
+describe('Script..defs', () => {
+  test('finds function definitions', () => {
+    expect(Script.fromSource('function f() {}').defs).toEqual(
       new Map([['f', 'function']])
     );
 
-    expect(Script.fromSource('function f() {}; function g() {}').globals).toEqual(
+    expect(Script.fromSource('function f() {}; function g() {}').defs).toEqual(
       new Map([
         ['f', 'function'],
-        ['g', 'function'],
+        ['g', 'function']
       ])
     );
   });
 
-  test('it ignores nested functions', () =>
-    expect(Script.fromSource('function f() {function g(){}}').globals).toEqual(
+  test('ignores nested functions', () =>
+    expect(Script.fromSource('function f() {function g(){}}').defs).toEqual(
       new Map([['f', 'function']])
     ));
 
-  test('it finds global variables', () =>
-    expect(Script.fromSource('let a, b').globals).toEqual(
+  test('finds variable definitons', () =>
+    expect(Script.fromSource('let a, b').defs).toEqual(
       new Map([
         ['a', 'variable'],
-        ['b', 'variable'],
+        ['b', 'variable']
       ])
     ));
 
-  test('it finds pattern variables', () => {
-    expect(Script.fromSource('let [a, b, ...c] = [e, f]').globals).toEqual(
+  test('finds pattern variables', () => {
+    expect(Script.fromSource('let [a, b, ...c] = [e, f]').defs).toEqual(
       new Map([
         ['a', 'variable'],
         ['b', 'variable'],
-        ['c', 'variable'],
+        ['c', 'variable']
       ])
     );
 
-    expect(Script.fromSource('let {a, b:c, d:{e}} = {f}').globals).toEqual(
+    expect(Script.fromSource('let {a, b:c, d:{e}} = {f}').defs).toEqual(
       new Map([
         ['a', 'variable'],
         ['c', 'variable'],
-        ['e', 'variable'],
+        ['e', 'variable']
       ])
     );
   });
 
-  test('it ignores local variables', () =>
-    expect(Script.fromSource('function f() {function g(){let a;}}').globals).toEqual(
+  test('ignores local variables', () =>
+    expect(Script.fromSource('function f() {function g(){let a;}}').defs).toEqual(
       new Map([['f', 'function']])
     ));
 
-  test('it ignores variable initializers', () =>
-    expect(Script.fromSource('let a = b').globals).toEqual(
-      new Map([['a', 'variable']])
-    ));
+  test('ignores variable initializers', () =>
+    expect(Script.fromSource('let a = b').defs).toEqual(new Map([['a', 'variable']])));
 
-  test('it finds class definitions', () =>
-    expect(Script.fromSource('class C {}').globals).toEqual(new Map([['C', 'class']])));
+  test('finds class definitions', () =>
+    expect(Script.fromSource('class C {}').defs).toEqual(new Map([['C', 'class']])));
 });
 
-describe('Script.freeVariables', () => {
-  const free = (code: string) =>
-    Array.from(Script.fromSource(code).freeVariables).sort();
+describe('Script.refs', () => {
+  const free = (code: string) => Array.from(Script.fromSource(code).refs).sort();
 
-  test('finds variables in functions', () => {
+  test('finds references in functions', () => {
     expect(free('function f() {}')).toEqual([]);
     expect(free('function f(a) {a}')).toEqual([]);
     expect(free('function f(a) {b}')).toEqual(['b']);
@@ -89,79 +86,79 @@ describe('Script.freeVariables', () => {
     expect(free('function f() {g}; function g() {}')).toEqual([]);
   });
 
-  test('ignores local variables', () => {
+  test('ignores references to local variables', () => {
     expect(free('function f(a) {let b; b}')).toEqual([]);
     expect(free('function f(a) {let b; c}')).toEqual(['c']);
     expect(free('function f(a) {let b=c}')).toEqual(['c']);
     expect(free('function f(a) {let b=a; let c=b}')).toEqual([]);
   });
 
-  test.skip('finds variables that are used before they are defined', () => {
+  test.skip('finds references to variables that are used before they are defined', () => {
     expect(free('function f() {let b=c; let c=b}')).toEqual(['c']);
   });
 
-  test('finds variables in expressions', () => {
+  test('finds references in expressions', () => {
     expect(free('function f() {a + b}')).toEqual(['a', 'b']);
     expect(free('function f() {a ? b : c}')).toEqual(['a', 'b', 'c']);
     expect(free('function f() {let a = b + c}')).toEqual(['b', 'c']);
     expect(free('let a = b + c')).toEqual(['b', 'c']);
   });
 
-  test('finds variables in function calls and nested functions', () => {
+  test('finds references in function calls and nested functions', () => {
     expect(free('function f(a) {g()}')).toEqual(['g']);
     expect(free('function f(a) {f(a); g(b)}')).toEqual(['b', 'g']);
     expect(free('function f(a) {let b; function g(c) {a+b+c+d}}')).toEqual(['d']);
   });
 
-  test('finds variables in function expressions', () => {
+  test('finds references in function expressions', () => {
     expect(free('let f = function(a) {a + b}')).toEqual(['b']);
     expect(free('let f = a => a + b')).toEqual(['b']);
   });
 
-  test('finds variables in control structures', () => {
+  test('finds references in control structures', () => {
     expect(free('function f() {for (i=a; i<b; i+=c) d;}')).toEqual([
       'a',
       'b',
       'c',
       'd',
-      'i',
+      'i'
     ]);
     expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual([
       'a',
       'b',
       'c',
-      'd',
+      'd'
     ]);
     expect(free('function f() {for (p of obj) p, a;}')).toEqual(['a', 'obj', 'p']);
     expect(free('function f() {for (const p of obj) p, a;}')).toEqual(['a', 'obj']);
     expect(free('function f() {if(a)b;else c}')).toEqual(['a', 'b', 'c']);
   });
 
-  test('finds variables in class definitions', () => {
+  test('finds references in class definitions', () => {
     expect(free('class A { constructor() { this.a = b; A} }')).toEqual(['b']);
     expect(free('class A { m(a) { a,b; } }')).toEqual(['b']);
     expect(free('class A extends B {}')).toEqual(['B']);
     expect(free('class A {}; class B extends A {}')).toEqual([]);
   });
 
-  test('finds variables in class expressions', () => {
+  test('finds references in class expressions', () => {
     expect(free('const A = class { constructor() { this.a = b; A}}')).toEqual(['b']);
   });
 
-  test('finds variables in template literals', () => {
+  test('finds references in template literals', () => {
     expect(free('let a = `${b+c} ${d}}`')).toEqual(['b', 'c', 'd']);
     expect(free('let a = f`${b+c} ${d}`')).toEqual(['b', 'c', 'd', 'f']);
   });
 
-  test('finds variables in array spread', () => {
+  test('finds references in array spread', () => {
     expect(free('let a = [b, ...c, ...d]')).toEqual(['b', 'c', 'd']);
   });
-  test.skip('finds variables in object spread', () => {
+  test.skip('finds references in object spread', () => {
     expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
   });
 
-  test('finds variables in the kitchen sink test', () => {
-    expect(Script.fromFile('./tests/testdata/free-variables.js').freeVariables).toEqual(
+  test('finds references in the kitchen sink test', () => {
+    expect(Script.fromFile('./tests/testdata/free-variables.js').refs).toEqual(
       new Set(['gf1', 'gf2', 'gv1', 'l3'])
     );
   });
@@ -169,7 +166,7 @@ describe('Script.freeVariables', () => {
 
 test('Script.p5properties', () => {
   const props = (source: string) =>
-    Array.from(Script.fromSource(source).p5properties).sort();
+    Array.from(Script.fromSource(source).p5propRefs).sort();
 
   expect(props('function f() {}')).toEqual([]);
   expect(props('function f() {p5.p}')).toEqual(['p']);

@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleaed
+
+- Libraries can be specified as comment directives
+- Performance improvements: cache script analysis
+- Directory analysis ignores additional patterns
+
 ## [0.6.5] - 2021-10-28
 
 - Add antiboredom/p5.patgrad to list of libraries

@@ -84,6 +84,27 @@ export class Library implements Library.Properties {
     );
     return libs;
   }
+
+  static fromUrl(importPath: string) {
+    // TODO: if it's a CDN URL, recognize the package name
+    // TODO: if it's a GitHub URL, infer the homepage
+    return Library.fromProperties({
+      name: '<library named in comment directive>',
+      description: 'Library specified in script file comment directive',
+      homepage: '',
+      importPath
+    });
+  }
+
+  static fromPackageName(packageName: string) {
+    return Library.fromProperties({
+      name: packageName,
+      description: 'Library specified in script file comment directive',
+      homepage: '',
+      packageName
+    });
+  }
+
   //#endregion
 
   static get all(): readonly Library[] {
@@ -93,18 +114,23 @@ export class Library implements Library.Properties {
   /** Find a library by its name or import path. */
   static find({
     name,
-    importPath
+    importPath,
+    packageName
   }: {
     name?: string;
     importPath?: string;
+    packageName?: string;
   }): Library | null {
     const libs = this.all;
     if (libs.length === 0) {
-      // This has cost me a lot of debugging a couple of times.
+      // This has cost me a lot of debugging time a couple of times, so check
+      // for it.
       console.warn('Library.all has not been initialized');
     }
     if (name) {
       return libs.find(lib => lib.name === name) || null;
+    } else if (packageName) {
+      return libs.find(lib => lib.packageName === packageName) || null;
     } else if (importPath) {
       return libs.find(lib => lib.matchesImportPath(importPath)) || null;
     }
@@ -132,7 +158,31 @@ export class Library implements Library.Properties {
         lib.defines?.p5?.some(name => p5Properties.has(name))
     );
 
+    const libraryPattern = /^library:?\b\s*(.+)/;
+    const directives = scripts.flatMap(script =>
+      script.findMatchingComments(libraryPattern)
+    );
+    const libSpecs = directives.flatMap(directive =>
+      directive.match(libraryPattern)![1].split(/,?\s+/)
+    );
+    const newLibs = libSpecs.map(
+      spec =>
+        Library.find({ name: spec }) ||
+        Library.find({ packageName: spec }) ||
+        Library.find({ importPath: spec }) ||
+        createLibraryFromSpec(spec)
+    );
+    libs.push(...newLibs.filter(lib => !libs.includes(lib)));
+
     return libs;
+
+    function createLibraryFromSpec(spec: string) {
+      if (/^https?:\/\//.test(spec)) {
+        return Library.fromUrl(spec);
+      } else {
+        return Library.fromPackageName(spec);
+      }
+    }
   }
 
   get globals() {

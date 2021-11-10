@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleaed
+
+- Libraries can be specified as comment directives
+- Performance improvements: cache script analysis
+- Directory index ignores additional patterns
+
 ## [0.8.5] - 2021-10-28
 
 - Restore syntax-error reporting functionality

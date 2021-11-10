@@ -23,6 +23,7 @@ interface ScriptAnalysis {
 export class Script implements ScriptAnalysis {
   private _analysis?: ScriptAnalysis;
   private _syntaxError?: SyntaxError;
+  private _ast?: ReturnType<typeof parse>;
 
   constructor(public readonly source: string, public readonly filename?: string) {
     if (this.cacheKey) {
@@ -56,23 +57,30 @@ export class Script implements ScriptAnalysis {
 
   private get analysis() {
     if (!this._analysis && !this._syntaxError) {
+      const { ast } = this;
+      this._analysis = {
+        defs: findGlobals(ast),
+        refs: findFreeVariables(ast),
+        loadCallArguments: findLoadCalls(ast),
+        p5propRefs: findPropertyReferences(ast, 'p5')
+      };
+      if (this.cacheKey)
+        scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
+    }
+    return this._analysis!;
+  }
+
+  private get ast(): ReturnType<typeof parse> {
+    if (!this._ast && !this._syntaxError) {
       try {
-        const ast = parse(this.source, { sourceFilename: this.filename });
-        this._analysis = {
-          defs: findGlobals(ast),
-          refs: findFreeVariables(ast),
-          loadCallArguments: findLoadCalls(ast),
-          p5propRefs: findPropertyReferences(ast, 'p5')
-        };
-        if (this.cacheKey)
-          scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
-      } catch (e) {
-        if (!(e instanceof SyntaxError)) throw e;
-        this._syntaxError = e;
+        this._ast = parse(this.source, { sourceFilename: this.filename });
+      } catch (err) {
+        if (!(err instanceof SyntaxError)) throw err;
+        this._syntaxError = err;
       }
     }
     if (this._syntaxError) throw this._syntaxError;
-    return this._analysis!;
+    return this._ast!;
   }
 
   get defs() {
@@ -89,6 +97,21 @@ export class Script implements ScriptAnalysis {
 
   get p5propRefs() {
     return this.analysis.p5propRefs;
+  }
+
+  findMatchingComments(pattern: RegExp): string[] {
+    const cacheKey = this.cacheKey && `${this.cacheKey}-${pattern.toString()}`;
+    if (cacheKey) {
+      const [hash, data] = commentDirectiveCache.get(cacheKey) || [];
+      if (hash === this.cacheDigest) {
+        return data!;
+      }
+    }
+
+    const comments =
+      this.ast.comments?.map(c => c.value.trim()).filter(s => pattern.test(s)) || [];
+    if (cacheKey) commentDirectiveCache.set(cacheKey, [this.cacheDigest!, comments]);
+    return comments;
   }
 
   getErrors(): SyntaxError[] {
@@ -128,4 +151,9 @@ const scriptAnalysisCache: lruCache<string, [string, ScriptAnalysis]> = new lruC
     data.refs.size +
     data.loadCallArguments.size +
     data.p5propRefs.size
+});
+
+const commentDirectiveCache: lruCache<string, [string, string[]]> = new lruCache({
+  max: 1000,
+  length: ([_hash, data]) => 1 + data.length
 });

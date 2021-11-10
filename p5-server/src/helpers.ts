@@ -94,6 +94,8 @@ export const stringToOptions = (str: string | null) =>
       )
     : {};
 
+let warnedAboutMissingHtmlBody = false;
+
 /** Insert a <script> element in an HTML document's head.
  *
  * If the source argument is a string, it becomes the value of the element's
@@ -124,16 +126,15 @@ export function addScriptToHtmlHead(
             .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
             .join('\n');
   }
-  if (process.env.P5_SERVER_HTML_INJECTION_PARSER !== 'html') {
-    // Emergency fix. This is not robust against $1 occuring in the script.
-    return html.replace(/(<\/head>)/, '$1' + scriptNode.outerHTML);
-  }
-  // FIXME: the following works during development but fails in distr.
+  // The following works during development. Previously it has failed in distr:
   // htmlRoot.querySelector(tagName) always returns null.
   if (!htmlRoot.querySelector('head')) {
     const body = htmlRoot.querySelector('body');
     if (body) body.appendChild(new HTMLElement('head', {}, '', null));
-    else console.warn('HTML document did not have a body');
+    else if (!warnedAboutMissingHtmlBody) {
+      console.warn('HTML document did not have a body');
+      warnedAboutMissingHtmlBody = true;
+    }
   }
   const head = htmlRoot.querySelector('head');
   if (!head) {

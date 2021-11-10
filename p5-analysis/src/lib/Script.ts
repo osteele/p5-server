@@ -91,9 +91,9 @@ export class Script implements ScriptAnalysis {
   getErrors(): SyntaxError[] {
     try {
       this.analysis; // for effect
-    } catch (e) {
-      if (e instanceof SyntaxError) return [e];
-      throw e;
+    } catch (err) {
+      if (err instanceof SyntaxError) return [err];
+      throw err;
     }
     return [];
   }

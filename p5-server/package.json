@@ -62,6 +62,7 @@
     "open": "^8.4.0",
     "p5-analysis": "workspace:*",
     "pug": "^3.0.2",
+    "serialport": "^9.2.5",
     "update-notifier": "^5.1.0"
   },
   "devDependencies": {

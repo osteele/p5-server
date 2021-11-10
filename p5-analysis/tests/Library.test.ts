@@ -15,39 +15,40 @@ describe('Library.find', () => {
   test('by import path', () => {
     expect(
       Library.find({
-        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js',
+        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js'
       })
     ).toBeInstanceOf(Library);
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.rotate-about',
+        importPath: 'https://unpkg.com/p5.rotate-about'
       })
     ).toBeInstanceOf(Library);
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.rotate-about@latest',
+        importPath: 'https://unpkg.com/p5.rotate-about@latest'
       })
     ).toBeInstanceOf(Library);
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0',
+        importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0'
       })
     ).toBeInstanceOf(Library);
   });
 });
 
-test('Library.inferLibrariesFromScripts', () => {
+describe('Library.inferLibrariesFromScripts', () => {
   const dir = `${testfilesPath}/library-inference`;
   const inferLibraries = (filename: string) =>
     Library.inferFromScripts([`${dir}/${filename}`], { ifNotExists: 'error' }).map(
       lib => lib.name
     );
 
-  expect(Library.all.length).toBeGreaterThan(10);
-  expect(inferLibraries(`no-libraries.js`)).toHaveLength(0);
-  expect(inferLibraries(`loadSound.js`)).toEqual(['p5.sound']);
-  expect(inferLibraries(`dat.js`)).toEqual(['dat.gui']);
-  expect(inferLibraries(`ml5.poseNet.js`)).toEqual(['ml5.js']);
-  expect(inferLibraries(`p5.Pulse.js`)).toEqual(['p5.sound']);
-  expect(inferLibraries(`p5.Speech.js`)).toEqual(['p5.speech']);
+  test('infers libraries from global variable references', () => {
+    expect(inferLibraries(`no-libraries.js`)).toHaveLength(0);
+    expect(inferLibraries(`loadSound.js`)).toEqual(['p5.sound']);
+    expect(inferLibraries(`dat.js`)).toEqual(['dat.gui']);
+    expect(inferLibraries(`ml5.poseNet.js`)).toEqual(['ml5.js']);
+    expect(inferLibraries(`p5.Pulse.js`)).toEqual(['p5.sound']);
+    expect(inferLibraries(`p5.Speech.js`)).toEqual(['p5.speech']);
+  });
 });

@@ -143,17 +143,24 @@ describe('Sketch.generate', () => {
     fs.mkdirSync(outputDir);
   });
 
-  test('default options', () => testGenerate('test.js', {}, 'default'));
-  test('comments', () => testGenerate('test.js', { comments: true }, 'comments'));
-  test('preload', () => testGenerate('test.js', { preload: true }, 'preload'));
-  test('windowResized', () =>
-    testGenerate('test.js', { windowResized: true }, 'windowResized'));
-  test('no-draw', () => testGenerate('test.js', { draw: false }, 'no-draw'));
-  test('no-examples', () =>
-    testGenerate('test.js', { examples: false }, 'no-examples'));
-  test('html', () => testGenerate('test.html', {}, 'html'));
+  test('with default options', () => testSketchGeneration('test.js', {}, 'default'));
 
-  async function testGenerate(
+  describe('with options:', () => {
+    test('comments=true', () =>
+      testSketchGeneration('test.js', { comments: true }, 'comments'));
+    test('preload=true', () =>
+      testSketchGeneration('test.js', { preload: true }, 'preload'));
+    test('windowResized=true', () =>
+      testSketchGeneration('test.js', { windowResized: true }, 'windowResized'));
+    test('draw=false', () =>
+      testSketchGeneration('test.js', { draw: false }, 'no-draw'));
+    test('examples=false', () =>
+      testSketchGeneration('test.js', { examples: false }, 'no-examples'));
+  });
+
+  test('html output', () => testSketchGeneration('test.html', {}, 'html'));
+
+  async function testSketchGeneration(
     outputName: string,
     options: Record<string, boolean>,
     snapshotName: string
@@ -210,7 +217,7 @@ describe('Sketch.convert', () => {
         { type: 'script' },
         {
           exception:
-            'index.html contains libraries that are not implied by sketch.js: p5.sound',
+            'index.html contains libraries that are not implied by sketch.js: p5.sound'
         }
       ));
 
@@ -265,7 +272,10 @@ describe('Sketch.convert', () => {
     } else if (filePath.indexOf(path.sep) !== -1) {
       const srcDir = filePath.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
-      mainFile = filePath.split(path.sep).slice(1).join(path.sep);
+      mainFile = filePath
+        .split(path.sep)
+        .slice(1)
+        .join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
@@ -306,7 +316,7 @@ function expectDirectoriesEqual(a: string, b: string) {
   if (process.env.JEST_UPDATE_FILE_SNAPSHOTS) {
     fs.cpSync(a, b, {
       recursive: true,
-      filter: (src: string) => !src.startsWith('.'),
+      filter: (src: string) => !src.startsWith('.')
     });
   }
   let aFiles = getDirectoryJson(a);
@@ -332,7 +342,7 @@ function getDirectoryJson(dir: string): DirectoryJson {
         name,
         fs.statSync(file).isDirectory()
           ? getDirectoryJson(file)
-          : fs.readFileSync(file, 'utf-8'),
+          : fs.readFileSync(file, 'utf-8')
       ];
     });
 }

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { Category } from './Category';
+import { removeSetElements, setUnion } from './helpers';
 import { Script } from './Script';
 
 export const p5Version = '1.4.0';
@@ -92,7 +93,7 @@ export class Library implements Library.Properties {
   /** Find a library by its name or import path. */
   static find({
     name,
-    importPath,
+    importPath
   }: {
     name?: string;
     importPath?: string;
@@ -114,28 +115,23 @@ export class Library implements Library.Properties {
     scriptPaths: string[],
     { ifNotExists = 'skip' } = {}
   ): readonly Library[] {
-    const libs: Library[] = [];
-    // TODO: remove each script's global from other scripts' free variables.
-    //
-    // This doesn't make a functional difference with the current usage, because
-    // inference is only used for JavaScript-only sketches, which can only be a
-    // single script.
-    for (const scriptFile of scriptPaths) {
-      if (ifNotExists === 'skip' && !fs.existsSync(scriptFile)) continue;
-      try {
-        const { freeVariables, p5properties } = Script.fromFile(scriptFile);
-        for (const lib of this.all) {
-          if (
-            lib.defines?.globals?.some(name => freeVariables!.has(name)) ||
-            lib.defines?.p5?.some(name => p5properties!.has(name))
-          ) {
-            libs.push(lib);
-          }
-        }
-      } catch (e) {
-        if (!(e instanceof SyntaxError)) throw e;
-      }
+    if (ifNotExists === 'skip') {
+      scriptPaths = scriptPaths.filter(path => fs.existsSync(path));
     }
+    const scripts = scriptPaths
+      .map(Script.fromFile)
+      .filter(script => script.getErrors().length === 0);
+    const globals = setUnion(...scripts.map(script => new Set(script.globals.keys())));
+    const freeVariables = setUnion(...scripts.map(script => script.freeVariables));
+    const p5Properties = setUnion(...scripts.map(script => script.p5properties));
+    removeSetElements(freeVariables, globals);
+
+    const libs = this.all.filter(
+      lib =>
+        lib.defines?.globals?.some(name => freeVariables.has(name)) ||
+        lib.defines?.p5?.some(name => p5Properties.has(name))
+    );
+
     return libs;
   }
 

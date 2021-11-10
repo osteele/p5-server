@@ -8,6 +8,7 @@ import path from 'path';
 import pug from 'pug';
 import { isDefined } from '../ts-extras';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
+import { isHtmlPathname, isScriptPathname } from './helpers';
 import { Library, p5Version } from './Library';
 import { Script } from './Script';
 
@@ -27,8 +28,6 @@ const defaultDirectoryExclusions = [
   // Windows
   'Thumbs.db'
 ];
-
-const SCRIPT_FILE_PATTERN = /\.js$/i;
 
 export type SketchStructureType =
   | 'html' /** The main file is an HTML file */
@@ -70,15 +69,15 @@ export abstract class Sketch {
   static create(
     mainFile: string,
     options: { title?: string; description?: string; scriptFile?: string } = {}
-  ) {
-    if (/\.html?/i.test(mainFile)) {
+  ): Sketch {
+    if (isHtmlPathname(mainFile)) {
       return new HtmlSketch(
         path.dirname(mainFile),
         path.basename(mainFile),
         options.scriptFile,
         options
       );
-    } else if (SCRIPT_FILE_PATTERN.test(mainFile)) {
+    } else if (isScriptPathname(mainFile)) {
       if (mainFile && options.scriptFile) {
         throw new Error(
           `Cannot specify both a JavaScript mainFile and options.scriptFile`
@@ -130,9 +129,9 @@ export abstract class Sketch {
   static fromFile(filePath: string): Promise<Sketch> {
     if (fs.statSync(filePath).isDirectory()) {
       return Sketch.fromDirectory(filePath);
-    } else if (SCRIPT_FILE_PATTERN.test(filePath)) {
+    } else if (isScriptPathname(filePath)) {
       return Sketch.fromScriptFile(filePath);
-    } else if (/\.html?$/i.test(filePath)) {
+    } else if (isHtmlPathname(filePath)) {
       return Sketch.fromHtmlFile(filePath);
     } else {
       throw new Error(`Unrecognized file type: ${filePath}`);
@@ -396,7 +395,7 @@ export abstract class Sketch {
   protected impliedLibraries(): readonly Library[] {
     return Library.inferFromScripts(
       this.files
-        .filter(name => SCRIPT_FILE_PATTERN.test(name))
+        .filter(name => isScriptPathname(name))
         .map(name => path.join(this.dir, name))
     );
   }
@@ -417,7 +416,7 @@ export abstract class Sketch {
     force = false,
     options: Record<string, unknown> = {}
   ): Promise<string[]> {
-    const files = new Map<string, string>();
+    const files = new Map<string, string>(); // file name => template name
     if (this.htmlFile) files.set(this.htmlFile, Sketch.indexTemplateName);
     files.set(this.scriptFile, 'sketch.js.njk');
 
@@ -533,10 +532,11 @@ class HtmlSketch extends Sketch {
   }
 
   static async isSketchHtmlFile(htmlFilePath: string): Promise<boolean> {
-    if (!fs.existsSync(htmlFilePath) || fs.statSync(htmlFilePath).isDirectory()) {
-      return false;
-    }
-    if (!/\.html?$/i.test(htmlFilePath)) {
+    if (
+      !isHtmlPathname(htmlFilePath) ||
+      !fs.existsSync(htmlFilePath) ||
+      fs.statSync(htmlFilePath).isDirectory()
+    ) {
       return false;
     }
 
@@ -646,7 +646,7 @@ class HtmlSketch extends Sketch {
           case 0:
             throw new Error(`${htmlPath} does not contain any local scripts`);
           case 1:
-            if (!SCRIPT_FILE_PATTERN.test(localScripts[0])) {
+            if (!isScriptPathname(localScripts[0])) {
               throw new Error(
                 `${htmlPath} refers to a script file with the wrong extension`
               );
@@ -705,10 +705,11 @@ class ScriptSketch extends Sketch {
   }
 
   static async isSketchScriptFile(file: string) {
-    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      return false;
-    }
-    if (!SCRIPT_FILE_PATTERN.test(file)) {
+    if (
+      !isScriptPathname(file) ||
+      !fs.existsSync(file) ||
+      fs.statSync(file).isDirectory()
+    ) {
       return false;
     }
 

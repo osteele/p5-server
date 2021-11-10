@@ -58,11 +58,12 @@
     "highlight.js": "^11.3.1",
     "livereload": "^0.9.3",
     "marked": "^3.0.8",
+    "minimatch": "^3.0.4",
     "node-html-parser": "^5.1.0",
+    "nunjucks": "^3.2.3",
     "open": "^8.4.0",
     "p5-analysis": "workspace:*",
     "pug": "^3.0.2",
-    "serialport": "^9.2.5",
     "update-notifier": "^5.1.0"
   },
   "devDependencies": {

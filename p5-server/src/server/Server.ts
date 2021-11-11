@@ -8,22 +8,22 @@ import { EventEmitter } from 'stream';
 import { assertError } from "../ts-extras";
 import {
   attachBrowserScriptRelay,
-  BrowserScriptRelay,
+  BrowserScriptRelay
 } from './browserScriptEventRelay';
 import {
-  createDirectoryListing,
+  createDirectoryListing
 } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
 import {
   createLiveReloadServer,
   injectLiveReloadScript,
-  LiveReloadServer,
+  LiveReloadServer
 } from './liveReload';
+import { createRouter, MountPointOptions } from './routes';
 import {
-  templateDir,
+  templateDir
 } from './templates';
 import http = require('http');
-import { createRouter } from './routes';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -39,7 +39,7 @@ export namespace Server {
 
     /** A list of base directories and optional URL path prefixes. If this is
      * present, it is used instead of the root option. */
-    mountPoints: MountPointOption[];
+    mountPoints: MountPointOptions[];
 
     /** If true, relay console events from the sketch to an emitter on the server. */
     relayConsoleMessages: boolean;
@@ -63,10 +63,6 @@ export namespace Server {
 
     theme?: string;
   }>;
-
-  export type MountPointOption =
-    | string
-    | { filePath: string; name?: string; urlPath?: string };
 }
 
 type ServerConfig = Required<Server.Options>;
@@ -275,7 +271,7 @@ export class Server {
   }
 
   private static normalizeMountPoints(
-    mountPoints: Server.MountPointOption[]
+    mountPoints: MountPointOptions[]
   ): MountPoint[] {
     const finalPathSep = new RegExp(`${path.sep}$`);
     const mounts = mountPoints

@@ -1,46 +1,15 @@
 import { jsonCycleStringifier } from '../jsonCycleStringifier';
-
+import {
+  ConsoleMethodName,
+  ConnectionMessage,
+  ConsoleMethodMessage,
+  DocumentMessage,
+  ErrorMessage,
+  UnhandledRejectionMessage,
+  WindowMessage,
+  MessageCore
+} from '../consoleRelayTypes';
 const { stringify } = jsonCycleStringifier();
-
-type ConsoleMethodName = 'clear' | 'debug' | 'error' | 'info' | 'log' | 'warn';
-
-type ConnectionMessage = {
-  type: 'opened';
-};
-
-type ConsoleMethodMessage = { method: ConsoleMethodName };
-
-type DocumentMessage = {
-  type: 'visibilitychange';
-  visibilityState?: typeof document.visibilityState;
-};
-
-type ErrorMessage = {
-  type: 'error';
-  message: string;
-  url?: string;
-  line?: number;
-  col?: number;
-  stack?: string;
-};
-
-type UnhandledRejectionMessage = {
-  type: 'unhandledRejection';
-  message: string;
-  stack: string;
-};
-
-type WindowMessage = {
-  type: 'load' | 'pagehide' | 'DOMContentLoaded';
-};
-
-type Message =
-  | ConnectionMessage
-  | ConsoleMethodMessage
-  | DocumentMessage
-  | ErrorMessage
-  | UnhandledRejectionMessage
-  | WindowMessage;
 
 const serializationPrefix = '__p5_server_serialization_:';
 const unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
@@ -95,7 +64,7 @@ Object.entries(console).forEach(([key, originalFn]) => {
         ? value.toString()
         : null
     );
-    while (argStrings.length && !argStrings[argStrings.length - 1] === null) {
+    while (argStrings.length && argStrings[argStrings.length - 1] === null) {
       argStrings.pop();
     }
     send(
@@ -164,7 +133,7 @@ function send(route: 'console', message: ConsoleMethodMessage): void;
 function send(route: 'document', message: DocumentMessage): void;
 function send(route: 'error', message: ErrorMessage | UnhandledRejectionMessage): void;
 function send(route: 'window', message: WindowMessage): void;
-function send(route: string, data: Message) {
+function send(route: string, data: MessageCore) {
   const payload = stringify([
     route,
     Object.assign({ clientId, url: document.documentURI, timestamp: +new Date() }, data)

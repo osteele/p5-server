@@ -1,7 +1,11 @@
+/** Receive and parse messages from the client-side console relay, and emit them
+ * as events. */
+
 import http from 'http';
 import net from 'net';
 import { URL } from 'url';
 import ws from 'ws';
+import { Message } from '../consoleRelayTypes';
 import { addScriptToHtmlHead } from '../helpers';
 import { jsonCycleStringifier } from '../jsonCycleStringifier';
 import { assertError } from '../ts-extras';
@@ -33,7 +37,7 @@ export function attachBrowserScriptRelay(
 
   wsServer.on('connection', socket => {
     socket.on('message', message => {
-      const [route, data] = parseCyclicJson(message.toString());
+      const [route, data]: [string, Message] = parseCyclicJson(message.toString());
       const handler = routes.get(route);
       if (handler) {
         handler({
@@ -52,6 +56,26 @@ export function attachBrowserScriptRelay(
     });
   });
 
+  function defineHandler(
+    route: 'connection',
+    handler: (event: BrowserConnectionEvent) => void
+  ): void;
+  function defineHandler(
+    route: 'console',
+    handler: (event: BrowserConsoleEvent) => void
+  ): void;
+  function defineHandler(
+    route: 'document',
+    handler: (event: BrowserDocumentEvent) => void
+  ): void;
+  function defineHandler(
+    route: 'error',
+    handler: (event: BrowserErrorEvent) => void
+  ): void;
+  function defineHandler(
+    route: 'window',
+    handler: (event: BrowserWindowEvent) => void
+  ): void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function defineHandler(route: string, handler: (event: any) => void) {
     routes.set(route, handler);
@@ -80,7 +104,7 @@ export function attachBrowserScriptRelay(
     relay.emitScriptEvent('window', event);
   });
 
-  function urlToFilePath(url: string | null): string | null {
+  function urlToFilePath(url: string | null | undefined): string | null | undefined {
     if (!url) return url;
     try {
       new URL(url);

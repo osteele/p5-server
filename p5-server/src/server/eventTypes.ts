@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// TODO: merge these with the types in consoleRelayTypes.ts
 
 export type BrowserConsoleEventMethods =
   | 'clear'

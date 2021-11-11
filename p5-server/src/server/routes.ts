@@ -9,12 +9,16 @@ import { assertError } from '../ts-extras';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay';
 import { defaultDirectoryExclusions } from './directoryListing';
 import { injectLiveReloadScript } from './liveReload';
+import { RouterConfig, sendDirectoryListing } from './Server';
 import {
   createSyntaxErrorJsReporter,
   markdownToHtmlPage,
   sourceViewTemplate
 } from './templates';
-import { RouterConfig, sendDirectoryListing } from './Server';
+
+export type MountPointOptions =
+  | string
+  | { filePath: string; name?: string; urlPath?: string };
 
 export function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();

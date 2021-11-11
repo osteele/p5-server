@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import lruCache from 'lru-cache';
 import path from 'path';
+import { sizeof } from '../helpers';
 import {
   DefinitionType,
   findFreeVariables,
@@ -10,6 +11,8 @@ import {
   findLoadCalls,
   findPropertyReferences
 } from './script-analysis';
+
+const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 
 interface ScriptAnalysis {
   /** Names that are defined in the script. This is a map of symbols to definitions types. */
@@ -34,11 +37,18 @@ export class Script implements ScriptAnalysis {
     }
   }
 
-  static fromSource(source: string, filePath?: string) {
+  static set options({ cacheSize }: { cacheSize?: number }) {
+    if (cacheSize) {
+      scriptAnalysisCache.max = cacheSize;
+      commentDirectiveCache.max = cacheSize;
+    }
+  }
+
+  static fromSource(source: string, filePath?: string): Script {
     return new Script(source, filePath);
   }
 
-  static fromFile(filePath: string) {
+  static fromFile(filePath: string): Script {
     return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
   }
 
@@ -57,6 +67,8 @@ export class Script implements ScriptAnalysis {
 
   private get analysis() {
     if (!this._analysis && !this._syntaxError) {
+      if (P5_ANALYSIS_PRINT_CACHE_STATS)
+        console.log(`Script analysis cache miss: ${this.filename}`);
       const { ast } = this;
       this._analysis = {
         defs: findGlobals(ast),
@@ -64,8 +76,9 @@ export class Script implements ScriptAnalysis {
         loadCallArguments: findLoadCalls(ast),
         p5propRefs: findPropertyReferences(ast, 'p5')
       };
-      if (this.cacheKey)
+      if (this.cacheKey) {
         scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
+      }
     }
     return this._analysis!;
   }
@@ -102,6 +115,8 @@ export class Script implements ScriptAnalysis {
   findMatchingComments(pattern: RegExp): string[] {
     const cacheKey = this.cacheKey && `${this.cacheKey}-${pattern.toString()}`;
     if (cacheKey) {
+      if (P5_ANALYSIS_PRINT_CACHE_STATS)
+        console.log(`Script comment cache miss: ${this.filename} / ${pattern}`);
       const [hash, data] = commentDirectiveCache.get(cacheKey) || [];
       if (hash === this.cacheDigest) {
         return data!;
@@ -140,20 +155,15 @@ export class Script implements ScriptAnalysis {
   }
 }
 
-// This is a global rather than a class property so that it doesn't appear in
-// the typescript exports, where it would require that clients use
+// This is a global variable rather than a class property, so that it doesn't
+// appear in the typescript exports, where it would require that clients use
 // esModuleIterop to use this package or a package that re-exports its types.
 const scriptAnalysisCache: lruCache<string, [string, ScriptAnalysis]> = new lruCache({
-  max: 1000,
-  length: ([_hash, data]) =>
-    5 +
-    data.defs.size +
-    data.refs.size +
-    data.loadCallArguments.size +
-    data.p5propRefs.size
+  max: 20000,
+  length: (value, key) => sizeof(value) + sizeof(key)
 });
 
 const commentDirectiveCache: lruCache<string, [string, string[]]> = new lruCache({
-  max: 1000,
-  length: ([_hash, data]) => 1 + data.length
+  max: 20000,
+  length: (value, key) => sizeof(value) + sizeof(key)
 });

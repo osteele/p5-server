@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Category } from './Category';
-import { removeSetElements, setUnion } from './helpers';
+import { removeSetElements, setUnion } from '../helpers';
 import { Script } from './Script';
 
 export const p5Version = '1.4.0';

@@ -8,7 +8,7 @@ import path from 'path';
 import pug from 'pug';
 import { isDefined } from '../ts-extras';
 import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
-import { isHtmlPathname, isScriptPathname } from './helpers';
+import { isHtmlPathname, isScriptPathname } from '../helpers';
 import { Library, p5Version } from './Library';
 import { Script } from './Script';
 

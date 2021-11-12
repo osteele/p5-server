@@ -16,26 +16,31 @@ describe('Library.find', () => {
     expect(
       Library.find({
         importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js'
-      })
-    ).toBeInstanceOf(Library);
+      }).name
+    ).toBe('p5.sound');
     expect(
       Library.find({
         importPath: 'https://unpkg.com/p5.rotate-about'
-      })
-    ).toBeInstanceOf(Library);
+      })?.name
+    ).toBe('p5.rotate-about');
     expect(
       Library.find({
         importPath: 'https://unpkg.com/p5.rotate-about@latest'
-      })
-    ).toBeInstanceOf(Library);
+      })?.name
+    ).toBe('p5.rotate-about');
     expect(
       Library.find({
         importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0'
-      })
-    ).toBeInstanceOf(Library);
+      })?.name
+    ).toBe('p5.vector-arguments');
     expect(
       Library.find({ importPath: 'https://unpkg.com/undefined-library-name' })
     ).toBeNull();
+    expect(
+      Library.find({
+        importPath: 'https://cdn.skypack.dev/p5.rotate-about'
+      })?.name
+    ).toBe('p5.rotate-about');
   });
 });
 

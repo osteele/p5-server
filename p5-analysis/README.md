@@ -49,6 +49,12 @@ yard add p5-analysis
 
 `p5-libraries list` – list the known libraries
 
+With `--json`, this can be used with [jq](https://stedolan.github.io/jq/), e.g.
+`yarn cli:libraries list --json | jq '.[].importPath'` to list all the import
+paths, or `yarn cli:libraries list --json | jq '.[] | select(.packageName) |
+.name'` to print the names of libraries that have been published as NPM
+packages.
+
 `p5-libraries check all` – validate the library homepages, import paths, and
 other properties
 

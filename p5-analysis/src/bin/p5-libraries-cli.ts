@@ -6,13 +6,13 @@ import {
   describeLibrary,
   listLibraries,
   printLibraryProperty,
-  updateDescriptions,
+  updateDescriptions
 } from '../commands/library-commands';
 import { generateLibraryPage } from '../commands/library-docs';
 import checkLibraryCollisions from '../commands/check-library-collisions';
 import {
   checkLibraries,
-  checkLibraryImportPaths,
+  checkLibraryImportPaths
 } from '../commands/library-validation';
 
 export const program = new Command();
@@ -39,6 +39,7 @@ program
 
 program
   .command('describe')
+  .option('--json')
   .argument('<LIBRARY>')
   .description('Describe the library')
   .action(describeLibrary);
@@ -46,6 +47,7 @@ program
 program
   .command('list')
   .description('Print the known libraries to stdout')
+  .option('--json')
   .option('-v, --verbose')
   .action(listLibraries);
 

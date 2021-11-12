@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleaed
+## Unreleased
 
 - Libraries can be specified as comment directives
 - Performance improvements: cache script analysis

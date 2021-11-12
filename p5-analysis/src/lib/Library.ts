@@ -51,6 +51,18 @@ export class Library implements Library.Properties {
     Object.assign(this, spec);
   }
 
+  toJSON() {
+    return {
+      name: this.name,
+      description: this.description,
+      homepage: this.homepage,
+      packageName: this.packageName,
+      repository: this.repository,
+      importPath: this.importPath,
+      defines: this.defines
+    };
+  }
+
   //#region instantation
   /** Adds a library from a record in a library.json file. */
   static fromProperties(

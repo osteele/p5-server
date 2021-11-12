@@ -121,20 +121,22 @@ export class Library implements Library.Properties {
     importPath?: string;
     packageName?: string;
   }): Library | null {
-    const libs = this.all;
+    let libs = this.all;
     if (libs.length === 0) {
       // This has cost me a lot of debugging time a couple of times, so check
       // for it.
       console.warn('Library.all has not been initialized');
     }
     if (name) {
-      return libs.find(lib => lib.name === name) || null;
-    } else if (packageName) {
-      return libs.find(lib => lib.packageName === packageName) || null;
-    } else if (importPath) {
-      return libs.find(lib => lib.matchesImportPath(importPath)) || null;
+      libs = libs.filter(lib => lib.name === name);
     }
-    return null;
+    if (packageName) {
+      libs = libs.filter(lib => lib.packageName === packageName);
+    }
+    if (importPath) {
+      libs = libs.filter(lib => lib.matchesImportPath(importPath));
+    }
+    return libs.length === 1 ? libs[0] : null;
   }
 
   static inferFromScripts(
@@ -234,15 +236,30 @@ export class Library implements Library.Properties {
   }
 
   private matchesImportPath(path: string): boolean {
-    return Boolean(
-      this.importPath &&
-        (this.importPath === path ||
-          (this.packageName && Library.getCdnUrlPackageName(path) === this.packageName))
-    );
+    let importPath = this.importPath;
+    if (!importPath) {
+      return false;
+    }
+    importPath = importPath.replace(/\.min\.js$/, '.js');
+    path = path.replace(/\.min\.js$/, '.js');
+    if (path === importPath) {
+      return true;
+    }
+    const { packageName } = this;
+    if (packageName) {
+      const parsed = Cdn.parse(path);
+      if (packageName === parsed?.name) {
+        return true;
+      }
+    }
+    return false;
   }
+}
 
-  private static getCdnUrlPackageName(urlString: string) {
-    return (urlString.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
-      urlString.match(/^https:\/\/unpkg\.com\/([^/@]+)/))?.[1];
+class Cdn {
+  static parse(path: string): { name: string } | null {
+    const name = (path.match(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/) ||
+      path.match(/^https:\/\/unpkg\.com\/([^/@]+)/))?.[1];
+    return name ? { name } : null;
   }
 }

@@ -6,9 +6,15 @@ import { HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
+import {
+  asyncFilter,
+  asyncFind,
+  asyncSome,
+  capitalize,
+  isHtmlPathname,
+  isScriptPathname
+} from '../helpers';
 import { isDefined } from '../ts-extras';
-import { asyncFilter, asyncFind, asyncSome, capitalize } from '../utils';
-import { isHtmlPathname, isScriptPathname } from '../helpers';
 import { Library, p5Version } from './Library';
 import { Script } from './Script';
 
@@ -504,7 +510,7 @@ export abstract class Sketch {
   public abstract convert(options: { type: SketchStructureType }): Promise<void>;
 }
 
-class HtmlSketch extends Sketch {
+export class HtmlSketch extends Sketch {
   public readonly htmlFile: string;
 
   constructor(
@@ -696,7 +702,7 @@ class HtmlSketch extends Sketch {
   }
 }
 
-class ScriptSketch extends Sketch {
+export class ScriptSketch extends Sketch {
   static async fromFile(scriptFile: string): Promise<Sketch> {
     const dir = path.dirname(scriptFile);
     let description;

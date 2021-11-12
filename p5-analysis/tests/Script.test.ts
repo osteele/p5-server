@@ -1,4 +1,4 @@
-import { Script } from '../src/lib/Script';
+import { Script } from '../src/models/Script';
 
 test('Script.fromFile', () => {
   const filePath = './tests/testdata/circles.js';

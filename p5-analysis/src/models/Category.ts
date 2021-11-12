@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { capitalize } from '../utils';
+import { capitalize } from '../helpers';
 import { Library } from './Library';
 
 export class Category {
@@ -24,11 +24,9 @@ export class Category {
   }
 
   static load() {
-    (
-      JSON.parse(
-        fs.readFileSync(`${__dirname}/libraries/categories.json`, 'utf-8')
-      ) as CategoryProperties[]
-    )
+    (JSON.parse(
+      fs.readFileSync(`${__dirname}/libraries/categories.json`, 'utf-8')
+    ) as CategoryProperties[])
       .map(Category.fromProperties)
       .forEach(cat => {
         cat.addFromJsonFile(`${__dirname}/libraries/${cat.key}-libraries.json`);

@@ -1,11 +1,17 @@
 # Change Log
 
-## Unreleased
+## [0.6.6] - 2021-11-12
 
-- Libraries can be specified as comment directives
-- Performance improvements: cache script analysis
+Added:
+
+- Libraries can be specified as comment directives (documentation coming in
+  future release)
+- Add `--json` option to `p5 library describe`, `p5 library list`
+
+Improved:
+
+- Performance improvements via cache script analysis
 - Directory analysis ignores additional patterns
-- Add `--json` to `p5 library describe`, `p5 library list`
 
 ## [0.6.5] - 2021-10-28
 

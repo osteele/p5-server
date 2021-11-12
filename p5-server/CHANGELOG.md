@@ -1,13 +1,22 @@
 # Change Log
 
-## Unreleased
+## [0.8.6] - 2021-11-12
 
-- Libraries can be specified as comment directives
-- Performance improvements: cache script analysis
+Added:
+
+- Libraries can be specified as comment directives (documentation coming in
+  future release)
+
+Improved:
+
+- Performance improvements via cache script analysis
 - Directory index ignores additional patterns
+
+Changed:
+
+- Change default theme to split view; deprecate `--split` option
 - Switch back to parsing the HTML in order to inject the script tag; fall back
   with a warning
-- Change default theme to split view; deprecate `--split` option
 
 ## [0.8.5] - 2021-10-28
 

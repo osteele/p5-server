@@ -5,7 +5,6 @@ import lruCache from 'lru-cache';
 import path from 'path';
 import { sizeof } from '../helpers';
 import {
-  DefinitionType,
   findFreeVariables,
   findGlobals,
   findLoadCalls,
@@ -14,11 +13,18 @@ import {
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 
+// This type definition is repeated here, instead of imported from
+// script-analysis.ts, in order to prevent a cascade of import dependencies that
+// would add a dependency on babel to the client of this API.
+type DefinitionType = 'function' | 'class' | 'variable';
+
 interface ScriptAnalysis {
   /** Names that are defined in the script. This is a map of symbols to definitions types. */
   defs: ReadonlyMap<string, DefinitionType>;
   /** Free variables that the script references. */
   refs: ReadonlySet<string>;
+  /** String arguments that occur in the first position to calls `loadImage()`,
+   * etc.  */
   loadCallArguments: ReadonlySet<string>;
   p5propRefs: ReadonlySet<string>;
 }

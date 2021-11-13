@@ -1,24 +1,20 @@
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
-import { readFile } from 'fs/promises';
+import { readdir, readFile } from 'fs/promises';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
 import { addScriptToHtmlHead } from '../helpers';
 import { assertError } from '../ts-extras';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay';
-import { defaultDirectoryExclusions } from './directoryListing';
+import { createDirectoryListing, defaultDirectoryExclusions } from './directoryListing';
 import { injectLiveReloadScript } from './liveReload';
-import { RouterConfig, sendDirectoryListing } from './Server';
+import { RouterConfig } from './Server';
 import {
   createSyntaxErrorJsReporter,
   markdownToHtmlPage,
   sourceViewTemplate
 } from './templates';
-
-export type MountPointOptions =
-  | string
-  | { filePath: string; name?: string; urlPath?: string };
 
 export function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
@@ -185,4 +181,34 @@ export function createRouter(config: RouterConfig): express.Router {
     res.set('Content-Type', 'text/html');
     res.send(html);
   }
+}
+
+async function sendDirectoryListing<T>(
+  config: RouterConfig,
+  req: Request<unknown, unknown, unknown, unknown, T>,
+  res: Response<unknown, T>
+): Promise<void | Response<unknown, T, number>> {
+  // This is needed for linked files to work.
+  if (!req.originalUrl.endsWith('/')) {
+    return res.redirect(req.originalUrl + '/');
+  }
+  const dir = path.join(
+    config.root,
+    decodeURIComponent(req.path).replace(/\//g, path.sep)
+  );
+  // read the directory contents
+  const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
+  let html = indexFile
+    ? await readFile(path.join(dir, indexFile), 'utf-8')
+    : await createDirectoryListing(dir, req.originalUrl, {
+        templateName: config.theme
+      });
+
+  // Note: This injects the reload script into both static and generated index
+  // pages. This ensures that the index page reloads when the directory contents
+  // change.
+  if (config.liveServer) {
+    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
+  }
+  return res.send(html);
 }

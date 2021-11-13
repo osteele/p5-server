@@ -1,7 +1,5 @@
 import express from 'express';
-import { Request, Response } from 'express-serve-static-core';
 import fs from 'fs';
-import { readdir, readFile } from 'fs/promises';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
@@ -15,11 +13,9 @@ import {
 } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
 import {
-  createLiveReloadServer,
-  injectLiveReloadScript,
-  LiveReloadServer
+  createLiveReloadServer, LiveReloadServer
 } from './liveReload';
-import { createRouter, MountPointOptions } from './routes';
+import { createRouter } from './routes';
 import {
   templateDir
 } from './templates';
@@ -67,6 +63,10 @@ export namespace Server {
 
 type ServerConfig = Required<Server.Options>;
 
+export type MountPointOptions =
+  | string
+  | { filePath: string; name?: string; urlPath?: string };
+
 export type RouterConfig = Server.Options & {
   root: string;
   sketchFile?: string;
@@ -83,36 +83,6 @@ const defaultServerOptions = {
   screenshot: null,
   theme: 'split',
 };
-
-export async function sendDirectoryListing<T>(
-  config: RouterConfig,
-  req: Request<unknown, unknown, unknown, unknown, T>,
-  res: Response<unknown, T>
-): Promise<void | Response<unknown, T, number>> {
-  // This is needed for linked files to work.
-  if (!req.originalUrl.endsWith('/')) {
-    return res.redirect(req.originalUrl + '/');
-  }
-  const dir = path.join(
-    config.root,
-    decodeURIComponent(req.path).replace(/\//g, path.sep)
-  );
-  // read the directory contents
-  const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
-  let html = indexFile
-    ? await readFile(path.join(dir, indexFile), 'utf-8')
-    : await createDirectoryListing(dir, req.originalUrl, {
-        templateName: config.theme,
-      });
-
-  // Note: This injects the reload script into both static and generated index
-  // pages. This ensures that the index page reloads when the directory contents
-  // change.
-  if (config.liveServer) {
-    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
-  }
-  return res.send(html);
-}
 
 async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay) {
   const mountPoints = config.mountPoints as MountPoint[];

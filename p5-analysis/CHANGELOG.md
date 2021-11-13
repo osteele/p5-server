@@ -1,5 +1,12 @@
 # Change Log
 
+## Unreleased
+
+Improved:
+
+- Cache syntax errors
+- Remove peer dependencies from distro type files
+
 ## [0.6.6] - 2021-11-12
 
 Added:

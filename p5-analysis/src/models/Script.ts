@@ -37,8 +37,12 @@ export class Script implements ScriptAnalysis {
   constructor(public readonly source: string, public readonly filename?: string) {
     if (this.cacheKey) {
       const [hash, data] = scriptAnalysisCache.get(this.cacheKey) || [];
-      if (hash === this.cacheDigest) {
-        this._analysis = data;
+      if (hash === this.cacheDigest && data) {
+        if (data.type === 'analysis') {
+          this._analysis = data.analysis;
+        } else {
+          this._syntaxError = data.syntaxError;
+        }
       }
     }
   }
@@ -72,21 +76,30 @@ export class Script implements ScriptAnalysis {
   }
 
   private get analysis(): Readonly<ScriptAnalysis> {
-    if (!this._analysis && !this._syntaxError) {
-      if (P5_ANALYSIS_PRINT_CACHE_STATS)
-        console.log(`Script analysis cache miss: ${this.filename}`);
-      const { ast } = this;
-      this._analysis = {
-        defs: findGlobals(ast),
-        refs: findFreeVariables(ast),
-        loadCallArguments: findLoadCalls(ast),
-        p5propRefs: findPropertyReferences(ast, 'p5')
-      };
-      if (this.cacheKey) {
-        scriptAnalysisCache.set(this.cacheKey, [this.cacheDigest!, this._analysis]);
-      }
+    if (this._analysis) {
+      return this._analysis;
     }
-    return this._analysis!;
+    if (this._syntaxError) {
+      throw this._syntaxError;
+    }
+    if (P5_ANALYSIS_PRINT_CACHE_STATS) {
+      console.log(`Script analysis cache miss: ${this.filename}`);
+    }
+    const { ast } = this;
+    const analysis = {
+      defs: findGlobals(ast),
+      refs: findFreeVariables(ast),
+      loadCallArguments: findLoadCalls(ast),
+      p5propRefs: findPropertyReferences(ast, 'p5')
+    };
+    this._analysis = analysis;
+    if (this.cacheKey) {
+      scriptAnalysisCache.set(this.cacheKey, [
+        this.cacheDigest!,
+        { type: 'analysis', analysis }
+      ]);
+    }
+    return analysis;
   }
 
   private get ast(): ReturnType<typeof parse> {
@@ -96,6 +109,12 @@ export class Script implements ScriptAnalysis {
       } catch (err) {
         if (!(err instanceof SyntaxError)) throw err;
         this._syntaxError = err;
+        if (this.cacheKey) {
+          scriptAnalysisCache.set(this.cacheKey, [
+            this.cacheDigest!,
+            { type: 'syntaxError', syntaxError: err }
+          ]);
+        }
       }
     }
     if (this._syntaxError) throw this._syntaxError;
@@ -166,7 +185,13 @@ export class Script implements ScriptAnalysis {
 // esModuleIterop to use this package or a package that re-exports its types.
 const scriptAnalysisCache: lruCache<
   string,
-  readonly [string, Readonly<ScriptAnalysis>]
+  readonly [
+    string,
+    Readonly<
+      | { type: 'analysis'; analysis: ScriptAnalysis }
+      | { type: 'syntaxError'; syntaxError: Error }
+    >
+  ]
 > = new lruCache({
   max: 20000,
   length: (value, key) => sizeof(value) + sizeof(key)

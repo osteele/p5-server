@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Added:
+
+- Added `--json` option to `p5 analyze sketch`
+
 Improved:
 
 - Cache syntax errors

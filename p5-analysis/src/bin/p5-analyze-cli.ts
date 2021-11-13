@@ -15,29 +15,33 @@ program.version(appVersion);
 
 program
   .command('libraries', 'Display information about the p5 libraries', {
-    executableFile: 'p5-libraries',
+    executableFile: 'p5-libraries'
   })
   .alias('library');
 
 program.command('tree', 'Print the tree structure of a directory and its sketches', {
-  executableFile: 'p5-tree',
+  executableFile: 'p5-tree'
 });
 
-async function analyzeSketch(name: string) {
-  nunjucks.configure(`${__dirname}/../commands/templates`, { autoescape: false });
+async function analyzeSketch(name: string, { json = false }) {
   const sketch = await Sketch.fromFile(name);
-  const props = { ...sketch };
-  const markdown = nunjucks
-    .render('sketch.njk', { sketch: props })
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/\n+$/, '');
-  console.log(markdown);
+  if (json) {
+    console.log(JSON.stringify(sketch, null, 2));
+  } else {
+    nunjucks.configure(`${__dirname}/../commands/templates`, { autoescape: false });
+    const markdown = nunjucks
+      .render('sketch.njk', { sketch })
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n+$/, '');
+    console.log(markdown);
+  }
 }
 
 const sketch = program.command('sketch');
 sketch
   .command('analyze', 'Analyze a sketch')
   .description('Display information about a sketch')
+  .option('--json')
   .argument('<SKETCH_FILE>', 'The sketch to analyze')
   .action(analyzeSketch);
 

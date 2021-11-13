@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Added:
+
+- Added `p5 analyze sketch` subcommand
+
 Improved:
 
 - Cache syntax errors

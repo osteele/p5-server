@@ -26,7 +26,7 @@ updateNotifier({ pkg }).notify({
     '→'
   )} ${chalk.green('{latestVersion}')}
   Run ${chalk.cyan('{updateCommand}')} to update
-  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`,
+  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`
 });
 
 program
@@ -92,18 +92,22 @@ program
   )
   .action(serve);
 
+program.command('analyze', 'Display information about a sketch', {
+  executableFile: `${P5_ANALYSIS_BIN}/p5-analyze`
+});
+
 for (const command of ['library', 'libraries']) {
   program.command(
     command,
     'Print information about p5.js libraries known to p5-server',
     {
-      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`,
+      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`
     }
   );
 }
 
 program.command('tree', 'Print the tree structure of a directory and its sketches', {
-  executableFile: `${P5_ANALYSIS_BIN}/p5-tree`,
+  executableFile: `${P5_ANALYSIS_BIN}/p5-tree`
 });
 
 program.parse(process.argv);

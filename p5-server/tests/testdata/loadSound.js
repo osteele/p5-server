@@ -1,3 +1,5 @@
+// Description: Tests that loadSound() implies the sound library
+
 let bell;
 
 function preload() {

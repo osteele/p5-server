@@ -8,17 +8,23 @@ The content of this README should be shown in the directory listing.
 
 `subdir` contains just a README. It tests the display of subdirectories.
 
-## Tests
+## Markdown Tests
 
 Test 'single' and "double" smart quotes.
 
+- a
+- list
+- of
+- items
+
 ```js
-// test highlighting
+// test syntax highlighting
 function f(a, b) {
   return a + b;
 }
 ```
 
 ```html
+<!-- HTML code -->
 <div id="placeholder">
 ```

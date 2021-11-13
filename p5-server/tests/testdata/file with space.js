@@ -1,3 +1,5 @@
+// Description: Test filenames with spaces
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }

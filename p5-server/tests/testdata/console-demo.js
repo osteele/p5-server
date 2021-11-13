@@ -1,3 +1,5 @@
+// Description: Demonstrates the console methods.
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 

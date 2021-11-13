@@ -73,7 +73,7 @@ export function pathComponentsForBreadcrumbs(
 }
 
 /** Tests whether filepath is inside the directory `dir`. */
-export function pathIsInDirectory(filepath: string, dir: string) {
+export function pathIsInDirectory(filepath: string, dir: string): boolean {
   return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
 }
 
@@ -87,12 +87,13 @@ export function pathIsMarkdown(filepath: string): boolean {
  * 'a,b,c' => {a: true, b: true, c: true}
  * 'a,no-b,c' => {a: true, b: false, c: true}
  */
-export const stringToOptions = (str: string | null) =>
-  str
+export function stringToOptions(str: string | null): { [k: string]: boolean } {
+  return str
     ? Object.fromEntries<boolean>(
         str.split(',').map(s => [s.replace(/^no-/, ''), !s.startsWith('no-')])
       )
     : {};
+}
 
 let warnedAboutMissingHtmlBody = false;
 

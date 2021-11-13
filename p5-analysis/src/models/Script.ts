@@ -16,17 +16,17 @@ const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 
 interface ScriptAnalysis {
   /** Names that are defined in the script. This is a map of symbols to definitions types. */
-  defs: Map<string, DefinitionType>;
+  defs: ReadonlyMap<string, DefinitionType>;
   /** Free variables that the script references. */
-  refs: Set<string>;
-  loadCallArguments: Set<string>;
-  p5propRefs: Set<string>;
+  refs: ReadonlySet<string>;
+  loadCallArguments: ReadonlySet<string>;
+  p5propRefs: ReadonlySet<string>;
 }
 
 export class Script implements ScriptAnalysis {
-  private _analysis?: ScriptAnalysis;
+  private _analysis?: Readonly<ScriptAnalysis>;
   private _syntaxError?: SyntaxError;
-  private _ast?: ReturnType<typeof parse>;
+  private _ast?: Readonly<ReturnType<typeof parse>>;
 
   constructor(public readonly source: string, public readonly filename?: string) {
     if (this.cacheKey) {
@@ -65,7 +65,7 @@ export class Script implements ScriptAnalysis {
       .digest('hex');
   }
 
-  private get analysis() {
+  private get analysis(): Readonly<ScriptAnalysis> {
     if (!this._analysis && !this._syntaxError) {
       if (P5_ANALYSIS_PRINT_CACHE_STATS)
         console.log(`Script analysis cache miss: ${this.filename}`);
@@ -96,23 +96,23 @@ export class Script implements ScriptAnalysis {
     return this._ast!;
   }
 
-  get defs() {
+  get defs(): ReadonlyMap<string, DefinitionType> {
     return this.analysis.defs;
   }
 
-  get refs() {
+  get refs(): ReadonlySet<string> {
     return this.analysis.refs;
   }
 
-  get loadCallArguments() {
+  get loadCallArguments(): ReadonlySet<string> {
     return this.analysis.loadCallArguments;
   }
 
-  get p5propRefs() {
+  get p5propRefs(): ReadonlySet<string> {
     return this.analysis.p5propRefs;
   }
 
-  findMatchingComments(pattern: RegExp): string[] {
+  findMatchingComments(pattern: RegExp): readonly string[] {
     const cacheKey = this.cacheKey && `${this.cacheKey}-${pattern.toString()}`;
     if (cacheKey) {
       if (P5_ANALYSIS_PRINT_CACHE_STATS)
@@ -158,12 +158,18 @@ export class Script implements ScriptAnalysis {
 // This is a global variable rather than a class property, so that it doesn't
 // appear in the typescript exports, where it would require that clients use
 // esModuleIterop to use this package or a package that re-exports its types.
-const scriptAnalysisCache: lruCache<string, [string, ScriptAnalysis]> = new lruCache({
+const scriptAnalysisCache: lruCache<
+  string,
+  readonly [string, Readonly<ScriptAnalysis>]
+> = new lruCache({
   max: 20000,
   length: (value, key) => sizeof(value) + sizeof(key)
 });
 
-const commentDirectiveCache: lruCache<string, [string, string[]]> = new lruCache({
+const commentDirectiveCache: lruCache<
+  string,
+  readonly [string, readonly string[]]
+> = new lruCache({
   max: 20000,
   length: (value, key) => sizeof(value) + sizeof(key)
 });

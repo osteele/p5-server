@@ -30,7 +30,7 @@ const { parse: parseCyclicJson } = jsonCycleStringifier();
 export function attachBrowserScriptRelay(
   server: http.Server,
   relay: BrowserScriptRelay
-) {
+): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const routes = new Map<string, (event: Record<string, any>) => void>();
   const wsServer = new ws.Server({ noServer: true });
@@ -147,7 +147,7 @@ export function replaceUrlsInStack(
   );
 }
 
-export function injectScriptEventRelayScript(html: string) {
+export function injectScriptEventRelayScript(html: string): string {
   return addScriptToHtmlHead(html, '/__p5_server_static/console-relay.min.js');
 }
 

@@ -4,7 +4,10 @@ export const dedentSymbol = Symbol('dedent');
 export type IndentationSymbol = typeof indentSymbol | typeof dedentSymbol;
 export type AsyncTreeInputIterable<T> = AsyncIterable<T | IndentationSymbol>;
 
-export async function printTree(iter: AsyncTreeInputIterable<string>, tabWidth = 4) {
+export async function printTree(
+  iter: AsyncTreeInputIterable<string>,
+  tabWidth = 4
+): Promise<void> {
   const prefixStack = [];
   const branchString = '├' + '─'.repeat(Math.max(0, tabWidth - 2)) + ' ';
   let prefix = '';

@@ -88,7 +88,7 @@ export async function sendDirectoryListing<T>(
   config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<unknown, T>
-) {
+): Promise<void | Response<unknown, T, number>> {
   // This is needed for linked files to work.
   if (!req.originalUrl.endsWith('/')) {
     return res.redirect(req.originalUrl + '/');
@@ -211,11 +211,11 @@ export class Server {
   }
 
   /** Create and start the server. Returns the instance. */
-  public static async start(options: Partial<Server.Options> = {}) {
+  public static async start(options: Partial<Server.Options> = {}): Promise<Server> {
     return new Server(options).start();
   }
 
-  public async start() {
+  public async start(): Promise<this> {
     const { server, liveReloadServer, url } = await startServer(this.config, this);
     this.server = server;
     this.liveReloadServer = liveReloadServer;
@@ -228,7 +228,7 @@ export class Server {
    *
    * Note: Can return before the liveServer is stopped.
    */
-  public async close() {
+  public async close(): Promise<void> {
     if (this.server) {
       await promiseClose(this.server);
       this.server = null;
@@ -261,7 +261,7 @@ export class Server {
     return null;
   }
 
-  public serverUrlToFileUrl(url: string) {
+  public serverUrlToFileUrl(url: string): string | null {
     const baseUrl = this.url || `http://localhost:${this.config.port}`;
     if (url.startsWith(baseUrl + '/')) {
       const filepath = this.urlPathToFilePath(url.slice(baseUrl.length));

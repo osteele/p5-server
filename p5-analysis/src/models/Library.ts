@@ -1,6 +1,7 @@
 import fs from 'fs';
-import { Category } from './Category';
 import { removeSetElements, setUnion } from '../helpers/set-helpers';
+import { Category } from './Category';
+import { Cdn } from './Cdn';
 import { Script } from './Script';
 
 export const p5Version = '1.4.0';
@@ -21,8 +22,9 @@ export namespace Library {
 
 /** A library that can be used with p5.js sketches. */
 export class Library implements Library.Properties {
-  static _all: Library[] = [];
-  public static get categories() {
+  private static _all: Library[] = [];
+
+  public static get categories(): readonly Category[] {
     return Category.all;
   }
 
@@ -51,7 +53,7 @@ export class Library implements Library.Properties {
     Object.assign(this, spec);
   }
 
-  toJSON() {
+  toJSON(): unknown {
     return {
       name: this.name,
       description: this.description,
@@ -97,7 +99,7 @@ export class Library implements Library.Properties {
     return libs;
   }
 
-  static fromUrl(importPath: string) {
+  static fromUrl(importPath: string): Library {
     // TODO: if it's a CDN URL, recognize the package name
     // TODO: if it's a GitHub URL, infer the homepage
     return Library.fromProperties({
@@ -108,7 +110,7 @@ export class Library implements Library.Properties {
     });
   }
 
-  static fromPackageName(packageName: string) {
+  static fromPackageName(packageName: string): Library {
     return Library.fromProperties({
       name: packageName,
       description: 'Library specified in script file comment directive',
@@ -199,7 +201,7 @@ export class Library implements Library.Properties {
     }
   }
 
-  get globals() {
+  get globals(): readonly string[] {
     return Object.entries(this.defines || {}).flatMap(([key, symbols]) =>
       key === 'globals' ? symbols : symbols.map(s => `${key}.${s}`)
     );
@@ -209,7 +211,7 @@ export class Library implements Library.Properties {
     // ];
   }
 
-  get repositoryUrl() {
+  get repositoryUrl(): string | null {
     if (this.repository) {
       return this.repository;
     }
@@ -225,7 +227,7 @@ export class Library implements Library.Properties {
   }
 
   /** A path that can be used to load the library. */
-  get importPath() {
+  get importPath(): string | undefined {
     let path = this._importPath;
     if (path) {
       path = path.replace(/^@/, '/');

@@ -16,7 +16,7 @@ ignorePatterns:
   - examples
   - testdata
 rules:
-  "@typescript-eslint/explicit-module-boundary-types": off
+  "@typescript-eslint/explicit-module-boundary-types": warn
   "@typescript-eslint/no-empty-function": warn
   "@typescript-eslint/no-inferrable-types": off
   "@typescript-eslint/no-non-null-assertion": off
@@ -35,3 +35,7 @@ overrides:
     rules:
       no-explicit-any: off
       prefer-const: [off]
+  - files:
+      - "**/src/commands/*.ts"
+    rules:
+      "@typescript-eslint/explicit-module-boundary-types": off

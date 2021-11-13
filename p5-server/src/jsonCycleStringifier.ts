@@ -1,4 +1,7 @@
-export function jsonCycleStringifier(prefix = '$__jsonCycleStringifer:') {
+export function jsonCycleStringifier(
+  prefix = '$__jsonCycleStringifer:'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): { stringify: (value: unknown) => string; parse: (json: string) => any } {
   const scopeKey = prefix + 'circular';
   const defKey = prefix + 'def';
   const refKey = prefix + 'ref';

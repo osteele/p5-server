@@ -54,7 +54,10 @@ export function promiseListen(
  * It fails if the server sends an 'error' event or fails to close within the
  * specified interval.
  */
-export function promiseClose(server: net.Server, timeout: number = 10000) {
+export function promiseClose(
+  server: net.Server,
+  timeout: number = 10000
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     // server.close((err?: Error) => (err ? reject(err) : resolve()));
     server.close();

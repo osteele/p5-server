@@ -23,7 +23,7 @@ export class Category {
     return cat;
   }
 
-  static load() {
+  static load(): void {
     (JSON.parse(
       fs.readFileSync(`${__dirname}/libraries/categories.json`, 'utf-8')
     ) as CategoryProperties[])
@@ -33,7 +33,7 @@ export class Category {
       });
   }
 
-  addFromJsonFile(jsonPath: string) {
+  addFromJsonFile(jsonPath: string): readonly Library[] {
     return Library.addFromJsonFile(jsonPath, { categoryKey: this.key });
   }
 

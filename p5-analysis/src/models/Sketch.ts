@@ -226,7 +226,7 @@ export abstract class Sketch {
    *
    * @category Sketch detection
    */
-  static async isSketchFile(file: string) {
+  static async isSketchFile(file: string): Promise<boolean> {
     return (
       (await Sketch.isSketchHtmlFile(file)) || (await Sketch.isSketchScriptFile(file))
     );
@@ -329,19 +329,19 @@ export abstract class Sketch {
    */
   abstract get mainFile(): string;
 
-  get mainFilePath() {
+  get mainFilePath(): string {
     return path.join(this.dir, this.mainFile);
   }
 
-  get htmlFilePath() {
+  get htmlFilePath(): string | null {
     return this.htmlFile ? path.join(this.dir, this.htmlFile) : null;
   }
 
-  get scriptFilePath() {
+  get scriptFilePath(): string {
     return path.join(this.dir, this.scriptFile);
   }
 
-  get name() {
+  get name(): string {
     return (
       this._name ||
       this.mainFile.replace(/\.(html?|js)$/i, '').replace(/\s*[-_]\s*/g, ' ')
@@ -355,7 +355,7 @@ export abstract class Sketch {
   /** For an HTML sketch, this is the <title> element. Otherwise it is the base
    * name of the main file.
    */
-  get title() {
+  get title(): string {
     if (this._title) {
       return this._title;
     }
@@ -450,7 +450,7 @@ export abstract class Sketch {
     filename: string,
     force: boolean,
     templateOptions: Record<string, unknown>
-  ) {
+  ): Promise<string> {
     const filepath = path.join(this.dir, filename);
     const content = await this.getGeneratedFileContent(templateName, templateOptions);
     await writeFile(filepath, content, force ? {} : { flag: 'wx' });
@@ -562,11 +562,11 @@ export class HtmlSketch extends Sketch {
     return 'html';
   }
 
-  get mainFile() {
+  get mainFile(): string {
     return this.htmlFile;
   }
 
-  get files() {
+  get files(): readonly string[] {
     const files = [this.htmlFile, this.scriptFile, ...this.getAssociatedFiles()];
     return [...new Set(files)];
   }
@@ -587,7 +587,7 @@ export class HtmlSketch extends Sketch {
     return libs.filter(isDefined);
   }
 
-  protected getTitleFromFile() {
+  protected getTitleFromFile(): string | null {
     const filePath = this.htmlFilePath!;
     if (fs.existsSync(filePath)) {
       const htmlContent = fs.readFileSync(filePath, 'utf-8');
@@ -619,7 +619,7 @@ export class HtmlSketch extends Sketch {
     }
   }
 
-  protected getLocalScriptFiles(htmlRoot?: HTMLElement) {
+  protected getLocalScriptFiles(htmlRoot?: HTMLElement): readonly string[] {
     if (!htmlRoot) {
       const html = fs.readFileSync(this.htmlFilePath!, 'utf-8');
       htmlRoot = parseHtml(html);
@@ -634,7 +634,7 @@ export class HtmlSketch extends Sketch {
       .filter(s => !s.match(/https?:/));
   }
 
-  public async convert(options: { type: SketchStructureType }) {
+  public async convert(options: { type: SketchStructureType }): Promise<void> {
     switch (options.type) {
       case 'script': {
         // html -> javascript
@@ -713,7 +713,7 @@ export class ScriptSketch extends Sketch {
     return new ScriptSketch(dir, path.basename(scriptFile), { description });
   }
 
-  static async isSketchScriptFile(file: string) {
+  static async isSketchScriptFile(file: string): Promise<boolean> {
     if (
       !isScriptPathname(file) ||
       !fs.existsSync(file) ||
@@ -740,15 +740,15 @@ export class ScriptSketch extends Sketch {
     return 'script';
   }
 
-  get mainFile() {
+  get mainFile(): string {
     return this.scriptFile;
   }
 
-  get htmlFile() {
+  get htmlFile(): null {
     return null;
   }
 
-  get files() {
+  get files(): readonly string[] {
     const files = [
       this.scriptFile,
       ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))
@@ -756,7 +756,7 @@ export class ScriptSketch extends Sketch {
     return [...new Set(files)];
   }
 
-  public async convert(options: { type: SketchStructureType }) {
+  public async convert(options: { type: SketchStructureType }): Promise<void> {
     switch (options.type) {
       case 'html': {
         // javascript -> html

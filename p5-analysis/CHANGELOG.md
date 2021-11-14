@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## [0.6.8] - 2021-11-12
 
 Added:
 
@@ -11,7 +11,7 @@ Improved:
 - Cache syntax errors
 - Remove peer dependencies from distro type files
 
-## [0.6.6] - 2021-11-12
+## [0.6.7] - 2021-11-12
 
 Added:
 
@@ -24,7 +24,7 @@ Improved:
 - Performance improvements via cache script analysis
 - Directory analysis ignores additional patterns
 
-## [0.6.5] - 2021-10-28
+## [0.6.6] - 2021-10-28
 
 - Add antiboredom/p5.patgrad to list of libraries
 - Reduce number of library categories

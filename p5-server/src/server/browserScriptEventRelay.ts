@@ -5,7 +5,14 @@ import http from 'http';
 import net from 'net';
 import { URL } from 'url';
 import ws from 'ws';
-import { Message } from '../consoleRelayTypes';
+import {
+  ConnectionMessage,
+  ConsoleMethodMessage,
+  DocumentMessage,
+  ErrorMessage,
+  Message,
+  WindowMessage
+} from '../consoleRelayTypes';
 import { addScriptToHtmlHead } from '../helpers';
 import { jsonCycleStringifier } from '../jsonCycleStringifier';
 import { assertError } from '../ts-extras';
@@ -14,6 +21,7 @@ import {
   BrowserConsoleEvent,
   BrowserDocumentEvent,
   BrowserErrorEvent,
+  BrowserEventCommon,
   BrowserWindowEvent
 } from './eventTypes';
 
@@ -25,24 +33,25 @@ export interface BrowserScriptRelay {
   serverUrlToFileUrl(url: string): string | null;
 }
 
+type WithClientKeys<T> = Omit<T, 'timestamp'> & BrowserEventCommon;
+
 const { parse: parseCyclicJson } = jsonCycleStringifier();
 
 export function attachBrowserScriptRelay(
   server: http.Server,
   relay: BrowserScriptRelay
 ): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const routes = new Map<string, (event: Record<string, any>) => void>();
+  const handlers = new Map<string, (event: WithClientKeys<Message>) => void>();
   const wsServer = new ws.Server({ noServer: true });
 
   wsServer.on('connection', socket => {
     socket.on('message', message => {
       const [route, data]: [string, Message] = parseCyclicJson(message.toString());
-      const handler = routes.get(route);
+      const handler = handlers.get(route);
       if (handler) {
         handler({
           ...data,
-          file: urlToFilePath(data.url),
+          file: urlToFilePath(data.url) || undefined,
           stack: replaceUrlsInStack(relay, data.stack),
           timestamp: new Date(data.timestamp)
         });
@@ -58,54 +67,59 @@ export function attachBrowserScriptRelay(
 
   function defineHandler(
     route: 'connection',
-    handler: (event: BrowserConnectionEvent) => void
+    handler: (event: WithClientKeys<ConnectionMessage>) => void
   ): void;
   function defineHandler(
     route: 'console',
-    handler: (event: BrowserConsoleEvent) => void
+    handler: (event: WithClientKeys<ConsoleMethodMessage>) => void
   ): void;
   function defineHandler(
     route: 'document',
-    handler: (event: BrowserDocumentEvent) => void
+    handler: (event: WithClientKeys<DocumentMessage>) => void
   ): void;
   function defineHandler(
     route: 'error',
-    handler: (event: BrowserErrorEvent) => void
+    handler: (event: WithClientKeys<ErrorMessage>) => void
   ): void;
   function defineHandler(
     route: 'window',
-    handler: (event: BrowserWindowEvent) => void
+    handler: (event: WithClientKeys<WindowMessage>) => void
   ): void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function defineHandler(route: string, handler: (event: any) => void) {
-    routes.set(route, handler);
+    handlers.set(route, handler);
   }
 
-  defineHandler('connection', (event: BrowserConnectionEvent) => {
+  defineHandler('connection', (message: WithClientKeys<ConnectionMessage>) => {
+    const event: BrowserConnectionEvent = message;
     relay.emitScriptEvent('connection', event);
   });
 
-  defineHandler('console', (event: BrowserConsoleEvent) => {
+  defineHandler('console', (message: WithClientKeys<ConsoleMethodMessage>) => {
+    const event: BrowserConsoleEvent = { type: 'console', argStrings: [], ...message };
     const args = event.args.map(decodeUnserializableValue);
-    const argStrings = event.argStrings || [];
-    const data: BrowserConsoleEvent = { ...event, type: 'console', args, argStrings };
+    // const argStrings = event.argStrings || [];
+    const data: BrowserConsoleEvent = { ...event, type: 'console', args };
     relay.emitScriptEvent('console', data);
   });
 
-  defineHandler('document', (event: BrowserDocumentEvent) => {
+  defineHandler('document', (message: WithClientKeys<DocumentMessage>) => {
+    const event: BrowserDocumentEvent = message;
     relay.emitScriptEvent('document', event);
   });
 
-  defineHandler('error', (event: BrowserErrorEvent) => {
+  defineHandler('error', (message: WithClientKeys<ErrorMessage>) => {
+    const event: BrowserErrorEvent = message;
     relay.emitScriptEvent('error', event);
   });
 
-  defineHandler('window', (event: BrowserWindowEvent) => {
+  defineHandler('window', (message: WithClientKeys<WindowMessage>) => {
+    const event: BrowserWindowEvent = message;
     relay.emitScriptEvent('window', event);
   });
 
-  function urlToFilePath(url: string | null | undefined): string | null | undefined {
-    if (!url) return url;
+  function urlToFilePath(url: string | null | undefined): string | null {
+    if (!url) return null;
     try {
       new URL(url);
     } catch (err) {

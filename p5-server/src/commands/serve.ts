@@ -79,7 +79,7 @@ function subscribeToBrowserEvents(server: Server, asJson: boolean) {
       console.log('browser console:', data);
     } else {
       const { method, args, argStrings } = data;
-      const argsOrStrings = argStrings.map((str, i) => str ?? args[i]);
+      const argsOrStrings = args.map((str, i) => argStrings[i] ?? str);
       const message =
         typeof args[0] === 'string'
           ? util.format(...argsOrStrings)

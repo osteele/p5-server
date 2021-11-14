@@ -11,11 +11,13 @@ export type ConnectionMessage = {
 
 export type ConsoleMethodMessage = {
   method: ConsoleMethodName;
+  args: unknown[];
+  argStrings?: (string | null)[];
 };
 
 export type DocumentMessage = {
   type: 'visibilitychange';
-  visibilityState?: typeof document.visibilityState;
+  visibilityState: typeof document.visibilityState;
 };
 
 export type ErrorMessage = {
@@ -34,7 +36,7 @@ export type UnhandledRejectionMessage = {
 };
 
 export type WindowMessage = {
-  type: 'load' | 'pagehide' | 'DOMContentLoaded';
+  type: 'DOMContentLoaded' | 'load' | 'pagehide';
 };
 
 export type MessageCore =
@@ -45,4 +47,9 @@ export type MessageCore =
   | UnhandledRejectionMessage
   | WindowMessage;
 
-export type Message = MessageCore & { stack?: string; timestamp: string; url?: string };
+export type Message = MessageCore & {
+  clientId: string;
+  stack?: string;
+  timestamp: string;
+  url: string;
+};

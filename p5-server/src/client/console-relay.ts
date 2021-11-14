@@ -67,17 +67,13 @@ Object.entries(console).forEach(([key, originalFn]) => {
     while (argStrings.length && argStrings[argStrings.length - 1] === null) {
       argStrings.pop();
     }
-    send(
-      'console',
-      Object.assign(
-        {
-          method,
-          args: args.map((value, i) => undefinedValueReplacer(i, value)),
-          argStrings: argStrings.length ? argStrings : undefined
-        },
-        getSourceLocation()
-      )
-    );
+    const payload: ConsoleMethodMessage = {
+      method,
+      args: args.map((value, i) => undefinedValueReplacer(i, value)),
+      argStrings: argStrings.length ? argStrings : undefined,
+      ...getSourceLocation()
+    };
+    send('console', payload);
   }
   savedMethods[method] = originalFn.bind(console);
   console[method] = newFn;

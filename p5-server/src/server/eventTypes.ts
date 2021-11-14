@@ -1,18 +1,13 @@
 // TODO: merge these with the types in consoleRelayTypes.ts
 
-export type BrowserConsoleEventMethods =
-  | 'clear'
-  | 'debug'
-  | 'error'
-  | 'info'
-  | 'log'
-  | 'warn';
+export type ConsoleLogLevel = 'debug' | 'error' | 'info' | 'log' | 'warn';
+
+export type BrowserConsoleEventMethods = 'clear' | ConsoleLogLevel;
 
 export type BrowserEventCommon = {
   clientId: string;
   file?: string;
   timestamp: Date;
-  type: string;
   url: string;
 };
 
@@ -23,8 +18,7 @@ export type BrowserConnectionEvent = {
 export type BrowserConsoleEvent = {
   type: 'console';
   method: BrowserConsoleEventMethods;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  args: any[];
+  args: unknown[];
   argStrings: (string | null)[];
   col?: number;
   line?: number;
@@ -32,11 +26,11 @@ export type BrowserConsoleEvent = {
 
 export type BrowserDocumentEvent = {
   type: 'visibilitychange';
-  visibilityState: boolean;
+  visibilityState: 'hidden' | 'visible';
 } & BrowserEventCommon;
 
 export type BrowserErrorEvent = (
-  | { type: 'error'; line: number; col: number }
+  | { type: 'error'; line?: number; col?: number }
   | { type: 'unhandledRejection' }
 ) & {
   message: string;
@@ -44,7 +38,7 @@ export type BrowserErrorEvent = (
 } & BrowserEventCommon;
 
 export type BrowserWindowEvent = {
-  type: 'load' | 'DOMContentLoaded' | 'pagehide';
+  type: 'DOMContentLoaded' | 'load' | 'pagehide';
 } & BrowserEventCommon;
 
 export type BrowserEventMessage =

@@ -1,6 +1,9 @@
 div(style={margin: '10px'})
-  h1 Syntax Error
-  code(style={'font-style': 'italic'})= filepath
+  h1(style='color:red') Syntax error
+  h2= error.message
+  code(style='font-style:italic') File:&nbsp;
+    = filepath
   br
-  code(style={'font-style': 'italic'})= error.message
+  code= `line ${error.loc.line}, column ${error.loc.column}`
+  br
   pre!= context

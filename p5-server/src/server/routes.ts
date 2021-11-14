@@ -119,8 +119,9 @@ export function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
+        console.error(`Syntax error in ${filepath}: ${errs[0].message}`);
         res.set('Content-Type', 'text/html');
-        return res.send(createSyntaxErrorJsReporter(errs, filepath));
+        return res.send(createSyntaxErrorJsReporter(filepath, errs));
       }
     } catch (err) {
       assertError(err);

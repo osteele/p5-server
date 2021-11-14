@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleased
+
+Added:
+
+- Syntax errors are reported to the console
+
 ## [0.8.7] - 2021-11-12
 
 Added:

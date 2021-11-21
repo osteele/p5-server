@@ -164,29 +164,48 @@ describe('Script.refs', () => {
   });
 });
 
-test('Script.p5properties', () => {
+describe('Script.p5properties', () => {
   const props = (source: string) =>
     Array.from(Script.fromSource(source).p5propRefs).sort();
 
-  expect(props('function f() {}')).toEqual([]);
-  expect(props('function f() {p5.p}')).toEqual(['p']);
-  expect(props('function f() {p5.m()}')).toEqual(['m']);
-  expect(props('function f() {new p5.c}')).toEqual(['c']);
-  expect(props('function f() {new p5.c()}')).toEqual(['c']);
+  test('finds property references in functions', () => {
+    expect(props('function f() {}')).toEqual([]);
+    expect(props('function f() {p5.p}')).toEqual(['p']);
+    expect(props('function f() {p5.m()}')).toEqual(['m']);
+    expect(props('function f() {new p5.c}')).toEqual(['c']);
+    expect(props('function f() {new p5.c()}')).toEqual(['c']);
+  });
 
   // function expressions
-  expect(props('let f = function() {p5.c}')).toEqual(['c']);
-  expect(props('let f = () => p5.c')).toEqual(['c']);
+  test('finds property references in function expressions', () => {
+    expect(props('let f = function() {p5.c}')).toEqual(['c']);
+    expect(props('let f = () => p5.c')).toEqual(['c']);
+  });
 });
 
-test('Script.loadCallArguments', () => {
+describe('Script.loadCallArguments', () => {
   const calls = (source: string) =>
     Array.from(Script.fromSource(source).loadCallArguments).sort();
 
-  expect(calls('function f() {}')).toEqual([]);
-  expect(calls('function f() {loadImage("s")}')).toEqual(['s']);
+  test('returns an empty list when there are no load functions', () => {
+    expect(calls('function f() {}')).toEqual([]);
+  });
 
-  // function expressions
-  expect(calls('let f = function() {loadImage("s")}')).toEqual(['s']);
-  expect(calls('let f = () => loadImage("s")')).toEqual(['s']);
+  test('finds arguments in function calls', () => {
+    expect(calls('function setup() {loadImage("s")}')).toEqual(['s']);
+  });
+
+  test('ignores non-string arguments', () => {
+    expect(calls('function setup() {loadImage(filename)}')).toEqual([]);
+    expect(calls('function setup() {loadImage()}')).toEqual([]);
+  });
+
+  test('finds arguments in function expressions', () => {
+    expect(calls('let f = function() {loadImage("s")}')).toEqual(['s']);
+    expect(calls('let f = () => loadImage("s")')).toEqual(['s']);
+  });
+
+  test('finds arguments in class methods', () => {
+    expect(calls('class C { f() {loadImage("s")} }')).toEqual(['s']);
+  });
 });

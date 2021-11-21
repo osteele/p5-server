@@ -65,7 +65,7 @@ export function findLoadCalls(ast: Node): Set<string> {
       const { callee } = path.node;
       if (callee.type === 'Identifier' && callee.name.startsWith('load')) {
         const [arg] = path.node.arguments;
-        if (arg.type === 'StringLiteral') {
+        if (arg?.type === 'StringLiteral') {
           calls.add(arg.value);
         }
       }

@@ -12,8 +12,6 @@ function setup() {
   console.info(); // blank line
   console.info('args', 1, 2, null, undefined, false, NaN, Infinity, { a: 1 }, [2, 3], circle, function () { });
   console.info('format: %d < %s.', 1, 2);
-
-  // throw new Error('throw error in setup');
 }
 
 function draw() {

@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleaesd
+
+Fixed:
+
+- Fixed exception when loadXXX() is called with no argument
+
 ## [0.6.8] - 2021-11-12
 
 Added:

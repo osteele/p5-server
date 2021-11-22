@@ -723,8 +723,8 @@ export class ScriptSketch extends Sketch {
     }
 
     try {
-      const { defs: globals, refs: freeVariables } = Script.fromFile(file);
-      return globals.get('setup') === 'function' && freeVariables.has('createCanvas');
+      const { defs, refs } = Script.fromFile(file);
+      return defs.get('setup') === 'function' && refs.has('createCanvas');
     } catch (e) {
       if (e instanceof SyntaxError) {
         const source = await readFile(file, 'utf-8');

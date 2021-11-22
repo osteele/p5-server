@@ -5,9 +5,9 @@ import lruCache from 'lru-cache';
 import path from 'path';
 import { sizeof } from '../helpers';
 import {
-  findFreeVariables,
-  findGlobals,
-  findLoadCalls,
+  findGlobalReferences,
+  findGlobalDefinitions,
+  findCallArguments,
   findPropertyReferences
 } from './script-analysis';
 
@@ -87,9 +87,9 @@ export class Script implements ScriptAnalysis {
     }
     const { ast } = this;
     const analysis = {
-      defs: findGlobals(ast),
-      refs: findFreeVariables(ast),
-      loadCallArguments: findLoadCalls(ast),
+      defs: findGlobalDefinitions(ast),
+      refs: findGlobalReferences(ast),
+      loadCallArguments: findCallArguments(ast, /^load.*/),
       p5propRefs: findPropertyReferences(ast, 'p5')
     };
     this._analysis = analysis;

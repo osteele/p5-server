@@ -10,24 +10,24 @@ const bindingValueTypes: Partial<Record<Node['type'], DefinitionType>> = {
   VariableDeclarator: 'variable'
 };
 
-export function findGlobals(ast: Node): Map<string, DefinitionType> {
-  const globals = new Map<string, DefinitionType>();
+export function findGlobalDefinitions(ast: Node): Map<string, DefinitionType> {
+  const defs = new Map<string, DefinitionType>();
   traverse(ast, {
     Program(path) {
       for (const [name, binding] of Object.entries(path.scope.bindings)) {
         const type = bindingValueTypes[binding.path.node.type];
         if (type) {
-          globals.set(name, type);
+          defs.set(name, type);
         }
       }
       path.skip();
     }
   });
-  return globals;
+  return defs;
 }
 
-export function findFreeVariables(ast: Node): Set<string> {
-  const variables = new Set<string>();
+export function findGlobalReferences(ast: Node): Set<string> {
+  const refs = new Set<string>();
   traverse(ast, {
     Identifier(path) {
       if (t.isMemberExpression(path.parent) && path.parent.property === path.node)
@@ -35,11 +35,11 @@ export function findFreeVariables(ast: Node): Set<string> {
       if (t.isClassMethod(path.parent) && path.parent.key === path.node) return;
       const { name } = path.node;
       if (!path.scope.hasBinding(name)) {
-        variables.add(name);
+        refs.add(name);
       }
     }
   });
-  return variables;
+  return refs;
 }
 
 export function findPropertyReferences(ast: Node, objectName: string): Set<string> {
@@ -58,12 +58,12 @@ export function findPropertyReferences(ast: Node, objectName: string): Set<strin
   return refs;
 }
 
-export function findLoadCalls(ast: Node): Set<string> {
+export function findCallArguments(ast: Node, namePattern: RegExp): Set<string> {
   const calls = new Set<string>();
   traverse(ast, {
     CallExpression(path) {
       const { callee } = path.node;
-      if (callee.type === 'Identifier' && callee.name.startsWith('load')) {
+      if (callee.type === 'Identifier' && namePattern.test(callee.name)) {
         const [arg] = path.node.arguments;
         if (arg?.type === 'StringLiteral') {
           calls.add(arg.value);

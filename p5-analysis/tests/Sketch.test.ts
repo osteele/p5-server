@@ -45,14 +45,33 @@ test('Sketch.isSketchHtmlFile', async () => {
   expect(await Sketch.isSketchHtmlFile(f`non-sketch.html`)).toBe(false);
 });
 
-test('Sketch.isSketchScriptFile', async () => {
-  expect(await Sketch.isSketchScriptFile(f`circles.js`)).toBe(true);
-  expect(await Sketch.isSketchScriptFile(f`missing-file.js`)).toBe(false);
+describe('Sketch.isSketchScriptFile', () => {
+  const g = (strings: TemplateStringsArray) =>
+    path.join(
+      testfilesPath,
+      'Sketch.isSketchScriptFile',
+      ...strings.flatMap(s => s.split('/'))
+    );
 
-  expect(fs.existsSync(f`Sketch.analyzeDirectory/loose.js`)).toBe(true);
-  expect(await Sketch.isSketchScriptFile(f`Sketch.analyzeDirectory/loose.js`)).toBe(
-    false
-  );
+  test('recognizes sketch scripts', async () => {
+    expect(await Sketch.isSketchScriptFile(f`circles.js`)).toBe(true);
+  });
+
+  test.skip('recognizes sketch script modules', async () => {
+    expect(await Sketch.isSketchScriptFile(g`instance-mode.js`)).toBe(true);
+  });
+
+  test('rejects missing files', async () => {
+    expect(await Sketch.isSketchScriptFile(f`missing-file.js`)).toBe(false);
+  });
+
+  test("rejects sketches that don't define setup()", async () => {
+    expect(await Sketch.isSketchScriptFile(g`without-setup.js`)).toBe(false);
+  });
+
+  test("rejects sketches that don't call createCanvas()", async () => {
+    expect(await Sketch.isSketchScriptFile(g`without-create-canvas.js`)).toBe(false);
+  });
 });
 
 test('Sketch.analyzeDirectory', async () => {

@@ -87,6 +87,10 @@ const defaultServerOptions = {
 async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay) {
   const mountPoints = config.mountPoints as MountPoint[];
   const app = express();
+  // app.use((req, res, next) => {
+  //   console.log('', req.method, req.originalUrl);
+  //   next();
+  // });
 
   // add routes
   app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));

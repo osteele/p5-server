@@ -9,8 +9,8 @@ import {
   BrowserWindowEvent
 } from 'src/server/eventTypes';
 import util from 'util';
-import { Server } from '../server/Server';
 import { die, openInBrowser } from '../helpers';
+import { Server } from '../server/Server';
 
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
@@ -22,6 +22,7 @@ type Options = {
 };
 
 export default async function serve(files: string[], options: Options) {
+  // Compatability warnings for old options
   if (options.split) {
     if (options.theme && options.theme !== 'split') {
       die('Use either --split or --theme but not both');

@@ -3009,7 +3009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ci-info@npm:^3.1.1, ci-info@npm:^3.2.0":
+"ci-info@npm:^3.2.0":
   version: 3.2.0
   resolution: "ci-info@npm:3.2.0"
   checksum: c68995a94e95ce3f233ff845e62dfc56f2e8ff1e3f5c1361bcdd520cbbc9726d8a54cbc1a685cb9ee19c3c5e71a1dade6dda23eb364b59b8e6c32508a9b761bc
@@ -5484,17 +5484,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-ci@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "is-ci@npm:3.0.0"
-  dependencies:
-    ci-info: ^3.1.1
-  bin:
-    is-ci: bin.js
-  checksum: 4b45aef32dd42dcb1f6fb3cd4b3a7ee7e18ea47516d2129005f46c3f36983506bb471382bac890973cf48a2f60d926a24461674ca2d9dc10744d82d4a876c26b
-  languageName: node
-  linkType: hard
-
 "is-core-module@npm:^2.2.0":
   version: 2.5.0
   resolution: "is-core-module@npm:2.5.0"
@@ -6393,21 +6382,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-util@npm:^27.0.0":
-  version: 27.2.5
-  resolution: "jest-util@npm:27.2.5"
-  dependencies:
-    "@jest/types": ^27.2.5
-    "@types/node": "*"
-    chalk: ^4.0.0
-    graceful-fs: ^4.2.4
-    is-ci: ^3.0.0
-    picomatch: ^2.2.3
-  checksum: e57aaadac0495e92728c6075ce29b1498db78b2e2bb3677dc81f7eceed7d78849ca5a58646f8c69dbfda8e83104d7aa8ae582da0f9c963f89e39dfa8a1316768
-  languageName: node
-  linkType: hard
-
-"jest-util@npm:^27.3.1":
+"jest-util@npm:^27.0.0, jest-util@npm:^27.3.1":
   version: 27.3.1
   resolution: "jest-util@npm:27.3.1"
   dependencies:
@@ -7824,6 +7799,7 @@ __metadata:
     nunjucks: ^3.2.3
     pug: ^3.0.2
     rimraf: ^3.0.2
+    ts-jest: ^27.0.7
     ts-node: ^10.4.0
     typedoc: ^0.22.7
     typescript: ^4.4.4
@@ -8727,10 +8703,11 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.2.0
     "@typescript-eslint/parser": ^5.2.0
     copyfiles: ^2.4.1
+    eslint: ^8.1.0
+    eslint-plugin-jest: ^25.2.2
     husky: ^7.0.4
     prettier-eslint-cli: ^5.0.1
     rimraf: ^3.0.2
-    ts-jest: ^27.0.7
   languageName: unknown
   linkType: soft
 

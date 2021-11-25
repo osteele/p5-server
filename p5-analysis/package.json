@@ -46,7 +46,6 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "commander": "^8.3.0",
-    "esprima": "^4.0.1",
     "js-beautify": "^1.14.0",
     "jstransformer-marked": "^1.0.3",
     "lru-cache": "^6.0.0",

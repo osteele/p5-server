@@ -665,6 +665,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/parser@npm:^7.16.3, @babel/parser@npm:^7.16.4":
+  version: 7.16.4
+  resolution: "@babel/parser@npm:7.16.4"
+  bin:
+    parser: ./bin/babel-parser.js
+  checksum: ce0a8f92f440f2a12bc932f070a7b60c5133bf8a63f461841f9e39af0194f573707959d606c6fad1a2fd496a45148553afd9b74d3b8dd36cdb7861598d1f3e36
+  languageName: node
+  linkType: hard
+
 "@babel/parser@npm:^7.7.2":
   version: 7.15.6
   resolution: "@babel/parser@npm:7.15.6"
@@ -912,6 +921,23 @@ __metadata:
     debug: ^4.1.0
     globals: ^11.1.0
   checksum: 83f634019a705d7ecd5c0f89a7c2cbd292c98a2ecc8a61faeeb48507bf23d81a79c808eb9d50337b48ed51a26929a75601d006cd4e537b1ec090d0ea2502b317
+  languageName: node
+  linkType: hard
+
+"@babel/traverse@npm:^7.16.3":
+  version: 7.16.3
+  resolution: "@babel/traverse@npm:7.16.3"
+  dependencies:
+    "@babel/code-frame": ^7.16.0
+    "@babel/generator": ^7.16.0
+    "@babel/helper-function-name": ^7.16.0
+    "@babel/helper-hoist-variables": ^7.16.0
+    "@babel/helper-split-export-declaration": ^7.16.0
+    "@babel/parser": ^7.16.3
+    "@babel/types": ^7.16.0
+    debug: ^4.1.0
+    globals: ^11.1.0
+  checksum: abb14857b1104c73124612954865e28f95a86eb6741f35851369b4f9eabc17e394c9aa6f21fba6ce23813592353090d409772be828717cbe5154a5e981a753c1
   languageName: node
   linkType: hard
 
@@ -1494,7 +1520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/babel__traverse@npm:*, @types/babel__traverse@npm:^7.0.4, @types/babel__traverse@npm:^7.0.6":
+"@types/babel__traverse@npm:*, @types/babel__traverse@npm:^7, @types/babel__traverse@npm:^7.0.4, @types/babel__traverse@npm:^7.0.6":
   version: 7.14.2
   resolution: "@types/babel__traverse@npm:7.14.2"
   dependencies:
@@ -7770,13 +7796,18 @@ __metadata:
   resolution: "p5-analysis@workspace:p5-analysis"
   dependencies:
     "@babel/core": ^7.16.0
+    "@babel/parser": ^7.16.4
+    "@babel/traverse": ^7.16.3
+    "@babel/types": ^7.16.0
     "@tsconfig/node14": ^1.0.1
     "@types/babel-core": ^6.25.7
+    "@types/babel__traverse": ^7
     "@types/copyfiles": ^2.4.1
     "@types/eslint": ^7.28.2
     "@types/jest": ^27.0.2
     "@types/js-beautify": ^1.13.3
     "@types/lru-cache": ^5.1.1
+    "@types/minimatch": ^3.0.5
     "@types/node": ^16.11.6
     "@types/node-fetch": ^2.5.12
     "@types/nunjucks": ^3.2.0

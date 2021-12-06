@@ -4,6 +4,7 @@ import { Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
 import { pathComponentsForBreadcrumbs } from '../helpers';
+import { staticAssetPrefix } from './constants';
 import { markedOptions, templateDir } from './templates';
 
 export const defaultDirectoryExclusions = [
@@ -21,7 +22,7 @@ export const defaultDirectoryExclusions = [
   'Icon\r', // Custom Finder icon
 
   // Windows
-  'Thumbs.db'
+  'Thumbs.db',
 ];
 
 export async function createDirectoryListing(
@@ -37,10 +38,10 @@ export async function createDirectoryListing(
     staticMode: false,
     templateName: 'directory.pug',
     templateOptions: {},
-    ...options
+    ...options,
   };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
-    exclusions: defaultDirectoryExclusions
+    exclusions: defaultDirectoryExclusions,
   });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
   unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -52,7 +53,7 @@ export async function createDirectoryListing(
     ? {
         name: readmeName,
         html: markdown(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
-        url: staticMode ? `${readmeName}.html` : readmeName
+        url: staticMode ? `${readmeName}.html` : readmeName,
       }
     : null;
 
@@ -66,7 +67,7 @@ export async function createDirectoryListing(
 
   const templatePaths = ['', '.pug'].flatMap(ext => [
     path.join(templateDir, templateName + ext),
-    path.join(templateDir, templateName, `directory${ext}`)
+    path.join(templateDir, templateName, `directory${ext}`),
   ]);
   const templatePath = templatePaths.find(
     p => fs.existsSync(p) && !fs.statSync(p).isDirectory()
@@ -79,6 +80,7 @@ export async function createDirectoryListing(
   const pathComponents = pathComponentsForBreadcrumbs(breadcrumbPath || dir);
   return pug.renderFile(templatePath, {
     ...templateOptions,
+    staticAssetPrefix,
 
     directories,
     files,
@@ -96,7 +98,7 @@ export async function createDirectoryListing(
 
     // pug options
     cache: true,
-    filters: { markdown }
+    filters: { markdown },
   });
 
   function directory_index(dir: string) {

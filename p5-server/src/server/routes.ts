@@ -10,10 +10,11 @@ import { injectScriptEventRelayScript } from './browserScriptEventRelay';
 import { createDirectoryListing, defaultDirectoryExclusions } from './directoryListing';
 import { injectLiveReloadScript } from './liveReload';
 import { RouterConfig } from './Server';
+import { staticAssetPrefix } from './constants';
 import {
   createSyntaxErrorJsReporter,
   markdownToHtmlPage,
-  sourceViewTemplate
+  sourceViewTemplate,
 } from './templates';
 
 export function createRouter(config: RouterConfig): express.Router {
@@ -33,7 +34,7 @@ export function createRouter(config: RouterConfig): express.Router {
     } else if (config.screenshot) {
       const { sketches } = fs.statSync(file).isDirectory()
         ? await Sketch.analyzeDirectory(file, {
-            exclusions: defaultDirectoryExclusions
+            exclusions: defaultDirectoryExclusions,
           })
         : { sketches: [] };
       if (sketches.length !== 1)
@@ -58,7 +59,7 @@ export function createRouter(config: RouterConfig): express.Router {
       await config.screenshot.onFrameData({
         imageType: m[1],
         data: Buffer.from(m[2], 'base64'),
-        frameNumber: req.body.frameNumber
+        frameNumber: req.body.frameNumber,
       });
       res.sendStatus(200);
     }
@@ -97,7 +98,7 @@ export function createRouter(config: RouterConfig): express.Router {
       (await Sketch.isSketchScriptFile(filepath))
     ) {
       const { sketches } = await Sketch.analyzeDirectory(path.dirname(filepath), {
-        exclusions: defaultDirectoryExclusions
+        exclusions: defaultDirectoryExclusions,
       });
       const sketch = sketches.find(sketch =>
         sketch.files.includes(path.basename(filepath))
@@ -174,11 +175,12 @@ export function createRouter(config: RouterConfig): express.Router {
       html = injectScriptEventRelayScript(html);
     }
     if (config.screenshot && req.path === '/') {
-      html = addScriptToHtmlHead(html, '/__p5_server_static/screenshot.min.js');
+      html = addScriptToHtmlHead(html, `${staticAssetPrefix}/screenshot.min.js`);
       html = addScriptToHtmlHead(html, {
-        __p5_server_screenshot_settings: config.screenshot
+        __p5_server_screenshot_settings: config.screenshot,
       });
     }
+
     res.set('Content-Type', 'text/html');
     res.send(html);
   }
@@ -202,7 +204,7 @@ async function sendDirectoryListing<T>(
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-        templateName: config.theme
+        templateName: config.theme,
       });
 
   // Note: This injects the reload script into both static and generated index

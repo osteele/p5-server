@@ -11,18 +11,19 @@ import {
   DocumentMessage,
   ErrorMessage,
   Message,
-  WindowMessage
+  WindowMessage,
 } from '../consoleRelayTypes';
 import { addScriptToHtmlHead } from '../helpers';
 import { jsonCycleStringifier } from '../jsonCycleStringifier';
 import { assertError } from '../ts-extras';
+import { staticAssetPrefix } from './constants';
 import {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
   BrowserDocumentEvent,
   BrowserErrorEvent,
   BrowserEventCommon,
-  BrowserWindowEvent
+  BrowserWindowEvent,
 } from './eventTypes';
 
 export interface BrowserScriptRelay {
@@ -53,7 +54,7 @@ export function attachBrowserScriptRelay(
           ...data,
           file: urlToFilePath(data.url) || undefined,
           stack: replaceUrlsInStack(relay, data.stack),
-          timestamp: new Date(data.timestamp)
+          timestamp: new Date(data.timestamp),
         });
       }
     });
@@ -137,8 +138,8 @@ export function replaceUrlsInStack(
 ): string | undefined {
   if (!stack) return stack;
   return (
-    // Safari
     stack
+      // Safari
       .replace(
         /(?:^|\b)\S*@http:\/\/[^/]+\/__p5_server_static\/console-relay(?:\.min)\.js:\d+:\d+\n/g,
         ''
@@ -162,7 +163,7 @@ export function replaceUrlsInStack(
 }
 
 export function injectScriptEventRelayScript(html: string): string {
-  return addScriptToHtmlHead(html, '/__p5_server_static/console-relay.min.js');
+  return addScriptToHtmlHead(html, `${staticAssetPrefix}/console-relay.min.js`);
 }
 
 const serializationPrefix = '__p5_server_serialization_:';

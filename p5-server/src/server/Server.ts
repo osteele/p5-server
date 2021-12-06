@@ -3,23 +3,18 @@ import fs from 'fs';
 import path from 'path';
 import pug from 'pug';
 import { EventEmitter } from 'stream';
-import { assertError } from "../ts-extras";
+import { assertError } from '../ts-extras';
 import {
   attachBrowserScriptRelay,
-  BrowserScriptRelay
+  BrowserScriptRelay,
 } from './browserScriptEventRelay';
-import {
-  createDirectoryListing
-} from './directoryListing';
+import { createDirectoryListing } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
-import {
-  createLiveReloadServer, LiveReloadServer
-} from './liveReload';
+import { createLiveReloadServer, LiveReloadServer } from './liveReload';
 import { createRouter } from './routes';
-import {
-  templateDir
-} from './templates';
+import { templateDir } from './templates';
 import http = require('http');
+import { staticAssetPrefix } from './constants';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -93,7 +88,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   // });
 
   // add routes
-  app.use('/__p5_server_static', express.static(path.join(__dirname, 'static')));
+  app.use(staticAssetPrefix, express.static(path.join(__dirname, 'static')));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -107,7 +102,9 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   if (mountPoints.every(mp => mp.urlPath !== '/')) {
     const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
-    app.get('/', (_req, res) => res.send(mountListTmpl({ mountPoints })));
+    app.get('/', (_req, res) =>
+      res.send(mountListTmpl({ mountPoints, staticAssetPrefix }))
+    );
   }
 
   // For effect only. This provide errors and diagnostics before waiting for a
@@ -244,9 +241,7 @@ export class Server {
     return null;
   }
 
-  private static normalizeMountPoints(
-    mountPoints: MountPointOptions[]
-  ): MountPoint[] {
+  private static normalizeMountPoints(mountPoints: MountPointOptions[]): MountPoint[] {
     const finalPathSep = new RegExp(`${path.sep}$`);
     const mounts = mountPoints
       // normalize to records
@@ -282,7 +277,7 @@ export class Server {
           return name;
         }
       }
-      throw new Error("This should not happen");
+      throw new Error('This should not happen');
     }
 
     function* generateNames(base: string) {

@@ -3,15 +3,15 @@ html(lang='en')
   head
     meta(charset='utf-8')
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
-    link(rel='icon', href='/__p5_server_static/favicon.svg')
-    link(rel='mask-icon', href='/__p5_server_static/favicon-mask.svg', color='#000000')
+    link(rel='icon', href=`${staticAssetPrefix}/favicon.svg`)
+    link(rel='mask-icon', href=`${staticAssetPrefix}/favicon-mask.svg`, color='#000000')
     title= title
     script(src='https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js' crossorigin='anonymous')
     script(src='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js' crossorigin='anonymous' defer)
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css')
     style
       include style.css
-    script(src='/__p5_server_static/iframe-manager.min.js')
+    script(src=`${staticAssetPrefix}/iframe-manager.min.js`)
   body
     .ui.left.inverted.vertical.visible.sidebar.menu
       .ui.breadcrumb

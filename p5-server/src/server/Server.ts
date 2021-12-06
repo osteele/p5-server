@@ -102,8 +102,8 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   if (mountPoints.every(mp => mp.urlPath !== '/')) {
     const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
-    app.get('/', (_req, res) =>
-      res.send(mountListTmpl({ mountPoints, staticAssetPrefix }))
+    app.get('/', (_req, res) => {
+      res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }))}
     );
   }
 

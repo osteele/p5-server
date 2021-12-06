@@ -22,7 +22,14 @@ html(lang='en')
       }
   body
     h1 P5 Server
+    p This server is configured to serve
+      = ' '
+      a(href="https://p5js.org") p5.js sketches
+      = ' '
+      | from the following locations:
     ul
       each mount in mountPoints
         li
           a(href=mount.urlPath)= mount.name || mount.urlPath
+          span(style='color: #999;')= ' from '
+          = path.resolve(mount.filePath)

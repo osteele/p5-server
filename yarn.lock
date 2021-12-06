@@ -1033,6 +1033,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gar/promisify@npm:^1.0.1":
+  version: 1.1.2
+  resolution: "@gar/promisify@npm:1.1.2"
+  checksum: d05081e0887a49c178b75ee3067bd6ee086f73c154d121b854fb2e044e8a89cb1cbb6de3a0dd93a519b80f0531fda68b099dd7256205f7fbb3490324342f2217
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.6.0":
   version: 0.6.0
   resolution: "@humanwhocodes/config-array@npm:0.6.0"
@@ -1348,6 +1355,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@npmcli/fs@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@npmcli/fs@npm:1.0.0"
+  dependencies:
+    "@gar/promisify": ^1.0.1
+    semver: ^7.3.5
+  checksum: f2b4990107dd2a5b18794c89aaff6f62f3a67883d49a20602fdfc353cbc7f8c5fd50edeffdc769e454900e01b8b8e43d0b9eb524d00963d69f3c829be1a2e8ac
+  languageName: node
+  linkType: hard
+
 "@npmcli/move-file@npm:^1.0.1":
   version: 1.1.2
   resolution: "@npmcli/move-file@npm:1.1.2"
@@ -1545,6 +1562,15 @@ __metadata:
     "@types/connect": "*"
     "@types/node": "*"
   checksum: 2990656ea2de81f3529a3359a79a13b67feb4c627caf7a367fdc0017a178e567b0cc410546bdd219104ad7197c5ee5a90b70193f5253839ea43d9cdb2d2dacee
+  languageName: node
+  linkType: hard
+
+"@types/cacache@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@types/cacache@npm:15.0.1"
+  dependencies:
+    "@types/node": "*"
+  checksum: ce4f80d2e80e0b7fe0e8551d51ed5883a1621a4f0fa9ab63bd323e51bffc9d5c4b66fa029f065d5b530e351d0cb77759af0a3800f3d8b45f687a54a7b94ae9d9
   languageName: node
   linkType: hard
 
@@ -2842,6 +2868,32 @@ __metadata:
     tar: ^6.0.2
     unique-filename: ^1.1.1
   checksum: 34d0fba6030dd3f1f9de4d9fb486cfa8f6ec836ab00d75b846b40c06f96e64898e781f715d19a2c357a601a899c339a44446f94dd328f173605af165a295dd29
+  languageName: node
+  linkType: hard
+
+"cacache@npm:^15.3.0":
+  version: 15.3.0
+  resolution: "cacache@npm:15.3.0"
+  dependencies:
+    "@npmcli/fs": ^1.0.0
+    "@npmcli/move-file": ^1.0.1
+    chownr: ^2.0.0
+    fs-minipass: ^2.0.0
+    glob: ^7.1.4
+    infer-owner: ^1.0.4
+    lru-cache: ^6.0.0
+    minipass: ^3.1.1
+    minipass-collect: ^1.0.2
+    minipass-flush: ^1.0.5
+    minipass-pipeline: ^1.2.2
+    mkdirp: ^1.0.3
+    p-map: ^4.0.0
+    promise-inflight: ^1.0.1
+    rimraf: ^3.0.2
+    ssri: ^8.0.1
+    tar: ^6.0.2
+    unique-filename: ^1.1.1
+  checksum: a07327c27a4152c04eb0a831c63c00390d90f94d51bb80624a66f4e14a6b6360bbf02a84421267bd4d00ca73ac9773287d8d7169e8d2eafe378d2ce140579db8
   languageName: node
   linkType: hard
 
@@ -7849,6 +7901,7 @@ __metadata:
     "@babel/core": ^7.16.0
     "@tsconfig/node14": ^1.0.1
     "@types/babel__core": ^7.1.16
+    "@types/cacache": ^15.0.1
     "@types/copyfiles": ^2.4.1
     "@types/eslint": ^7.28.2
     "@types/express": ^4.17.13
@@ -7857,11 +7910,13 @@ __metadata:
     "@types/marked": ^3.0.2
     "@types/minimatch": ^3.0.5
     "@types/node": ^16.11.6
+    "@types/node-fetch": ^2.5.12
     "@types/nunjucks": ^3.2.0
     "@types/pug": ^2.0.5
     "@types/rimraf": ^3.0.2
     "@types/update-notifier": ^5.1.0
     "@types/ws": ^8.2.0
+    cacache: ^15.3.0
     chalk: ^4.1.2
     commander: ^8.3.0
     copyfiles: ^2.4.1
@@ -7874,6 +7929,7 @@ __metadata:
     livereload: ^0.9.3
     marked: ^3.0.8
     minimatch: ^3.0.4
+    node-fetch: ^2.6.5
     node-html-parser: ^5.1.0
     nodemon: ^2.0.14
     npm-run-all: ^4.1.5

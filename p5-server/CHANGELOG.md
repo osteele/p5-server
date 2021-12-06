@@ -4,7 +4,9 @@
 
 Added:
 
+- The server acts as a caching proxy server – requests to known CDNs are cached
 - Syntax errors are reported to the console
+- 404 errors are reported to the console
 
 ## [0.8.7] - 2021-11-12
 

@@ -2,6 +2,10 @@
 
 ## Unreleaesd
 
+Added:
+
+- Cdn class
+
 Fixed:
 
 - Fixed exception when loadXXX() is called with no argument

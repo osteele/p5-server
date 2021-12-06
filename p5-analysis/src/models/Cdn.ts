@@ -8,13 +8,13 @@ export class Cdn {
   }
 
   static parseUrl(url: string): { packageName: string } | null {
-    const cdn = this.all.find(c => c.matches(url));
+    const cdn = this.all.find(c => c.matchesUrl(url));
     return cdn ? cdn.parseUrl(url) : null;
   }
 
   private constructor(private readonly matcher: RegExp) {}
 
-  matches(path: string): boolean {
+  matchesUrl(path: string): boolean {
     return this.matcher.test(path);
   }
 

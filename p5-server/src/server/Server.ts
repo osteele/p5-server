@@ -15,6 +15,8 @@ import { createRouter } from './routes';
 import { templateDir } from './templates';
 import http = require('http');
 import { staticAssetPrefix } from './constants';
+import chalk = require('chalk');
+import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -106,6 +108,11 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
       res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }))}
     );
   }
+  app.use(proxyPrefix, cdnProxyRouter);
+  app.use((req, _res, next) => {
+    console.warn(chalk.red(`Not found (404): ${req.originalUrl}`));
+    next();
+  });
 
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.

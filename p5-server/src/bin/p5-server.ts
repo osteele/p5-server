@@ -9,6 +9,7 @@ import convert from '../commands/convert';
 import create from '../commands/create';
 import screenshot from '../commands/screenshot';
 import serve from '../commands/serve';
+import { cacache, cachePath as proxyCachePath } from '../server/cdnProxy';
 
 const program = new Command();
 
@@ -91,6 +92,46 @@ program
     'Relay console messages and errors to sketch in the server console'
   )
   .action(serve);
+
+/*
+ * Cache subcommands
+ */
+
+const cacheCommand = program.command('cache');
+
+cacheCommand
+  .command('clear')
+  .description('Clear the cache')
+  .action(async () => {
+    await cacache.rm.all(proxyCachePath);
+    console.log(`Cache cleared`);
+  });
+
+cacheCommand
+  .command('list')
+  .alias('ls')
+  .description('List the cache entries')
+  .action(() => {
+    cacache.ls(proxyCachePath).then(cache => {
+      console.log(`Cache size: ${Object.values(cache).length}`);
+      for (const entry of Object.values(cache)) {
+        console.log(decodeURIComponent(entry.key), entry.size);
+      }
+    });
+  });
+
+// cacheCommand.command('fill').description('Fill the cache from common libraries');
+
+cacheCommand
+  .command('path')
+  .description('Print the path to the cache')
+  .action(() => {
+    console.log(proxyCachePath);
+  });
+
+/*
+ * Subcommands
+ */
 
 program.command('analyze', 'Display information about a sketch', {
   executableFile: `${P5_ANALYSIS_BIN}/p5-analyze`

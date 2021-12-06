@@ -34,6 +34,11 @@
 
 ## Overview
 
+**New feature: the server caches requests to known CDN servers (JSDelivr,
+Skypack, Unpkg). If your sketch uses libraries from these locations – as the
+generated files do — and if your sketch while you have internet service, you can
+run it later while you are offline.**
+
 **p5-server** is a command-line interface for [p5.js](https://p5js.org/). It
 provides a web server with live reload, that knows how to serve JavaScript-only
 sketches and to figure out which libraries a sketch needs in order to run.
@@ -347,14 +352,11 @@ automatic library inclusion, and other details of the implementation.
 ## Limitations
 
 - This code hasn't been tested on Windows.
-- Generated sketches require an internet connection to run. They load the p5.js
-  and other libraries from a content delivery network (“CDN”). Browsers cache
-  these files, so reloading a page or running other sketches that use the same
-  (or no) libraries do not require additional internet access, but you will need
-  internet access the first time you use this extension or after the browser
-  cache has expired.
-- The server requires an internet connection in order to display sketches and
-  directory listings. (It loads the Semantic UI CSS framework from a CDN.)
+- Generated sketches require an internet connection the first time you run the
+  server on a machine. Sketches load the p5.js and other libraries from a
+  content delivery network (“CDN”). These libraries are cached (in
+  `~/.cache/p5-server`), so that reloading a page or running other sketches that
+  use the same (or no) libraries does not require additional internet access.
 - This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.

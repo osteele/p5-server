@@ -9,7 +9,7 @@ import convert from '../commands/convert';
 import create from '../commands/create';
 import screenshot from '../commands/screenshot';
 import serve from '../commands/serve';
-import { cacache, cachePath as proxyCachePath } from '../server/cdnProxy';
+import { cacache, cachePath as proxyCachePath, warmCache } from '../server/cdnProxy';
 
 const program = new Command();
 
@@ -113,14 +113,12 @@ cacheCommand
   .description('List the cache entries')
   .action(() => {
     cacache.ls(proxyCachePath).then(cache => {
-      console.log(`Cache size: ${Object.values(cache).length}`);
+      console.log(`Cache size: ${Object.values(cache).length} entries`);
       for (const entry of Object.values(cache)) {
         console.log(decodeURIComponent(entry.key), entry.size);
       }
     });
   });
-
-// cacheCommand.command('fill').description('Fill the cache from common libraries');
 
 cacheCommand
   .command('path')
@@ -128,6 +126,11 @@ cacheCommand
   .action(() => {
     console.log(proxyCachePath);
   });
+
+cacheCommand
+  .command('warm')
+  .description('Fill the cache from common libraries')
+  .action(warmCache);
 
 /*
  * Subcommands

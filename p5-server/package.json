@@ -74,6 +74,7 @@
     "@types/babel__core": "^7.1.16",
     "@types/cacache": "^15.0.1",
     "@types/copyfiles": "^2.4.1",
+    "@types/debug": "^4.1.7",
     "@types/eslint": "^7.28.2",
     "@types/express": "^4.17.13",
     "@types/jest": "^27.0.2",

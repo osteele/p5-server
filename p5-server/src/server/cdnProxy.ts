@@ -38,7 +38,7 @@ export async function cdnProxyRouter(
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
   // cache hit
-  if (cacheObject) {
+  if (cacheObject && !req.query.reload) {
     debug('cache hit', url);
     // TODO: check if content has expired
     for (const key of Object.keys(cacheObject.metadata.headers)) {
@@ -98,7 +98,7 @@ export async function cdnProxyRouter(
 /** Verify that url is in the cache. Request it if it is not.
  * Uses cdnProxyRouter to minimize different code paths that need to be tested.
  */
-async function prefetch(url: string) {
+async function prefetch(url: string, { force = false }) {
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
@@ -108,7 +108,7 @@ async function prefetch(url: string) {
   const req = {
     headers: reqHeaders,
     path: '/' + encodeURIComponent(url),
-    query: {}
+    query: force ? { reload: 'true' } : {}
   };
   /* eslint-disable @typescript-eslint/no-empty-function */
   const res = {
@@ -126,17 +126,17 @@ async function prefetch(url: string) {
 /** Warm the cache with all the import paths.
  * @returns the number of entries
 */
-export async function warmCache(): Promise<number> {
+export async function warmCache({ force }: { force?: boolean }): Promise<number> {
   const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
   const urls = [p5importPath, ...getLibraryImportPaths()];
-  const promises:Promise<void>[] = [];
+  const promises: Promise<void>[] = [];
   for (const url of urls) {
     if (promises.length >= 20) {
-      debug('waiting for one of', promises.length, 'prefetches to settle');
+      // debug('waiting for one of', promises.length, 'prefetches to settle');
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
       await Promise.any(promises).catch(() => { });
     }
-    const p = prefetch(url).finally(() => {
+    const p = prefetch(url, { force }).finally(() => {
       promises.splice(promises.indexOf(p), 1);
     });
     promises.push(p);

@@ -123,8 +123,10 @@ async function prefetch(url: string) {
   await cdnProxyRouter(req, res);
 }
 
-/** Warm the cache with all the import paths. */
-export async function warmCache(): Promise<void> {
+/** Warm the cache with all the import paths.
+ * @returns the number of entries
+*/
+export async function warmCache(): Promise<number> {
   const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
   const urls = [p5importPath, ...getLibraryImportPaths()];
   const promises:Promise<void>[] = [];
@@ -140,6 +142,7 @@ export async function warmCache(): Promise<void> {
     promises.push(p);
   }
   await Promise.all(promises);
+  return urls.length;
 }
 
 // Parse the HTML, and replace any CDN URLs with local URLs.

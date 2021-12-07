@@ -4,12 +4,13 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import updateNotifier from 'update-notifier';
-import build from '../commands/build';
-import convert from '../commands/convert';
-import create from '../commands/create';
-import screenshot from '../commands/screenshot';
-import serve from '../commands/serve';
+import build from '../commands/buildCommand';
+import convert from '../commands/convertSketch';
+import create from '../commands/createSketch';
+import screenshot from '../commands/screenshotCommand';
+import serve from '../commands/serveCommand';
 import { cacache, cachePath as proxyCachePath, warmCache } from '../server/cdnProxy';
+import { lsCache } from '../commands/cacheCommands';
 
 const program = new Command();
 
@@ -111,14 +112,7 @@ cacheCommand
   .command('list')
   .alias('ls')
   .description('List the cache entries')
-  .action(() => {
-    cacache.ls(proxyCachePath).then(cache => {
-      console.log(`Cache size: ${Object.values(cache).length} entries`);
-      for (const entry of Object.values(cache)) {
-        console.log(decodeURIComponent(entry.key), entry.size);
-      }
-    });
-  });
+  .action(lsCache);
 
 cacheCommand
   .command('path')
@@ -130,7 +124,10 @@ cacheCommand
 cacheCommand
   .command('warm')
   .description('Fill the cache from common libraries')
-  .action(warmCache);
+  .action(async () => {
+    const count = await warmCache();
+    console.log(`Warmed cache for ${count} urls`);
+  });
 
 /*
  * Subcommands

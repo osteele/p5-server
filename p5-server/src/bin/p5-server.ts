@@ -126,8 +126,9 @@ cacheCommand
   .description('Fill the cache from common libraries')
   .option('-f, --force', 'Force refresh of cached entries')
   .action(async ({ force = false }) => {
-    const count = await warmCache({ force });
-    console.log(`Warmed cache for ${count} urls`);
+    const { count, failureCount } = await warmCache({ force });
+    if (failureCount === 0) console.log(`Warmed cache for ${count} urls`);
+    process.exit(failureCount > 0 ? 1 : 0);
   });
 
 /*

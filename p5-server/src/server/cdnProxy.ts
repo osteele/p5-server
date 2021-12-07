@@ -98,7 +98,7 @@ export async function cdnProxyRouter(
 /** Verify that url is in the cache. Request it if it is not.
  * Uses cdnProxyRouter to minimize different code paths that need to be tested.
  */
-async function prefetch(url: string, { force = false }) {
+async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean }> {
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
@@ -110,10 +110,11 @@ async function prefetch(url: string, { force = false }) {
     path: '/' + encodeURIComponent(url),
     query: force ? { reload: 'true' } : {}
   };
+  let status: number | undefined;
   /* eslint-disable @typescript-eslint/no-empty-function */
   const res = {
     setHeader() { },
-    status() { },
+    status(statusCode: number) { status = statusCode },
     send() { },
     write() { },
     end() { },
@@ -121,12 +122,14 @@ async function prefetch(url: string, { force = false }) {
   /* eslint-enable @typescript-eslint/no-empty-function */
   debug(`warm cache for ${url}`);
   await cdnProxyRouter(req, res);
+  return { status: status!, ok: status! < 400 };
 }
 
 /** Warm the cache with all the import paths.
  * @returns the number of entries
 */
-export async function warmCache({ force }: { force?: boolean }): Promise<number> {
+export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failureCount: number }> {
+  let failureCount = 0;
   const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
   const urls = [p5importPath, ...getLibraryImportPaths()];
   const promises: Promise<void>[] = [];
@@ -136,13 +139,20 @@ export async function warmCache({ force }: { force?: boolean }): Promise<number>
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
       await Promise.any(promises).catch(() => { });
     }
-    const p = prefetch(url, { force }).finally(() => {
-      promises.splice(promises.indexOf(p), 1);
-    });
+    const p = prefetch(url, { force })
+      .then(({ status, ok }) => {
+        if (!ok) {
+          failureCount++;
+          process.stderr.write(`Error: failed to fetch ${url}; error code: ${status}\n`);
+        }
+      })
+      .finally(() => {
+        promises.splice(promises.indexOf(p), 1);
+      });
     promises.push(p);
   }
   await Promise.all(promises);
-  return urls.length;
+  return { count: urls.length, failureCount };
 }
 
 // Parse the HTML, and replace any CDN URLs with local URLs.

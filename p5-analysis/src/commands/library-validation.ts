@@ -1,6 +1,6 @@
 import { Library, Script } from '..';
 import checkExportCollisions from '../commands/check-library-collisions';
-import { isDefined } from '../ts-extras';
+import { isDefined } from '../helpers/ts-extras';
 import { cachedFetch } from './cachedFetch';
 
 export async function checkLibraries({ parseScripts = false }) {

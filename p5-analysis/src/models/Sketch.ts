@@ -14,7 +14,7 @@ import {
   isHtmlPathname,
   isScriptPathname
 } from '../helpers';
-import { isDefined } from '../ts-extras';
+import { isDefined } from '../helpers/ts-extras';
 import { Library, p5Version } from './Library';
 import { Script } from './Script';
 

@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import { parse as parseHtml } from 'node-html-parser';
 import { Cdn } from 'p5-analysis';
 import { Library } from 'p5-analysis';
+import { p5Version } from 'p5-analysis/dist/models/Library';
 export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -85,7 +86,7 @@ export async function cdnProxyRouter(
   }
   cacheWriteStream.end();
   res.end();
-  debug('wrote', size, 'bytes to cache');
+  debug('wrote', size, 'bytes to cache for', url);
 
   function sendHeaders() {
     response.headers.forEach((value, key) => {
@@ -94,32 +95,51 @@ export async function cdnProxyRouter(
   }
 }
 
-export async function warmCache(): Promise<void> {
-  const importPaths = getLibraryImportPaths();
+/** Verify that url is in the cache. Request it if it is not.
+ * Uses cdnProxyRouter to minimize different code paths that need to be tested.
+ */
+async function prefetch(url: string) {
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
     'accept-language': 'en-US,en;q=0.9',
     'accept-encoding': 'gzip, deflate',
   };
-  for (const url of importPaths) {
-    const req = {
-      headers: reqHeaders,
-      path:  '/' + encodeURIComponent(url),
-      query: {}
-    };
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    const res = {
-      setHeader() { },
-      status() { },
-      send() { },
-      write() {  },
-      end() { },
-    };
-    /* eslint-enable @typescript-eslint/no-empty-function */
-    console.log(`warm cache for ${url}`);
-    await cdnProxyRouter(req, res);
+  const req = {
+    headers: reqHeaders,
+    path: '/' + encodeURIComponent(url),
+    query: {}
+  };
+  /* eslint-disable @typescript-eslint/no-empty-function */
+  const res = {
+    setHeader() { },
+    status() { },
+    send() { },
+    write() { },
+    end() { },
+  };
+  /* eslint-enable @typescript-eslint/no-empty-function */
+  debug(`warm cache for ${url}`);
+  await cdnProxyRouter(req, res);
+}
+
+/** Warm the cache with all the import paths. */
+export async function warmCache(): Promise<void> {
+  const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
+  const urls = [p5importPath, ...getLibraryImportPaths()];
+  const promises:Promise<void>[] = [];
+  for (const url of urls) {
+    if (promises.length >= 20) {
+      debug('waiting for one of', promises.length, 'prefetches to settle');
+      /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+      await Promise.any(promises).catch(() => { });
+    }
+    const p = prefetch(url).finally(() => {
+      promises.splice(promises.indexOf(p), 1);
+    });
+    promises.push(p);
   }
+  await Promise.all(promises);
 }
 
 // Parse the HTML, and replace any CDN URLs with local URLs.
@@ -140,7 +160,7 @@ function isCdnUrl(url: string) {
     || getLibraryImportPaths().has(url);
 }
 
-let _libraryImportPaths: Set<string>; //|undefined;
+let _libraryImportPaths: Set<string>;
 
 function getLibraryImportPaths() {
   _libraryImportPaths ??= new Set(Library.all.map(lib => lib.importPath).filter(isDefined));

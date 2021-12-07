@@ -41,8 +41,13 @@ export async function cdnProxyRouter(
   if (cacheObject && !req.query.reload) {
     debug('cache hit', url);
     // TODO: check if content has expired
+    res.setHeader('x-p5-server-cache-hit', 'true');
     for (const key of Object.keys(cacheObject.metadata.headers)) {
-      res.setHeader(key, cacheObject.metadata.headers[key]);
+      let value = cacheObject.metadata.headers[key];
+      if (key === 'location' && isCdnUrl(value)) {
+        value = proxyPrefix + '/' + encodeURIComponent(value);
+      }
+      res.setHeader(key, value);
     }
     res.status(cacheObject.metadata.status);
     for await (const chunk of cacache.get.stream(cachePath, cacheKey)) {
@@ -53,43 +58,55 @@ export async function cdnProxyRouter(
   }
 
   debug('proxy request for', url);
-  const headerWhitelist = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
+  const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
   const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
-    .filter(([key]) => headerWhitelist.includes(key))
+    .filter(([key]) => headerAcceptList.includes(key))
     .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
     .map(([key, value]) => [key, Array.isArray(value) ? value.join(' ') : value]));
   const response = await fetch(url, {
+    compress: false, // store the gzip, for efficiency and to match the content-type
     headers: reqHeaders,
-    compress: false, redirect: 'manual'
+    redirect: 'manual', // don't follow redirects; cache the redirect directive
   });
-  if (!response.ok) {
-    sendHeaders();
-    res.status(response.status);
+
+  res.status(response.status);
+  res.setHeader('x-p5-server-cache-hit', 'true');
+  sendHeaders();
+
+  // this test excludes 300 Multiple Choice
+  const redirected = 300 < response.status && response.status < 400 && response.headers.has('location');
+  if (!response.ok && !redirected) {
+    // don't cache responses other than 200's and redirects
+    debug(`Failed ${response.ok} | ${response.status} | ${response.statusText}`);
     res.send(response.statusText);
     return;
   }
-  // TODO: remove from headers: accept-ranges
-  // TODO: modify headers: age, cache-control, maybe others
+
+  const responseHeaders = Object.fromEntries(
+    Array.from(response.headers.entries())
+      .filter(([key]) => key !== 'content-accept-ranges')
+  )
   const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
     metadata: {
-      headers: Object.fromEntries(response.headers),
+      headers: responseHeaders,
       status: response.status
     }
   });
-  sendHeaders();
-  res.status(response.status);
-  let size = 0;
+  let bodyLength = 0;
   for await (const chunk of response.body) {
-    size += chunk.length;
+    bodyLength += chunk.length;
     cacheWriteStream.write(chunk);
     res.write(chunk);
   }
   cacheWriteStream.end();
   res.end();
-  debug('wrote', size, 'bytes to cache for', url);
+  debug('wrote', bodyLength, 'bytes to cache for', url);
 
   function sendHeaders() {
     response.headers.forEach((value, key) => {
+      if (key === 'location' && isCdnUrl(value)) {
+        value = proxyPrefix + '/' + encodeURIComponent(value);
+      }
       res.setHeader(key, value);
     });
   }
@@ -99,6 +116,7 @@ export async function cdnProxyRouter(
  * Uses cdnProxyRouter to minimize different code paths that need to be tested.
  */
 async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean }> {
+  process.stdout.write(`Prefetching ${url}...\n`);
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
@@ -113,7 +131,10 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   let status: number | undefined;
   /* eslint-disable @typescript-eslint/no-empty-function */
   const res = {
-    setHeader() { },
+    headers: {} as Record<string, string>,
+    setHeader(key: string, value: string) {
+      this.headers[key] = value;
+    },
     status(statusCode: number) { status = statusCode },
     send() { },
     write() { },
@@ -122,19 +143,29 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   /* eslint-enable @typescript-eslint/no-empty-function */
   debug(`warm cache for ${url}`);
   await cdnProxyRouter(req, res);
-  return { status: status!, ok: status! < 400 };
+  const redirected = 300 < status! && status! < 400 && res.headers.location.startsWith(proxyPrefix + '/');
+  if (redirected) {
+    const location = decodeURIComponent(res.headers.location.substring(proxyPrefix.length + 1));
+    debug(`following redirect from ${url} -> ${location}`);
+    return prefetch(location, { force });
+  }
+  return {
+    ok: status! < 400,
+    status: status!,
+  };
 }
 
 /** Warm the cache with all the import paths.
  * @returns the number of entries
 */
 export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failureCount: number }> {
+  const concurrency = 20;
   let failureCount = 0;
   const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
   const urls = [p5importPath, ...getLibraryImportPaths()];
   const promises: Promise<void>[] = [];
   for (const url of urls) {
-    if (promises.length >= 20) {
+    if (promises.length >= concurrency) {
       // debug('waiting for one of', promises.length, 'prefetches to settle');
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
       await Promise.any(promises).catch(() => { });

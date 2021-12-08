@@ -5,13 +5,18 @@ import { parse as parseHtml } from 'node-html-parser';
 import { Cdn } from 'p5-analysis';
 import { Library } from 'p5-analysis';
 import { p5Version } from 'p5-analysis/dist/models/Library';
+import { parse as parseCss, CssNode } from 'css-tree';
+import * as csstree from 'css-tree';
+import { isDefined } from '../ts-extras';
 export * as cacache from 'cacache';
+import { Readable } from 'stream';
+import zlib from 'zlib';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
 
 // This header is purely information; nothing else depends on it
-const HTTP_RESPONSE_HEADER_CACHE_HIT = 'x-p5-server-cache-hit';
+const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
 
@@ -38,42 +43,47 @@ interface ResponseI {
 // This function uses the more general type to allow prefetch to call cdnProxyRouter.
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const cacheKey = req.path.split('/', 2)[1];
-  const url = decodeURIComponent(req.path.split('/', 2)[1]);
+  const originUrl = decodeURIComponent(req.path.split('/', 2)[1]);
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
   if (cacheObject && !req.query.reload) {
-    debug('cache hit', url);
+    debug('cache hit', originUrl);
     // TODO: check if content has expired
-    res.setHeader(HTTP_RESPONSE_HEADER_CACHE_HIT, 'false');
+    res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
     for (const key of Object.keys(cacheObject.metadata.headers)) {
       let value = cacheObject.metadata.headers[key];
       if (key === 'location' && isCdnUrl(value)) {
-        value = proxyPrefix + '/' + encodeURIComponent(value);
+        value = createProxyPath(value);
       }
-      res.setHeader(key, value);
+      const headerMap: Record<string, string> = { server: 'origin-server' };
+      res.setHeader(headerMap[key] ?? key, value);
     }
     res.status(cacheObject.metadata.status);
-    for await (const chunk of cacache.get.stream(cachePath, cacheKey)) {
+    let stream = cacache.get.stream(cachePath, cacheKey);
+    if (cacheObject.metadata.headers['content-type'].startsWith('text/css')) {
+      stream = await makeCssRewriterStream(stream, originUrl, cacheObject.metadata.headers['content-encoding']);
+    }
+    for await (const chunk of stream) {
       res.write(chunk);
     }
     res.end();
     return;
   }
 
-  debug('proxy request for', url);
+  debug('proxy request for', originUrl);
   const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
   const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
     .filter(([key]) => headerAcceptList.includes(key))
     .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
     .map(([key, value]) => [key, Array.isArray(value) ? value.join(' ') : value]));
-  const originResponse = await fetch(url, {
+  const originResponse = await fetch(originUrl, {
     compress: false, // store the gzip, for efficiency and to match the content-type
     headers: reqHeaders,
     redirect: 'manual', // don't follow redirects; cache the redirect directive
   });
 
   res.status(originResponse.status);
-  res.setHeader(HTTP_RESPONSE_HEADER_CACHE_HIT, 'true');
+  res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'MISS');
   relayOriginHeaders();
 
   // this test excludes 300 Multiple Choice
@@ -104,18 +114,22 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   }
   cacheWriteStream.end();
   res.end();
-  debug('wrote', bodyLength, 'bytes to cache for', url);
+  debug('wrote', bodyLength, 'bytes to cache for', originUrl);
 
   // Copy headers from the origin response to the output response `res`.
   // Modify Location headers to proxy them.
   function relayOriginHeaders() {
     originResponse.headers.forEach((value, key) => {
       if (key === 'location' && isCdnUrl(value)) {
-        value = proxyPrefix + '/' + encodeURIComponent(value);
+        value = createProxyPath(value);
       }
       res.setHeader(key, value);
     });
   }
+}
+
+function createProxyPath(originUrl: string) {
+  return proxyPrefix + '/' + encodeURIComponent(originUrl);
 }
 
 /** Verify that url is in the cache. Request it if it is not.
@@ -214,20 +228,22 @@ export function rewriteCdnUrls(html: string): string {
     .querySelectorAll('script[src]')
     .filter(e => isCdnUrl(e.attributes.src));
   scriptTags.forEach(e => {
-    e.setAttribute('src', proxyPrefix + '/' + encodeURIComponent(e.attributes.src));
+    e.setAttribute('src', createProxyPath(e.attributes.src));
   });
   // rewrite link[href]
   const linkTags = htmlRoot
     .querySelectorAll('link[rel=stylesheet][href]')
     .filter(e => isCdnUrl(e.attributes.href));
   linkTags.forEach(e => {
-    e.setAttribute('href', proxyPrefix + '/' + encodeURIComponent(e.attributes.href));
+    e.setAttribute('href', createProxyPath(e.attributes.href));
   });
   return htmlRoot.outerHTML;
 }
 
 function isCdnUrl(url: string) {
   return Cdn.all.some(cdn => cdn.matchesUrl(url))
+    || url.startsWith('https://fonts.googleapis.com/')
+    || url.startsWith('https://fonts.gstatic.com/')
     || url.startsWith('https://ghcdn.rawgit.org/')
     || getLibraryImportPaths().has(url);
 }
@@ -238,4 +254,77 @@ let _libraryImportPaths: Set<string>;
 function getLibraryImportPaths() {
   _libraryImportPaths ??= new Set(Library.all.map(lib => lib.importPath).filter(isDefined));
   return _libraryImportPaths;
+}
+
+// TODO: change this to transformer, and use pipe to handle buffering and compression
+async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string, encoding?: string): Promise<NodeJS.ReadableStream> {
+  const input = await fromReadable(stream);
+  if (encoding === 'gzip') {
+    const innerStream = await makeCssRewriterStream(Readable.from(zlib.unzipSync(input)), base);
+    const output = await fromReadable(innerStream);
+    return Readable.from(zlib.gzipSync(output));
+  }
+  const stylesheet = parseCss(typeof input === 'string' ? input : input.toString('utf8'));
+  // TODO: use csstree's AST traversal
+  function visit(node: CssNode) {
+    switch (node.type) {
+      case 'AtrulePrelude':
+      case 'Block':
+      case 'StyleSheet':
+      case 'Value':
+        node.children.forEach(visit);
+        break;
+      case 'Atrule':
+        if (node.prelude) visit(node.prelude);
+      // fall through
+      case 'Rule':
+        if (node.block) visit(node.block);
+        break;
+      case 'Declaration':
+        visit(node.value);
+        break;
+      case 'Url':
+        {
+          // index.d.ts documents node.value as a node, but it's actually a string
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let value = node.value as any as string;
+          if (!value?.startsWith('data:')) {
+            if (!/^https?:/.test(value)) {
+              value = urlResolve(base, value)
+            }
+            if (isCdnUrl(value)) {
+              const proxied = createProxyPath(value);
+              // debug(`rewriting ${value} to ${proxied}`);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (node as any).value = proxied;
+            }
+          }
+        }
+        break;
+    }
+  }
+  visit(stylesheet);
+  return Readable.from(csstree.generate(stylesheet));
+}
+
+async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {
+  const chunks: (string | Buffer)[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  return chunks.length === 0 ? ''
+    : chunks.length === 1 ? chunks[0]
+      : chunks.every(chunk => typeof chunk === 'string') ? chunks.join('')
+        : chunks.every(chunk => chunk instanceof Buffer) ? Buffer.concat(chunks as Buffer[])
+          : Buffer.concat(chunks.map(chunk => typeof chunk === 'string' ? Buffer.from(chunk) : chunk));
+}
+
+// Source: nodejs documentation for Url.resolve
+function urlResolve(from: string, to: string): string {
+  const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
+  if (resolvedUrl.protocol === 'resolve:') {
+    const { pathname, search, hash } = resolvedUrl;
+    return pathname + search + hash;
+  }
+  return resolvedUrl.toString();
 }

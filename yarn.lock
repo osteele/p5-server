@@ -1597,6 +1597,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/css-tree@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@types/css-tree@npm:1.0.7"
+  checksum: 65aa89e5c8c6f01374272373e783c42d91faf534dfff0c9959cada9916d8435e16805320ebe08559c4a458e034925455147770ad411423b6c1e3c0c2adb36fca
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.1.7":
   version: 4.1.7
   resolution: "@types/debug@npm:4.1.7"
@@ -3478,6 +3485,16 @@ __metadata:
     domutils: ^2.6.0
     nth-check: ^2.0.0
   checksum: 40928f1aa6c71faf36430e7f26bcbb8ab51d07b98b754caacb71906400a195df5e6c7020a94f2982f02e52027b9bd57c99419220cf7020968c3415f14e4be5f8
+  languageName: node
+  linkType: hard
+
+"css-tree@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "css-tree@npm:2.0.1"
+  dependencies:
+    mdn-data: 2.0.23
+    source-map: ^0.6.1
+  checksum: e0ab26ba612015842be1de34c000f11cec3fa2bb2dfdc1373732b8fa3c168fc8e64543f59254e7126c6c06c2230a65b0ce3be0f981270736c950d239b01e8b56
   languageName: node
   linkType: hard
 
@@ -7068,6 +7085,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mdn-data@npm:2.0.23":
+  version: 2.0.23
+  resolution: "mdn-data@npm:2.0.23"
+  checksum: aa9d67c4c1ad034eb0290f5571e14148ab985273489122f0bac16e670396c5da39a7024b365dd13d888c826567955c4e3e362b35b63dcbc1bffece60dfcd3aa1
+  languageName: node
+  linkType: hard
+
 "media-typer@npm:0.3.0":
   version: 0.3.0
   resolution: "media-typer@npm:0.3.0"
@@ -7919,6 +7943,7 @@ __metadata:
     "@types/babel__core": ^7.1.16
     "@types/cacache": ^15.0.1
     "@types/copyfiles": ^2.4.1
+    "@types/css-tree": ^1.0.7
     "@types/debug": ^4.1.7
     "@types/eslint": ^7.28.2
     "@types/express": ^4.17.13
@@ -7937,6 +7962,7 @@ __metadata:
     chalk: ^4.1.2
     commander: ^8.3.0
     copyfiles: ^2.4.1
+    css-tree: ^2.0.1
     esbuild: ^0.13.12
     esbuild-jest: ^0.5.0
     eslint: ^8.1.0

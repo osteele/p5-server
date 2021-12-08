@@ -1,7 +1,7 @@
 import nunjucks from 'nunjucks';
 import { cacache, cachePath as proxyCachePath } from '../server/cdnProxy';
 
-export function lsCache(): void {
+export function lsCache({ verbose = false }): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
   cacache.ls(proxyCachePath).then(cache => {
     const entries = Object.values(cache).map(entry => {
@@ -18,6 +18,6 @@ export function lsCache(): void {
         ...entry
       };
     });
-    console.log(nunjucks.render('proxyCache.njk', { entries, Object }));
+    console.log(nunjucks.render('proxyCache.njk', { entries, verbose }));
   });
 }

@@ -111,6 +111,7 @@ cacheCommand
 cacheCommand
   .command('list')
   .alias('ls')
+  .option('-v, --verbose', 'Print (some) metadata')
   .description('List the cache entries')
   .action(lsCache);
 

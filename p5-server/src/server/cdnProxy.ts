@@ -20,6 +20,29 @@ const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
 
+/** A list of CDNs that aren't listed in the Library model (because they aren't
+ * specific to serving NPM packages).
+ */
+const cdnDomains = [
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'ghcdn.rawgit.org',
+]
+
+// URLs to warm the cache with, that can't be inferred from the libraries,
+// in addition to library loadPaths.
+const cacheWarmOrigins = [
+  // TODO: use an API to retrieve this constant
+  `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
+  // TODO: read the following from the template file. Or, add these to the package.
+  'https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
+  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
+]
+
+
 // The RequestI and ReponseI interfaces specify the part of express.Request and
 // express.Response that cdnProxyRouter uses. It is done this way so that
 // prefetch, which is used to warm the cache can call cdnProxyRouter instead of
@@ -149,7 +172,7 @@ function decodeProxyPath(proxyPath: string, query: RequestI['query']) {
 /** Verify that url is in the cache. Request it if it is not.
  * Uses cdnProxyRouter to minimize different code paths that need to be tested.
  */
-async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data:Buffer }> {
+async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
   process.stdout.write(`Prefetching ${url}...\n`);
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -170,7 +193,7 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
       this.headers[key] = value;
     },
     status(statusCode: number) { status = statusCode },
-    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)},
+    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) },
     write(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) },
     end() { },
     chunks: new Array<Buffer>(),
@@ -192,26 +215,14 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   };
 }
 
-// URLs to warm the cache with, that can't be inferred from the libraries.
-const otherCachedUrls = [
-  // TODO: use an API to retrieve this constant
-  `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
-  // TODO: read the following from the template file. Or, add these to the package.
-  'https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
-  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
-]
-
 /** Warm the cache with all the import paths.
  * @returns the number of entries
  */
-export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failures: number, hits:number,misses:number }> {
+export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failures: number, hits: number, misses: number }> {
   const concurrency = 20;
   const seen = new Set<string>();
-  const stats = { count: 0,failures: 0, hits: 0, misses: 0 };
-  const urls = [...otherCachedUrls, ...getLibraryImportPaths()];
+  const stats = { count: 0, failures: 0, hits: 0, misses: 0 };
+  const urls = [...cacheWarmOrigins, ...getLibraryImportPaths()];
   const promises: Promise<void>[] = [];
   // `while` instead of `for`, because visit() can add to the array.
   while (urls.length > 0) {
@@ -245,7 +256,7 @@ export async function warmCache({ force }: { force?: boolean }): Promise<{ count
             const base = url;
             cssForEachUrl(data.toString(), (value) => {
               if (value.startsWith('data:')) return;
-              value = urlResolve( base, value);
+              value = urlResolve(base, value);
               if (isCdnUrl(value)) {
                 urls.push(value);
               }
@@ -292,11 +303,10 @@ export function rewriteCdnUrls(html: string): string {
 }
 
 function isCdnUrl(url: string) {
+  if (!/^https?:/.test(url)) return false;
   return Cdn.all.some(cdn => cdn.matchesUrl(url))
-    || url.startsWith('https://fonts.googleapis.com/')
-    || url.startsWith('https://fonts.gstatic.com/')
-    || url.startsWith('https://ghcdn.rawgit.org/')
-    || getLibraryImportPaths().has(url);
+    || getLibraryImportPaths().has(url)
+    || cdnDomains.includes(new URL(url).hostname);
 }
 
 /** Cache for memoizing getLibraryImportPaths. */
@@ -332,21 +342,21 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
   return Readable.from(csstree.generate(stylesheet));
 }
 
-function cssForEachUrl(stylesheet: csstree.CssNode|string, callback: (url: string) => void | string) {
+function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: string) => void | string) {
   csstree.walk(typeof stylesheet === 'string' ? parseCss(stylesheet) : stylesheet, {
-      visit: 'Url',
-      enter(node) {
-        // csstree's node.value is a string, but the latest @types/css-tree (v1)
-        // declares it as a node.
-        //
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const urlNode = node as any as { value: string };
-        const transformed = callback(urlNode.value);
-        if (transformed) {
-          urlNode.value = transformed;
-        }
+    visit: 'Url',
+    enter(node) {
+      // csstree's node.value is a string, but the latest @types/css-tree (v1)
+      // declares it as a node.
+      //
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const urlNode = node as any as { value: string };
+      const transformed = callback(urlNode.value);
+      if (transformed) {
+        urlNode.value = transformed;
       }
-    });
+    }
+  });
 }
 
 async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {

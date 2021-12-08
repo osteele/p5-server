@@ -1,6 +1,7 @@
 # P5.js Server
 
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2)](https://twitter.com/osteele)
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
 - [Overview](#overview)
@@ -68,7 +69,7 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
   modified.
 - ***JavaScript-only sketches***. A sketch can be a single JavaScript file. You
   don't need to create an HTML file just to run the sketch.
-- ***Automatic library includes***. If a JavaScript-only sketch uses a function
+- ***Automatic includes***. If a JavaScript-only sketch uses a function
   from [one of these
   libraries](https://osteele.github.io/p5-server/p5-analysis/libraries), the
   library will be included. ([This
@@ -83,6 +84,7 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
   lists the sketches, folders, other files in that directory.
 - ***Sketch file generation***. `p5 generate` creates a sketch file that you can
   use to get started.
+- **Integrated web accelerator (CDN Cache)**. The server proxies requests to the common content delivery networks (CDNs) – JSDelivr, Unpkg, Skypack,
 
 ## Quick Start – Installation
 

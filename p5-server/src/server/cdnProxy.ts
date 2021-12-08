@@ -1,16 +1,15 @@
 import express = require('express');
 import * as cacache from 'cacache';
+import * as csstree from 'css-tree';
+import { parse as parseCss } from 'css-tree';
 import fetch from 'node-fetch';
 import { parse as parseHtml } from 'node-html-parser';
-import { Cdn } from 'p5-analysis';
-import { Library } from 'p5-analysis';
+import { Cdn, Library } from 'p5-analysis';
 import { p5Version } from 'p5-analysis/dist/models/Library';
-import { parse as parseCss, CssNode } from 'css-tree';
-import * as csstree from 'css-tree';
-import { isDefined } from '../ts-extras';
-export * as cacache from 'cacache';
 import { Readable } from 'stream';
 import zlib from 'zlib';
+import { isDefined } from '../ts-extras';
+export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
@@ -265,45 +264,25 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
     return Readable.from(zlib.gzipSync(output));
   }
   const stylesheet = parseCss(typeof input === 'string' ? input : input.toString('utf8'));
-  // TODO: use csstree's AST traversal
-  function visit(node: CssNode) {
-    switch (node.type) {
-      case 'AtrulePrelude':
-      case 'Block':
-      case 'StyleSheet':
-      case 'Value':
-        node.children.forEach(visit);
-        break;
-      case 'Atrule':
-        if (node.prelude) visit(node.prelude);
-      // fall through
-      case 'Rule':
-        if (node.block) visit(node.block);
-        break;
-      case 'Declaration':
-        visit(node.value);
-        break;
-      case 'Url':
-        {
-          // index.d.ts documents node.value as a node, but it's actually a string
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let value = node.value as any as string;
-          if (!value?.startsWith('data:')) {
-            if (!/^https?:/.test(value)) {
-              value = urlResolve(base, value)
-            }
-            if (isCdnUrl(value)) {
-              const proxied = createProxyPath(value);
-              // debug(`rewriting ${value} to ${proxied}`);
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (node as any).value = proxied;
-            }
-          }
+  csstree.walk(stylesheet, node => {
+    if (node.type === 'Url') {
+      // The latest @types/css-tree^1 documents node.value as a node, but in
+      // css-tree^2 it's actually a string.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const urlNode = node as any as { value: string };
+      let value = urlNode.value;
+      if (!value?.startsWith('data:')) {
+        if (!/^https?:/.test(value)) {
+          value = urlResolve(base, value)
         }
-        break;
+        if (isCdnUrl(value)) {
+          const proxied = createProxyPath(value);
+          // debug(`rewriting ${value} to ${proxied}`);
+          urlNode.value = proxied;
+        }
+      }
     }
-  }
-  visit(stylesheet);
+  });
   return Readable.from(csstree.generate(stylesheet));
 }
 

@@ -264,25 +264,28 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
     return Readable.from(zlib.gzipSync(output));
   }
   const stylesheet = parseCss(typeof input === 'string' ? input : input.toString('utf8'));
-  csstree.walk(stylesheet, node => {
-    if (node.type === 'Url') {
-      // The latest @types/css-tree^1 documents node.value as a node, but in
-      // css-tree^2 it's actually a string.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const urlNode = node as any as { value: string };
-      let value = urlNode.value;
-      if (!value?.startsWith('data:')) {
-        if (!/^https?:/.test(value)) {
-          value = urlResolve(base, value)
-        }
-        if (isCdnUrl(value)) {
-          const proxied = createProxyPath(value);
-          // debug(`rewriting ${value} to ${proxied}`);
-          urlNode.value = proxied;
+  csstree.walk(stylesheet,
+    {
+      visit: 'Url',
+      enter(node) {
+        // csstree's node.value is a string, but the latest @types/css-tree (v1)
+        // declares it as a node.
+        //
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const urlNode = node as any as { value: string };
+        let value = urlNode.value;
+        if (!value?.startsWith('data:')) {
+          if (!/^https?:/.test(value)) {
+            value = urlResolve(base, value)
+          }
+          if (isCdnUrl(value)) {
+            const proxied = createProxyPath(value);
+            // debug(`rewriting ${value} to ${proxied}`);
+            urlNode.value = proxied;
+          }
         }
       }
-    }
-  });
+    });
   return Readable.from(csstree.generate(stylesheet));
 }
 

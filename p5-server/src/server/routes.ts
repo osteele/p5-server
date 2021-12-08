@@ -145,7 +145,9 @@ export function createRouter(config: RouterConfig): express.Router {
       }
       const data = fs.readFileSync(file, 'utf-8');
       res.set('Content-Type', 'text/html');
-      return res.send(markdownToHtmlPage(data));
+      let html = markdownToHtmlPage(data);
+      html = rewriteCdnUrls(html);
+      return res.send(html);
     }
     return next();
   });

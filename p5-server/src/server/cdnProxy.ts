@@ -40,8 +40,9 @@ const cacheWarmOrigins = [
   'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
   'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
   'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
+  // markdown.pug
+  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
 ]
-
 
 // The RequestI and ReponseI interfaces specify the part of express.Request and
 // express.Response that cdnProxyRouter uses. It is done this way so that

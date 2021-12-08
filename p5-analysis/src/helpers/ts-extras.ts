@@ -1,4 +1,7 @@
-/** This function is copied from https://github.com/sindresorhus/ts-extras.
+/** Check whether a value is defined (non-nullable), meaning it is neither
+ * `null` or `undefined`.
+ *
+ * This function is copied from https://github.com/sindresorhus/ts-extras.
  *
  * It is here so that I don't have to debug why esbuild-jest produces an error
  * (`SyntaxError: Unexpected token 'export'`) when it tries to compile a file

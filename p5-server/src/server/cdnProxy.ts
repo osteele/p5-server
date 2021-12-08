@@ -10,12 +10,19 @@ export * as cacache from 'cacache';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
 
+// This header is purely information; nothing else depends on it
+const HTTP_RESPONSE_HEADER_CACHE_HIT = 'x-p5-server-cache-hit';
 export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
 
+// The RequestI and ReponseI interfaces specify the part of express.Request and
+// express.Response that cdnProxyRouter uses. It is done this way so that
+// prefetch, which is used to warm the cache can call cdnProxyRouter instead of
+// using separate logic to test and populate the cache.
+
 interface RequestI {
   headers: typeof express.request.headers;
-  path: string;
+  path: typeof express.request.path;
   query: typeof express.request.query;
 }
 
@@ -24,24 +31,20 @@ interface ResponseI {
   send(chunk: string | Buffer): void;
   status(code: number): void;
   write(chunk: unknown): void;
-  end(): void;
+  end: typeof express.response.end;
 }
 
-export async function cdnProxyRouter(
-  req: RequestI,
-  // req: express.Request,
-  res: ResponseI
-  // res: express.Response
-): Promise<void> {
+// Note that express.Request implements RequestI, and express.Response implmenets ResponseI.
+// This function uses the more general type to allow prefetch to call cdnProxyRouter.
+export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const cacheKey = req.path.split('/', 2)[1];
   const url = decodeURIComponent(req.path.split('/', 2)[1]);
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
-  // cache hit
   if (cacheObject && !req.query.reload) {
     debug('cache hit', url);
     // TODO: check if content has expired
-    res.setHeader('x-p5-server-cache-hit', 'true');
+    res.setHeader(HTTP_RESPONSE_HEADER_CACHE_HIT, 'false');
     for (const key of Object.keys(cacheObject.metadata.headers)) {
       let value = cacheObject.metadata.headers[key];
       if (key === 'location' && isCdnUrl(value)) {
@@ -63,37 +66,38 @@ export async function cdnProxyRouter(
     .filter(([key]) => headerAcceptList.includes(key))
     .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
     .map(([key, value]) => [key, Array.isArray(value) ? value.join(' ') : value]));
-  const response = await fetch(url, {
+  const originResponse = await fetch(url, {
     compress: false, // store the gzip, for efficiency and to match the content-type
     headers: reqHeaders,
     redirect: 'manual', // don't follow redirects; cache the redirect directive
   });
 
-  res.status(response.status);
-  res.setHeader('x-p5-server-cache-hit', 'true');
-  sendHeaders();
+  res.status(originResponse.status);
+  res.setHeader(HTTP_RESPONSE_HEADER_CACHE_HIT, 'true');
+  relayOriginHeaders();
 
   // this test excludes 300 Multiple Choice
-  const redirected = 300 < response.status && response.status < 400 && response.headers.has('location');
-  if (!response.ok && !redirected) {
+  const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
+  if (!originResponse.ok && !redirected) {
     // don't cache responses other than 200's and redirects
-    debug(`Failed ${response.ok} | ${response.status} | ${response.statusText}`);
-    res.send(response.statusText);
+    debug(`Failed ${originResponse.ok} | ${originResponse.status} | ${originResponse.statusText}`);
+    res.send(originResponse.statusText);
     return;
   }
 
   const responseHeaders = Object.fromEntries(
-    Array.from(response.headers.entries())
+    Array.from(originResponse.headers.entries())
       .filter(([key]) => key !== 'content-accept-ranges')
   )
   const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
     metadata: {
       headers: responseHeaders,
-      status: response.status
+      status: originResponse.status
     }
   });
+
   let bodyLength = 0;
-  for await (const chunk of response.body) {
+  for await (const chunk of originResponse.body) {
     bodyLength += chunk.length;
     cacheWriteStream.write(chunk);
     res.write(chunk);
@@ -102,8 +106,10 @@ export async function cdnProxyRouter(
   res.end();
   debug('wrote', bodyLength, 'bytes to cache for', url);
 
-  function sendHeaders() {
-    response.headers.forEach((value, key) => {
+  // Copy headers from the origin response to the output response `res`.
+  // Modify Location headers to proxy them.
+  function relayOriginHeaders() {
+    originResponse.headers.forEach((value, key) => {
       if (key === 'location' && isCdnUrl(value)) {
         value = proxyPrefix + '/' + encodeURIComponent(value);
       }
@@ -155,14 +161,25 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   };
 }
 
+// URLs to warm the cache with, that can't be inferred from the libraries.
+const otherCachedUrls = [
+  // TODO: use an API to retrieve this constant
+  `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
+  // TODO: read the following from the template file. Or, add these to the package.
+  'https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
+  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
+]
+
 /** Warm the cache with all the import paths.
  * @returns the number of entries
-*/
+ */
 export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failureCount: number }> {
   const concurrency = 20;
   let failureCount = 0;
-  const p5importPath = `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`; // TODO: use an API to retrieve this constant
-  const urls = [p5importPath, ...getLibraryImportPaths()];
+  const urls = [...otherCachedUrls, ...getLibraryImportPaths()];
   const promises: Promise<void>[] = [];
   for (const url of urls) {
     if (promises.length >= concurrency) {
@@ -186,14 +203,25 @@ export async function warmCache({ force }: { force?: boolean }): Promise<{ count
   return { count: urls.length, failureCount };
 }
 
-// Parse the HTML, and replace any CDN URLs with local URLs.
+/** Replace CDN URLs in script[src] and link[href] with local proxy URLs.
+ * @param html the HTML to process
+ * @returns the processed HTML
+ */
 export function rewriteCdnUrls(html: string): string {
   const htmlRoot = parseHtml(html);
+  // rewrite script[src]
   const scriptTags = htmlRoot
     .querySelectorAll('script[src]')
     .filter(e => isCdnUrl(e.attributes.src));
   scriptTags.forEach(e => {
     e.setAttribute('src', proxyPrefix + '/' + encodeURIComponent(e.attributes.src));
+  });
+  // rewrite link[href]
+  const linkTags = htmlRoot
+    .querySelectorAll('link[rel=stylesheet][href]')
+    .filter(e => isCdnUrl(e.attributes.href));
+  linkTags.forEach(e => {
+    e.setAttribute('href', proxyPrefix + '/' + encodeURIComponent(e.attributes.href));
   });
   return htmlRoot.outerHTML;
 }
@@ -204,16 +232,10 @@ function isCdnUrl(url: string) {
     || getLibraryImportPaths().has(url);
 }
 
+/** Cache for memoizing getLibraryImportPaths. */
 let _libraryImportPaths: Set<string>;
 
 function getLibraryImportPaths() {
   _libraryImportPaths ??= new Set(Library.all.map(lib => lib.importPath).filter(isDefined));
   return _libraryImportPaths;
-}
-
-/* This function is copied from https://github.com/sindresorhus/ts-extras.
- * See the note in p5-analysis/src/ts-extras.tst.
-*/
-function isDefined<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined;
 }

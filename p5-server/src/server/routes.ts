@@ -215,5 +215,6 @@ async function sendDirectoryListing<T>(
   if (config.liveServer) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
   }
+  html = rewriteCdnUrls(html);
   return res.send(html);
 }

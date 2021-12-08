@@ -13,6 +13,7 @@ export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
+const proxyCss = true;
 
 // This header is purely information; nothing else depends on it
 const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
@@ -41,8 +42,8 @@ interface ResponseI {
 // Note that express.Request implements RequestI, and express.Response implmenets ResponseI.
 // This function uses the more general type to allow prefetch to call cdnProxyRouter.
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
-  const cacheKey = req.path.split('/', 2)[1];
-  const originUrl = decodeURIComponent(req.path.split('/', 2)[1]);
+  const originUrl = decodeProxyPath(req.path, req.query);
+  const cacheKey = encodeURIComponent(originUrl);
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
   if (cacheObject && !req.query.reload) {
@@ -52,7 +53,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     for (const key of Object.keys(cacheObject.metadata.headers)) {
       let value = cacheObject.metadata.headers[key];
       if (key === 'location' && isCdnUrl(value)) {
-        value = createProxyPath(value);
+        value = encodeProxyPath(value);
       }
       const headerMap: Record<string, string> = { server: 'origin-server' };
       res.setHeader(headerMap[key] ?? key, value);
@@ -120,21 +121,35 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   function relayOriginHeaders() {
     originResponse.headers.forEach((value, key) => {
       if (key === 'location' && isCdnUrl(value)) {
-        value = createProxyPath(value);
+        value = encodeProxyPath(value);
       }
       res.setHeader(key, value);
     });
   }
 }
 
-function createProxyPath(originUrl: string) {
-  return proxyPrefix + '/' + encodeURIComponent(originUrl);
+function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
+  let proxyPath = originUrl;
+  if (/\?/.test(originUrl)) {
+    const u = new URL(originUrl);
+    u.search = `?search=${encodeURIComponent(u.search.substr(1))}`;
+    proxyPath = u.toString();
+  }
+  return includePrefix ? `${proxyPrefix}/${proxyPath}` : proxyPath;
+}
+
+function decodeProxyPath(proxyPath: string, query: RequestI['query']) {
+  let originUrl = proxyPath.replace(/^\//, '');
+  if (query.search) {
+    originUrl += `?${decodeURIComponent(query.search as string)}`;
+  }
+  return originUrl;
 }
 
 /** Verify that url is in the cache. Request it if it is not.
  * Uses cdnProxyRouter to minimize different code paths that need to be tested.
  */
-async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean }> {
+async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data:Buffer }> {
   process.stdout.write(`Prefetching ${url}...\n`);
   const reqHeaders = {
     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -144,7 +159,7 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   };
   const req = {
     headers: reqHeaders,
-    path: '/' + encodeURIComponent(url),
+    path: encodeProxyPath(url, { includePrefix: false }),
     query: force ? { reload: 'true' } : {}
   };
   let status: number | undefined;
@@ -155,9 +170,10 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
       this.headers[key] = value;
     },
     status(statusCode: number) { status = statusCode },
-    send() { },
-    write() { },
+    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)},
+    write(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) },
     end() { },
+    chunks: new Array<Buffer>(),
   };
   /* eslint-enable @typescript-eslint/no-empty-function */
   debug(`warm cache for ${url}`);
@@ -169,6 +185,8 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
     return prefetch(location, { force });
   }
   return {
+    data: Buffer.concat(res.chunks),
+    headers: res.headers,
     ok: status! < 400,
     status: status!,
   };
@@ -189,31 +207,61 @@ const otherCachedUrls = [
 /** Warm the cache with all the import paths.
  * @returns the number of entries
  */
-export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failureCount: number }> {
+export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failures: number, hits:number,misses:number }> {
   const concurrency = 20;
-  let failureCount = 0;
+  const seen = new Set<string>();
+  const stats = { count: 0,failures: 0, hits: 0, misses: 0 };
   const urls = [...otherCachedUrls, ...getLibraryImportPaths()];
   const promises: Promise<void>[] = [];
-  for (const url of urls) {
+  // `while` instead of `for`, because visit() can add to the array.
+  while (urls.length > 0) {
+    await visit(urls.shift()!);
+  }
+  await Promise.all(promises);
+  return stats;
+
+  // This returns immediately if once it adds a promise to the array. If there
+  // are already `concurrency` promises pending, it waits for the first one to
+  // resolve.
+  async function visit(url: string) {
+    if (seen.has(url)) return;
+    seen.add(url);
     if (promises.length >= concurrency) {
       // debug('waiting for one of', promises.length, 'prefetches to settle');
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-      await Promise.any(promises).catch(() => { });
+      await Promise.any(promises).catch(() => {
+        // TODO: I thought I had a reason to ignore the exception, but I should review this
+      });
     }
     const p = prefetch(url, { force })
-      .then(({ status, ok }) => {
-        if (!ok) {
-          failureCount++;
+      .then(({ status, ok, headers, data }) => {
+        if (ok) {
+          const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
+          if (hit) stats.hits++; else stats.misses++;
+          if (headers['content-type'].startsWith('text/css')) {
+            if (headers['content-encoding'] === 'gzip') {
+              data = zlib.gunzipSync(data);
+            }
+            const base = url;
+            cssForEachUrl(data.toString(), (value) => {
+              if (value.startsWith('data:')) return;
+              value = urlResolve( base, value);
+              if (isCdnUrl(value)) {
+                urls.push(value);
+              }
+            });
+          }
+        } else {
+          stats.failures++;
           process.stderr.write(`Error: failed to fetch ${url}; error code: ${status}\n`);
         }
       })
       .finally(() => {
+        stats.count++;
         promises.splice(promises.indexOf(p), 1);
       });
     promises.push(p);
   }
-  await Promise.all(promises);
-  return { count: urls.length, failureCount };
 }
 
 /** Replace CDN URLs in script[src] and link[href] with local proxy URLs.
@@ -222,20 +270,24 @@ export async function warmCache({ force }: { force?: boolean }): Promise<{ count
  */
 export function rewriteCdnUrls(html: string): string {
   const htmlRoot = parseHtml(html);
+
   // rewrite script[src]
-  const scriptTags = htmlRoot
+  htmlRoot
     .querySelectorAll('script[src]')
-    .filter(e => isCdnUrl(e.attributes.src));
-  scriptTags.forEach(e => {
-    e.setAttribute('src', createProxyPath(e.attributes.src));
-  });
+    .filter(e => isCdnUrl(e.attributes.src))
+    .forEach(e => {
+      e.setAttribute('src', encodeProxyPath(e.attributes.src));
+    });
+
   // rewrite link[href]
-  const linkTags = htmlRoot
-    .querySelectorAll('link[rel=stylesheet][href]')
-    .filter(e => isCdnUrl(e.attributes.href));
-  linkTags.forEach(e => {
-    e.setAttribute('href', createProxyPath(e.attributes.href));
-  });
+  if (proxyCss) {
+    htmlRoot
+      .querySelectorAll('link[rel=stylesheet][href]')
+      .filter(e => isCdnUrl(e.attributes.href))
+      .forEach(e => {
+        e.setAttribute('href', encodeProxyPath(e.attributes.href));
+      });
+  }
   return htmlRoot.outerHTML;
 }
 
@@ -263,9 +315,25 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
     const output = await fromReadable(innerStream);
     return Readable.from(zlib.gzipSync(output));
   }
-  const stylesheet = parseCss(typeof input === 'string' ? input : input.toString('utf8'));
-  csstree.walk(stylesheet,
-    {
+  const text = typeof input === 'string' ? input : input.toString('utf8');
+  const stylesheet = parseCss(text);
+  cssForEachUrl(stylesheet, value => {
+    if (value.startsWith('data:')) return;
+    // if (!/^https?:/.test(value)) {
+    //   value = urlResolve(base, value)
+    // }
+    if (isCdnUrl(value)) {
+      const proxied = encodeProxyPath(value);
+      // debug(`rewriting ${value} to ${proxied}`);
+      return proxied;
+    }
+  }
+  );
+  return Readable.from(csstree.generate(stylesheet));
+}
+
+function cssForEachUrl(stylesheet: csstree.CssNode|string, callback: (url: string) => void | string) {
+  csstree.walk(typeof stylesheet === 'string' ? parseCss(stylesheet) : stylesheet, {
       visit: 'Url',
       enter(node) {
         // csstree's node.value is a string, but the latest @types/css-tree (v1)
@@ -273,20 +341,12 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
         //
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const urlNode = node as any as { value: string };
-        let value = urlNode.value;
-        if (!value?.startsWith('data:')) {
-          if (!/^https?:/.test(value)) {
-            value = urlResolve(base, value)
-          }
-          if (isCdnUrl(value)) {
-            const proxied = createProxyPath(value);
-            // debug(`rewriting ${value} to ${proxied}`);
-            urlNode.value = proxied;
-          }
+        const transformed = callback(urlNode.value);
+        if (transformed) {
+          urlNode.value = transformed;
         }
       }
     });
-  return Readable.from(csstree.generate(stylesheet));
 }
 
 async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {

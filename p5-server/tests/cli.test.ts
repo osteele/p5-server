@@ -1,7 +1,7 @@
-import build from '../src/commands/build';
-import convert from '../src/commands/convert';
-import create from '../src/commands/create';
-import serve from '../src/commands/serve';
+import build from '../src/commands/buildCommand';
+import convert from '../src/commands/convertSketch';
+import create from '../src/commands/createSketch';
+import serve from '../src/commands/serveCommand';
 
 test('cli', () => {
   // The main purpose of these is to import the CLI functions, so that running

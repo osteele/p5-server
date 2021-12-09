@@ -35,19 +35,22 @@
 
 ## Overview
 
-**New feature: the server caches requests to known CDN servers (JSDelivr,
-Skypack, Unpkg). If your sketch uses libraries from these locations – as the
-generated files do — and if your sketch while you have internet service, you can
-run it later while you are offline.**
+**New feature: “airplane mode”. The server caches requests to known CDN servers
+(JSDelivr, Skypack, Unpkg). A sketch that uses libraries from these servers – as
+the files that this package generates do — can run without an internet
+connection, after the cache is warmed. See [here](./docs/proxy-cache.md) for
+more details.**
 
-**p5-server** is a command-line interface for [p5.js](https://p5js.org/). It
-provides a web server with live reload, that knows how to serve JavaScript-only
-sketches and to figure out which libraries a sketch needs in order to run.
+**p5-server** is a development server for [p5.js](https://p5js.org/). It
+provides a web server with live reload, and command-line tools to generate HTML
+and JavaScript templates. The server can serve JavaScript-only sketches (that do
+not require an HTML file); it figures out which libraries a sketch needs in
+order to run.
 
 ![Directory listing in the browser](docs/screenshot.png)
 
-You can use it develop sketches, or to browse a collection of sketches in a
-directory.
+p5-server can be used to develop sketches; or to browse a collection of sketches
+in a directory.
 
 [![Using the split view to explore a collection of sketches. Click to see a higher-resolution version.](docs/explore.gif)](https://images.osteele.com/p5-server/explore-fullsize.gif)
 
@@ -84,7 +87,10 @@ API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
   lists the sketches, folders, other files in that directory.
 - ***Sketch file generation***. `p5 generate` creates a sketch file that you can
   use to get started.
-- **Integrated web accelerator (CDN Cache)**. The server proxies requests to the common content delivery networks (CDNs) – JSDelivr, Unpkg, Skypack,
+- **Integrated web accelerator (CDN Cache)**. The server proxies requests to the
+  common content delivery networks (CDNs) that are used to deliver the sources
+  to p5.js and common p5.js libraries. See [here](./docs/proxy-cache.md) for
+  more information about how this works.
 
 ## Quick Start – Installation
 

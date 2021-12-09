@@ -6,10 +6,11 @@ import fetch from 'node-fetch';
 import { parse as parseHtml } from 'node-html-parser';
 import { Cdn, Library } from 'p5-analysis';
 import { p5Version } from 'p5-analysis/dist/models/Library';
-import { Readable } from 'stream';
+import stream, { Readable } from 'stream';
 import zlib from 'zlib';
 import { isDefined } from '../ts-extras';
 import path = require('path');
+import assert = require('assert');
 export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -36,7 +37,7 @@ const cdnDomains = [
  *
  * It's okay if these have repeats. The cache warmer deduplicates URLs anyway.
  */
-const cacheWarmOrigins = [
+const cacheSeeds = [
   // TODO: use an API to retrieve this constant
   `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
   // TODO: read the following from the template file. Or, add these to the package.
@@ -66,16 +67,17 @@ interface RequestI {
 }
 
 /** The express.Response properties that cdnProxyRouter cares about. */
-interface ResponseI {
+interface ResponseI extends NodeJS.WritableStream {
   setHeader(key: string, value: string | number | readonly string[]): void;
   send(chunk: string | Buffer): void;
   status(code: number): void;
-  write(chunk: unknown): void;
-  end: typeof express.response.end;
 }
 
-// Note that express.Request implements RequestI, and express.Response implmenets ResponseI.
-// This function uses the more general type to allow prefetch to call cdnProxyRouter.
+// Note that express.Request implements RequestI, and express.Response
+// implements ResponseI.
+//
+// This function uses the more general type to allow prefetch to call
+// cdnProxyRouter.
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const originUrl = decodeProxyPath(req.path, req.query);
   const cacheKey = encodeURIComponent(originUrl);
@@ -85,8 +87,9 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     debug('cache hit', originUrl);
     // TODO: check if content has expired
     res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
-    for (const key of Object.keys(cacheObject.metadata.headers)) {
-      let value = cacheObject.metadata.headers[key];
+    const { headers } = cacheObject.metadata;
+    for (const key of Object.keys(headers)) {
+      let value = headers[key];
       if (key === 'location' && isCdnUrl(value)) {
         value = encodeProxyPath(value);
       }
@@ -95,13 +98,9 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     }
     res.status(cacheObject.metadata.status);
     let stream = cacache.get.stream(cachePath, cacheKey);
-    if (cacheObject.metadata.headers['content-type'].startsWith('text/css')) {
-      stream = await makeCssRewriterStream(stream, originUrl, cacheObject.metadata.headers['content-encoding']);
-    }
-    for await (const chunk of stream) {
-      res.write(chunk);
-    }
-    res.end();
+    stream = await makeProxyReplacemenStream(stream, headers['content-type'], headers['content-encoding'], originUrl);
+    stream.pipe(res);
+    await new Promise(resolve => res.on('finish', resolve));
     return;
   }
 
@@ -143,9 +142,10 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
 
   // expressjs.Response.headers serializes to {}. Copy it to an Object that can
   // be serialized to JSON.
+  const uncacheableHeaders = ['age', 'content-accept-ranges'];
   const responseHeaders = Object.fromEntries(
     Array.from(originResponse.headers.entries())
-      .filter(([key]) => key !== 'content-accept-ranges')
+      .filter(([key]) => !uncacheableHeaders.includes(key))
   )
   const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
     metadata: {
@@ -156,15 +156,25 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
 
   // pipe the origin response body to the both the client response and to the cache write stream.
   // Collect the length of the response for logging.
-  let bodyLength = 0;
-  for await (const chunk of originResponse.body) {
-    bodyLength += chunk.length;
-    cacheWriteStream.write(chunk);
-    res.write(chunk);
+  const counter = new class extends stream.Writable {
+    size = 0;
+    _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+      if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
+        this.size += chunk.length;
+      }
+      callback();
+    }
   }
-  cacheWriteStream.end();
-  res.end();
-  debug('wrote', bodyLength, 'bytes to cache for', originUrl);
+  originResponse.body.pipe(multiplexStreamWriter([res, cacheWriteStream, counter]));
+  await new Promise(resolve => counter.on('finish', resolve));
+  debug('wrote', counter.size, 'bytes to cache for', originUrl);
+}
+
+async function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string) {
+  if (contentType.startsWith('text/css')) {
+    return await makeCssRewriterStream(stream, base, contentEncoding);
+  }
+  return stream;
 }
 
 //#region proxy paths
@@ -235,17 +245,22 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
   };
   let status: number | undefined;
   /* eslint-disable @typescript-eslint/no-empty-function */
-  const res = {
-    headers: {} as Record<string, string>,
+  const res = new class extends stream.Writable {
+    headers: Record<string, string> = {};
+    chunks = new Array<Buffer>();
+
     setHeader(key: string, value: string) {
       this.headers[key] = value;
-    },
-    status(statusCode: number) { status = statusCode },
-    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) },
-    write(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) },
-    end() { },
-    chunks: new Array<Buffer>(),
+    }
+    status(statusCode: number) { status = statusCode; }
+    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) }
+    _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+      assert.ok(chunk instanceof Buffer);
+      this.chunks.push(chunk as Buffer);
+      callback();
+    }
   };
+
   /* eslint-enable @typescript-eslint/no-empty-function */
   debug(`warm cache for ${url}`);
   await cdnProxyRouter(req, res);
@@ -270,7 +285,7 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
 export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ total: number, failures: number, hits: number, misses: number }> {
   const concurrency = 20; // max number of requests to make at once
   const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
-  const urls = [...cacheWarmOrigins, ...getLibraryImportPaths()];
+  const urls = [...cacheSeeds, ...getLibraryImportPaths()];
   if (!verbose) {
     process.stdout.write(`warming cache for ${urls.length} urls`);
   }
@@ -435,6 +450,58 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
 
 //#endregion
 
+//#region stream helpers
+
+/** Read the remaining chunks from a ReadableStream, and combine them into a
+ * single string (if they are all strings) or Buffer.
+ *
+ * An empty stream produces an empty string. (This is an arbitrary choice; a
+ * Buffer could have been used.)
+ *
+ * Note: Doesn't handle chunks of type `Uint8Array`.
+ */
+async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {
+  const chunks: (string | Buffer)[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  return chunks.length === 0 ? ''
+    : chunks.length === 1 ? chunks[0]
+      : chunks.every(chunk => typeof chunk === 'string') ? chunks.join('')
+        : chunks.every(chunk => chunk instanceof Buffer) ? Buffer.concat(chunks as Buffer[])
+          : Buffer.concat(chunks.map(chunk => typeof chunk === 'string' ? Buffer.from(chunk) : chunk));
+}
+
+function multiplexStreamWriter(streams: NodeJS.WritableStream[]): NodeJS.WritableStream {
+  assert.notEqual(streams.length, 0);
+  return new stream.PassThrough({
+    write(chunk, encoding, callback) {
+      let error: Error | null | undefined = null;
+      let count = streams.length;
+      for (const stream of streams) {
+        stream.write(chunk, encoding, (err) => {
+          error ??= err;
+          if (--count === 0) {
+            callback(error);
+          }
+        });
+      }
+    },
+    final(callback) {
+      let count = streams.length;
+      for (const stream of streams) {
+        stream.end(() => {
+          if (--count === 0) {
+            callback();
+          }
+        });
+      }
+    }
+  });
+}
+
+//#endregion
+
 //#region helpers
 
 /** Call `callback` for each URL in the CSS stylesheet. If `callback` returns a
@@ -454,24 +521,6 @@ function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: str
       }
     }
   });
-}
-
-/** Read the remaining chunks from a ReadableStream, and combine them into a
- * single string (if they are all strings) or Buffer.
- *
- * An empty stream produces an empty string. (This is an arbitrary choice; a
- * Buffer could have been used.)
- */
-async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {
-  const chunks: (string | Buffer)[] = [];
-  for await (const chunk of stream) {
-    chunks.push(chunk);
-  }
-  return chunks.length === 0 ? ''
-    : chunks.length === 1 ? chunks[0]
-      : chunks.every(chunk => typeof chunk === 'string') ? chunks.join('')
-        : chunks.every(chunk => chunk instanceof Buffer) ? Buffer.concat(chunks as Buffer[])
-          : Buffer.concat(chunks.map(chunk => typeof chunk === 'string' ? Buffer.from(chunk) : chunk));
 }
 
 function isRelativeUrl(url: string) {

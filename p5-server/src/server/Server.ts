@@ -8,7 +8,7 @@ import {
   attachBrowserScriptRelay,
   BrowserScriptRelay
 } from './browserScriptEventRelay';
-import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
+import { cdnProxyRouter, proxyPrefix } from './proxyCache';
 import { staticAssetPrefix } from './constants';
 import { createDirectoryListing } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
@@ -37,7 +37,7 @@ export namespace Server {
 
     /** Cache requests to CND servers, for use without an internet connection.
      */
-    cacheCdnRequests: boolean;
+    proxyCache: boolean;
 
     /** If true, relay console events from the sketch to an emitter on the
      * server. */
@@ -81,10 +81,10 @@ export type RouterConfig = Server.Options & {
 type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
-  cacheCdnRequests: true,
   liveServer: true,
   logConsoleEvents: false,
   port: 3000,
+  proxyCache: true,
   relayConsoleMessages: false,
   scanPorts: true,
   screenshot: null,

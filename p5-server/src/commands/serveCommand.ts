@@ -14,10 +14,10 @@ import { Server } from '../server/Server';
 
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
-  cdnCache?: boolean;
   console?: boolean | 'json' | 'passive';
   open?: boolean;
   port?: string;
+  proxyCache?: boolean;
   split?: boolean;
   theme?: string;
 };
@@ -46,7 +46,7 @@ export default async function serve(files: string[], options: Options) {
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {
-    cacheCdnRequests: options.cdnCache,
+    proxyCache: options.proxyCache,
     port: Number(options.port),
     root: file,
     relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',

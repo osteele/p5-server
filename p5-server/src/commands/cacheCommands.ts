@@ -1,5 +1,5 @@
 import nunjucks from 'nunjucks';
-import { cacache, cachePath as proxyCachePath } from '../server/cdnProxy';
+import { cacache, cachePath as proxyCachePath } from '../server/proxyCache';
 
 export function lsCache({ json = false, verbose = false }): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });

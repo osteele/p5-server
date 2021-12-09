@@ -1,11 +1,10 @@
 # Proxy Cache
 
-p5-server caches requests to known Content Delivery Network (CDN) servers.
+The proxy cache enables “airplane mode”, where the p5-server development server
+can used without an internet connection.
 
-If a sketch uses libraries from these locations – as the files that p5-server
-generates do — and if you first view a sketch (or any sketch that uses the same
-libraries) while your computer has internet service, you can run it later while
-your computer is offline.
+It works by caching requests to known Content Delivery Network (CDN) servers, so
+that they are served from a local cache instead.
 
 (This feature, or a server that provides this feature, are variously referred to
 on the web as a *proxy cache*, a *reverse proxy cache*, a *caching proxy*, or a
@@ -27,12 +26,14 @@ necessary to run the sketches that you view. At any later point, you can view
 the same sketches without an internet connection.
 
 The `p5 cache warm` command can also be used to pre-load the cache with import
-paths for p5.js and its community libraries, and with the CSS frameworks and
-other helpers that the p5 server itself uses.
+paths for p5.js and its community libraries, and with the resources that the p5
+server itself uses to display, for example, directory pages, the split-screen
+browser, and error pages.
 
 ## Disabling the Cache
 
-To run the server without the cache, run the `p5 server` command with the `--no-cdn-cache` option.
+To run the server without the proxy cache, run the `p5 server` command with the
+`--no-proxy-cache` option.
 
 The files created by `p5 build` and `p5 generate` do not reference the CDN
 servers directly, and do not depend on the cache. The cache is only used when
@@ -70,9 +71,12 @@ cache ls --help`.
 
 ## Implementation Details
 
-In HTML documents served by the server, `script` element `src` attributes and
-`link` element `href` attributes whose values are CDN resources, are rewritten
-as requests against the development server.
+The server rewrites HTML and CSS files, as they are served, to load resources
+from the server itself instead of from CDN servers. This allows the server to
+cache these resources, and to serve them without an internet connection.
+
+In HTML documents, the `src` attributes of `script` elements, and the `href`
+attributes of `link` element with a `type="stylesheet"` attribute, are modified.
 
 In CSS documents, URLs that resolve to CDN resources are also rewritten. This
 ensures that if the HTML for a sketch links to a CSS document that in turn

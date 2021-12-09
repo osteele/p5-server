@@ -9,7 +9,7 @@ import convert from '../commands/convertSketch';
 import create from '../commands/createSketch';
 import screenshot from '../commands/screenshotCommand';
 import serve from '../commands/serveCommand';
-import { cacache, cachePath as proxyCachePath, warmCache } from '../server/cdnProxy';
+import { cacache, cachePath as proxyCachePath, warmCache } from '../server/proxyCache';
 import { lsCache, printCacheInfo } from '../commands/cacheCommands';
 
 const program = new Command();
@@ -88,7 +88,7 @@ program
   .option('-t, --theme [FILE]', 'template file')
   .option('--browser <NAME>', 'safari | chrome | firefox | edge (implies --open)')
   .option('--split', 'Use the split (directory + sketch) template')
-  .option('--no-cdn-cache', 'disable the CDN proxy cache')
+  .option('--no-proxy-cache', 'disable the CDN proxy cache')
   .option(
     '--console [FORMAT]',
     'Relay console messages and errors to sketch in the server console'

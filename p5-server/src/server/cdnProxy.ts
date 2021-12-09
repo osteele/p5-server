@@ -163,6 +163,8 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   }
 }
 
+//#region proxy paths
+
 // exported for unit testing
 export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
   if (!/^https?:/i.test(originUrl)) return originUrl;
@@ -182,17 +184,32 @@ export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}
 }
 
 // exported for unit testing
-export function decodeProxyPath(proxyPath: string, query: RequestI['query']): string {
+export function decodeProxyPath(proxyPath: string, query: RequestI['query'] = {}): string {
   let originUrl = proxyPath
     .replace(proxyPrefix, '')
     .replace(/^\//, '')
     .replace(/^http\//, 'https://');
   if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
+      if (originUrl.includes('?')) {
+        const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
+        originUrl = pʹ + (hash || '');
+        new URLSearchParams(queryString).forEach((value, key) => {
+          query[key] = value;
+        });
+      }
   if (query.search) {
     originUrl += `?${decodeURIComponent(query.search as string)}`;
   }
   return originUrl;
 }
+
+function isProxyPath(url: string):boolean {
+  return url.startsWith(proxyPrefix);
+}
+
+//#endregion
+
+//#region cache warmup
 
 /** Verify that url is in the cache. Request it if it is not. Uses
  * cdnProxyRouter to minimize different code paths that need to be tested.
@@ -293,9 +310,12 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
             const base = url;
             cssForEachUrl(data.toString(), (value) => {
               if (value.startsWith('data:')) return;
-              value = urlResolve(base, value);
-              if (isCdnUrl(value)) {
-                urls.push(value);
+              if (isProxyPath(value)) {
+                const originUrl = decodeProxyPath(url);
+                urls.push(originUrl);
+              } else if (isRelativeUrl(value)) {
+                const originUrl = urlResolve(base, value);
+                urls.push(originUrl);
               }
             });
           }
@@ -312,6 +332,8 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
     promises.push(p);
   }
 }
+
+//#endregion
 
 /** Replace CDN URLs in script[src] and link[href] with local proxy URLs.
  * @param html the HTML to process
@@ -368,9 +390,6 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
   const stylesheet = parseCss(text);
   cssForEachUrl(stylesheet, value => {
     if (value.startsWith('data:')) return;
-    // if (!/^https?:/.test(value)) {
-    //   value = urlResolve(base, value)
-    // }
     if (isCdnUrl(value)) {
       const proxied = encodeProxyPath(value);
       // debug(`rewriting ${value} to ${proxied}`);
@@ -381,6 +400,8 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
   return Readable.from(csstree.generate(stylesheet));
 }
 
+/** Call `callback` for each URL in the CSS stylesheet. If `callback` returns a
+ * value, replace the URL with that value. */
 function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: string) => void | string) {
   csstree.walk(typeof stylesheet === 'string' ? parseCss(stylesheet) : stylesheet, {
     visit: 'Url',
@@ -398,6 +419,14 @@ function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: str
   });
 }
 
+//#region helpers
+
+/** Read the remaining chunks from a ReadableStream, and combine them into a
+ * single string (if they are all strings) or Buffer.
+ *
+ * An empty stream produces an empty string. (This is an arbitrary choice; a
+ * Buffer could have been used.)
+ */
 async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {
   const chunks: (string | Buffer)[] = [];
   for await (const chunk of stream) {
@@ -410,6 +439,10 @@ async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buf
           : Buffer.concat(chunks.map(chunk => typeof chunk === 'string' ? Buffer.from(chunk) : chunk));
 }
 
+function isRelativeUrl(url: string) {
+  return !/^[a-z]+:/i.test(url);
+}
+
 // Source: nodejs documentation for Url.resolve
 function urlResolve(from: string, to: string): string {
   const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
@@ -419,3 +452,5 @@ function urlResolve(from: string, to: string): string {
   }
   return resolvedUrl.toString();
 }
+
+//#endregion

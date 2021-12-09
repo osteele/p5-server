@@ -57,11 +57,11 @@ describe('CDN Proxy', () => {
       const encodedPath = encodeProxyPath(originUrl);
       let pathWithoutQuery = encodedPath;
       let query = {};
-      if (encodedPath.includes('?')) {
-        const [pʹ, queryString, hash] = encodedPath.match(/(.+)\?(.+)(#.*)?/).slice(1);
-        pathWithoutQuery = pʹ + (hash || '');
-        query = Object.fromEntries(new URLSearchParams(queryString));
-      }
+      // if (encodedPath.includes('?')) {
+      //   const [pʹ, queryString, hash] = encodedPath.match(/(.+)\?(.+)(#.*)?/).slice(1);
+      //   pathWithoutQuery = pʹ + (hash || '');
+      //   query = Object.fromEntries(new URLSearchParams(queryString));
+      // }
       expect(decodeProxyPath(pathWithoutQuery, query)).toBe(originUrl);
     }
 

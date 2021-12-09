@@ -127,10 +127,15 @@ cacheCommand
   .command('warm')
   .description('Fill the cache from known library import paths')
   .option('-f, --force', 'Force refresh of cached entries')
-  .action(async ({ force = false }) => {
-    const { total, failures, misses } = await warmCache({ force });
+  .option('-v, --verbose', 'verbose output')
+  .action(async ({ force, verbose }) => {
+    const { total, failures, misses } = await warmCache({ force, verbose });
     if (failures > 0) process.exit(1);
-    console.log(`Added ${misses} for a total of ${total} entries`);
+    console.log(
+      misses > 0
+        ? `Added ${misses} entry for a total of ${total}`
+        : `All ${total} entries were already in the cache`
+    );
   });
 
 /*

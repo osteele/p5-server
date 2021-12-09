@@ -171,6 +171,10 @@ export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}
     u.search = `?search=${encodeURIComponent(u.search.substr(1))}`;
     proxyPath = u.toString();
   }
+  // The following transformation improves the readability of the developer console's source list.
+  proxyPath = proxyPath
+    .replace(/^https:\/\//i, '')
+    .replace(/^http:\/\//i, 'http/')
   return includePrefix ? `${proxyPrefix}/${proxyPath}` : proxyPath;
 }
 
@@ -178,7 +182,8 @@ export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}
 export function decodeProxyPath(proxyPath: string, query: RequestI['query']): string {
   let originUrl = proxyPath
     .replace(proxyPrefix, '')
-    .replace(/^\//, '');
+    .replace(/^\//, '')
+    .replace(/^http\//, 'https://');
   if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
   if (query.search) {
     originUrl += `?${decodeURIComponent(query.search as string)}`;

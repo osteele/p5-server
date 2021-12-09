@@ -10,7 +10,7 @@ import { injectScriptEventRelayScript } from './browserScriptEventRelay';
 import { staticAssetPrefix } from './constants';
 import { createDirectoryListing, defaultDirectoryExclusions } from './directoryListing';
 import { injectLiveReloadScript } from './liveReload';
-import { rewriteCdnUrls } from './proxyCache';
+import { replaceUrlsInHtml } from './proxyCache';
 import { RouterConfig } from './Server';
 import {
   createSyntaxErrorJsReporter,
@@ -146,7 +146,7 @@ export function createRouter(config: RouterConfig): express.Router {
       const data = fs.readFileSync(file, 'utf-8');
       res.set('Content-Type', 'text/html');
       let html = markdownToHtmlPage(data);
-      if (config.proxyCache) html = rewriteCdnUrls(html);
+      if (config.proxyCache) html = replaceUrlsInHtml(html);
       return res.send(html);
     }
     return next();
@@ -184,7 +184,7 @@ export function createRouter(config: RouterConfig): express.Router {
       });
     }
 
-    if (config.proxyCache) html = rewriteCdnUrls(html);
+    if (config.proxyCache) html = replaceUrlsInHtml(html);
     res.set('Content-Type', 'text/html');
     res.send(html);
   }
@@ -217,6 +217,6 @@ async function sendDirectoryListing<T>(
   if (config.liveServer) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
   }
-  if (config.proxyCache) html = rewriteCdnUrls(html);
+  if (config.proxyCache) html = replaceUrlsInHtml(html);
   return res.send(html);
 }

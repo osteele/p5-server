@@ -14,15 +14,13 @@ export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
-const proxyCss = true;
 
-// This header is purely information; nothing else depends on it
 const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
 
-/** A list of CDNs that aren't listed in the Library model (because they aren't
- * specific to serving NPM packages).
+/** A list of CDNs that aren't listed in the p5-analysis Library model (because
+ * they aren't specific to serving NPM packages).
  */
 const cdnDomains = [
   'fonts.googleapis.com',
@@ -60,12 +58,14 @@ const cacheWarmOrigins = [
 // prefetch, which is used to warm the cache can call cdnProxyRouter instead of
 // using separate logic to test and populate the cache.
 
+/** The express.Request properties that cdnProxyRouter cares about. */
 interface RequestI {
   headers: typeof express.request.headers;
   path: typeof express.request.path;
   query: typeof express.request.query;
 }
 
+/** The express.Response properties that cdnProxyRouter cares about. */
 interface ResponseI {
   setHeader(key: string, value: string | number | readonly string[]): void;
   send(chunk: string | Buffer): void;
@@ -106,22 +106,33 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   }
 
   debug('proxy request for', originUrl);
+  // filter the headers, and combine string[] values back into strings
   const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
   const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
     .filter(([key]) => headerAcceptList.includes(key))
     .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
-    .map(([key, value]) => [key, Array.isArray(value) ? value.join(' ') : value]));
+    .map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value]));
   const originResponse = await fetch(originUrl, {
-    compress: false, // store the gzip, for efficiency and to match the content-type
+    compress: false, // don't uncompress gzips, for efficiency and so that the content matches the content-type
     headers: reqHeaders,
-    redirect: 'manual', // don't follow redirects; cache the redirect directive
+    redirect: 'manual', // don't follow redirects; cache the redirect directive instead
   });
 
+  // Relay the origin status, and add a cache header
   res.status(originResponse.status);
   res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'MISS');
-  relayOriginHeaders();
 
-  // this test excludes 300 Multiple Choice
+  // Copy headers from the origin response to the output response.
+  // Modify Location headers to proxy them, in the case of a redirect.
+  originResponse.headers.forEach((value, key) => {
+    if (key === 'location' && isCdnUrl(value)) {
+      value = encodeProxyPath(value);
+    }
+    res.setHeader(key, value);
+  });
+
+  // This test excludes 300 Multiple Choice, since it's not really a redirect
+  // and that code  isn't used in practice.
   const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
   if (!originResponse.ok && !redirected) {
     // don't cache responses other than 200's and redirects
@@ -130,6 +141,8 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     return;
   }
 
+  // expressjs.Response.headers serializes to {}. Copy it to an Object that can
+  // be serialized to JSON.
   const responseHeaders = Object.fromEntries(
     Array.from(originResponse.headers.entries())
       .filter(([key]) => key !== 'content-accept-ranges')
@@ -141,6 +154,8 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     }
   });
 
+  // pipe the origin response body to the both the client response and to the cache write stream.
+  // Collect the length of the response for logging.
   let bodyLength = 0;
   for await (const chunk of originResponse.body) {
     bodyLength += chunk.length;
@@ -150,17 +165,6 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   cacheWriteStream.end();
   res.end();
   debug('wrote', bodyLength, 'bytes to cache for', originUrl);
-
-  // Copy headers from the origin response to the output response `res`.
-  // Modify Location headers to proxy them.
-  function relayOriginHeaders() {
-    originResponse.headers.forEach((value, key) => {
-      if (key === 'location' && isCdnUrl(value)) {
-        value = encodeProxyPath(value);
-      }
-      res.setHeader(key, value);
-    });
-  }
 }
 
 //#region proxy paths
@@ -190,20 +194,20 @@ export function decodeProxyPath(proxyPath: string, query: RequestI['query'] = {}
     .replace(/^\//, '')
     .replace(/^http\//, 'https://');
   if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
-      if (originUrl.includes('?')) {
-        const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
-        originUrl = pʹ + (hash || '');
-        new URLSearchParams(queryString).forEach((value, key) => {
-          query[key] = value;
-        });
-      }
+  if (originUrl.includes('?')) {
+    const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
+    originUrl = pʹ + (hash || '');
+    new URLSearchParams(queryString).forEach((value, key) => {
+      query[key] = value;
+    });
+  }
   if (query.search) {
     originUrl += `?${decodeURIComponent(query.search as string)}`;
   }
   return originUrl;
 }
 
-function isProxyPath(url: string):boolean {
+function isProxyPath(url: string): boolean {
   return url.startsWith(proxyPrefix);
 }
 
@@ -341,32 +345,7 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
 
 //#endregion
 
-/** Replace CDN URLs in script[src] and link[href] with local proxy URLs.
- * @param html the HTML to process
- * @returns the processed HTML
- */
-export function rewriteCdnUrls(html: string): string {
-  const htmlRoot = parseHtml(html);
-
-  // rewrite script[src]
-  htmlRoot
-    .querySelectorAll('script[src]')
-    .filter(e => isCdnUrl(e.attributes.src))
-    .forEach(e => {
-      e.setAttribute('src', encodeProxyPath(e.attributes.src));
-    });
-
-  // rewrite link[href]
-  if (proxyCss) {
-    htmlRoot
-      .querySelectorAll('link[rel=stylesheet][href]')
-      .filter(e => isCdnUrl(e.attributes.href))
-      .forEach(e => {
-        e.setAttribute('href', encodeProxyPath(e.attributes.href));
-      });
-  }
-  return htmlRoot.outerHTML;
-}
+//#region CDN recognition
 
 // exported for unit tests
 export function isCdnUrl(url: string): boolean {
@@ -384,6 +363,63 @@ function getLibraryImportPaths() {
   return _libraryImportPaths;
 }
 
+//#endregion
+
+//#region rewrite documents
+
+/** Replace CDN URLs in script[src] and link[href] with proxy cache paths.
+ *
+ * @param html the HTML to process
+ * @returns the processed HTML
+ */
+export function replaceUrlsInHtml(html: string): string {
+  const htmlRoot = parseHtml(html);
+  let modified = false;
+
+  // rewrite script[src]
+  htmlRoot
+    .querySelectorAll('script[src]')
+    .filter(e => isCdnUrl(e.attributes.src))
+    .forEach(e => {
+      modified = true;
+      e.setAttribute('src', encodeProxyPath(e.attributes.src));
+    });
+
+  // rewrite link[href]
+  htmlRoot
+    .querySelectorAll('link[rel=stylesheet][href]')
+    .filter(e => isCdnUrl(e.attributes.href))
+    .forEach(e => {
+      modified = true;
+      e.setAttribute('href', encodeProxyPath(e.attributes.href));
+    });
+
+  return modified ? htmlRoot.outerHTML : html;
+}
+
+/** Replace CDN URLs in with proxy cache paths.
+ *
+ * @param html the HTML to process
+ * @returns the processed HTML
+ */
+function replaceUrlsInCss(text: string) {
+  const stylesheet = parseCss(text);
+  let modified = false;
+
+  cssForEachUrl(stylesheet, value => {
+    if (value.startsWith('data:'))
+      return;
+    if (isCdnUrl(value)) {
+      const proxied = encodeProxyPath(value);
+      modified = true;
+      // debug(`rewriting ${value} to ${proxied}`);
+      return proxied;
+    }
+  }
+  );
+  return modified ? csstree.generate(stylesheet) : text;
+}
+
 // TODO: change this to transformer, and use pipe to handle buffering and compression
 async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string, encoding?: string): Promise<NodeJS.ReadableStream> {
   const input = await fromReadable(stream);
@@ -393,18 +429,13 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
     return Readable.from(zlib.gzipSync(output));
   }
   const text = typeof input === 'string' ? input : input.toString('utf8');
-  const stylesheet = parseCss(text);
-  cssForEachUrl(stylesheet, value => {
-    if (value.startsWith('data:')) return;
-    if (isCdnUrl(value)) {
-      const proxied = encodeProxyPath(value);
-      // debug(`rewriting ${value} to ${proxied}`);
-      return proxied;
-    }
-  }
-  );
-  return Readable.from(csstree.generate(stylesheet));
+  const transformed = replaceUrlsInCss(text);
+  return Readable.from(transformed);
 }
+
+//#endregion
+
+//#region helpers
 
 /** Call `callback` for each URL in the CSS stylesheet. If `callback` returns a
  * value, replace the URL with that value. */
@@ -424,8 +455,6 @@ function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: str
     }
   });
 }
-
-//#region helpers
 
 /** Read the remaining chunks from a ReadableStream, and combine them into a
  * single string (if they are all strings) or Buffer.

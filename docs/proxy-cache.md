@@ -91,6 +91,8 @@ example, is rewritten as a request for
 selected to make the source list of the browser's developer console readable (as
 illustrated in the screenshot at the top of this document).
 
+Status codes and response headers are cached. Each step of a redirect is cached.
+
 The cache is stored on disk at `~/.cache/p5-server`.
 
 ## Limitations

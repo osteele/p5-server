@@ -146,7 +146,7 @@ export function createRouter(config: RouterConfig): express.Router {
       const data = fs.readFileSync(file, 'utf-8');
       res.set('Content-Type', 'text/html');
       let html = markdownToHtmlPage(data);
-      html = rewriteCdnUrls(html);
+      if (config.cacheCdnRequests) html = rewriteCdnUrls(html);
       return res.send(html);
     }
     return next();
@@ -184,7 +184,7 @@ export function createRouter(config: RouterConfig): express.Router {
       });
     }
 
-    html = rewriteCdnUrls(html);
+    if (config.cacheCdnRequests) html = rewriteCdnUrls(html);
     res.set('Content-Type', 'text/html');
     res.send(html);
   }
@@ -217,6 +217,6 @@ async function sendDirectoryListing<T>(
   if (config.liveServer) {
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
   }
-  html = rewriteCdnUrls(html);
+  if (config.cacheCdnRequests) html = rewriteCdnUrls(html);
   return res.send(html);
 }

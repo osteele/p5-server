@@ -6,17 +6,17 @@ import { EventEmitter } from 'stream';
 import { assertError } from '../ts-extras';
 import {
   attachBrowserScriptRelay,
-  BrowserScriptRelay,
+  BrowserScriptRelay
 } from './browserScriptEventRelay';
+import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
+import { staticAssetPrefix } from './constants';
 import { createDirectoryListing } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
 import { createLiveReloadServer, LiveReloadServer } from './liveReload';
 import { createRouter } from './routes';
 import { templateDir } from './templates';
 import http = require('http');
-import { staticAssetPrefix } from './constants';
 import chalk = require('chalk');
-import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -24,7 +24,8 @@ export namespace Server {
     /** The http port number. Defaults to 3000. */
     port: number;
 
-    /** If true, then if the specified port number is not available, find another port. Defaults to true. */
+    /** If true, then if the specified port number is not available, find
+     * another port. Defaults to true. */
     scanPorts: boolean;
 
     /** The base directory. Defaults to the current working directory. */
@@ -34,7 +35,12 @@ export namespace Server {
      * present, it is used instead of the root option. */
     mountPoints: MountPointOptions[];
 
-    /** If true, relay console events from the sketch to an emitter on the server. */
+    /** Cache requests to CND servers, for use without an internet connection.
+     */
+    cacheCdnRequests: boolean;
+
+    /** If true, relay console events from the sketch to an emitter on the
+     * server. */
     relayConsoleMessages: boolean;
 
     /** Inject the live reload websocket listener into HTML pages. */
@@ -58,6 +64,9 @@ export namespace Server {
   }>;
 }
 
+// This type is used internally. Unlike Server.Options, all the parameters are
+// required. If they were not supplied by the user, they will be filled in with
+// defaults from defaultServerOptions.
 type ServerConfig = Required<Server.Options>;
 
 export type MountPointOptions =
@@ -72,6 +81,7 @@ export type RouterConfig = Server.Options & {
 type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
+  cacheCdnRequests: true,
   liveServer: true,
   logConsoleEvents: false,
   port: 3000,
@@ -181,9 +191,11 @@ export class Server {
   constructor(options: Partial<Server.Options> = {}) {
     const mountPoints =
       options.mountPoints && options.mountPoints.length > 0
-        ? Server.normalizeMountPoints(options.mountPoints)
+        ? Server._normalizeMountPoints(options.mountPoints)
         : [{ filePath: options.root || '.', urlPath: '/' }];
     this.mountPoints = mountPoints;
+    // null out the root. It is only used in initialization, and is now captured
+    // in mountPoints instead.
     this.config = { ...defaultServerOptions, root: null, ...options, mountPoints };
     this.config.theme ||= defaultServerOptions.theme;
   }
@@ -248,7 +260,10 @@ export class Server {
     return null;
   }
 
-  private static normalizeMountPoints(mountPoints: MountPointOptions[]): MountPoint[] {
+  /** Normalize file paths; remove trailing slashes from file and url paths;
+   * generate unique names and prefixes for mount points that don't specify
+   * them. */
+  private static _normalizeMountPoints(mountPoints: MountPointOptions[]): MountPoint[] {
     const finalPathSep = new RegExp(`${path.sep}$`);
     const mounts = mountPoints
       // normalize to records

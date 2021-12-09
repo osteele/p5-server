@@ -14,11 +14,12 @@ import { Server } from '../server/Server';
 
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
-  console: boolean | 'json' | 'passive';
-  open: boolean;
-  port: string;
-  split: boolean;
-  theme: string;
+  cdnCache?: boolean;
+  console?: boolean | 'json' | 'passive';
+  open?: boolean;
+  port?: string;
+  split?: boolean;
+  theme?: string;
 };
 
 export default async function serve(files: string[], options: Options) {
@@ -45,6 +46,7 @@ export default async function serve(files: string[], options: Options) {
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {
+    cacheCdnRequests: options.cdnCache,
     port: Number(options.port),
     root: file,
     relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',

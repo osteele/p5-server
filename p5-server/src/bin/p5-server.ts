@@ -88,6 +88,7 @@ program
   .option('-t, --theme [FILE]', 'template file')
   .option('--browser <NAME>', 'safari | chrome | firefox | edge (implies --open)')
   .option('--split', 'Use the split (directory + sketch) template')
+  .option('--no-cdn-cache', 'disable the CDN proxy cache')
   .option(
     '--console [FORMAT]',
     'Relay console messages and errors to sketch in the server console'
@@ -124,12 +125,12 @@ cacheCommand
 
 cacheCommand
   .command('warm')
-  .description('Fill the cache from common libraries')
+  .description('Fill the cache from known library import paths')
   .option('-f, --force', 'Force refresh of cached entries')
   .action(async ({ force = false }) => {
-    const { count, failures, hits, misses } = await warmCache({ force });
+    const { total, failures, misses } = await warmCache({ force });
     if (failures > 0) process.exit(1);
-    console.log(`Warmed cache for ${count} urls (${hits} hits, ${misses} misses)`);
+    console.log(`Added ${misses} for a total of ${total} entries`);
   });
 
 /*

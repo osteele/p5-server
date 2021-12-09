@@ -28,6 +28,9 @@ const cdnDomains = [
   'fonts.googleapis.com',
   'fonts.gstatic.com',
   'ghcdn.rawgit.org',
+  // JSDelivr is a known npm package proxy, but the templates use a different path schema to request Highlight.js
+  // distribution files.
+  'cdn.jsdelivr.net',
 ]
 
 /** URLs to warm the cache with, that can't be inferred from the libraries, in
@@ -243,9 +246,9 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
  *
  * (Currently, only references in CSS files are prefetched.)
  */
-export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ count: number, failures: number, hits: number, misses: number }> {
+export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ total: number, failures: number, hits: number, misses: number }> {
   const concurrency = 20; // max number of requests to make at once
-  const stats = { count: 0, failures: 0, hits: 0, misses: 0 };
+  const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
   const urls = [...cacheWarmOrigins, ...getLibraryImportPaths()];
 
   const seen = new Set<string>();
@@ -303,7 +306,7 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
         }
       })
       .finally(() => {
-        stats.count++;
+        stats.total++;
         promises.splice(promises.indexOf(p), 1);
       });
     promises.push(p);

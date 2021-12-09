@@ -1,4 +1,4 @@
-import { decodeProxyPath, encodeProxyPath, isCdnUrl } from '../src/server/cdnProxy';
+import { decodeProxyPath, encodeProxyPath, isCdnUrl } from '../src/server/proxyCache';
 
 describe('CDN Proxy', () => {
   describe('isCdnUrl', () => {

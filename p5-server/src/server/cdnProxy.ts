@@ -9,6 +9,7 @@ import { p5Version } from 'p5-analysis/dist/models/Library';
 import { Readable } from 'stream';
 import zlib from 'zlib';
 import { isDefined } from '../ts-extras';
+import path = require('path');
 export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -29,19 +30,26 @@ const cdnDomains = [
   'ghcdn.rawgit.org',
 ]
 
-// URLs to warm the cache with, that can't be inferred from the libraries,
-// in addition to library loadPaths.
+/** URLs to warm the cache with, that can't be inferred from the libraries, in
+ * addition to library loadPaths.
+ *
+ * It's okay if these have repeats. The cache warmer deduplicates URLs anyway.
+ */
 const cacheWarmOrigins = [
   // TODO: use an API to retrieve this constant
   `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
   // TODO: read the following from the template file. Or, add these to the package.
+  // directory.pug
   'https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js',
   'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js',
   'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
   'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
   // markdown.pug
+  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
   'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
+  // source-view.pug
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/github-dark.min.css",
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/highlight.min.js",
 ]
 
 // The RequestI and ReponseI interfaces specify the part of express.Request and
@@ -152,9 +160,13 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   }
 }
 
-function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
+// exported for unit testing
+export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
+  if (!/^https?:/i.test(originUrl)) return originUrl;
   let proxyPath = originUrl;
   if (/\?/.test(originUrl)) {
+    // package the entire query string into a single query parameter, so that other query parameters can be added to the
+    // URL without breaking the cache
     const u = new URL(originUrl);
     u.search = `?search=${encodeURIComponent(u.search.substr(1))}`;
     proxyPath = u.toString();
@@ -162,21 +174,27 @@ function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): stri
   return includePrefix ? `${proxyPrefix}/${proxyPath}` : proxyPath;
 }
 
-function decodeProxyPath(proxyPath: string, query: RequestI['query']) {
-  let originUrl = proxyPath.replace(/^\//, '');
+// exported for unit testing
+export function decodeProxyPath(proxyPath: string, query: RequestI['query']): string {
+  let originUrl = proxyPath
+    .replace(proxyPrefix, '')
+    .replace(/^\//, '');
+  if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
   if (query.search) {
     originUrl += `?${decodeURIComponent(query.search as string)}`;
   }
   return originUrl;
 }
 
-/** Verify that url is in the cache. Request it if it is not.
- * Uses cdnProxyRouter to minimize different code paths that need to be tested.
+/** Verify that url is in the cache. Request it if it is not. Uses
+ * cdnProxyRouter to minimize different code paths that need to be tested.
+ * Returns a Response-like structure, that warmCache can use to follow
+ * referenced URLs.
  */
-async function prefetch(url: string, { force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
-  process.stdout.write(`Prefetching ${url}...\n`);
+async function prefetch(url: string, { accept = '*/*', force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
   const reqHeaders = {
-    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    accept,
+    // TODO: use a different user-agent for prefetching?
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
     'accept-language': 'en-US,en;q=0.9',
     'accept-encoding': 'gzip, deflate',
@@ -206,7 +224,7 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   if (redirected) {
     const location = decodeURIComponent(res.headers.location.substring(proxyPrefix.length + 1));
     debug(`following redirect from ${url} -> ${location}`);
-    return prefetch(location, { force });
+    return prefetch(location, { accept, force });
   }
   return {
     data: Buffer.concat(res.chunks),
@@ -216,28 +234,34 @@ async function prefetch(url: string, { force = false }): Promise<{ status: numbe
   };
 }
 
-/** Warm the cache with all the import paths.
- * @returns the number of entries
+/** Warm the cache, by requsting all the urls in the manifest, and the urls that they reference.
+ *
+ * (Currently, only references in CSS files are prefetched.)
  */
-export async function warmCache({ force }: { force?: boolean }): Promise<{ count: number, failures: number, hits: number, misses: number }> {
-  const concurrency = 20;
-  const seen = new Set<string>();
+export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ count: number, failures: number, hits: number, misses: number }> {
+  const concurrency = 20; // max number of requests to make at once
   const stats = { count: 0, failures: 0, hits: 0, misses: 0 };
   const urls = [...cacheWarmOrigins, ...getLibraryImportPaths()];
+
+  const seen = new Set<string>();
   const promises: Promise<void>[] = [];
   // `while` instead of `for`, because visit() can add to the array.
   while (urls.length > 0) {
-    await visit(urls.shift()!);
+    const url = urls.shift()!;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    process.stdout.write(verbose ? `Prefetching ${url}...\n` : '.');
+    await visit(url);
   }
   await Promise.all(promises);
+
   return stats;
 
-  // This returns immediately if once it adds a promise to the array. If there
-  // are already `concurrency` promises pending, it waits for the first one to
-  // resolve.
+  // This function returns immediately once it adds a fetch promise to the
+  // array. (It does not wait for the fetch to initiate.) If there are already
+  // `concurrency` promises pending, it waits for one to resolve before adding
+  // the new promise and returning.
   async function visit(url: string) {
-    if (seen.has(url)) return;
-    seen.add(url);
     if (promises.length >= concurrency) {
       // debug('waiting for one of', promises.length, 'prefetches to settle');
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
@@ -245,7 +269,11 @@ export async function warmCache({ force }: { force?: boolean }): Promise<{ count
         // TODO: I thought I had a reason to ignore the exception, but I should review this
       });
     }
-    const p = prefetch(url, { force })
+    const accept = {
+      '.css': 'text/css',
+      '.html': 'text/html',
+    }[path.extname(url)] || '*/*';
+    const p = prefetch(url, { accept, force })
       .then(({ status, ok, headers, data }) => {
         if (ok) {
           const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
@@ -265,6 +293,7 @@ export async function warmCache({ force }: { force?: boolean }): Promise<{ count
           }
         } else {
           stats.failures++;
+          if (!verbose) process.stdout.write('\n');
           process.stderr.write(`Error: failed to fetch ${url}; error code: ${status}\n`);
         }
       })
@@ -303,7 +332,8 @@ export function rewriteCdnUrls(html: string): string {
   return htmlRoot.outerHTML;
 }
 
-function isCdnUrl(url: string) {
+// exported for unit tests
+export function isCdnUrl(url: string): boolean {
   if (!/^https?:/.test(url)) return false;
   return Cdn.all.some(cdn => cdn.matchesUrl(url))
     || getLibraryImportPaths().has(url)

@@ -1,7 +1,7 @@
 Cache size: {{ entries.length }} entries
 
 {%- for entry in entries %}
-{{ entry.url }}
+{{ entry.originUrl }}
 {%- if verbose %}
   Created: {{ entry.created.toLocaleString() }}
   Expires: {{ entry.expiresString or 'n/a' }}

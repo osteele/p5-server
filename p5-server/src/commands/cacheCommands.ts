@@ -13,12 +13,14 @@ export function lsCache({ json = false, verbose = false }): void {
         expires,
         expiresString: expires ? expires.toLocaleString() : null,
         maxAge,
-        url: decodeURIComponent(entry.key),
+        originUrl: decodeURIComponent(entry.key),
         ...entry,
         ...entry.metadata,
         metadata: undefined
       };
     });
+    // sort entries by origin url
+    entries.sort((a, b) => a.originUrl.localeCompare(b.originUrl));
     if (json) {
       console.log(JSON.stringify(entries, null, 2));
     } else {

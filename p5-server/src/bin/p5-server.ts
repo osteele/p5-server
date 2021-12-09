@@ -96,10 +96,10 @@ program
   .action(serve);
 
 /*
- * Cache subcommands
+ * Proxy Cache subcommands
  */
 
-const cacheCommand = program.command('cache');
+const cacheCommand = program.command('proxy-cache');
 
 cacheCommand
   .command('clear')

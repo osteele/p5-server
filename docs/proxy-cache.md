@@ -25,10 +25,10 @@ while your computer is connected the internet. This loads any CDN files that are
 necessary to run the sketches that you view. At any later point, you can view
 the same sketches without an internet connection.
 
-The `p5 cache warm` command can also be used to pre-load the cache with import
-paths for p5.js and its community libraries, and with the resources that the p5
-server itself uses to display, for example, directory pages, the split-screen
-browser, and error pages.
+The `p5 proxy-cache warm` command can also be used to pre-load the cache with
+import paths for p5.js and its community libraries, and with the resources that
+the p5 server itself uses to display, for example, directory pages, the
+split-screen browser, and error pages.
 
 ## Disabling the Cache
 
@@ -53,18 +53,18 @@ ensures that they are cached as well.
 
 ## Command Line
 
-The `p5 cache` subcommand can be used to inspect and manipulate the cache:
+The `p5 proxy-cache` subcommand can be used to inspect and manipulate the cache:
 
-**`p5 cache clear`** removes all entries from the cache.
+**`p5 proxy-cache clear`** removes all entries from the cache.
 
-**`p5 cache info`** prints information about the cache.
+**`p5 proxy-cache info`** prints information about the cache.
 
-**`p5 cache ls`** lists the cache entries.
+**`p5 proxy-cache ls`** lists the cache entries.
 
-**`p5 cache path`** prints the path to the cache.
+**`p5 proxy-cache path`** prints the path to the cache.
 
-**`p5 cache warm`** “warms” the cache, by loading it with requests for p5.js and
-community libraries.
+**`p5 proxy-cache warm`** “warms” the cache, by loading it with requests for
+p5.js and community libraries.
 
 Many of these commands take options. Use `--help` to see these; for example, `p5
 cache ls --help`.
@@ -100,4 +100,4 @@ The cache is stored on disk at `~/.cache/p5-server`.
 Resources in the cache are not currently checked for expiration. This is
 probably okay for the accepted use of the cache, since the cached resources
 should not change. In order to force the cache to re-fill, it is currently
-necessary to run `p5 cache clear` followed by `p5 cache warm`.
+necessary to run `p5 proxy-cache clear` followed by `p5 proxy-cache warm`.

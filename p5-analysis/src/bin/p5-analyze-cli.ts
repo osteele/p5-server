@@ -41,7 +41,7 @@ const sketch = program.command('sketch');
 sketch
   .command('analyze', 'Analyze a sketch')
   .description('Display information about a sketch')
-  .option('--json')
+  .option('--json', 'Output JSON')
   .argument('<SKETCH_FILE>', 'The sketch to analyze')
   .action(analyzeSketch);
 

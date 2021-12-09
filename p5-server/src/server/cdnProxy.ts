@@ -267,6 +267,9 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
   const concurrency = 20; // max number of requests to make at once
   const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
   const urls = [...cacheWarmOrigins, ...getLibraryImportPaths()];
+  if (!verbose) {
+    process.stdout.write(`warming cache for ${urls.length} urls`);
+  }
 
   const seen = new Set<string>();
   const promises: Promise<void>[] = [];
@@ -279,6 +282,9 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
     await visit(url);
   }
   await Promise.all(promises);
+  if (!verbose) {
+    process.stdout.write('\n');
+  }
 
   return stats;
 

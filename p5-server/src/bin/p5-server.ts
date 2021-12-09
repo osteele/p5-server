@@ -10,7 +10,7 @@ import create from '../commands/createSketch';
 import screenshot from '../commands/screenshotCommand';
 import serve from '../commands/serveCommand';
 import { cacache, cachePath as proxyCachePath, warmCache } from '../server/cdnProxy';
-import { lsCache } from '../commands/cacheCommands';
+import { lsCache, printCacheInfo } from '../commands/cacheCommands';
 
 const program = new Command();
 
@@ -110,8 +110,15 @@ cacheCommand
   });
 
 cacheCommand
+  .command('info')
+  .option('--json', 'Output JSON')
+  .description('Print summmary information about the cache')
+  .action(printCacheInfo);
+
+cacheCommand
   .command('list')
   .alias('ls')
+  .option('--json', 'Output JSON')
   .option('-v, --verbose', 'Print (some) metadata')
   .description('List the cache entries')
   .action(lsCache);
@@ -125,6 +132,7 @@ cacheCommand
 
 cacheCommand
   .command('warm')
+  .alias('fill')
   .description('Fill the cache from known library import paths')
   .option('-f, --force', 'Force refresh of cached entries')
   .option('-v, --verbose', 'verbose output')

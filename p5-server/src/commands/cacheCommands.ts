@@ -9,7 +9,6 @@ export function lsCache({ json = false, verbose = false }): void {
       const maxAge = cacheControl?.match(/max-age=(\d+)/)?.[1];
       const expires = maxAge ? new Date(entry.time + Number(maxAge) * 1000) : null;
       return {
-        originUrl: decodeURIComponent(entry.key),
         ...entry,
         // inline metadata
         ...entry.metadata,

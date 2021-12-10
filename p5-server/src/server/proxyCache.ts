@@ -11,14 +11,17 @@ import zlib from 'zlib';
 import { isDefined } from '../ts-extras';
 import path = require('path');
 import assert = require('assert');
+import { createHmac } from 'node:crypto';
 export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
 
-const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
+
+const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
+const uncacheableHeaders = ['age', 'connection', 'content-accept-ranges', 'strict-transport-security', 'transfer-encoding', 'vary'];
 
 /** A list of CDNs that aren't listed in the p5-analysis Library model (because
  * they aren't specific to serving NPM packages).
@@ -80,7 +83,13 @@ interface ResponseI extends NodeJS.WritableStream {
 // cdnProxyRouter.
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const originUrl = decodeProxyPath(req.path, req.query);
-  const cacheKey = encodeURIComponent(originUrl);
+  const cacheKey = createHmac('sha256', JSON.stringify({
+    url: encodeURIComponent(originUrl),
+    // Formally, the cache key should include the headers in the Vary response
+    // header. In practice, this header only has at most the following keys.
+    accept: req.headers['accept'],
+    acceptEncoding: req.headers['accept-encoding'],
+  })).digest('hex');
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
   if (cacheObject && !req.query.reload) {
@@ -143,13 +152,13 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
 
   // expressjs.Response.headers serializes to {}. Copy it to an Object that can
   // be serialized to JSON.
-  const uncacheableHeaders = ['age', 'connection', 'content-accept-ranges'];
   const responseHeaders = Object.fromEntries(
     Array.from(originResponse.headers.entries())
       .filter(([key]) => !uncacheableHeaders.includes(key))
   )
   const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
     metadata: {
+      originUrl,
       headers: responseHeaders,
       status: originResponse.status
     }

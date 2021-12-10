@@ -109,6 +109,11 @@ illustrated in the screenshot at the top of this document).
 
 Status codes and response headers are cached. Each step of a redirect is cached.
 
+The server uses npm's [cacache](https://github.com/npm/cacache) to manage the
+cache, and [node-html-parser](https://github.com/taoqf/node-fast-html-parser)
+and [css-tree](https://github.com/csstree/csstree) to parse and re-generate HTML
+and CSS documents.
+
 The cache is stored on disk at `~/.cache/p5-server`.
 
 ## Limitations
@@ -117,15 +122,16 @@ The proxy cache ignores the [Cache Control
 directives](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
 In particular, it caches all CDN content, regardless of the presence of
 `no-cache`, `no-store`. `must-revalidate`, `proxy-revalidate`, and
-`no-transform`. I consider this appropriate within the context of a private
-development server that only caches responses from this limited set of domains.
+`no-transform`. In practice, the only directives I've observed from cached
+requests to the CDN servers, aside from `max-age` and `s-maxage`, are
+`immutable`, `public`, and `private`, which don't affect the caching policy.
 
 Resources in the cache are not currently checked for expiration. This is
 probably okay for the accepted use of the cache, since the cached resources
 should not change. In order to force the cache to re-fill, it is currently
 necessary to run `p5 proxy-cache clear` followed by `p5 proxy-cache warm`.
 
-## JSON Recipes
+## Appendix: JSON Recipes
 
 With the `--json` option, the output can be used with
 [jq](https://stedolan.github.io/jq/) to perform queries:

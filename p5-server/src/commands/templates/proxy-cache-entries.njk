@@ -3,7 +3,7 @@ Cache size: {{ entries.length }} entries
 {%- for entry in entries %}
 {{ entry.originUrl }}
 {%- if verbose %}
-  Created: {{ entry.created.toLocaleString() }}
-  Expires: {{ entry.expiresString or 'n/a' }}
+  Created: {{ formatTime(entry.created) }}
+  Expires: {{ formatTime(entry.expires) }}
 {%- endif -%}
 {%- endfor -%}

@@ -56,17 +56,17 @@ const cacheSeeds = [
 
 // The RequestI and ReponseI interfaces specify the part of express.Request and
 // express.Response that cdnProxyRouter uses. It is done this way so that
-// prefetch, which is used to warm the cache can call cdnProxyRouter instead of
+// prefetch, which is used to warm the cache, can call cdnProxyRouter instead of
 // using separate logic to test and populate the cache.
 
-/** The express.Request properties that cdnProxyRouter cares about. */
+/** The express.Request properties that cdnProxyRouter depends on. */
 interface RequestI {
   headers: typeof express.request.headers;
   path: typeof express.request.path;
   query: typeof express.request.query;
 }
 
-/** The express.Response properties that cdnProxyRouter cares about. */
+/** The express.Response properties that cdnProxyRouter depends on. */
 interface ResponseI extends NodeJS.WritableStream {
   setHeader(key: string, value: string | number | readonly string[]): void;
   send(chunk: string | Buffer): void;
@@ -130,8 +130,9 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     res.setHeader(key, value);
   });
 
-  // This test excludes 300 Multiple Choice, since it's not really a redirect
-  // and that code  isn't used in practice.
+  // This test excludes 300 Multiple Choice, since and that status code is
+  // rarely used in practice and would require rewriting the links in the HTML
+  // response.
   const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
   if (!originResponse.ok && !redirected) {
     // don't cache responses other than 200's and redirects
@@ -142,7 +143,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
 
   // expressjs.Response.headers serializes to {}. Copy it to an Object that can
   // be serialized to JSON.
-  const uncacheableHeaders = ['age', 'content-accept-ranges'];
+  const uncacheableHeaders = ['age', 'connection', 'content-accept-ranges'];
   const responseHeaders = Object.fromEntries(
     Array.from(originResponse.headers.entries())
       .filter(([key]) => !uncacheableHeaders.includes(key))
@@ -154,20 +155,20 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     }
   });
 
-  // pipe the origin response body to the both the client response and to the cache write stream.
-  // Collect the length of the response for logging.
-  const counter = new class extends stream.Writable {
-    size = 0;
+  // pipe the origin response body to both the client response and the cache
+  // write stream. Collect the length of the response for logging.
+  const streamLengthCounter = new class extends stream.Writable {
+    length = 0;
     _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
       if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
-        this.size += chunk.length;
+        this.length += chunk.length;
       }
       callback();
     }
   }
-  originResponse.body.pipe(multiplexStreamWriter([res, cacheWriteStream, counter]));
-  await new Promise(resolve => counter.on('finish', resolve));
-  debug('wrote', counter.size, 'bytes to cache for', originUrl);
+  originResponse.body.pipe(multiplexStreamWriter([res, cacheWriteStream, streamLengthCounter]));
+  await new Promise(resolve => streamLengthCounter.on('finish', resolve));
+  debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
 }
 
 async function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string) {
@@ -202,7 +203,7 @@ export function decodeProxyPath(proxyPath: string, query: RequestI['query'] = {}
   let originUrl = proxyPath
     .replace(proxyPrefix, '')
     .replace(/^\//, '')
-    .replace(/^http\//, 'https://');
+    .replace(/^http\//, 'http://');
   if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
   if (originUrl.includes('?')) {
     const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
@@ -278,7 +279,7 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
   };
 }
 
-/** Warm the cache, by requsting all the urls in the manifest, and the urls that they reference.
+/** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
  *
  * (Currently, only references in CSS files are prefetched.)
  */
@@ -412,7 +413,7 @@ export function replaceUrlsInHtml(html: string): string {
   return modified ? htmlRoot.outerHTML : html;
 }
 
-/** Replace CDN URLs in with proxy cache paths.
+/** Replace CDN URLs with proxy cache paths.
  *
  * @param html the HTML to process
  * @returns the processed HTML
@@ -455,17 +456,15 @@ async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string
 /** Read the remaining chunks from a ReadableStream, and combine them into a
  * single string (if they are all strings) or Buffer.
  *
- * An empty stream produces an empty string. (This is an arbitrary choice; a
- * Buffer could have been used.)
- *
  * Note: Doesn't handle chunks of type `Uint8Array`.
  */
-async function fromReadable(stream: NodeJS.ReadableStream): Promise<string | Buffer> {
+async function fromReadable(stream: NodeJS.ReadableStream, emptyValue: string | Buffer = ''): Promise<string | Buffer> {
   const chunks: (string | Buffer)[] = [];
   for await (const chunk of stream) {
+    assert.ok(typeof chunk === 'string' || Buffer.isBuffer(chunk));
     chunks.push(chunk);
   }
-  return chunks.length === 0 ? ''
+  return chunks.length === 0 ? emptyValue
     : chunks.length === 1 ? chunks[0]
       : chunks.every(chunk => typeof chunk === 'string') ? chunks.join('')
         : chunks.every(chunk => chunk instanceof Buffer) ? Buffer.concat(chunks as Buffer[])
@@ -480,7 +479,7 @@ function multiplexStreamWriter(streams: NodeJS.WritableStream[]): NodeJS.Writabl
       let count = streams.length;
       for (const stream of streams) {
         stream.write(chunk, encoding, (err) => {
-          error ??= err;
+          error ??= err; // invoke the callback with only the first error
           if (--count === 0) {
             callback(error);
           }

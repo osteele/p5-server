@@ -17,6 +17,7 @@ describe('CDN Proxy', () => {
     test('rejects other urls', () => {
       expect(isCdnUrl('https://example.com/npm/p5@1.4.0/lib/p5.min.js')).toBe(false);
       expect(isCdnUrl('/npm/p5@1.4.0/lib/p5.min.js')).toBe(false);
+      expect(isCdnUrl('ftp://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(false);
     });
   });
 
@@ -26,11 +27,19 @@ describe('CDN Proxy', () => {
         encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')
       ).toBe('/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
     });
+
     test('ignores relative URLs', () => {
       expect(encodeProxyPath('/npm/p5@1.4.0/lib/p5.min.js')).toBe(
         '/npm/p5@1.4.0/lib/p5.min.js'
       );
     });
+
+    test('ignores other schemas', () => {
+      expect(encodeProxyPath('ftp://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(
+        'ftp://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js'
+      );
+    });
+
     test('encodes query parameters', () => {
       expect(
         encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2')
@@ -38,6 +47,7 @@ describe('CDN Proxy', () => {
         '/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?search=a%3D1%26b%3D2'
       );
     });
+
     test('preserves hashes', () => {
       expect(
         encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js#hash')
@@ -78,6 +88,11 @@ describe('CDN Proxy', () => {
       testRoundtripEquality(
         'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2#hash'
       );
+    });
+
+    test('preserves scheme', () => {
+      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
+      testRoundtripEquality('http://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
     });
   });
 });

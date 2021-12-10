@@ -61,6 +61,22 @@ The `p5 proxy-cache` subcommand can be used to inspect and manipulate the cache:
 
 **`p5 proxy-cache ls`** lists the cache entries.
 
+With the `--json` option, the output can be used with
+[jq](https://stedolan.github.io/jq/) to perform queries. For example, list all
+the content-types:
+
+```sh
+$ p5 proxy-cache ls --json | jq '[.[].headers."content-type"] | unique'
+[
+  "application/javascript",
+  "application/javascript; charset=utf-8",
+  "application/vnd.ms-fontobject",
+  # etc.
+]
+```
+
+See section "JSON Recipes" below for additional recipes.
+
 **`p5 proxy-cache path`** prints the path to the cache.
 
 **`p5 proxy-cache warm`** “warms” the cache, by loading it with requests for
@@ -97,7 +113,57 @@ The cache is stored on disk at `~/.cache/p5-server`.
 
 ## Limitations
 
+The proxy cache ignores the [Cache Control
+directives](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
+In particular, it caches all CDN content, regardless of the presence of
+`no-cache`, `no-store`. `must-revalidate`, `proxy-revalidate`, and
+`no-transform`. I consider this appropriate within the context of a private
+development server that only caches responses from this limited set of domains.
+
 Resources in the cache are not currently checked for expiration. This is
 probably okay for the accepted use of the cache, since the cached resources
 should not change. In order to force the cache to re-fill, it is currently
 necessary to run `p5 proxy-cache clear` followed by `p5 proxy-cache warm`.
+
+## JSON Recipes
+
+With the `--json` option, the output can be used with
+[jq](https://stedolan.github.io/jq/) to perform queries:
+
+```sh
+# List all the content-types
+$ p5 proxy-cache ls --json | jq '[.[].headers."content-type"] | unique'
+[
+  "application/javascript",
+  "application/javascript; charset=utf-8",
+  "application/vnd.ms-fontobject",
+  # etc.
+]
+
+# List content-types that start with "text/"
+$ p5 proxy-cache ls --json | jq '[.[].headers."content-type" | select(startswith("text/"))] | unique'
+[
+  "text/css; charset=utf-8",
+  "text/html; charset=utf-8",
+  "text/javascript",
+  "text/plain; charset=utf-8"
+]
+
+# Display urls together with content-types
+$ p5 proxy-cache ls --json | jq '.[] | {originUrl, type: .headers."content-type"}'
+{
+  "originUrl": "https://cdn.jsdelivr.net/gh/antiboredom/p5.patgrad/p5.patgrad.min.js",
+  "type": "application/javascript; charset=utf-8"
+}
+{
+  "originUrl": "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/highlight.min.js",
+  "type": "application/javascript; charset=utf-8"
+}
+# etc.
+
+# Display entries that are not gzipped
+$ p5 proxy-cache ls --json | jq '.[] | select(.headers."content-encoding" != "gzip").originUrl'
+"https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/themes/default/assets/fonts/brand-icons.woff"
+"https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/themes/default/assets/fonts/brand-icons.woff2"
+# etc.
+```

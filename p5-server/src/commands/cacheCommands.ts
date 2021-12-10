@@ -9,14 +9,17 @@ export function lsCache({ json = false, verbose = false }): void {
       const maxAge = cacheControl?.match(/max-age=(\d+)/)?.[1];
       const expires = maxAge ? new Date(entry.time + Number(maxAge) * 1000) : null;
       return {
-        created: new Date(entry.time),
-        expires,
-        expiresString: expires ? expires.toLocaleString() : null,
-        maxAge,
         originUrl: decodeURIComponent(entry.key),
         ...entry,
+        // inline metadata
         ...entry.metadata,
-        metadata: undefined
+        metadata: undefined,
+        // replace time by created
+        time: undefined,
+        created: new Date(entry.time),
+        // add properties
+        maxAge,
+        expires,
       };
     });
     // sort entries by origin url
@@ -24,7 +27,8 @@ export function lsCache({ json = false, verbose = false }): void {
     if (json) {
       console.log(JSON.stringify(entries, null, 2));
     } else {
-      console.log(nunjucks.render('proxy-cache-entries.njk', { entries, verbose }));
+      const formatTime = (dt: Date) => dt?.toLocaleString() ?? 'n/a';
+      console.log(nunjucks.render('proxy-cache-entries.njk', { entries, formatTime, verbose }));
     }
   });
 }

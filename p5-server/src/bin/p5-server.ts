@@ -5,12 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import updateNotifier from 'update-notifier';
 import build from '../commands/buildCommand';
+import { fillCache, lsCache, printCacheInfo } from '../commands/cacheCommands';
 import convert from '../commands/convertSketch';
 import create from '../commands/createSketch';
 import screenshot from '../commands/screenshotCommand';
 import serve from '../commands/serveCommand';
-import { cacache, cachePath as proxyCachePath, warmCache } from '../server/proxyCache';
-import { lsCache, printCacheInfo } from '../commands/cacheCommands';
+import { cacache, cachePath as proxyCachePath } from '../server/proxyCache';
 
 const program = new Command();
 
@@ -135,17 +135,9 @@ cacheCommand
   .command('warm')
   .alias('fill')
   .description('Fill the cache from known library import paths')
-  .option('-f, --force', 'Force refresh of cached entries')
+  .option('--force', 'Force refresh of cached entries')
   .option('-v, --verbose', 'verbose output')
-  .action(async ({ force, verbose }) => {
-    const { total, failures, misses } = await warmCache({ force, verbose });
-    if (failures > 0) process.exit(1);
-    console.log(
-      misses > 0
-        ? `Added ${misses} entries for a total of ${total}`
-        : `All ${total} entries were already in the cache`
-    );
-  });
+  .action(fillCache);
 
 /*
  * Subcommands

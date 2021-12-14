@@ -1,5 +1,13 @@
 # Change Log
 
+## Unreleased
+
+Improved:
+
+- Warming the cache fetches recursively-mentioned pages.
+- Modified the cache warm API to inform the client of progress; for use in the
+  vscode extension.
+
 ## [0.9.0] - 2021-11-14
 
 Added:

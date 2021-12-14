@@ -340,32 +340,48 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
   };
 }
 
+export type CacheWarmStats = {
+  total: number;
+  failures: number;
+  hits: number;
+  misses: number;
+};
+
+export type CacheWarmMessage =
+  | { type: 'initial', total: number }
+  | { type: 'prefetch', url: string }
+  | { type: 'error', url: string, status: number }
+  | { type: 'progress', stats: CacheWarmStats };
+
 /** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
+ *
+ * Most of the complexity come from fetching the URLs in parallel.
  *
  * (Currently, only references in CSS files are prefetched.)
  */
-export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ total: number, failures: number, hits: number, misses: number }> {
+export async function warmCache({ force }: { force?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
   const concurrency = 20; // max number of requests to make at once
   const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
   // use Set to dedupe
-  const urls = Array.from(new Set([...cacheSeeds, ...getLibraryImportPaths()]));
-  if (!verbose) {
-    process.stdout.write(`Warming cache from ${urls.length} seeds`);
-  }
+  const urls = Array.from(new Set([...cacheSeeds, ...getLibraryImportPaths()])).sort();
+  callback?.({ type: 'initial', total: urls.length });
 
   const seen = new Set<string>();
   const promises: Promise<void>[] = [];
   // `while` instead of `for`, because visit() can add to the array.
-  while (urls.length > 0) {
-    const url = urls.shift()!;
-    if (seen.has(url)) continue;
-    seen.add(url);
-    process.stdout.write(verbose ? `Prefetching ${url}...\n` : '.');
-    await visit(url);
-  }
-  await Promise.all(promises);
-  if (!verbose) {
-    process.stdout.write('done\n');
+  while (urls.length > 0 || promises.length > 0) {
+    if (urls.length > 0) {
+      const url = urls.shift()!;
+      if (seen.has(url)) continue;
+      seen.add(url);
+      callback?.({ type: 'prefetch', url });
+      await visit(url);
+    } else {
+      // One of the pending promises could add more urls to the queue, so wait
+      // for the next one inside the loop instead of awaiting Promise.all()
+      // at the end.
+      await Promise.any(promises);
+    }
   }
 
   return stats;
@@ -411,15 +427,16 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
               }
             });
           }
+          callback?.({ type: 'progress', stats });
         } else {
           stats.failures++;
-          if (!verbose) process.stdout.write('\n');
-          process.stderr.write(`Error: failed to fetch ${url}; error code: ${status}\n`);
+          callback?.({ type: 'error', url, status });
         }
       })
       .finally(() => {
         stats.total++;
         promises.splice(promises.indexOf(p), 1);
+        // callback?.(stats);
       });
     promises.push(p);
   }

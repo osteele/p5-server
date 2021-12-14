@@ -1,5 +1,43 @@
 import nunjucks from 'nunjucks';
-import { cacache, cachePath as proxyCachePath } from '../server/proxyCache';
+import { cacache, cachePath as proxyCachePath, warmCache } from '../server/proxyCache';
+
+export async function fillCache({ force = false, verbose = false }) {
+  const stats = await warmCache({ force }, (message) => {
+    switch (message.type) {
+      case 'initial':
+        if (!verbose) {
+          process.stdout.write(`Warming cache from ${message.total} seeds`);
+        }
+        break;
+      case 'prefetch':
+        if (verbose) {
+          process.stdout.write(verbose ? `Prefetching ${message.url}...\n` : '.');
+        }
+        break;
+      case 'progress':
+        if (!verbose) {
+          process.stdout.write('.');
+        }
+        break;
+      case 'error':
+        if (!verbose) process.stdout.write('\n');
+        process.stderr.write(`Error: failed to fetch ${message.url}; error code: ${message.status}\n`);
+        break;
+    }
+  });
+  if (!verbose) {
+    process.stdout.write('done\n');
+  }
+  const { total, failures, misses } = stats;
+  if (failures > 0) {
+    process.exit(1);
+  }
+  console.log(
+    misses > 0
+      ? `Added ${misses} entries for a total of ${total}`
+      : `All ${total} entries were already in the cache`
+  );
+}
 
 export function lsCache({ json = false, verbose = false }): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });

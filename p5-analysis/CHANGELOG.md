@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleaesd
+## [0.6.9] - 2021-11-14
 
 Added:
 

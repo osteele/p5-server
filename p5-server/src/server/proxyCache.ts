@@ -101,25 +101,67 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   })).digest('hex');
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
+  res.setHeader('x-p5-server-origin-url', originUrl);
   if (cacheObject && !req.query.reload) {
     debug('cache hit', originUrl);
-    // TODO: check if content has expired
     res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
     const { headers } = cacheObject.metadata;
     for (const key of Object.keys(headers)) {
       let value = headers[key];
-      if (key === 'location' && isCdnUrl(value)) {
-        value = encodeProxyPath(value);
+      switch (key) {
+        case 'location':
+          if (isCdnUrl(value)) {
+            value = encodeProxyPath(value);
+          }
+          break;
+        case 'cache-control':
+          continue;
       }
       const headerMap: Record<string, string> = { server: 'origin-server' };
       res.setHeader(headerMap[key] ?? key, value);
     }
+    {
+      const age = Math.max(0, (+new Date()) - cacheObject.time);
+      res.setHeader('age', Math.floor(age / 1000));
+    }
+    {
+      let cacheControl = headers['cache-control']?.match(/(?:^|\b)(public|private)\b/)?.[1] ?? 'public';
+      const maxAge = headers['cache-control']?.match(/(?:^|\b)max-age=(\d+)/)?.[1];
+      if (maxAge) {
+        cacheControl += ', max-age=' + maxAge;
+      }
+      cacheControl += `, stale-while-revalidate=${maxAge || 86400}`;
+      res.setHeader('cache-control', cacheControl);
+    }
+
     res.status(cacheObject.metadata.status);
-    let stream = cacache.get.stream(cachePath, cacheKey);
-    stream = makeProxyReplacemenStream(stream, headers['content-type'], headers['content-encoding'], originUrl);
-    stream.pipe(res);
-    await new Promise(resolve => res.on('finish', resolve));
-    return;
+    let rstream = cacache.get.stream(cachePath, cacheKey);
+    rstream = makeProxyReplacemenStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
+    rstream.pipe(res);
+
+    // check for cache expiration
+    // This maxAge differs from the one above in that it prefers s-maxage over max-age if the former exists.
+    const maxAge = (
+      headers['cache-control']?.match(/(?:%|\b)s-maxage=(\d+)/) ||
+      headers['cache-control']?.match(/(?:%|\b)max-age=(\d+)/))?.[1] ?? 'Infinity';
+    const expires = new Date(cacheObject.time + Number(maxAge) * 1000);
+    const expired = expires < new Date();
+    debug(expired ? 'cache expired' : 'cache expires', expires);
+    if (expired) {
+      // The response is complete. Replace the original response instance with one that simply ignores writes.
+      // This reduces the number of paths below.
+      res = new class extends stream.Writable {
+        /* eslint-disable @typescript-eslint/no-empty-function */
+        setHeader() { }
+        send() { }
+        status() { }
+        _write() { }
+        /* eslint-enable @typescript-eslint/no-empty-function */
+      };
+    } else {
+      await new Promise(resolve => res.on('finish', resolve));
+      return;
+    }
   }
 
   debug('proxy request for', originUrl);

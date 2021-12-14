@@ -126,11 +126,6 @@ In particular, it caches all CDN content, regardless of the presence of
 requests to the CDN servers, aside from `max-age` and `s-maxage`, are
 `immutable`, `public`, and `private`, which don't affect the caching policy.
 
-Resources in the cache are not currently checked for expiration. This is
-probably okay for the accepted use of the cache, since the cached resources
-should not change. In order to force the cache to re-fill, it is currently
-necessary to run `p5 proxy-cache clear` followed by `p5 proxy-cache warm`.
-
 ## Appendix: JSON Recipes
 
 With the `--json` option, the output can be used with

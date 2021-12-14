@@ -6,7 +6,7 @@ export function lsCache({ json = false, verbose = false }): void {
   cacache.ls(proxyCachePath).then(cache => {
     const entries = Object.values(cache).map(entry => {
       const cacheControl = entry.metadata.headers['cache-control'];
-      const maxAge = cacheControl?.match(/max-age=(\d+)/)?.[1];
+      const maxAge = (cacheControl?.match(/(?:^|\b)s-maxage=(\d+)/) || cacheControl?.match(/(?:^|\b)max-age=(\d+)/))?.[1];
       const expires = maxAge ? new Date(entry.time + Number(maxAge) * 1000) : null;
       return {
         ...entry,

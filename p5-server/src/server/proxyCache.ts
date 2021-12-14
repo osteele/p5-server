@@ -21,7 +21,9 @@ export const proxyPrefix = '/__p5_proxy_cache';
 export const cachePath = process.env.HOME + '/.cache/p5-server';
 
 const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
-const uncacheableHeaders = ['age', 'connection', 'content-accept-ranges', 'strict-transport-security', 'transfer-encoding', 'vary'];
+const uncacheableResponseHeaders = [
+  'accept-ranges', 'age', 'connection', 'content-accept-ranges',
+  'content-length', 'strict-transport-security', 'transfer-encoding', 'vary'];
 
 /** A list of CDNs that aren't listed in the p5-analysis Library model (because
  * they aren't specific to serving NPM packages).
@@ -84,11 +86,18 @@ interface ResponseI extends NodeJS.WritableStream {
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const originUrl = decodeProxyPath(req.path, req.query);
   const cacheKey = createHmac('sha256', JSON.stringify({
-    url: encodeURIComponent(originUrl),
+    url: originUrl,
     // Formally, the cache key should include the headers in the Vary response
-    // header. In practice, this header only has at most the following keys.
+    // header. In practice, this header only has at most the following keys;
+    // and, it is harmless to vary on them even when they aren't specified.
+    //
+    // Do NOT cache on User-Agent. It is not necessary for the supported CDNs,
+    // and it would bust the cache between different browsers, which is
+    // undesireable for offline development.
     accept: req.headers['accept'],
+    acceptCh: req.headers['accept-ch'],
     acceptEncoding: req.headers['accept-encoding'],
+    acceptLanguage: req.headers['accept-language'],
   })).digest('hex');
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
@@ -107,7 +116,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     }
     res.status(cacheObject.metadata.status);
     let stream = cacache.get.stream(cachePath, cacheKey);
-    stream = await makeProxyReplacemenStream(stream, headers['content-type'], headers['content-encoding'], originUrl);
+    stream = makeProxyReplacemenStream(stream, headers['content-type'], headers['content-encoding'], originUrl);
     stream.pipe(res);
     await new Promise(resolve => res.on('finish', resolve));
     return;
@@ -121,7 +130,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
     .map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value]));
   const originResponse = await fetch(originUrl, {
-    compress: false, // don't uncompress gzips, for efficiency and so that the content matches the content-type
+    compress: false, // don't uncompress gzips — for efficiency, and so that the content matches the content-type
     headers: reqHeaders,
     redirect: 'manual', // don't follow redirects; cache the redirect directive instead
   });
@@ -139,8 +148,8 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     res.setHeader(key, value);
   });
 
-  // This test excludes 300 Multiple Choice, since and that status code is
-  // rarely used in practice and would require rewriting the links in the HTML
+  // This test excludes 300 Multiple Choice, since that status code is rarely
+  // used in practice, and would require rewriting the links in the HTML
   // response.
   const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
   if (!originResponse.ok && !redirected) {
@@ -154,7 +163,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
   // be serialized to JSON.
   const responseHeaders = Object.fromEntries(
     Array.from(originResponse.headers.entries())
-      .filter(([key]) => !uncacheableHeaders.includes(key))
+      .filter(([key]) => !uncacheableResponseHeaders.includes(key))
   )
   const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
     metadata: {
@@ -175,14 +184,15 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
       callback();
     }
   }
-  originResponse.body.pipe(multiplexStreamWriter([res, cacheWriteStream, streamLengthCounter]));
+  originResponse.body.pipe(multiplexStreamWriter([cacheWriteStream, streamLengthCounter]));
+  makeProxyReplacemenStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
   await new Promise(resolve => streamLengthCounter.on('finish', resolve));
   debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
 }
 
-async function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string) {
+function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
   if (contentType.startsWith('text/css')) {
-    return await makeCssRewriterStream(stream, base, contentEncoding);
+    return makeCssRewriterStream(stream, base, contentEncoding);
   }
   return stream;
 }
@@ -295,9 +305,10 @@ async function prefetch(url: string, { accept = '*/*', force = false }): Promise
 export async function warmCache({ force, verbose }: { force?: boolean, verbose?: boolean }): Promise<{ total: number, failures: number, hits: number, misses: number }> {
   const concurrency = 20; // max number of requests to make at once
   const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
-  const urls = [...cacheSeeds, ...getLibraryImportPaths()];
+  // use Set to dedupe
+  const urls = Array.from(new Set([...cacheSeeds, ...getLibraryImportPaths()]));
   if (!verbose) {
-    process.stdout.write(`warming cache for ${urls.length} urls`);
+    process.stdout.write(`Warming cache from ${urls.length} seeds`);
   }
 
   const seen = new Set<string>();
@@ -312,7 +323,7 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
   }
   await Promise.all(promises);
   if (!verbose) {
-    process.stdout.write('\n');
+    process.stdout.write('done\n');
   }
 
   return stats;
@@ -338,6 +349,7 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
         if (ok) {
           const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
           if (hit) stats.hits++; else stats.misses++;
+          // add this document's URLs to the list of URLs to prefetch
           if (headers['content-type'].startsWith('text/css')) {
             if (headers['content-encoding'] === 'gzip') {
               data = zlib.gunzipSync(data);
@@ -345,6 +357,9 @@ export async function warmCache({ force, verbose }: { force?: boolean, verbose?:
             const base = url;
             cssForEachUrl(data.toString(), (value) => {
               if (value.startsWith('data:')) return;
+              // prefetch returns a document with the URLs replaced, so CDN URLs
+              // appear as proxy paths (or relative URLs), not as URLs with CDN
+              // hostnames.
               if (isProxyPath(value)) {
                 const originUrl = decodeProxyPath(url);
                 urls.push(originUrl);
@@ -445,17 +460,25 @@ function replaceUrlsInCss(text: string) {
   return modified ? csstree.generate(stylesheet) : text;
 }
 
-// TODO: change this to transformer, and use pipe to handle buffering and compression
-async function makeCssRewriterStream(stream: NodeJS.ReadableStream, base: string, encoding?: string): Promise<NodeJS.ReadableStream> {
-  const input = await fromReadable(stream);
+// TODO: change this to a Duplex stream; remove the `istream` parameter.
+//
+// Defer this change until we drop support for Node.js v14. (This will be when
+// moves to a more recent version of Electron, that upgrades to Node.js v16.)
+// The implementation will become simpler at that point.
+function makeCssRewriterStream(istream: NodeJS.ReadableStream, base: string, encoding?: string): NodeJS.ReadableStream {
   if (encoding === 'gzip') {
-    const innerStream = await makeCssRewriterStream(Readable.from(zlib.unzipSync(input)), base);
-    const output = await fromReadable(innerStream);
-    return Readable.from(zlib.gzipSync(output));
+    const z = zlib.createGzip();
+    const uz = zlib.createGunzip();
+    const ws = makeCssRewriterStream(uz, base);
+    istream.pipe(uz);
+    ws.pipe(z);
+    return z;
   }
-  const text = typeof input === 'string' ? input : input.toString('utf8');
-  const transformed = replaceUrlsInCss(text);
-  return Readable.from(transformed);
+  async function* iter() {
+    const text = await fromReadable(istream);
+    yield replaceUrlsInCss(text.toString());
+  }
+  return Readable.from(iter());
 }
 
 //#endregion

@@ -26,7 +26,7 @@ export function lsCache({ json = false, verbose = false }): void {
     if (json) {
       console.log(JSON.stringify(entries, null, 2));
     } else {
-      const formatTime = (dt: Date) => dt?.toLocaleString() ?? 'n/a';
+      const formatTime = (dt: Date | undefined | null) => dt?.toLocaleString() ?? 'n/a';
       console.log(nunjucks.render('proxy-cache-entries.njk', { entries, formatTime, verbose }));
     }
   });

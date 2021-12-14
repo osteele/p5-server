@@ -142,7 +142,7 @@ cacheCommand
     if (failures > 0) process.exit(1);
     console.log(
       misses > 0
-        ? `Added ${misses} entry for a total of ${total}`
+        ? `Added ${misses} entries for a total of ${total}`
         : `All ${total} entries were already in the cache`
     );
   });

@@ -216,7 +216,7 @@
 <li><a href="#license">License</a></li>
 </ul>
 </nav>
-<p><a href="https://www.npmjs.com/package/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version" /></a> <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) --></p>
+<p><a href="https://www.npmjs.com/package/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version" /></a> <a href="https://twitter.com/osteele"><img src="https://img.shields.io/badge/Twitter-1DA1F2" alt="Twitter" /></a> <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) --></p>
 <ul>
 <li><a href="#overview">Overview</a></li>
 <li><a href="#features">Features</a></li>
@@ -254,11 +254,12 @@
 <li><a href="#license">License</a></li>
 </ul>
 <h1 id="overview">Overview</h1>
-<p><strong>p5-server</strong> is a command-line interface for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, that knows how to serve JavaScript-only sketches and to figure out which libraries a sketch needs in order to run.</p>
+<p><strong>New feature: “airplane mode”. The server caches requests to known CDN servers (JSDelivr, Skypack, Unpkg). A sketch that uses libraries from these servers – as the files that this package generates do — can run without an internet connection, after the cache is warmed. See <a href="./docs/proxy-cache.md">here</a> for more details.</strong></p>
+<p><strong>p5-server</strong> is a development server for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, and command-line tools to generate HTML and JavaScript templates. The server can serve JavaScript-only sketches (that do not require an HTML file); it figures out which libraries a sketch needs in order to run.</p>
 <figure>
 <img src="docs/screenshot.png" alt="Directory listing in the browser" /><figcaption aria-hidden="true">Directory listing in the browser</figcaption>
 </figure>
-<p>You can use it develop sketches, or to browse a collection of sketches in a directory.</p>
+<p>p5-server can be used to develop sketches; or to browse a collection of sketches in a directory.</p>
 <p><a href="https://images.osteele.com/p5-server/explore-fullsize.gif"><img src="docs/explore.gif" alt="Using the split view to explore a collection of sketches. Click to see a higher-resolution version." /></a></p>
 <p>p5-server can also be used to create a set of HTML pages that present a collection of sketches. The <a href="https://osteele.github.io/p5.libs/p5.vector-arguments/examples">examples page</a> of the <a href="https://osteele.github.io/p5.libs/p5.vector-arguments">p5.vectorArguments</a> documentation demonstrates this.</p>
 <p>The web server, library inference, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a>, and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
@@ -266,11 +267,12 @@
 <ul>
 <li><p><strong><em>Live reload</em></strong>. The browser reloads the page when the source is modified.</p></li>
 <li><p><strong><em>JavaScript-only sketches</em></strong>. A sketch can be a single JavaScript file. You don’t need to create an HTML file just to run the sketch.</p></li>
-<li><p><strong><em>Automatic library includes</em></strong>. If a JavaScript-only sketch uses a function from <a href="https://osteele.github.io/p5-server/p5-analysis/libraries">one of these libraries</a>, the library will be included. (<a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion">This page</a> describes how this works.)</p></li>
+<li><p><strong><em>Automatic includes</em></strong>. If a JavaScript-only sketch uses a function from <a href="https://osteele.github.io/p5-server/p5-analysis/libraries">one of these libraries</a>, the library will be included. (<a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#automatic-library-inclusion">This page</a> describes how this works.)</p></li>
 <li><p><strong><em>In-browser syntax errors</em></strong>. A JavaScript file that has a syntax error will display the error in the browser. Edit and save the file to reload the page.</p>
 <p><img src="docs/syntax-error.png" alt="Syntax error reported in browser" /> <img src="docs/syntax-error-split.png" alt="Syntax error reported in browser split-view" /></p></li>
 <li><p><strong><em>Sketch-aware directory listings</em></strong>. Viewing a directory in the browser lists the sketches, folders, other files in that directory.</p></li>
 <li><p><strong><em>Sketch file generation</em></strong>. <code>p5 generate</code> creates a sketch file that you can use to get started.</p></li>
+<li><p><strong>Integrated web accelerator (CDN Cache)</strong>. The server proxies requests to the common content delivery networks (CDNs) that are used to deliver the sources to p5.js and common p5.js libraries. See <a href="./docs/proxy-cache.md">here</a> for more information about how this works.</p></li>
 </ul>
 <h1 id="quick-start-installation">Quick Start – Installation</h1>
 <p>These commands install the <code>p5</code> command on your computer. You only need to do them once.</p>
@@ -304,9 +306,9 @@
 <p><code>p5 server --open</code></p>
 <p>Starts the server, and opens the directory in the default browser.</p>
 <h3 id="browse-directories-in-split-mode">Browse directories in split mode</h3>
-<p><code>p5 server --split</code></p>
-<p>Displays directory listings with the sketch in the same window (inside of an <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a>), as shown in the screen shot above.</p>
-<p>You can combine options, e.g. <code>p5 server examples --open --split</code>.</p>
+<p><code>p5 server --theme grid</code></p>
+<p>Displays directory listings in grid view.</p>
+<p>You can combine options, e.g. <code>p5 server examples --theme grid --open</code>.</p>
 <h3 id="create-a-sketch-file">Create a sketch file</h3>
 <ul>
 <li><p><code>p5 create</code> creates a JavaScript sketch file named <code>sketch.js</code> in the current directory.</p>
@@ -319,7 +321,7 @@
 <h2 id="build-a-static-site">Build a static site</h2>
 <p><code>p5 build SOURCES</code> builds a static site into <code>./build</code>.</p>
 <p>Run <code>p5 build --help</code> for a list of options.</p>
-<p>Two themes are supported, <code>--theme directory</code> and <code>--theme split</code>.</p>
+<p>Two themes are supported, <code>--theme grid</code> and <code>--theme split</code>.</p>
 <h2 id="create-a-screenshot">Create a screenshot</h2>
 <p><code>p5 screenshot my-sketch.js</code> creates a screenshot named <code>my-sketch.png</code> in the current directory. It operates by running the sketch in a browser, saving the canvas, and then closing the browser page.</p>
 <p>You can also use <code>p5 screenshot my-sketch.html</code> for an HTML sketch; and <code>p5 screenshot dir</code> where <code>dir</code> names a single-sketch directory.</p>
@@ -431,8 +433,7 @@
 <h1 id="limitations">Limitations</h1>
 <ul>
 <li>This code hasn’t been tested on Windows.</li>
-<li>Generated sketches require an internet connection to run. They load the p5.js and other libraries from a content delivery network (“CDN”). Browsers cache these files, so reloading a page or running other sketches that use the same (or no) libraries do not require additional internet access, but you will need internet access the first time you use this extension or after the browser cache has expired.</li>
-<li>The server requires an internet connection in order to display sketches and directory listings. (It loads the Semantic UI CSS framework from a CDN.)</li>
+<li>Generated sketches require an internet connection the first time you run the server on a machine. Sketches load the p5.js and other libraries from a content delivery network (“CDN”). These libraries are cached (in <code>~/.cache/p5-server</code>), so that reloading a page or running other sketches that use the same (or no) libraries does not require additional internet access.</li>
 <li>This code hasn’t been tested with <a href="https://github.com/processing/p5.js/wiki/Global-and-instance-mode">instance-mode</a> sketches.</li>
 <li>Library inference hasn’t been tested with sketches that are written as <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>.</li>
 <li>This is a development server, not a production server. It was not designed for security or performance.</li>

@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.9.2] - 2021-11-15
+
+Changed:
+
+- Removed dependency on the 'crypto' module, so that this code can (again) be
+  used in the VSCode extension. (VSCode's embedded Node.js omits the 'crypto'
+  module.)
+
 ## [0.9.1] - 2021-11-15
 
 Fixed:

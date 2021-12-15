@@ -30,6 +30,10 @@ import paths for p5.js and its community libraries, and with the resources that
 the p5 server itself uses to display, for example, directory pages, the
 split-screen browser, and error pages.
 
+The `p5 proxy-cache warm` command is a work in progress, and is not completely
+effective. It does not replicate the Accept headers, and therefore can in
+general request a different variant of the origin resource.
+
 ## Disabling the Cache
 
 To run the server without the proxy cache, run the `p5 server` command with the
@@ -42,7 +46,7 @@ running `p5 server`.
 ## What is Cached?
 
 Requests for NPM packages from the JSDelivr, Skypack, and Unpkg content delivery
-networks are cached, as are resources from `fonts.googleapis.com and
+networks are cached, as are resources from `fonts.googleapis.com` and
 `fonts.gstatic.com`.
 
 Import paths from the community p5.js libraries are also cached. Most of these

@@ -11,7 +11,6 @@ import zlib from 'zlib';
 import { isDefined } from '../ts-extras';
 import path = require('path');
 import assert = require('assert');
-import { createHmac } from 'node:crypto';
 export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -84,7 +83,9 @@ interface ResponseI extends NodeJS.WritableStream {
 // cdnProxyRouter.
 export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
   const originUrl = decodeProxyPath(req.path, req.query);
-  const cacheKey = createHmac('sha256', JSON.stringify({
+  // An earlier version used a cryptographic digest of the stringified JSON;
+  // however, the 'crypto' module is not present in VSCode.
+  const cacheKey = JSON.stringify({
     url: originUrl,
     // Formally, the cache key should include the headers in the Vary response
     // header. In practice, this header only has at most the following keys;
@@ -97,7 +98,7 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
     acceptCh: req.headers['accept-ch'],
     acceptEncoding: req.headers['accept-encoding'],
     acceptLanguage: req.headers['accept-language'],
-  })).digest('hex');
+  });
   const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
   res.setHeader('x-p5-server-origin-url', originUrl);
@@ -405,7 +406,7 @@ export async function warmCache({ force }: { force?: boolean }, callback?: (mess
           const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
           if (hit) stats.hits++; else stats.misses++;
           // add this document's URLs to the list of URLs to prefetch
-          if (headers['content-type'].startsWith('text/css')) {
+          if (headers['content-type'].startsWith('text/css') && data.length > 0) {
             if (headers['content-encoding'] === 'gzip') {
               data = zlib.gunzipSync(data);
             }

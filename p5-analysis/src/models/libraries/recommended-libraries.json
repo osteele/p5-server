@@ -34,7 +34,7 @@
     "description": "A pattern drawing library for p5.js.",
     "homepage": "https://openprocessing.org/sketch/1278485",
     "repository": "https://github.com/SYM380/p5.pattern",
-    "importPath": "@main/p5.pattern.js",
+    "importPath": "/p5.pattern.js",
     "defines": {
       "globals": [
         "arcPattern",

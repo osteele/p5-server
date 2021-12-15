@@ -31,7 +31,6 @@ const uncacheableResponseHeaders = [
 const cdnDomains = [
   'fonts.googleapis.com',
   'fonts.gstatic.com',
-  'ghcdn.rawgit.org',
   // JSDelivr is a known npm package proxy, but the templates use a different path schema to request Highlight.js
   // distribution files.
   'cdn.jsdelivr.net',

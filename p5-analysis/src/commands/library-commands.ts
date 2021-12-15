@@ -37,19 +37,17 @@ export function printLibraryProperty(
 }
 
 export function listLibraries({ json = false, verbose = false }) {
-  {
-    if (json) {
-      console.log(JSON.stringify(Library.all, null, 2));
-    } else if (verbose) {
-      console.log(
-        nunjucks.render('list-libraries.njk', {
-          libraries: Library.all,
-          categories: Library.categories
-        })
-      );
-    } else {
-      console.log(Library.all.map(l => l.name).join('\n'));
-    }
+  if (json) {
+    console.log(JSON.stringify(Library.all, null, 2));
+  } else if (verbose) {
+    console.log(
+      nunjucks.render('list-libraries.njk', {
+        libraries: Library.all,
+        categories: Library.categories
+      })
+    );
+  } else {
+    console.log(Library.all.map(l => l.name).join('\n'));
   }
 }
 

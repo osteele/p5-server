@@ -42,14 +42,14 @@ running `p5 server`.
 ## What is Cached?
 
 Requests for NPM packages from the JSDelivr, Skypack, and Unpkg content delivery
-networks are cached, as are resources from `fonts.googleapis.com`,
-`fonts.gstatic.com`, and `ghcdn.rawgit.org`.
+networks are cached, as are resources from `fonts.googleapis.com and
+`fonts.gstatic.com`.
 
 Import paths from the community p5.js libraries are also cached. Most of these
-paths are either NPM packages or are served from `ghcdn.rawgit.org`, and would
-be cached in any case. A few of the community libraries are served from servers
-that are specific to those libraries or the organizations that public them; this
-ensures that they are cached as well.
+paths are served from a CDN and would be cached in any case. A few of the
+community libraries are served from servers that are specific to those libraries
+or the organizations that public them; this ensures that they are cached as
+well.
 
 ## Command Line
 

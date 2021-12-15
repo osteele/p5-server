@@ -1,6 +1,10 @@
 # Change Log
 
-## Unreleased
+## [0.9.1] - 2021-11-15
+
+Fixed:
+
+- Replaced ghcdn.rawgit.org by cdn.jsdelivr.net
 
 Improved:
 

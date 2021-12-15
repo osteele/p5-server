@@ -21,7 +21,7 @@
     "name": "p5.bots",
     "description": "With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!",
     "homepage": "https://github.com/sarahgp/p5bots",
-    "importPath": "@master/lib/p5bots.min.js",
+    "importPath": "/lib/p5bots.min.js",
     "defines": {
       "p5": ["board", "serial"]
     }
@@ -30,7 +30,7 @@
     "name": "p5.clickable",
     "description": "Event driven, easy-to-use button library.",
     "homepage": "https://github.com/Lartu/p5.clickable",
-    "importPath": "@master/library/p5.clickable.min.js",
+    "importPath": "/library/p5.clickable.min.js",
     "defines": {
       "globals": ["Clickable"]
     }
@@ -39,7 +39,7 @@
     "name": "p5.cmyk.js",
     "description": "CMYK color space for p5.js",
     "homepage": "https://github.com/jtnimoy/p5.cmyk.js",
-    "importPath": "@master/addons/p5.cmyk.js",
+    "importPath": "/addons/p5.cmyk.js",
     "defines": {
       "globals": ["Cmyk"]
     }
@@ -87,7 +87,7 @@
     "name": "p5.dimensions.js",
     "description": "p5.dimensions extends p5.js’ vector functions to work in any number of dimensions.",
     "homepage": "https://github.com/Smilebags/p5.dimensions.js",
-    "importPath": "@master/libraries/p5.dimensions.js",
+    "importPath": "/libraries/p5.dimensions.js",
     "defines": {
       "globals": [
         "nDist",
@@ -121,7 +121,7 @@
     "name": "p5.experience.js",
     "description": "Extensive library for p5.js that adds additional event-listening functionality for creating canvas-based web applications",
     "homepage": "https://github.com/loneboarder/p5.experience.js",
-    "importPath": "@master/p5.experience.min.js",
+    "importPath": "/p5.experience.min.js",
     "defines": {
       "globals": [
         "uxRect",
@@ -141,7 +141,7 @@
     "name": "p5.func",
     "description": "p5.func is a p5 extension that provides new objects and utilities for function generation in the time, frequency, and spatial domains",
     "homepage": "https://idmnyu.github.io/p5.js-func/",
-    "importPath": "@master/lib/p5.func.min.js",
+    "importPath": "/lib/p5.func.min.js",
     "defines": {
       "globals": [
         "imap",
@@ -187,7 +187,7 @@
     "name": "grafica.js",
     "description": "grafica.js lets you add simple but highly configurable 2D plots to your p5.js sketches.",
     "homepage": "https://github.com/jagracar/grafica.js",
-    "importPath": "@master/releases/grafica.min.js",
+    "importPath": "/releases/grafica.min.js",
     "defines": {
       "globals": ["GPlot"]
     }
@@ -204,7 +204,7 @@
     "name": "p5.localmessage",
     "description": "p5.localmessage provides a simple interface to send messages locally from one sketch to another for easy multi-window sketching",
     "homepage": "https://github.com/bmoren/p5.localmessage",
-    "importPath": "@master/p5.localmessage.min.js",
+    "importPath": "/p5.localmessage.min.js",
     "defines": {
       "globals": ["registerServiceWorker", "sendMessage", "listenMessage"]
     }
@@ -213,7 +213,7 @@
     "name": "marching",
     "description": "Raster to vector conversion, isosurfaces",
     "homepage": "https://github.com/jtnimoy/marching",
-    "importPath": "@master/lib/p5.marching.min.js",
+    "importPath": "/lib/p5.marching.min.js",
     "defines": {
       "globals": ["marchingSquares"]
     }
@@ -242,7 +242,7 @@
     "name": "p5.play",
     "description": "p5.play provides sprites, animations, input and collision functions for games and gamelike applications",
     "homepage": "https://molleindustria.github.io/p5.play/",
-    "importPath": "@master/lib/p5.play.js",
+    "importPath": "/lib/p5.play.js",
     "defines": {
       "globals": ["createSprite", "loadAnimation"]
     }
@@ -251,7 +251,7 @@
     "name": "p5.particle",
     "description": "The Particle and Fountain objects can be used to create data-driven effects that are defined through user structures or JSON input and user-draw functions",
     "homepage": "https://github.com/bobcgausa/cook-js",
-    "importPath": "@master/p5.particle.js",
+    "importPath": "/p5.particle.js",
     "defines": {
       "globals": ["Particle", "Fountain"]
     }
@@ -260,7 +260,7 @@
     "name": "p5.Riso",
     "description": "p5.Riso is a library for generating files suitable for Risograph printing. It helps turn your sketches into multi-color prints",
     "homepage": "https://antiboredom.github.io/p5.riso/",
-    "importPath": "@master/lib/p5.riso.js",
+    "importPath": "/lib/p5.riso.js",
     "defines": {
       "globals": ["drawRiso"]
     }
@@ -296,7 +296,7 @@
     "name": "p5js.screenPosition",
     "description": "p5js.screenPosition is a library that provides a function for getting the position of the mouse on the screen",
     "homepage": "https://github.com/bohnacker/p5js-screenPosition",
-    "importPath": "@master/addScreenPositionFunction.js",
+    "importPath": "/addScreenPositionFunction.js",
     "defines": {
       "globals": ["addScreenPositionFunction"]
     }
@@ -305,7 +305,7 @@
     "name": "p5.scribble",
     "description": "Draw 2D primitives in a sketchy look",
     "homepage": "https://github.com/generative-light/p5.scribble.js",
-    "importPath": "@master/p5.scribble.js",
+    "importPath": "/p5.scribble.js",
     "defines": {
       "globals": ["Scribble"]
     }
@@ -323,7 +323,7 @@
     "name": "Shape5",
     "description": "Shape5 is a library for creating and manipulating shapes in p5.js",
     "homepage": "https://github.com/pfe1223/Shape5js",
-    "importPath": "@master/shape5.js",
+    "importPath": "/shape5.js",
     "defines": {
       "globals": [
         "Circle",
@@ -344,7 +344,7 @@
     "name": "p5.shape.js",
     "description": "A library built to add more simple shapes to the p5.js framework.",
     "homepage": "https://github.com/gaba5/p5.shape.js",
-    "importPath": "@master/p5.shape.js",
+    "importPath": "/p5.shape.js",
     "defines": {
       "globals": [
         "tri",
@@ -365,7 +365,7 @@
     "name": "p5.speech",
     "description": "p5.speech provides simple, clear access to the Web Speech and Speech Recognition APIs, allowing for the easy creation of sketches that can talk and listen",
     "homepage": "https://idmnyu.github.io/p5.js-speech/",
-    "importPath": "@master/lib/p5.speech.js",
+    "importPath": "/lib/p5.speech.js",
     "defines": {
       "p5": ["Speech", "SpeechRec"]
     }
@@ -374,7 +374,7 @@
     "name": "p5.start2d.js",
     "description": "p5 extension for 2D static art using px, mm, cm or inches",
     "homepage": "https://github.com/eltapir/p5.start2d.js",
-    "importPath": "@master/js/p5.start2d.js"
+    "importPath": "/js/p5.start2d.js"
   },
   {
     "name": "p5.tiledmap",
@@ -408,7 +408,7 @@
     "name": "p5.voronoi",
     "description": "p5.voronoi is a library for creating Voronoi diagrams in p5.js",
     "homepage": "https://github.com/Dozed12/p5.voronoi",
-    "importPath": "@master/library/p5.voronoi.min.js",
+    "importPath": "/library/p5.voronoi.min.js",
     "defines": {
       "globals": ["voronoi", "voronoiGetDiagram"]
     }
@@ -426,7 +426,7 @@
     "name": "p5.3D",
     "description": "p5.3D is a library for creating 3D graphics 3D Text and Images in WebGL",
     "homepage": "https://github.com/FreddieRa/p5.3D",
-    "importPath": "@master/p5.3D.js",
+    "importPath": "/p5.3D.js",
     "defines": {
       "globals": ["createWord3D", "createPicture3D", "createCanvas3D"]
     }

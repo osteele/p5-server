@@ -228,17 +228,16 @@ export class Library implements Library.Properties {
 
   /** A path that can be used to load the library. */
   get importPath(): string | undefined {
-    let path = this._importPath;
+    let path = this._importPath?.replace('$(P5Version)', p5Version);
     if (path) {
-      path = path.replace(/^@/, '/');
-      if (path.startsWith('/')) {
-        path = `${this.repositoryUrl!.replace(/\/$/, '')}${path}`;
+      // if the import path begins with '/', it's relative to the repository
+      if (path.startsWith('/') && this.repositoryUrl?.startsWith('https://github.com/')) {
+        path = `${this.repositoryUrl.replace(/\/$/, '')}${path}`;
       }
-      // If it's a repo file, derive the corresponding raw location. This is
-      // outside the above conditional because it should apply to absolute paths
-      // too.
-      path = path.replace(/^https:\/\/github.com\//, 'https://ghcdn.rawgit.org/');
-      path = path.replace('$(P5Version)', p5Version);
+      // If it's a file in a GitHub repo, derive the corresponding CDN location.
+      // This is outside the above conditional because it should apply to
+      // absolute import paths too.
+      path = path.replace(/^https:\/\/github.com\//, 'https://cdn.jsdelivr.net/gh/');
     } else if (this.packageName) {
       path = `https://unpkg.com/${this.packageName}`;
     }

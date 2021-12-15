@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.10] - 2021-11-15
+
+Fixed:
+
+- Replaced ghcdn.rawgit.org by cdn.jsdelivr.net
+
 ## [0.6.9] - 2021-11-14
 
 Added:
@@ -64,7 +70,9 @@ Performance improvements:
 
 Fixed:
 
-- Replace raw.githubusercontent.com by ghcdn.rawgit.org. This fixes an error where some script files didn't have the correct content type, and couldn't be loaded.
+- Replace raw.githubusercontent.com by ghcdn.rawgit.org. This fixes an error
+  where some script files didn't have the correct content type, and couldn't be
+  loaded.
 - Fix import paths for p5.xr, p5.3D
 
 Added:

@@ -146,8 +146,8 @@ export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<voi
       headers['cache-control']?.match(/(?:%|\b)max-age=(\d+)/))?.[1] ?? 'Infinity';
     const expires = new Date(cacheObject.time + Number(maxAge) * 1000);
     const expired = expires < new Date();
-    debug(expired ? 'cache expired' : 'cache expires', expires);
     if (expired) {
+      debug('cache expired', originUrl);
       // The response is complete. Replace the original response instance with one that simply ignores writes.
       // This reduces the number of paths below.
       res = new class extends stream.Writable {
@@ -363,15 +363,15 @@ export async function warmCache({ force }: { force?: boolean }, callback?: (mess
   const concurrency = 20; // max number of requests to make at once
   const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
   // use Set to dedupe
-  const urls = Array.from(new Set([...cacheSeeds, ...getLibraryImportPaths()])).sort();
+  const urls = dedupe([...cacheSeeds, ...getLibraryImportPaths()]).sort();
   callback?.({ type: 'initial', total: urls.length });
 
   const seen = new Set<string>();
   const promises: Promise<void>[] = [];
   // `while` instead of `for`, because visit() can add to the array.
   while (urls.length > 0 || promises.length > 0) {
-    if (urls.length > 0) {
-      const url = urls.shift()!;
+    const url = urls.shift();
+    if (url) {
       if (seen.has(url)) continue;
       seen.add(url);
       callback?.({ type: 'prefetch', url });
@@ -380,7 +380,7 @@ export async function warmCache({ force }: { force?: boolean }, callback?: (mess
       // One of the pending promises could add more urls to the queue, so wait
       // for the next one inside the loop instead of awaiting Promise.all()
       // at the end.
-      await Promise.any(promises);
+      await Promise.race(promises);
     }
   }
 
@@ -394,9 +394,7 @@ export async function warmCache({ force }: { force?: boolean }, callback?: (mess
     if (promises.length >= concurrency) {
       // debug('waiting for one of', promises.length, 'prefetches to settle');
       /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-      await Promise.any(promises).catch(() => {
-        // TODO: I thought I had a reason to ignore the exception, but I should review this
-      });
+      await Promise.race(promises);
     }
     const accept = {
       '.css': 'text/css',
@@ -418,6 +416,7 @@ export async function warmCache({ force }: { force?: boolean }, callback?: (mess
               // prefetch returns a document with the URLs replaced, so CDN URLs
               // appear as proxy paths (or relative URLs), not as URLs with CDN
               // hostnames.
+              value = removeHash(value);
               if (isProxyPath(value)) {
                 const originUrl = decodeProxyPath(url);
                 urls.push(originUrl);
@@ -613,8 +612,16 @@ function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: str
   });
 }
 
+function dedupe<T>(array: T[]): T[] {
+  return Array.from(new Set(array));
+}
+
 function isRelativeUrl(url: string) {
   return !/^[a-z]+:/i.test(url);
+}
+
+function removeHash(url: string): string {
+  return url.replace(/#.*/, '');
 }
 
 // Source: nodejs documentation for Url.resolve

@@ -4,58 +4,19 @@ import * as csstree from 'css-tree';
 import { parse as parseCss } from 'css-tree';
 import fetch from 'node-fetch';
 import { parse as parseHtml } from 'node-html-parser';
-import { Cdn, Library } from 'p5-analysis';
-import { p5Version } from 'p5-analysis/dist/models/Library';
 import stream, { Readable } from 'stream';
 import zlib from 'zlib';
 import { isDefined } from '../ts-extras';
 import path = require('path');
 import assert = require('assert');
-export * as cacache from 'cacache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
-
-export const proxyPrefix = '/__p5_proxy_cache';
-export const cachePath = process.env.HOME + '/.cache/p5-server';
 
 const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 const uncacheableResponseHeaders = [
   'accept-ranges', 'age', 'connection', 'content-accept-ranges',
   'content-length', 'strict-transport-security', 'transfer-encoding', 'vary'];
-
-/** A list of CDNs that aren't listed in the p5-analysis Library model (because
- * they aren't specific to serving NPM packages).
- */
-const cdnDomains = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com',
-  // JSDelivr is a known npm package proxy, but the templates use a different path schema to request Highlight.js
-  // distribution files.
-  'cdn.jsdelivr.net',
-]
-
-/** URLs to warm the cache with, that can't be inferred from the libraries, in
- * addition to library loadPaths.
- *
- * It's okay if these have repeats. The cache warmer deduplicates URLs anyway.
- */
-const cacheSeeds = [
-  // TODO: use an API to retrieve this constant
-  `https://cdn.jsdelivr.net/npm/p5@${p5Version}/lib/p5.min.js`, // p5importPath
-  // TODO: read the following from the template file. Or, add these to the package.
-  // directory.pug
-  'https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.js',
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
-  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
-  // markdown.pug
-  'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
-  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
-  // source-view.pug
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/github-dark.min.css",
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/highlight.min.js",
-]
 
 // The RequestI and ReponseI interfaces specify the part of express.Request and
 // express.Response that cdnProxyRouter uses. It is done this way so that
@@ -76,270 +37,6 @@ interface ResponseI extends NodeJS.WritableStream {
   status(code: number): void;
 }
 
-// Note that express.Request implements RequestI, and express.Response
-// implements ResponseI.
-//
-// This function uses the more general type to allow prefetch to call
-// cdnProxyRouter.
-export async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
-  const originUrl = decodeProxyPath(req.path, req.query);
-  // An earlier version used a cryptographic digest of the stringified JSON;
-  // however, the 'crypto' module is not present in VSCode.
-  const cacheKey = JSON.stringify({
-    url: originUrl,
-    // Formally, the cache key should include the headers in the Vary response
-    // header. In practice, this header only has at most the following keys;
-    // and, it is harmless to vary on them even when they aren't specified.
-    //
-    // Do NOT cache on User-Agent. It is not necessary for the supported CDNs,
-    // and it would bust the cache between different browsers, which is
-    // undesireable for offline development.
-    accept: req.headers['accept'],
-    acceptCh: req.headers['accept-ch'],
-    acceptEncoding: req.headers['accept-encoding'],
-    acceptLanguage: req.headers['accept-language'],
-  });
-  const cacheObject = await cacache.get.info(cachePath, cacheKey);
-
-  res.setHeader('x-p5-server-origin-url', originUrl);
-  if (cacheObject && !req.query.reload) {
-    debug('cache hit', originUrl);
-    res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
-    const { headers } = cacheObject.metadata;
-    for (const key of Object.keys(headers)) {
-      let value = headers[key];
-      switch (key) {
-        case 'location':
-          if (isCdnUrl(value)) {
-            value = encodeProxyPath(value);
-          }
-          break;
-        case 'cache-control':
-          continue;
-      }
-      const headerMap: Record<string, string> = { server: 'origin-server' };
-      res.setHeader(headerMap[key] ?? key, value);
-    }
-    {
-      const age = Math.max(0, (+new Date()) - cacheObject.time);
-      res.setHeader('age', Math.floor(age / 1000));
-    }
-    {
-      let cacheControl = headers['cache-control']?.match(/(?:^|\b)(public|private)\b/)?.[1] ?? 'public';
-      const maxAge = headers['cache-control']?.match(/(?:^|\b)max-age=(\d+)/)?.[1];
-      if (maxAge) {
-        cacheControl += ', max-age=' + maxAge;
-      }
-      cacheControl += `, stale-while-revalidate=${maxAge || 86400}`;
-      res.setHeader('cache-control', cacheControl);
-    }
-
-    res.status(cacheObject.metadata.status);
-    let rstream = cacache.get.stream(cachePath, cacheKey);
-    rstream = makeProxyReplacemenStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
-    rstream.pipe(res);
-
-    // check for cache expiration
-    // This maxAge differs from the one above in that it prefers s-maxage over max-age if the former exists.
-    const maxAge = (
-      headers['cache-control']?.match(/(?:%|\b)s-maxage=(\d+)/) ||
-      headers['cache-control']?.match(/(?:%|\b)max-age=(\d+)/))?.[1] ?? 'Infinity';
-    const expires = new Date(cacheObject.time + Number(maxAge) * 1000);
-    const expired = expires < new Date();
-    if (expired) {
-      debug('cache expired', originUrl);
-      // The response is complete. Replace the original response instance with one that simply ignores writes.
-      // This reduces the number of paths below.
-      res = new class extends stream.Writable {
-        /* eslint-disable @typescript-eslint/no-empty-function */
-        setHeader() { }
-        send() { }
-        status() { }
-        _write() { }
-        /* eslint-enable @typescript-eslint/no-empty-function */
-      };
-    } else {
-      await new Promise(resolve => res.on('finish', resolve));
-      return;
-    }
-  }
-
-  debug('proxy request for', originUrl);
-  // filter the headers, and combine string[] values back into strings
-  const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
-  const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
-    .filter(([key]) => headerAcceptList.includes(key))
-    .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
-    .map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value]));
-  const originResponse = await fetch(originUrl, {
-    compress: false, // don't uncompress gzips — for efficiency, and so that the content matches the content-type
-    headers: reqHeaders,
-    redirect: 'manual', // don't follow redirects; cache the redirect directive instead
-  });
-
-  // Relay the origin status, and add a cache header
-  res.status(originResponse.status);
-  res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'MISS');
-
-  // Copy headers from the origin response to the output response.
-  // Modify Location headers to proxy them, in the case of a redirect.
-  originResponse.headers.forEach((value, key) => {
-    if (key === 'location' && isCdnUrl(value)) {
-      value = encodeProxyPath(value);
-    }
-    res.setHeader(key, value);
-  });
-
-  // This test excludes 300 Multiple Choice, since that status code is rarely
-  // used in practice, and would require rewriting the links in the HTML
-  // response.
-  const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
-  if (!originResponse.ok && !redirected) {
-    // don't cache responses other than 200's and redirects
-    debug(`Failed ${originResponse.ok} | ${originResponse.status} | ${originResponse.statusText}`);
-    res.send(originResponse.statusText);
-    return;
-  }
-
-  // expressjs.Response.headers serializes to {}. Copy it to an Object that can
-  // be serialized to JSON.
-  const responseHeaders = Object.fromEntries(
-    Array.from(originResponse.headers.entries())
-      .filter(([key]) => !uncacheableResponseHeaders.includes(key))
-  )
-  const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
-    metadata: {
-      originUrl,
-      headers: responseHeaders,
-      status: originResponse.status
-    }
-  });
-
-  // pipe the origin response body to both the client response and the cache
-  // write stream. Collect the length of the response for logging.
-  const streamLengthCounter = new class extends stream.Writable {
-    length = 0;
-    _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
-      if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
-        this.length += chunk.length;
-      }
-      callback();
-    }
-  }
-  originResponse.body.pipe(multiplexStreamWriter([cacheWriteStream, streamLengthCounter]));
-  makeProxyReplacemenStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
-  await new Promise(resolve => streamLengthCounter.on('finish', resolve));
-  debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
-}
-
-function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
-  if (contentType.startsWith('text/css')) {
-    return makeCssRewriterStream(stream, base, contentEncoding);
-  }
-  return stream;
-}
-
-//#region proxy paths
-
-// exported for unit testing
-export function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
-  if (!/^https?:/i.test(originUrl)) return originUrl;
-  let proxyPath = originUrl;
-  if (/\?/.test(originUrl)) {
-    // package the entire query string into a single query parameter, so that other query parameters can be added to the
-    // URL without breaking the cache
-    const u = new URL(originUrl);
-    u.search = `?search=${encodeURIComponent(u.search.substr(1))}`;
-    proxyPath = u.toString();
-  }
-  // The following transformation improves the readability of the developer console's source list.
-  proxyPath = proxyPath
-    .replace(/^https:\/\//i, '')
-    .replace(/^http:\/\//i, 'http/')
-  return includePrefix ? `${proxyPrefix}/${proxyPath}` : proxyPath;
-}
-
-// exported for unit testing
-export function decodeProxyPath(proxyPath: string, query: RequestI['query'] = {}): string {
-  let originUrl = proxyPath
-    .replace(proxyPrefix, '')
-    .replace(/^\//, '')
-    .replace(/^http\//, 'http://');
-  if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
-  if (originUrl.includes('?')) {
-    const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
-    originUrl = pʹ + (hash || '');
-    new URLSearchParams(queryString).forEach((value, key) => {
-      query[key] = value;
-    });
-  }
-  if (query.search) {
-    originUrl += `?${decodeURIComponent(query.search as string)}`;
-  }
-  return originUrl;
-}
-
-function isProxyPath(url: string): boolean {
-  return url.startsWith(proxyPrefix);
-}
-
-//#endregion
-
-//#region cache warmup
-
-/** Verify that url is in the cache. Request it if it is not. Uses
- * cdnProxyRouter to minimize different code paths that need to be tested.
- * Returns a Response-like structure, that warmCache can use to follow
- * referenced URLs.
- */
-async function prefetch(url: string, { accept = '*/*', force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
-  const reqHeaders = {
-    accept,
-    // TODO: use a different user-agent for prefetching?
-    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
-    'accept-language': 'en-US,en;q=0.9',
-    'accept-encoding': 'gzip, deflate',
-  };
-  const req = {
-    headers: reqHeaders,
-    path: encodeProxyPath(url, { includePrefix: false }),
-    query: force ? { reload: 'true' } : {}
-  };
-  let status: number | undefined;
-  /* eslint-disable @typescript-eslint/no-empty-function */
-  const res = new class extends stream.Writable {
-    headers: Record<string, string> = {};
-    chunks = new Array<Buffer>();
-
-    setHeader(key: string, value: string) {
-      this.headers[key] = value;
-    }
-    status(statusCode: number) { status = statusCode; }
-    send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) }
-    _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
-      assert.ok(chunk instanceof Buffer);
-      this.chunks.push(chunk as Buffer);
-      callback();
-    }
-  };
-
-  /* eslint-enable @typescript-eslint/no-empty-function */
-  debug(`warm cache for ${url}`);
-  await cdnProxyRouter(req, res);
-  const redirected = 300 < status! && status! < 400 && res.headers.location.startsWith(proxyPrefix + '/');
-  if (redirected) {
-    const location = decodeURIComponent(res.headers.location.substring(proxyPrefix.length + 1));
-    debug(`following redirect from ${url} -> ${location}`);
-    return prefetch(location, { accept, force });
-  }
-  return {
-    data: Buffer.concat(res.chunks),
-    headers: res.headers,
-    ok: status! < 400,
-    status: status!,
-  };
-}
-
 export type CacheWarmStats = {
   total: number;
   failures: number;
@@ -353,190 +50,476 @@ export type CacheWarmMessage =
   | { type: 'error', url: string, status: number }
   | { type: 'progress', stats: CacheWarmStats };
 
-/** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
- *
- * Most of the complexity come from fetching the URLs in parallel.
- *
- * (Currently, only references in CSS files are prefetched.)
- */
-export async function warmCache({ force }: { force?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
-  const concurrency = 20; // max number of requests to make at once
-  const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
-  // use Set to dedupe
-  const urls = dedupe([...cacheSeeds, ...getLibraryImportPaths()]).sort();
-  callback?.({ type: 'initial', total: urls.length });
+type ProxyCacheOptions = {
+  cachePath: string;
+  cacheSeeds: string[];
+  proxyPrefix: string;
+  shouldProxyPath: (url: string) => boolean;
+};
 
-  const seen = new Set<string>();
-  const promises: Promise<void>[] = [];
-  // `while` instead of `for`, because visit() can add to the array.
-  while (urls.length > 0 || promises.length > 0) {
-    const url = urls.shift();
-    if (url) {
-      if (seen.has(url)) continue;
-      seen.add(url);
-      callback?.({ type: 'prefetch', url });
-      await visit(url);
-    } else {
-      // One of the pending promises could add more urls to the queue, so wait
-      // for the next one inside the loop instead of awaiting Promise.all()
-      // at the end.
-      await Promise.race(promises);
-    }
-  }
+const cacachelsBind = () => cacache.ls('cachePath');
 
-  return stats;
+type ProxyCache = {
+  cachePath: string;
+  clear: () => Promise<void>;
+  router: (req: RequestI, res: ResponseI) => Promise<void>;
+  replaceUrlsInHtml: (html: string) => string;
+  warm: ({ force }: {
+    force?: boolean | undefined;
+  }, callback?: ((message: CacheWarmMessage) => void) | undefined) => Promise<CacheWarmStats>;
+  ls: typeof cacachelsBind;
+  // exported for unit testing:
+  decodeProxyPath: (url: string, query: RequestI['query']) => string,
+  encodeProxyPath: (url: string) => string,
+};
 
-  // This function returns immediately once it adds a fetch promise to the
-  // array. (It does not wait for the fetch to initiate.) If there are already
-  // `concurrency` promises pending, it waits for one to resolve before adding
-  // the new promise and returning.
-  async function visit(url: string) {
-    if (promises.length >= concurrency) {
-      // debug('waiting for one of', promises.length, 'prefetches to settle');
-      /* eslint-disable-next-line @typescript-eslint/no-empty-function */
-      await Promise.race(promises);
-    }
-    const accept = {
-      '.css': 'text/css',
-      '.html': 'text/html',
-    }[path.extname(url)] || '*/*';
-    const p = prefetch(url, { accept, force })
-      .then(({ status, ok, headers, data }) => {
-        if (ok) {
-          const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
-          if (hit) stats.hits++; else stats.misses++;
-          // add this document's URLs to the list of URLs to prefetch
-          if (headers['content-type'].startsWith('text/css') && data.length > 0) {
-            if (headers['content-encoding'] === 'gzip') {
-              data = zlib.gunzipSync(data);
+export function createProxyCache({
+  proxyPrefix,
+  cachePath,
+  cacheSeeds,
+  shouldProxyPath: isCdnUrl,
+}: ProxyCacheOptions): ProxyCache {
+  return {
+    cachePath,
+    clear: () => cacache.rm.all(cachePath),
+    router: cdnProxyRouter,
+    replaceUrlsInHtml,
+    warm: warmCache,
+    ls: cacache.ls.bind(cacache, cachePath),
+    // exported for unit testing:
+    decodeProxyPath,
+    encodeProxyPath
+  };
+
+  // Note that express.Request implements RequestI, and express.Response
+  // implements ResponseI.
+  //
+  // This function uses the more general type to allow prefetch to call
+  // cdnProxyRouter.
+  async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
+    const originUrl = decodeProxyPath(req.path, req.query);
+    // An earlier version used a cryptographic digest of the stringified JSON;
+    // however, the 'crypto' module is not present in VSCode.
+    const cacheKey = JSON.stringify({
+      url: originUrl,
+      // Formally, the cache key should include the headers in the Vary response
+      // header. In practice, this header only has at most the following keys;
+      // and, it is harmless to vary on them even when they aren't specified.
+      //
+      // Do NOT cache on User-Agent. It is not necessary for the supported CDNs,
+      // and it would bust the cache between different browsers, which is
+      // undesireable for offline development.
+      accept: req.headers['accept'],
+      acceptCh: req.headers['accept-ch'],
+      acceptEncoding: req.headers['accept-encoding'],
+      acceptLanguage: req.headers['accept-language'],
+    });
+    const cacheObject = await cacache.get.info(cachePath, cacheKey);
+
+    res.setHeader('x-p5-server-origin-url', originUrl);
+    if (cacheObject && !req.query.reload) {
+      debug('cache hit', originUrl);
+      res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
+      const { headers } = cacheObject.metadata;
+      for (const key of Object.keys(headers)) {
+        let value = headers[key];
+        switch (key) {
+          case 'location':
+            if (isCdnUrl(value)) {
+              value = encodeProxyPath(value);
             }
-            const base = url;
-            cssForEachUrl(data.toString(), (value) => {
-              if (value.startsWith('data:')) return;
-              // prefetch returns a document with the URLs replaced, so CDN URLs
-              // appear as proxy paths (or relative URLs), not as URLs with CDN
-              // hostnames.
-              value = removeHash(value);
-              if (isProxyPath(value)) {
-                const originUrl = decodeProxyPath(url);
-                urls.push(originUrl);
-              } else if (isRelativeUrl(value)) {
-                const originUrl = urlResolve(base, value);
-                urls.push(originUrl);
-              }
-            });
-          }
-          callback?.({ type: 'progress', stats });
-        } else {
-          stats.failures++;
-          callback?.({ type: 'error', url, status });
+            break;
+          case 'cache-control':
+            continue;
         }
-      })
-      .finally(() => {
-        stats.total++;
-        promises.splice(promises.indexOf(p), 1);
-        // callback?.(stats);
-      });
-    promises.push(p);
-  }
-}
+        const headerMap: Record<string, string> = { server: 'origin-server' };
+        res.setHeader(headerMap[key] ?? key, value);
+      }
+      {
+        const age = Math.max(0, (+new Date()) - cacheObject.time);
+        res.setHeader('age', Math.floor(age / 1000));
+      }
+      {
+        let cacheControl = headers['cache-control']?.match(/(?:^|\b)(public|private)\b/)?.[1] ?? 'public';
+        const maxAge = headers['cache-control']?.match(/(?:^|\b)max-age=(\d+)/)?.[1];
+        if (maxAge) {
+          cacheControl += ', max-age=' + maxAge;
+        }
+        cacheControl += `, stale-while-revalidate=${maxAge || 86400}`;
+        res.setHeader('cache-control', cacheControl);
+      }
 
-//#endregion
+      res.status(cacheObject.metadata.status);
+      let rstream = cacache.get.stream(cachePath, cacheKey);
+      rstream = makeProxyReplacemenStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
+      rstream.pipe(res);
 
-//#region CDN recognition
+      // check for cache expiration
+      // This maxAge differs from the one above in that it prefers s-maxage over max-age if the former exists.
+      const maxAge = (
+        headers['cache-control']?.match(/(?:%|\b)s-maxage=(\d+)/) ||
+        headers['cache-control']?.match(/(?:%|\b)max-age=(\d+)/))?.[1] ?? 'Infinity';
+      const expires = new Date(cacheObject.time + Number(maxAge) * 1000);
+      const expired = expires < new Date();
+      if (expired) {
+        debug('cache expired', originUrl);
+        // The response is complete. Replace the original response instance with one that simply ignores writes.
+        // This reduces the number of paths below.
+        res = new class extends stream.Writable {
+          /* eslint-disable @typescript-eslint/no-empty-function */
+          setHeader() { }
+          send() { }
+          status() { }
+          _write() { }
+          /* eslint-enable @typescript-eslint/no-empty-function */
+        };
+      } else {
+        await new Promise(resolve => res.on('finish', resolve));
+        return;
+      }
+    }
 
-// exported for unit tests
-export function isCdnUrl(url: string): boolean {
-  if (!/^https?:/.test(url)) return false;
-  return Cdn.all.some(cdn => cdn.matchesUrl(url))
-    || getLibraryImportPaths().has(url)
-    || cdnDomains.includes(new URL(url).hostname);
-}
-
-/** Cache for memoizing getLibraryImportPaths. */
-let _libraryImportPaths: Set<string>;
-
-function getLibraryImportPaths() {
-  _libraryImportPaths ??= new Set(Library.all.map(lib => lib.importPath).filter(isDefined));
-  return _libraryImportPaths;
-}
-
-//#endregion
-
-//#region rewrite documents
-
-/** Replace CDN URLs in script[src] and link[href] with proxy cache paths.
- *
- * @param html the HTML to process
- * @returns the processed HTML
- */
-export function replaceUrlsInHtml(html: string): string {
-  const htmlRoot = parseHtml(html);
-  let modified = false;
-
-  // rewrite script[src]
-  htmlRoot
-    .querySelectorAll('script[src]')
-    .filter(e => isCdnUrl(e.attributes.src))
-    .forEach(e => {
-      modified = true;
-      e.setAttribute('src', encodeProxyPath(e.attributes.src));
+    debug('proxy request for', originUrl);
+    // filter the headers, and combine string[] values back into strings
+    const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
+    const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
+      .filter(([key]) => headerAcceptList.includes(key))
+      .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
+      .map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value]));
+    const originResponse = await fetch(originUrl, {
+      compress: false, // don't uncompress gzips — for efficiency, and so that the content matches the content-type
+      headers: reqHeaders,
+      redirect: 'manual', // don't follow redirects; cache the redirect directive instead
     });
 
-  // rewrite link[href]
-  htmlRoot
-    .querySelectorAll('link[rel=stylesheet][href]')
-    .filter(e => isCdnUrl(e.attributes.href))
-    .forEach(e => {
-      modified = true;
-      e.setAttribute('href', encodeProxyPath(e.attributes.href));
+    // Relay the origin status, and add a cache header
+    res.status(originResponse.status);
+    res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'MISS');
+
+    // Copy headers from the origin response to the output response.
+    // Modify Location headers to proxy them, in the case of a redirect.
+    originResponse.headers.forEach((value, key) => {
+      if (key === 'location' && isCdnUrl(value)) {
+        value = encodeProxyPath(value);
+      }
+      res.setHeader(key, value);
     });
 
-  return modified ? htmlRoot.outerHTML : html;
-}
-
-/** Replace CDN URLs with proxy cache paths.
- *
- * @param html the HTML to process
- * @returns the processed HTML
- */
-function replaceUrlsInCss(text: string) {
-  const stylesheet = parseCss(text);
-  let modified = false;
-
-  cssForEachUrl(stylesheet, value => {
-    if (value.startsWith('data:'))
+    // This test excludes 300 Multiple Choice, since that status code is rarely
+    // used in practice, and would require rewriting the links in the HTML
+    // response.
+    const redirected = 300 < originResponse.status && originResponse.status < 400 && originResponse.headers.has('location');
+    if (!originResponse.ok && !redirected) {
+      // don't cache responses other than 200's and redirects
+      debug(`Failed ${originResponse.ok} | ${originResponse.status} | ${originResponse.statusText}`);
+      res.send(originResponse.statusText);
       return;
-    if (isCdnUrl(value)) {
-      const proxied = encodeProxyPath(value);
-      modified = true;
-      // debug(`rewriting ${value} to ${proxied}`);
-      return proxied;
+    }
+
+    // expressjs.Response.headers serializes to {}. Copy it to an Object that can
+    // be serialized to JSON.
+    const responseHeaders = Object.fromEntries(
+      Array.from(originResponse.headers.entries())
+        .filter(([key]) => !uncacheableResponseHeaders.includes(key))
+    )
+    const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
+      metadata: {
+        originUrl,
+        headers: responseHeaders,
+        status: originResponse.status
+      }
+    });
+
+    // pipe the origin response body to both the client response and the cache
+    // write stream. Collect the length of the response for logging.
+    const streamLengthCounter = new class extends stream.Writable {
+      length = 0;
+      _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+        if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
+          this.length += chunk.length;
+        }
+        callback();
+      }
+    }
+    originResponse.body.pipe(multiplexStreamWriter([cacheWriteStream, streamLengthCounter]));
+    makeProxyReplacemenStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
+    await new Promise(resolve => streamLengthCounter.on('finish', resolve));
+    debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
+  }
+
+  function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
+    if (contentType.startsWith('text/css')) {
+      return makeCssRewriterStream(stream, base, contentEncoding);
+    }
+    return stream;
+  }
+
+  //#region proxy paths
+
+  // exported for unit testing
+  function encodeProxyPath(originUrl: string, { includePrefix = true } = {}): string {
+    if (!/^https?:/i.test(originUrl)) return originUrl;
+    let proxyPath = originUrl;
+    if (/\?/.test(originUrl)) {
+      // package the entire query string into a single query parameter, so that other query parameters can be added to the
+      // URL without breaking the cache
+      const u = new URL(originUrl);
+      u.search = `?search=${encodeURIComponent(u.search.substr(1))}`;
+      proxyPath = u.toString();
+    }
+    // The following transformation improves the readability of the developer console's source list.
+    proxyPath = proxyPath
+      .replace(/^https:\/\//i, '')
+      .replace(/^http:\/\//i, 'http/')
+    return includePrefix ? `${proxyPrefix}/${proxyPath}` : proxyPath;
+  }
+
+  // exported for unit testing
+  function decodeProxyPath(proxyPath: string, query: RequestI['query'] = {}): string {
+    let originUrl = proxyPath
+      .replace(proxyPrefix, '')
+      .replace(/^\//, '')
+      .replace(/^http\//, 'http://');
+    if (!/^https?:/i.test(originUrl)) originUrl = `https://${originUrl}`;
+    if (originUrl.includes('?')) {
+      const [pʹ, queryString, hash] = originUrl.match(/(.+)\?(.+)(#.*)?/)!.slice(1);
+      originUrl = pʹ + (hash || '');
+      new URLSearchParams(queryString).forEach((value, key) => {
+        query[key] = value;
+      });
+    }
+    if (query.search) {
+      originUrl += `?${decodeURIComponent(query.search as string)}`;
+    }
+    return originUrl;
+  }
+
+  function isProxyPath(url: string): boolean {
+    return url.startsWith(proxyPrefix);
+  }
+
+  //#endregion
+
+  //#region cache warmup
+
+  /** Verify that url is in the cache. Request it if it is not. Uses
+   * cdnProxyRouter to minimize different code paths that need to be tested.
+   * Returns a Response-like structure, that warmCache can use to follow
+   * referenced URLs.
+   */
+  async function prefetch(url: string, { accept = '*/*', force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
+    const reqHeaders = {
+      accept,
+      // TODO: use a different user-agent for prefetching?
+      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
+      'accept-language': 'en-US,en;q=0.9',
+      'accept-encoding': 'gzip, deflate',
+    };
+    const req = {
+      headers: reqHeaders,
+      path: encodeProxyPath(url, { includePrefix: false }),
+      query: force ? { reload: 'true' } : {}
+    };
+    let status: number | undefined;
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    const res = new class extends stream.Writable {
+      headers: Record<string, string> = {};
+      chunks = new Array<Buffer>();
+
+      setHeader(key: string, value: string) {
+        this.headers[key] = value;
+      }
+      status(statusCode: number) { status = statusCode; }
+      send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) }
+      _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+        assert.ok(chunk instanceof Buffer);
+        this.chunks.push(chunk as Buffer);
+        callback();
+      }
+    };
+
+    /* eslint-enable @typescript-eslint/no-empty-function */
+    debug(`warm cache for ${url}`);
+    await cdnProxyRouter(req, res);
+    const redirected = 300 < status! && status! < 400 && res.headers.location.startsWith(proxyPrefix + '/');
+    if (redirected) {
+      const location = decodeURIComponent(res.headers.location.substring(proxyPrefix.length + 1));
+      debug(`following redirect from ${url} -> ${location}`);
+      return prefetch(location, { accept, force });
+    }
+    return {
+      data: Buffer.concat(res.chunks),
+      headers: res.headers,
+      ok: status! < 400,
+      status: status!,
+    };
+  }
+
+  /** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
+   *
+   * Most of the complexity come from fetching the URLs in parallel.
+   *
+   * (Currently, only references in CSS files are prefetched.)
+   */
+  async function warmCache({ force }: { force?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
+    const concurrency = 20; // max number of requests to make at once
+    const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
+    // use Set to dedupe
+    const urls = removeArrayDuplicates(cacheSeeds).sort();
+    callback?.({ type: 'initial', total: urls.length });
+
+    const seen = new Set<string>();
+    const promises: Promise<void>[] = [];
+    // `while` instead of `for`, because visit() can add to the array.
+    while (urls.length > 0 || promises.length > 0) {
+      const url = urls.shift();
+      if (url) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        callback?.({ type: 'prefetch', url });
+        await visit(url);
+      } else {
+        // One of the pending promises could add more urls to the queue, so wait
+        // for the next one inside the loop instead of awaiting Promise.all()
+        // at the end.
+        await Promise.race(promises);
+      }
+    }
+
+    return stats;
+
+    // This function returns immediately once it adds a fetch promise to the
+    // array. (It does not wait for the fetch to initiate.) If there are already
+    // `concurrency` promises pending, it waits for one to resolve before adding
+    // the new promise and returning.
+    async function visit(url: string) {
+      if (promises.length >= concurrency) {
+        // debug('waiting for one of', promises.length, 'prefetches to settle');
+        /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+        await Promise.race(promises);
+      }
+      const accept = {
+        '.css': 'text/css',
+        '.html': 'text/html',
+      }[path.extname(url)] || '*/*';
+      const p = prefetch(url, { accept, force })
+        .then(({ status, ok, headers, data }) => {
+          if (ok) {
+            const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
+            if (hit) stats.hits++; else stats.misses++;
+            // add this document's URLs to the list of URLs to prefetch
+            if (headers['content-type'].startsWith('text/css') && data.length > 0) {
+              if (headers['content-encoding'] === 'gzip') {
+                data = zlib.gunzipSync(data);
+              }
+              const base = url;
+              cssForEachUrl(data.toString(), (value) => {
+                if (value.startsWith('data:')) return;
+                // prefetch returns a document with the URLs replaced, so CDN URLs
+                // appear as proxy paths (or relative URLs), not as URLs with CDN
+                // hostnames.
+                value = removeHash(value);
+                if (isProxyPath(value)) {
+                  const originUrl = decodeProxyPath(url);
+                  urls.push(originUrl);
+                } else if (isRelativeUrl(value)) {
+                  const originUrl = urlResolve(base, value);
+                  urls.push(originUrl);
+                }
+              });
+            }
+            callback?.({ type: 'progress', stats });
+          } else {
+            stats.failures++;
+            callback?.({ type: 'error', url, status });
+          }
+        })
+        .finally(() => {
+          stats.total++;
+          promises.splice(promises.indexOf(p), 1);
+          // callback?.(stats);
+        });
+      promises.push(p);
     }
   }
-  );
-  return modified ? csstree.generate(stylesheet) : text;
-}
 
-// TODO: change this to a Duplex stream; remove the `istream` parameter.
-//
-// Defer this change until we drop support for Node.js v14. (This will be when
-// moves to a more recent version of Electron, that upgrades to Node.js v16.)
-// The implementation will become simpler at that point.
-function makeCssRewriterStream(istream: NodeJS.ReadableStream, base: string, encoding?: string): NodeJS.ReadableStream {
-  if (encoding === 'gzip') {
-    const z = zlib.createGzip();
-    const uz = zlib.createGunzip();
-    const ws = makeCssRewriterStream(uz, base);
-    istream.pipe(uz);
-    ws.pipe(z);
-    return z;
+  //#endregion
+
+  //#region rewrite documents
+
+  /** Replace CDN URLs in script[src] and link[href] with proxy cache paths.
+   *
+   * @param html the HTML to process
+   * @returns the processed HTML
+   */
+  function replaceUrlsInHtml(html: string): string {
+    const htmlRoot = parseHtml(html);
+    let modified = false;
+
+    // rewrite script[src]
+    htmlRoot
+      .querySelectorAll('script[src]')
+      .filter(e => isCdnUrl(e.attributes.src))
+      .forEach(e => {
+        modified = true;
+        e.setAttribute('src', encodeProxyPath(e.attributes.src));
+      });
+
+    // rewrite link[href]
+    htmlRoot
+      .querySelectorAll('link[rel=stylesheet][href]')
+      .filter(e => isCdnUrl(e.attributes.href))
+      .forEach(e => {
+        modified = true;
+        e.setAttribute('href', encodeProxyPath(e.attributes.href));
+      });
+
+    return modified ? htmlRoot.outerHTML : html;
   }
-  async function* iter() {
-    const text = await fromReadable(istream);
-    yield replaceUrlsInCss(text.toString());
+
+  /** Replace CDN URLs with proxy cache paths.
+   *
+   * @param html the HTML to process
+   * @returns the processed HTML
+   */
+  function replaceUrlsInCss(text: string) {
+    const stylesheet = parseCss(text);
+    let modified = false;
+
+    cssForEachUrl(stylesheet, value => {
+      if (value.startsWith('data:'))
+        return;
+      if (isCdnUrl(value)) {
+        const proxied = encodeProxyPath(value);
+        modified = true;
+        // debug(`rewriting ${value} to ${proxied}`);
+        return proxied;
+      }
+    }
+    );
+    return modified ? csstree.generate(stylesheet) : text;
   }
-  return Readable.from(iter());
+
+  // TODO: change this to a Duplex stream; remove the `istream` parameter.
+  //
+  // Defer this change until we drop support for Node.js v14. (This will be when
+  // moves to a more recent version of Electron, that upgrades to Node.js v16.)
+  // The implementation will become simpler at that point.
+  function makeCssRewriterStream(istream: NodeJS.ReadableStream, base: string, encoding?: string): NodeJS.ReadableStream {
+    if (encoding === 'gzip') {
+      const z = zlib.createGzip();
+      const uz = zlib.createGunzip();
+      const ws = makeCssRewriterStream(uz, base);
+      istream.pipe(uz);
+      ws.pipe(z);
+      return z;
+    }
+    async function* iter() {
+      const text = await fromReadable(istream);
+      yield replaceUrlsInCss(text.toString());
+    }
+    return Readable.from(iter());
+  }
 }
 
 //#endregion
@@ -612,7 +595,7 @@ function cssForEachUrl(stylesheet: csstree.CssNode | string, callback: (url: str
   });
 }
 
-function dedupe<T>(array: T[]): T[] {
+function removeArrayDuplicates<T>(array: T[]): T[] {
   return Array.from(new Set(array));
 }
 

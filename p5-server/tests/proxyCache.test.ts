@@ -1,6 +1,8 @@
-import { decodeProxyPath, encodeProxyPath, isCdnUrl } from '../src/server/proxyCache';
+import { contentProxyCache, isCdnUrl } from '../src/server/cdnProxy';
 
 describe('CDN Proxy', () => {
+  const { decodeProxyPath, encodeProxyPath } = contentProxyCache;
+
   describe('isCdnUrl', () => {
     test('accepts CDN urls', () => {
       expect(isCdnUrl('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(

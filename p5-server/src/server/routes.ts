@@ -7,10 +7,10 @@ import path from 'path';
 import { addScriptToHtmlHead } from '../helpers';
 import { assertError } from '../ts-extras';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay';
+import { replaceUrlsInHtml } from './cdnProxy';
 import { staticAssetPrefix } from './constants';
 import { createDirectoryListing, defaultDirectoryExclusions } from './directoryListing';
 import { injectLiveReloadScript } from './liveReload';
-import { replaceUrlsInHtml } from './proxyCache';
 import { RouterConfig } from './Server';
 import {
   createSyntaxErrorJsReporter,
@@ -35,8 +35,8 @@ export function createRouter(config: RouterConfig): express.Router {
     } else if (config.screenshot) {
       const { sketches } = fs.statSync(file).isDirectory()
         ? await Sketch.analyzeDirectory(file, {
-            exclusions: defaultDirectoryExclusions
-          })
+          exclusions: defaultDirectoryExclusions
+        })
         : { sketches: [] };
       if (sketches.length !== 1)
         throw new Error(`Expected exactly one sketch in ${file}`);
@@ -208,8 +208,8 @@ async function sendDirectoryListing<T>(
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-        templateName: config.theme
-      });
+      templateName: config.theme
+    });
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents

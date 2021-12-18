@@ -5,12 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import updateNotifier from 'update-notifier';
 import build from '../commands/buildCommand';
-import { fillCache, lsCache, printCacheInfo } from '../commands/cacheCommands';
+import { clearCache, fillCache, lsCache, printCacheInfo } from '../commands/cacheCommands';
 import convert from '../commands/convertSketch';
 import create from '../commands/createSketch';
 import screenshot from '../commands/screenshotCommand';
 import serve from '../commands/serveCommand';
-import { cacache, cachePath as proxyCachePath } from '../server/proxyCache';
+import { contentProxyCache } from '../server/cdnProxy';
 
 const program = new Command();
 
@@ -104,10 +104,7 @@ const cacheCommand = program.command('proxy-cache');
 cacheCommand
   .command('clear')
   .description('Clear the cache')
-  .action(async () => {
-    await cacache.rm.all(proxyCachePath);
-    console.log(`Cache cleared`);
-  });
+  .action(clearCache);
 
 cacheCommand
   .command('info')
@@ -128,7 +125,7 @@ cacheCommand
   .command('path')
   .description('Print the path to the cache')
   .action(() => {
-    console.log(proxyCachePath);
+    console.log(contentProxyCache.cachePath);
   });
 
 cacheCommand

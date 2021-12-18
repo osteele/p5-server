@@ -172,3 +172,8 @@ $ p5 proxy-cache ls --json | jq '.[] | select(.headers."content-encoding" != "gz
 "https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/themes/default/assets/fonts/brand-icons.woff2"
 # etc.
 ```
+
+## References
+
+* [MDN: HTTP Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
+* [MDN: Proxy Server](https://developer.mozilla.org/en-US/docs/Glossary/Proxy_server)

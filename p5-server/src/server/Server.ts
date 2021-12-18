@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +9,7 @@ import {
   attachBrowserScriptRelay,
   BrowserScriptRelay
 } from './browserScriptEventRelay';
-import { cdnProxyRouter, proxyPrefix } from './proxyCache';
+import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
 import { staticAssetPrefix } from './constants';
 import { createDirectoryListing } from './directoryListing';
 import { promiseClose, promiseListen } from './httpServerUtils';
@@ -16,7 +17,6 @@ import { createLiveReloadServer, LiveReloadServer } from './liveReload';
 import { createRouter } from './routes';
 import { templateDir } from './templates';
 import http = require('http');
-import chalk = require('chalk');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -115,7 +115,8 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   if (mountPoints.every(mp => mp.urlPath !== '/')) {
     const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
     app.get('/', (_req, res) => {
-      res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }))}
+      res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }))
+    }
     );
   }
   app.use(proxyPrefix, cdnProxyRouter);

@@ -1,8 +1,14 @@
 import nunjucks from 'nunjucks';
-import { cacache, cachePath as proxyCachePath, warmCache } from '../server/proxyCache';
+import { contentProxyCache } from '../server/cdnProxy';
+
+
+export async function clearCache(): Promise<void> {
+  await contentProxyCache.clear();
+  console.log(`Cache cleared`);
+}
 
 export async function fillCache({ force = false, verbose = false }) {
-  const stats = await warmCache({ force }, (message) => {
+  const stats = await contentProxyCache.warm({ force }, (message) => {
     switch (message.type) {
       case 'initial':
         if (!verbose) {
@@ -41,7 +47,7 @@ export async function fillCache({ force = false, verbose = false }) {
 
 export function lsCache({ json = false, verbose = false }): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
-  cacache.ls(proxyCachePath).then(cache => {
+  contentProxyCache.ls().then(cache => {
     const entries = Object.values(cache).map(entry => {
       const cacheControl = entry.metadata.headers['cache-control'];
       const maxAge = (cacheControl?.match(/(?:^|\b)s-maxage=(\d+)/) || cacheControl?.match(/(?:^|\b)max-age=(\d+)/))?.[1];
@@ -72,7 +78,7 @@ export function lsCache({ json = false, verbose = false }): void {
 
 export function printCacheInfo(): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
-  cacache.ls(proxyCachePath).then(cache => {
+  contentProxyCache.ls().then(cache => {
     const entries = Object.values(cache);
     const totalSize = entries.reduce((acc, entry) => acc + entry.size, 0);
     const oldest = entries.reduce(
@@ -82,7 +88,7 @@ export function printCacheInfo(): void {
     const info = {
       entries,
       totalSize,
-      proxyCachePath,
+      proxyCachePath: contentProxyCache.cachePath,
       oldest: oldest < Number.MAX_SAFE_INTEGER ? new Date(oldest) : null
     };
     process.stdout.write(nunjucks.render('proxy-cache-info.njk', info));

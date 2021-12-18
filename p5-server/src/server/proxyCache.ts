@@ -98,6 +98,16 @@ class NullWritable extends stream.Writable {
   /* eslint-enable @typescript-eslint/no-empty-function */
 }
 
+class WritableCounter extends stream.Writable {
+  length = 0;
+  _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+    if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
+      this.length += chunk.length;
+    }
+    callback();
+  }
+}
+
 export function createProxyCache({
   proxyPrefix,
   cachePath,
@@ -250,7 +260,7 @@ export function createProxyCache({
     const responseHeaders = Object.fromEntries(
       Array.from(originResponse.headers.entries())
         .filter(([key]) => !uncacheableResponseHeaders.includes(key))
-    )
+    );
     const cacheWriteStream = cacache.put.stream(cachePath, cacheKey, {
       metadata: {
         originUrl,
@@ -261,18 +271,13 @@ export function createProxyCache({
 
     // pipe the origin response body to both the client response and the cache
     // write stream. Collect the length of the response for logging.
-    const streamLengthCounter = new class extends stream.Writable {
-      length = 0;
-      _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
-        if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
-          this.length += chunk.length;
-        }
-        callback();
-      }
-    }
+    const streamLengthCounter = new WritableCounter();
+    const finishedP = Promise.all([res, cacheWriteStream, streamLengthCounter]
+      .map(w =>
+        new Promise(resolve => w.on('finish', resolve))));
     originResponse.body.pipe(multiplexStreamWriter([cacheWriteStream, streamLengthCounter]));
     makeProxyReplacemenStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
-    await new Promise(resolve => streamLengthCounter.on('finish', resolve));
+    await finishedP;
     debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
   }
 
@@ -445,7 +450,8 @@ export function createProxyCache({
             if (hit) stats.hits++; else stats.misses++;
             // add this document's URLs to the list of URLs to prefetch
             if (headers['content-type']?.startsWith('text/css') && data.length > 0) {
-              switch (headers['content-encoding']) {
+              const encoding = headers['content-encoding'];
+              switch (encoding) {
                 case 'deflate':
                   data = zlib.deflateSync(data);
                   break;
@@ -453,13 +459,17 @@ export function createProxyCache({
                 case 'x-gzip':
                   data = zlib.gunzipSync(data);
                   break;
+                default:
+                  if (encoding) {
+                    debug(`unsupported content-encoding: ${encoding}`);
+                  }
               }
               const base = url;
               cssForEachUrl(data.toString(), (value) => {
                 if (value.startsWith('data:')) return;
-                // prefetch returns a document with the URLs replaced, so CDN URLs
-                // appear as proxy paths (or relative URLs), not as URLs with CDN
-                // hostnames.
+                // prefetch returns a document with the URLs replaced. CDN URLs
+                // therefore appear as proxy paths or other relative URLs; not
+                // as absolute URLs with CDN hostnames.
                 value = removeHash(value);
                 if (isProxyPath(value)) {
                   const originUrl = decodeProxyPath(url);

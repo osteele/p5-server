@@ -13,10 +13,62 @@ import assert = require('assert');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debug = require('debug')('p5-server:cdnProxy');
 
-const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
+//#region exported types
+export type ProxyCacheOptions = {
+  cachePath: string;
+  cacheSeeds: string[];
+  proxyPrefix: string;
+  shouldProxyPath: (url: string) => boolean;
+};
+
+export type ProxyCache = {
+  // property
+  cachePath: string;
+
+  // methods
+  router: (req: RequestI, res: ResponseI) => Promise<void>;
+  replaceUrlsInHtml: (html: string) => string;
+
+  // cache management methods
+  clear: () => Promise<void>;
+  warm: (options: {
+    force?: boolean | undefined; // if true, re-fetch all entries from the network
+  }, callback?: ((message: CacheWarmMessage) => void) | undefined) => Promise<CacheWarmStats>;
+  ls: typeof cacachelsBind;
+
+  // private methods; exported for unit testing
+  decodeProxyPath: (url: string, query: RequestI['query']) => string,
+  encodeProxyPath: (url: string) => string,
+};
+
+export type CacheWarmStats = {
+  total: number;
+  failures: number;
+  hits: number;
+  misses: number;
+};
+
+export type CacheWarmMessage =
+  | { type: 'initial', total: number }
+  | { type: 'prefetch', url: string }
+  | { type: 'error', url: string, status: number }
+  | { type: 'progress', stats: CacheWarmStats };
+//#endregion
+
+export const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
+
+// Response headers that should not be stored in the cache.
 const uncacheableResponseHeaders = [
   'accept-ranges', 'age', 'connection', 'content-accept-ranges',
   'content-length', 'strict-transport-security', 'transfer-encoding', 'vary'];
+
+// Request headers that are passed through to the proxied request. Other headers
+// are ignored, in order to assure that the cached response can be shared
+// between different requests.
+const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding'];
+
+// A dummy function used with typeof to derive the type of the bound method.
+const cacachelsBind = () => cacache.ls('cachePath');
 
 // The RequestI and ReponseI interfaces specify the part of express.Request and
 // express.Response that cdnProxyRouter uses. It is done this way so that
@@ -37,41 +89,14 @@ interface ResponseI extends NodeJS.WritableStream {
   status(code: number): void;
 }
 
-export type CacheWarmStats = {
-  total: number;
-  failures: number;
-  hits: number;
-  misses: number;
-};
-
-export type CacheWarmMessage =
-  | { type: 'initial', total: number }
-  | { type: 'prefetch', url: string }
-  | { type: 'error', url: string, status: number }
-  | { type: 'progress', stats: CacheWarmStats };
-
-type ProxyCacheOptions = {
-  cachePath: string;
-  cacheSeeds: string[];
-  proxyPrefix: string;
-  shouldProxyPath: (url: string) => boolean;
-};
-
-const cacachelsBind = () => cacache.ls('cachePath');
-
-type ProxyCache = {
-  cachePath: string;
-  clear: () => Promise<void>;
-  router: (req: RequestI, res: ResponseI) => Promise<void>;
-  replaceUrlsInHtml: (html: string) => string;
-  warm: ({ force }: {
-    force?: boolean | undefined;
-  }, callback?: ((message: CacheWarmMessage) => void) | undefined) => Promise<CacheWarmStats>;
-  ls: typeof cacachelsBind;
-  // exported for unit testing:
-  decodeProxyPath: (url: string, query: RequestI['query']) => string,
-  encodeProxyPath: (url: string) => string,
-};
+class NullWritable extends stream.Writable {
+  /* eslint-disable @typescript-eslint/no-empty-function */
+  setHeader() { }
+  send() { }
+  status() { }
+  _write() { }
+  /* eslint-enable @typescript-eslint/no-empty-function */
+}
 
 export function createProxyCache({
   proxyPrefix,
@@ -117,9 +142,17 @@ export function createProxyCache({
     const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
     res.setHeader('x-p5-server-origin-url', originUrl);
+
+    // Cache hit. This can fall through to the cache miss case if the cached
+    // value is present (in which case this value is send to the original
+    // response) but expired (in which case the request is also sent to the
+    // origin server and, if succesful, asynchronously used to replace the
+    // cached value).
     if (cacheObject && !req.query.reload) {
       debug('cache hit', originUrl);
       res.setHeader(HTTP_RESPONSE_HEADER_CACHE_STATUS, 'HIT');
+
+      // Copy the cached headers to the response.
       const { headers } = cacheObject.metadata;
       for (const key of Object.keys(headers)) {
         let value = headers[key];
@@ -135,6 +168,7 @@ export function createProxyCache({
         const headerMap: Record<string, string> = { server: 'origin-server' };
         res.setHeader(headerMap[key] ?? key, value);
       }
+      // Add the Age and Cache-Control headers.
       {
         const age = Math.max(0, (+new Date()) - cacheObject.time);
         res.setHeader('age', Math.floor(age / 1000));
@@ -154,8 +188,11 @@ export function createProxyCache({
       rstream = makeProxyReplacemenStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
       rstream.pipe(res);
 
-      // check for cache expiration
-      // This maxAge differs from the one above in that it prefers s-maxage over max-age if the former exists.
+      // Check for cache expiration.
+      //
+      // The maxAge value used here differs from the one above, that is used in
+      // the HTTP response header, in that this one prefers the origin server's
+      // s-maxage over max-age if the former exists.
       const maxAge = (
         headers['cache-control']?.match(/(?:%|\b)s-maxage=(\d+)/) ||
         headers['cache-control']?.match(/(?:%|\b)max-age=(\d+)/))?.[1] ?? 'Infinity';
@@ -164,15 +201,8 @@ export function createProxyCache({
       if (expired) {
         debug('cache expired', originUrl);
         // The response is complete. Replace the original response instance with one that simply ignores writes.
-        // This reduces the number of paths below.
-        res = new class extends stream.Writable {
-          /* eslint-disable @typescript-eslint/no-empty-function */
-          setHeader() { }
-          send() { }
-          status() { }
-          _write() { }
-          /* eslint-enable @typescript-eslint/no-empty-function */
-        };
+        // Using a null Writable reduces the number of code paths, below.
+        res = new NullWritable();
       } else {
         await new Promise(resolve => res.on('finish', resolve));
         return;
@@ -181,7 +211,6 @@ export function createProxyCache({
 
     debug('proxy request for', originUrl);
     // filter the headers, and combine string[] values back into strings
-    const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding']
     const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
       .filter(([key]) => headerAcceptList.includes(key))
       .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
@@ -302,34 +331,41 @@ export function createProxyCache({
 
   //#region cache warmup
 
-  /** Verify that url is in the cache. Request it if it is not. Uses
-   * cdnProxyRouter to minimize different code paths that need to be tested.
+  /** Verify that url is in the cache. Request it if it is not.
+   *
+   * Uses cdnProxyRouter to minimize different code paths that need to be
+   * tested.
+   *
    * Returns a Response-like structure, that warmCache can use to follow
    * referenced URLs.
+   *
+   * Follows redirections infinitely, and caches intermediate results.
+   *
    */
   async function prefetch(url: string, { accept = '*/*', force = false }): Promise<{ status: number, ok: boolean, headers: Record<string, string>, data: Buffer }> {
     const reqHeaders = {
       accept,
-      // TODO: use a different user-agent for prefetching?
-      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
       'accept-language': 'en-US,en;q=0.9',
       'accept-encoding': 'gzip, deflate',
+      // TODO: use a different user-agent for prefetching?
+      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
     };
     const req = {
       headers: reqHeaders,
       path: encodeProxyPath(url, { includePrefix: false }),
       query: force ? { reload: 'true' } : {}
     };
-    let status: number | undefined;
+
     /* eslint-disable @typescript-eslint/no-empty-function */
     const res = new class extends stream.Writable {
-      headers: Record<string, string> = {};
       chunks = new Array<Buffer>();
+      headers: Record<string, string> = {};
+      statusCode?: number;
 
       setHeader(key: string, value: string) {
         this.headers[key] = value;
       }
-      status(statusCode: number) { status = statusCode; }
+      status(code: number) { this.statusCode = code; }
       send(chunk: string | Buffer) { this.chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk) }
       _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
         assert.ok(chunk instanceof Buffer);
@@ -337,11 +373,12 @@ export function createProxyCache({
         callback();
       }
     };
-
     /* eslint-enable @typescript-eslint/no-empty-function */
+
     debug(`warm cache for ${url}`);
     await cdnProxyRouter(req, res);
-    const redirected = 300 < status! && status! < 400 && res.headers.location.startsWith(proxyPrefix + '/');
+    const status = res.statusCode!;
+    const redirected = 300 < status && status < 400 && res.headers.location?.startsWith(proxyPrefix + '/');
     if (redirected) {
       const location = decodeURIComponent(res.headers.location.substring(proxyPrefix.length + 1));
       debug(`following redirect from ${url} -> ${location}`);
@@ -350,21 +387,20 @@ export function createProxyCache({
     return {
       data: Buffer.concat(res.chunks),
       headers: res.headers,
-      ok: status! < 400,
-      status: status!,
+      ok: status < 400,
+      status,
     };
   }
 
   /** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
    *
-   * Most of the complexity come from fetching the URLs in parallel.
-   *
    * (Currently, only references in CSS files are prefetched.)
    */
   async function warmCache({ force }: { force?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
+    // Most of this function's complexity is due to requesting the URLs
+    // concurrently.
     const concurrency = 20; // max number of requests to make at once
     const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
-    // use Set to dedupe
     const urls = removeArrayDuplicates(cacheSeeds).sort();
     callback?.({ type: 'initial', total: urls.length });
 
@@ -380,7 +416,7 @@ export function createProxyCache({
         await visit(url);
       } else {
         // One of the pending promises could add more urls to the queue, so wait
-        // for the next one inside the loop instead of awaiting Promise.all()
+        // for the next one inside the loop, instead of awaiting Promise.all()
         // at the end.
         await Promise.race(promises);
       }
@@ -408,9 +444,15 @@ export function createProxyCache({
             const hit = headers[HTTP_RESPONSE_HEADER_CACHE_STATUS] === 'HIT';
             if (hit) stats.hits++; else stats.misses++;
             // add this document's URLs to the list of URLs to prefetch
-            if (headers['content-type'].startsWith('text/css') && data.length > 0) {
-              if (headers['content-encoding'] === 'gzip') {
-                data = zlib.gunzipSync(data);
+            if (headers['content-type']?.startsWith('text/css') && data.length > 0) {
+              switch (headers['content-encoding']) {
+                case 'deflate':
+                  data = zlib.deflateSync(data);
+                  break;
+                case 'gzip':
+                case 'x-gzip':
+                  data = zlib.gunzipSync(data);
+                  break;
               }
               const base = url;
               cssForEachUrl(data.toString(), (value) => {
@@ -506,13 +548,26 @@ export function createProxyCache({
   // moves to a more recent version of Electron, that upgrades to Node.js v16.)
   // The implementation will become simpler at that point.
   function makeCssRewriterStream(istream: NodeJS.ReadableStream, base: string, encoding?: string): NodeJS.ReadableStream {
-    if (encoding === 'gzip') {
-      const z = zlib.createGzip();
-      const uz = zlib.createGunzip();
-      const ws = makeCssRewriterStream(uz, base);
-      istream.pipe(uz);
-      ws.pipe(z);
-      return z;
+    switch (encoding) {
+      case 'deflate':
+        {
+          const z = zlib.createInflate();
+          const uz = zlib.createDeflate();
+          const ws = makeCssRewriterStream(uz, base);
+          istream.pipe(uz);
+          ws.pipe(z);
+          return z;
+        }
+      case 'gzip':
+      case 'x-gzip':
+        {
+          const z = zlib.createGzip();
+          const uz = zlib.createGunzip();
+          const ws = makeCssRewriterStream(uz, base);
+          istream.pipe(uz);
+          ws.pipe(z);
+          return z;
+        }
     }
     async function* iter() {
       const text = await fromReadable(istream);

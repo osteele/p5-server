@@ -103,6 +103,7 @@ const cacheCommand = program.command('proxy-cache');
 
 cacheCommand
   .command('clear')
+  .alias('clean')
   .description('Clear the cache')
   .action(clearCache);
 

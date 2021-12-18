@@ -3,8 +3,12 @@ import { contentProxyCache } from '../server/cdnProxy';
 
 
 export async function clearCache(): Promise<void> {
+  let count = 0;
+  await contentProxyCache.ls().then(cache => {
+    count = Object.keys(cache).length;
+  });
   await contentProxyCache.clear();
-  console.log(`Cache cleared`);
+  console.log(count ? `Cleared ${count} entries` : 'Cache cleared');
 }
 
 export async function fillCache({ force = false, verbose = false }) {
@@ -40,7 +44,7 @@ export async function fillCache({ force = false, verbose = false }) {
   }
   console.log(
     misses > 0
-      ? `Added ${misses} entries for a total of ${total}`
+      ? `Added ${misses} entries, for a total of ${total}`
       : `All ${total} entries were already in the cache`
   );
 }

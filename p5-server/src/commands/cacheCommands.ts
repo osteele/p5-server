@@ -11,12 +11,12 @@ export async function clearCache(): Promise<void> {
   console.log(count ? `Cleared ${count} entries` : 'Cache cleared');
 }
 
-export async function fillCache({ force = false, verbose = false }) {
-  const stats = await contentProxyCache.warm({ force }, (message) => {
+export async function fillCache({ force = false, verbose = false, reload = true }) {
+  const stats = await contentProxyCache.warm({ force, reload }, (message) => {
     switch (message.type) {
       case 'initial':
         if (!verbose) {
-          process.stdout.write(`Warming cache from ${message.total} seeds`);
+          process.stdout.write(`Warming cache from ${message.total} ${reload ? 'keys' : 'seeds'}...`);
         }
         break;
       case 'prefetch':
@@ -52,21 +52,26 @@ export async function fillCache({ force = false, verbose = false }) {
 export function lsCache({ json = false, verbose = false }): void {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
   contentProxyCache.ls().then(cache => {
-    const entries = Object.values(cache).map(entry => {
+    const entries = Object.entries(cache).map(([key, entry]) => {
       const cacheControl = entry.metadata.headers['cache-control'];
       const maxAge = (cacheControl?.match(/(?:^|\b)s-maxage=(\d+)/) || cacheControl?.match(/(?:^|\b)max-age=(\d+)/))?.[1];
       const expires = maxAge ? new Date(entry.time + Number(maxAge) * 1000) : null;
+      const requestHeaders = { ...JSON.parse(key), url: undefined };
       return {
         ...entry,
+
         // inline metadata
-        ...entry.metadata,
         metadata: undefined,
-        // replace time by created
+        ...entry.metadata,
+
+        // replace time (number) by created (Date)
         time: undefined,
         created: new Date(entry.time),
+
         // add properties
-        maxAge,
         expires,
+        maxAge,
+        requestHeaders,
       };
     });
     // sort entries by origin url

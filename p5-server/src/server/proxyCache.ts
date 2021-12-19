@@ -32,7 +32,13 @@ export type ProxyCache = {
   // cache management methods
   clear: () => Promise<void>;
   warm: (options: {
-    force?: boolean | undefined; // if true, re-fetch all entries from the network
+    /** If true, re-fetch cache seeds and recursively-referenced items,
+     * regardless of whether they're already cached and expiration status. */
+    force?: boolean;
+    /** If true, re-fetch all items that are currently in the cache, rather
+     * than starting from the cache seeds. This flag only makes sense if
+     * `force` is also true. */
+    reload?: boolean;
   }, callback?: ((message: CacheWarmMessage) => void) | undefined) => Promise<CacheWarmStats>;
   ls: typeof cacachelsBind;
 
@@ -59,13 +65,28 @@ export const HTTP_RESPONSE_HEADER_CACHE_STATUS = 'x-p5-server-cache-hit';
 
 // Response headers that should not be stored in the cache.
 const uncacheableResponseHeaders = [
-  'accept-ranges', 'age', 'connection', 'content-accept-ranges',
-  'content-length', 'strict-transport-security', 'transfer-encoding', 'vary'];
+  'accept-ranges', // the proxy does not implement ranges, even if the origin does
+
+  // Connection and hop-by-hop request headers depend on the server engine, not
+  // the proxy middleware or the cached value
+  'connection',
+  'keep-alive',
+  'proxy-authorization',
+  'proxy-authenticate',
+  'trailer',
+  'upgrade', // TODO: should this disable the proxy?
+
+  'strict-transport-security',
+  'transfer-encoding',
+
+  // 'content-accept-ranges',
+  'content-length', // this can change when the server rewrites the data
+];
 
 // Request headers that are passed through to the proxied request. Other headers
 // are ignored, in order to assure that the cached response can be shared
 // between different requests.
-const headerAcceptList = ['accept', 'user-agent', 'accept-language', 'accept-encoding'];
+const headerAcceptList = ['accept', 'accept-language', 'accept-encoding', 'user-agent'];
 
 // A dummy function used with typeof to derive the type of the bound method.
 const cacachelsBind = () => cacache.ls('cachePath');
@@ -89,6 +110,7 @@ interface ResponseI extends NodeJS.WritableStream {
   status(code: number): void;
 }
 
+/** A null ResponseI */
 class NullWritable extends stream.Writable {
   /* eslint-disable @typescript-eslint/no-empty-function */
   setHeader() { }
@@ -98,11 +120,15 @@ class NullWritable extends stream.Writable {
   /* eslint-enable @typescript-eslint/no-empty-function */
 }
 
+/** A stream.Writable that counts the number of characters, buffer items,
+ * Uint8Array items, or objects written to it. */
 class WritableCounter extends stream.Writable {
   length = 0;
   _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
     if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
       this.length += chunk.length;
+    } else {
+      this.length++;
     }
     callback();
   }
@@ -195,7 +221,7 @@ export function createProxyCache({
 
       res.status(cacheObject.metadata.status);
       let rstream = cacache.get.stream(cachePath, cacheKey);
-      rstream = makeProxyReplacemenStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
+      rstream = makeProxyReplacementStream(rstream, headers['content-type'], headers['content-encoding'], originUrl);
       rstream.pipe(res);
 
       // Check for cache expiration.
@@ -219,7 +245,10 @@ export function createProxyCache({
       }
     }
 
+    // Cache miss, or expired cache entry
+
     debug('proxy request for', originUrl);
+    debug('  headers', req.headers['accept'], req.headers['accept-encoding'], req.headers['accept-language']);
     // filter the headers, and combine string[] values back into strings
     const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
       .filter(([key]) => headerAcceptList.includes(key))
@@ -276,12 +305,12 @@ export function createProxyCache({
       .map(w =>
         new Promise(resolve => w.on('finish', resolve))));
     originResponse.body.pipe(multiplexStreamWriter([cacheWriteStream, streamLengthCounter]));
-    makeProxyReplacemenStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
+    makeProxyReplacementStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
     await finishedP;
     debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
   }
 
-  function makeProxyReplacemenStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
+  function makeProxyReplacementStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
     if (contentType.startsWith('text/css')) {
       return makeCssRewriterStream(stream, base, contentEncoding);
     }
@@ -397,16 +426,23 @@ export function createProxyCache({
     };
   }
 
+  async function getCachedUrls(): Promise<string[]> {
+    const cache = await cacache.ls(cachePath);
+    return Object.values(cache).map(value => value.metadata.originUrl);
+  }
+
   /** Warm the cache, by requesting all the urls in the manifest, and the urls that they reference.
    *
    * (Currently, only references in CSS files are prefetched.)
    */
-  async function warmCache({ force }: { force?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
+  async function warmCache({ force, reload }: { force?: boolean, reload?: boolean }, callback?: (message: CacheWarmMessage) => void): Promise<CacheWarmStats> {
     // Most of this function's complexity is due to requesting the URLs
     // concurrently.
     const concurrency = 20; // max number of requests to make at once
     const stats = { total: 0, failures: 0, hits: 0, misses: 0 };
-    const urls = removeArrayDuplicates(cacheSeeds).sort();
+    const urls = removeArrayDuplicates(
+      reload ? await getCachedUrls() : cacheSeeds
+    ).sort();
     callback?.({ type: 'initial', total: urls.length });
 
     const seen = new Set<string>();

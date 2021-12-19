@@ -135,7 +135,14 @@ cacheCommand
   .description('Fill the cache from known library import paths')
   .option('--force', 'Force refresh of cached entries')
   .option('-v, --verbose', 'verbose output')
-  .action(fillCache);
+  .action(opts => fillCache(opts));
+
+cacheCommand
+  .command('refresh')
+  .alias('reload')
+  .description('Re-fetch cached resources')
+  .option('-v, --verbose', 'verbose output')
+  .action(opts => fillCache({ ...opts, force: true, reload: true }));
 
 /*
  * Subcommands

@@ -3,6 +3,7 @@ Cache size: {{ entries.length }} entries
 {%- for entry in entries %}
 {{ entry.originUrl }}
 {%- if verbose %}
+  Content-Type: {{ entry.headers['content-type'] }}
   Created: {{ formatTime(entry.created) }}
   Expires: {{ formatTime(entry.expires) }}
 {%- endif -%}

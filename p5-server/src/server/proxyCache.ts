@@ -31,20 +31,23 @@ export type ProxyCache = {
 
   // cache management methods
   clear: () => Promise<void>;
-  warm: (options: {
-    /** If true, re-fetch cache seeds and recursively-referenced items,
-     * regardless of whether they're already cached and expiration status. */
-    force?: boolean;
-    /** If true, re-fetch all items that are currently in the cache, rather
-     * than starting from the cache seeds. This flag only makes sense if
-     * `force` is also true. */
-    reload?: boolean;
-  }, callback?: ((message: CacheWarmMessage) => void) | undefined) => Promise<CacheWarmStats>;
+  warm: (options: WarmCacheOptions, callback?: (message: CacheWarmMessage) => void) => Promise<CacheWarmStats>;
   ls: typeof cacachelsBind;
 
   // private methods; exported for unit testing
   decodeProxyPath: (url: string, query: RequestI['query']) => string,
   encodeProxyPath: (url: string) => string,
+};
+
+type WarmCacheOptions = {
+  /** If true, re-fetch cache seeds and recursively-referenced items,
+   * regardless of whether they're already cached and expiration status. */
+  force?: boolean;
+
+  /** If true, re-fetch all items that are currently in the cache, rather
+   * than starting from the cache seeds. This flag only makes sense if
+   * `force` is also true. */
+  reload?: boolean;
 };
 
 export type CacheWarmStats = {
@@ -80,7 +83,7 @@ const uncacheableResponseHeaders = [
   'transfer-encoding',
 
   // 'content-accept-ranges',
-  'content-length', // this can change when the server rewrites the data
+  'content-length', // this can change from cached value when the server rewrites the urls
 ];
 
 // Request headers that are passed through to the proxied request. Other headers
@@ -171,9 +174,7 @@ export function createProxyCache({
       // and it would bust the cache between different browsers, which is
       // undesireable for offline development.
       accept: req.headers['accept'],
-      acceptCh: req.headers['accept-ch'],
       acceptEncoding: req.headers['accept-encoding'],
-      acceptLanguage: req.headers['accept-language'],
     });
     const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
@@ -614,6 +615,9 @@ export function createProxyCache({
           ws.pipe(z);
           return z;
         }
+      default:
+        console.error("unsupported content-encoding:", encoding);
+        return istream;
     }
     async function* iter() {
       const text = await fromReadable(istream);

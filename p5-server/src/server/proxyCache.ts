@@ -34,8 +34,10 @@ export type ProxyCache = {
   warm: (options: WarmCacheOptions, callback?: (message: CacheWarmMessage) => void) => Promise<CacheWarmStats>;
   ls: typeof cacachelsBind;
 
+  isProxyPath: (url: string) => boolean;
+
   // private methods; exported for unit testing
-  decodeProxyPath: (url: string, query: RequestI['query']) => string,
+  decodeProxyPath: (url: string, query?: RequestI['query']) => string,
   encodeProxyPath: (url: string) => string,
 };
 
@@ -137,6 +139,7 @@ export function createProxyCache({
     replaceUrlsInHtml,
     warm: warmCache,
     ls: cacache.ls.bind(cacache, cachePath),
+    isProxyPath: url => url.startsWith(proxyPrefix),
     // exported for unit testing:
     decodeProxyPath,
     encodeProxyPath
@@ -243,10 +246,9 @@ export function createProxyCache({
       }
     }
 
-    // Cache miss, or expired cache entry
-
+    // Cache miss; or expired cache entry
     debug('cache miss', originUrl);
-    debug('  request headers:', { accept: req.headers['accept'], 'accept-encoding': req.headers['accept-encoding'] });
+
     // filter the headers, and combine string[] values back into strings
     const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
       .filter(([key]) => headerAcceptList.includes(key))
@@ -261,8 +263,8 @@ export function createProxyCache({
       // This can happen if:
       // - the URL is invalid
       // - the origin server is down (unlikely)
-      // - this node is offline
-      // - this node is behind a proxy (e.g. cdn.jsdelivr.net in China)
+      // - this server is offline from the internet
+      // - this server is behind a firewall (e.g. cdn.jsdelivr.net is blocked in China)
       console.error(`Error during request for ${originUrl}:\n${err}`);
       res.status(500);
       res.send(`Error during request for ${originUrl}:\n${err}`);
@@ -318,13 +320,6 @@ export function createProxyCache({
     makeProxyReplacementStream(originResponse.body, responseHeaders['content-type'], responseHeaders['content-encoding'], originUrl).pipe(res);
     await finishedP;
     debug('wrote', streamLengthCounter.length, 'bytes to cache for', originUrl);
-  }
-
-  function makeProxyReplacementStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
-    if (contentType.startsWith('text/css')) {
-      return makeCssRewriterStream(stream, base, contentEncoding);
-    }
-    return stream;
   }
 
   //#region proxy paths
@@ -598,12 +593,21 @@ export function createProxyCache({
     return modified ? csstree.generate(stylesheet) : text;
   }
 
+  function makeProxyReplacementStream(stream: NodeJS.ReadableStream, contentType: string, contentEncoding: string, base: string): NodeJS.ReadableStream {
+    if (contentType.startsWith('text/css')) {
+      return makeCssRewriterStream(stream, base, contentEncoding);
+    }
+    return stream;
+  }
+
   // TODO: change this to a Duplex stream; remove the `istream` parameter.
   //
   // Defer this change until we drop support for Node.js v14. (This will be when
-  // moves to a more recent version of Electron, that upgrades to Node.js v16.)
-  // The implementation will become simpler at that point.
+  // VSCode moves to a more recent version of Electron, that upgrades to Node.js
+  // v16.) The implementation will become simpler at that point.
   function makeCssRewriterStream(istream: NodeJS.ReadableStream, base: string, encoding?: string): NodeJS.ReadableStream {
+    // Note that this doesn't handle nested encodings. This isn't conceptually
+    // hard, but it adds complexity and these aren't used in the wild.
     switch (encoding) {
       case 'deflate':
         {
@@ -627,8 +631,8 @@ export function createProxyCache({
       default:
         if (encoding) {
           console.error(`unsupported content-encoding: ${encoding}`);
+          return istream;
         }
-        return istream;
     }
     async function* iter() {
       const text = await fromReadable(istream);

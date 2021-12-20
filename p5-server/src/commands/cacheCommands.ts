@@ -61,17 +61,25 @@ export async function lsCache({ json = false, verbose = false }): Promise<void> 
   if (json) {
     console.log(JSON.stringify(entries, null, 2));
   } else {
-    const formatTime = (dt: Date | undefined | null) => dt?.toLocaleString() ?? 'n/a';
+    const formatTime = (dt?: Date) => dt?.toLocaleString() ?? 'n/a';
     console.log(nunjucks.render('proxy-cache-entries.njk', { entries, formatTime, verbose }));
   }
 }
 
-export async function printCacheInfo(url?: string): Promise<void> {
+export async function printCacheInfo(urlOrPath?: string): Promise<void> {
   configureNunjucks();
   const cache = await contentProxyCache.ls();
-  if (url) {
-    const entries = Object.entries(cache).map(entryToObject).filter(entry => entry.originUrl === url);
-    console.log(JSON.stringify(entries, null, 2));
+  if (urlOrPath) {
+    const originUrl = isProxyUrl(urlOrPath) ?
+      contentProxyCache.decodeProxyPath(new URL(urlOrPath).pathname)
+      : urlOrPath;
+    const entries = Object.entries(cache).map(entryToObject).filter(entry => entry.originUrl === originUrl);
+    for (const entry of entries) {
+      console.log(JSON.stringify(entry, null, 2));
+    }
+    if (entries.length === 0) {
+      console.log(`No entry found for ${urlOrPath}`);
+    }
   } else {
     const entries = Object.values(cache);
     const totalSize = entries.reduce((acc, entry) => acc + entry.size, 0);
@@ -111,4 +119,11 @@ function entryToObject([key, value]: [string, any]) {
     maxAge,
     requestHeaders,
   };
+}
+
+function isProxyUrl(url: string) {
+  const u = new URL(url);
+  return u.protocol.match(/^https?/)
+    && u.hostname.match(/^localhost|127\.0\.0\.1$/)
+    && contentProxyCache.isProxyPath(u.pathname);
 }

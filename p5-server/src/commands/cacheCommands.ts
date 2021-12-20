@@ -1,6 +1,9 @@
 import nunjucks from 'nunjucks';
 import { contentProxyCache } from '../server/cdnProxy';
 
+function configureNunjucks() {
+  nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
+}
 
 export async function clearCache(): Promise<void> {
   let count = 0;
@@ -11,7 +14,7 @@ export async function clearCache(): Promise<void> {
   console.log(count ? `Cleared ${count} entries` : 'Cache cleared');
 }
 
-export async function fillCache({ force = false, verbose = false, reload = true }) {
+export async function fillCache({ force = false, verbose = false, reload = false }) {
   const stats = await contentProxyCache.warm({ force, reload }, (message) => {
     switch (message.type) {
       case 'initial':
@@ -49,45 +52,27 @@ export async function fillCache({ force = false, verbose = false, reload = true 
   );
 }
 
-export function lsCache({ json = false, verbose = false }): void {
-  nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
-  contentProxyCache.ls().then(cache => {
-    const entries = Object.entries(cache).map(([key, entry]) => {
-      const cacheControl = entry.metadata.headers['cache-control'];
-      const maxAge = (cacheControl?.match(/(?:^|\b)s-maxage=(\d+)/) || cacheControl?.match(/(?:^|\b)max-age=(\d+)/))?.[1];
-      const expires = maxAge ? new Date(entry.time + Number(maxAge) * 1000) : null;
-      const requestHeaders = { ...JSON.parse(key), url: undefined };
-      return {
-        ...entry,
-
-        // inline metadata
-        metadata: undefined,
-        ...entry.metadata,
-
-        // replace time (number) by created (Date)
-        time: undefined,
-        created: new Date(entry.time),
-
-        // add properties
-        expires,
-        maxAge,
-        requestHeaders,
-      };
-    });
-    // sort entries by origin url
-    entries.sort((a, b) => a.originUrl.localeCompare(b.originUrl));
-    if (json) {
-      console.log(JSON.stringify(entries, null, 2));
-    } else {
-      const formatTime = (dt: Date | undefined | null) => dt?.toLocaleString() ?? 'n/a';
-      console.log(nunjucks.render('proxy-cache-entries.njk', { entries, formatTime, verbose }));
-    }
-  });
+export async function lsCache({ json = false, verbose = false }): Promise<void> {
+  configureNunjucks();
+  const cache = await contentProxyCache.ls();
+  const entries = Object.entries(cache).map(entryToObject);
+  // sort entries by origin url
+  entries.sort((a, b) => a.originUrl.localeCompare(b.originUrl));
+  if (json) {
+    console.log(JSON.stringify(entries, null, 2));
+  } else {
+    const formatTime = (dt: Date | undefined | null) => dt?.toLocaleString() ?? 'n/a';
+    console.log(nunjucks.render('proxy-cache-entries.njk', { entries, formatTime, verbose }));
+  }
 }
 
-export function printCacheInfo(): void {
-  nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
-  contentProxyCache.ls().then(cache => {
+export async function printCacheInfo(url?: string): Promise<void> {
+  configureNunjucks();
+  const cache = await contentProxyCache.ls();
+  if (url) {
+    const entries = Object.entries(cache).map(entryToObject).filter(entry => entry.originUrl === url);
+    console.log(JSON.stringify(entries, null, 2));
+  } else {
     const entries = Object.values(cache);
     const totalSize = entries.reduce((acc, entry) => acc + entry.size, 0);
     const oldest = entries.reduce(
@@ -101,5 +86,29 @@ export function printCacheInfo(): void {
       oldest: oldest < Number.MAX_SAFE_INTEGER ? new Date(oldest) : null
     };
     process.stdout.write(nunjucks.render('proxy-cache-info.njk', info));
-  });
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function entryToObject([key, value]: [string, any]) {
+  const cacheControl = value.metadata.headers['cache-control'];
+  const maxAge = (cacheControl?.match(/(?:^|\b)s-maxage=(\d+)/) || cacheControl?.match(/(?:^|\b)max-age=(\d+)/))?.[1];
+  const expires = maxAge ? new Date(value.time + Number(maxAge) * 1000) : null;
+  const requestHeaders = { ...JSON.parse(key), url: undefined };
+  return {
+    ...value,
+
+    // inline metadata
+    metadata: undefined,
+    ...value.metadata,
+
+    // replace time (number) by created (Date)
+    time: undefined,
+    created: new Date(value.time),
+
+    // add properties
+    expires,
+    maxAge,
+    requestHeaders,
+  };
 }

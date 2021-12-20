@@ -110,6 +110,7 @@ cacheCommand
 cacheCommand
   .command('info')
   .alias('stats')
+  .argument('[URL]', 'the URL to display')
   .option('--json', 'Output JSON')
   .description('Print summmary information about the cache')
   .action(printCacheInfo);

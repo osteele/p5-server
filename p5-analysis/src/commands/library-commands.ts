@@ -3,9 +3,12 @@ import { Library } from '..';
 import { die } from './helpers';
 import { exec } from 'child_process';
 
-nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
+function configureNunjucks() {
+  nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
+}
 
 export function describeLibrary(name: string, { json = false }) {
+  configureNunjucks();
   const library = Library.find({ name });
   if (!library) {
     console.warn(`Library ${name} not found`);
@@ -37,6 +40,7 @@ export function printLibraryProperty(
 }
 
 export function listLibraries({ json = false, verbose = false }) {
+  configureNunjucks();
   if (json) {
     console.log(JSON.stringify(Library.all, null, 2));
   } else if (verbose) {

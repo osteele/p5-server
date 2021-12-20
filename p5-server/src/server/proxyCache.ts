@@ -11,7 +11,7 @@ import path = require('path');
 import assert = require('assert');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const debug = require('debug')('p5-server:cdnProxy');
+const debug = require('debug')('p5-server:proxy-cache');
 
 //#region exported types
 export type ProxyCacheOptions = {
@@ -74,10 +74,11 @@ const uncacheableResponseHeaders = [
   // the proxy middleware or the cached value
   'connection',
   'keep-alive',
-  'proxy-authorization',
   'proxy-authenticate',
   'trailer',
   'upgrade', // TODO: should this disable the proxy?
+
+  'alt-svc',
 
   'strict-transport-security',
   'transfer-encoding',
@@ -121,20 +122,6 @@ class NullWritable extends stream.Writable {
   status() { }
   _write() { }
   /* eslint-enable @typescript-eslint/no-empty-function */
-}
-
-/** A stream.Writable that counts the number of characters, buffer items,
- * Uint8Array items, or objects written to it. */
-class WritableCounter extends stream.Writable {
-  length = 0;
-  _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
-    if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
-      this.length += chunk.length;
-    } else {
-      this.length++;
-    }
-    callback();
-  }
 }
 
 export function createProxyCache({
@@ -248,8 +235,8 @@ export function createProxyCache({
 
     // Cache miss, or expired cache entry
 
-    debug('proxy request for', originUrl);
-    debug('  headers', req.headers['accept'], req.headers['accept-encoding'], req.headers['accept-language']);
+    debug('cache miss', originUrl);
+    debug('  request headers:', { accept: req.headers['accept'], 'accept-encoding': req.headers['accept-encoding'] });
     // filter the headers, and combine string[] values back into strings
     const reqHeaders: Record<string, string> = Object.fromEntries((Object.entries(req.headers)
       .filter(([key]) => headerAcceptList.includes(key))
@@ -259,7 +246,18 @@ export function createProxyCache({
       compress: false, // don't uncompress gzips — for efficiency, and so that the content matches the content-type
       headers: reqHeaders,
       redirect: 'manual', // don't follow redirects; cache the redirect directive instead
+    }).catch(err => {
+      // This can happen if:
+      // - the URL is invalid
+      // - the origin server is down (unlikely)
+      // - this node is offline
+      // - this node is behind a proxy (e.g. cdn.jsdelivr.net in China)
+      console.error(`Error during request for ${originUrl}:\n${err}`);
+      res.status(500);
+      res.send(`Error during request for ${originUrl}:\n${err}`);
+      return null;
     });
+    if (!originResponse) { return; }
 
     // Relay the origin status, and add a cache header
     res.status(originResponse.status);
@@ -477,7 +475,7 @@ export function createProxyCache({
         await Promise.race(promises);
       }
       const accept = {
-        '.css': 'text/css',
+        '.css': 'text/css,*/*;q=0.1',
         '.html': 'text/html',
       }[path.extname(url)] || '*/*';
       const p = prefetch(url, { accept, force })
@@ -498,7 +496,8 @@ export function createProxyCache({
                   break;
                 default:
                   if (encoding) {
-                    debug(`unsupported content-encoding: ${encoding}`);
+                    console.warn(`unsupported content-encoding: ${encoding}`);
+                    data = Buffer.from('');
                   }
               }
               const base = url;
@@ -531,7 +530,6 @@ export function createProxyCache({
       promises.push(p);
     }
   }
-
   //#endregion
 
   //#region rewrite documents
@@ -616,7 +614,9 @@ export function createProxyCache({
           return z;
         }
       default:
-        console.error("unsupported content-encoding:", encoding);
+        if (encoding) {
+          console.error(`unsupported content-encoding: ${encoding}`);
+        }
         return istream;
     }
     async function* iter() {
@@ -630,6 +630,20 @@ export function createProxyCache({
 //#endregion
 
 //#region stream helpers
+
+/** A stream.Writable that counts the number of characters, buffer items,
+ * Uint8Array items, or objects written to it. */
+class WritableCounter extends stream.Writable {
+  length = 0;
+  _write(chunk: unknown, _encoding: BufferEncoding, callback: () => void) {
+    if (typeof chunk === 'string' || chunk instanceof Buffer || chunk instanceof Uint8Array) {
+      this.length += chunk.length;
+    } else {
+      this.length++;
+    }
+    callback();
+  }
+}
 
 /** Read the remaining chunks from a ReadableStream, and combine them into a
  * single string (if they are all strings) or Buffer.

@@ -149,6 +149,16 @@ export function createProxyCache({
   // cdnProxyRouter.
   async function cdnProxyRouter(req: RequestI, res: ResponseI): Promise<void> {
     const originUrl = decodeProxyPath(req.path, req.query);
+    // Normalize the encoding and remove 'br', for caching purposes. Safari
+    // sends 'gzip, deflate'. Chrome sends 'gzip, deflate, br'. This prevents
+    // them from sharing a cache. The simplest solution is to simply not request
+    // br.
+    const acceptEncoding = req.headers['accept-encoding'] ?
+      (req.headers['accept-encoding'] as string)
+        .split(/,\s*|\s+/)
+        .filter(x => x !== 'br')
+        .join(', ')
+      : null;
     // An earlier version used a cryptographic digest of the stringified JSON;
     // however, the 'crypto' module is not present in VSCode.
     const cacheKey = JSON.stringify({
@@ -161,7 +171,7 @@ export function createProxyCache({
       // and it would bust the cache between different browsers, which is
       // undesireable for offline development.
       accept: req.headers['accept'],
-      acceptEncoding: req.headers['accept-encoding'],
+      acceptEncoding,
     });
     const cacheObject = await cacache.get.info(cachePath, cacheKey);
 
@@ -242,6 +252,7 @@ export function createProxyCache({
       .filter(([key]) => headerAcceptList.includes(key))
       .filter(([_key, value]) => isDefined(value)) as [string, string | string[]][])
       .map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value]));
+    if (acceptEncoding) reqHeaders['accept-encoding'] = acceptEncoding;
     const originResponse = await fetch(originUrl, {
       compress: false, // don't uncompress gzips — for efficiency, and so that the content matches the content-type
       headers: reqHeaders,

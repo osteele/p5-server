@@ -10,13 +10,13 @@
       "fileMatch": [
         "p5-analysis/**/libraries/*-libraries.json"
       ],
-      "url": "./p5-analysis/src/lib/schemas/libraries.json"
+      "url": "./p5-analysis/src/models/schemas/libraries.json"
     },
     {
       "fileMatch": [
         "p5-analysis/**/libraries/categories.json"
       ],
-      "url": "./p5-analysis/src/lib/schemas/categories.json"
+      "url": "./p5-analysis/src/models/schemas/categories.json"
     }
   ]
 }

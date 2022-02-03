@@ -1,7 +1,7 @@
 {
   "name": "p5-server",
   "version": "0.9.2",
-  "description": "p5.js development server with live reload, library inference, and airplane mode, with CLI to create sketch files.",
+  "description": "p5.js development server with live reload, automatic library inclusion, and airplane mode, with CLI to create sketch files.",
   "keywords": [
     "creative coding",
     "live reload",

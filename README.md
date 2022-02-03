@@ -35,11 +35,9 @@
 
 ## Overview
 
-**New feature: “airplane mode”. The server caches requests to known CDN servers
-(JSDelivr, Skypack, Unpkg). A sketch that uses libraries from these servers – as
-the files that this package generates do — can run without an internet
-connection, after the cache is warmed. See [here](./docs/proxy-cache.md) for
-more details.**
+**New feature: “airplane mode”. The server caches requests to known CDN servers,
+so that you can run sketches without an internet connection. See
+[here](docs/proxy-cache.md) for more details.**
 
 **p5-server** is a development server for [p5.js](https://p5js.org/). It
 provides a web server with live reload, and command-line tools to generate HTML
@@ -60,8 +58,8 @@ page](https://osteele.github.io/p5.libs/p5.vector-arguments/examples) of the
 [p5.vectorArguments](https://osteele.github.io/p5.libs/p5.vector-arguments)
 documentation demonstrates this.
 
-The web server, library inference, and sketch generation features are also
-available as a [Visual Studio Code
+The web server, automatic library inclusion, and sketch generation features are
+also available as a [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme), and via a
 [programmatic
 API](https://github.com/osteele/p5-server/tree/master/p5-analysis#readme).
@@ -368,7 +366,8 @@ automatic library inclusion, and other details of the implementation.
 - This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.
-- Library inference hasn't been tested with sketches that are written as
+- Automatic library inclusion hasn't been tested with sketches that are written
+  as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
 - This is a development server, not a production server. It was not designed for
   security or performance.
@@ -405,7 +404,7 @@ Report bugs, features requests, and suggestions
 [here](https://github.com/osteele/p5-server/issues), or message me [on
 Twitter](https://twitter.com/osteele).
 
-Follow [@osteele on Twitter](https://twitter.com/osteele) for updates.
+Follow [\@osteele on Twitter](https://twitter.com/osteele) for updates.
 
 ## License
 

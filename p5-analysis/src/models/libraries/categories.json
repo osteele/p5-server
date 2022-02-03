@@ -2,19 +2,20 @@
   {
     "key": "core",
     "description": "The “Core” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).",
-    "details": "This does not include the `p5.accessibility` library because, as [noted on its home page](https://github.com/processing/p5.accessibility), it is obsolete."
+    "details": "This category includes only the `p5.sound` library. It does not include the `p5.accessibility` library because, as [noted on that library's home page](https://github.com/processing/p5.accessibility), it is obsolete."
   },
   {
     "key": "community",
     "description": "“Community” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).",
-    "details": "This list does not include a couple of libraries that could not be automatically included."
+    "details": "This category excludes a couple of libraries that could not be automatically included: ."
   },
   {
     "key": "peer",
-    "description": "Libraries that are not specific to p5.js, but are useful for p5 sketches."
+    "description": "Libraries that are not specific to p5.js, but are particularly useful for p5 sketches."
   },
   {
     "key": "recommended",
-    "description": "Libraries that are not on the official [p5.js Libraries page](https://p5js.org/libraries/), but appear to be useful and well-maintained. Also my own libraries from [Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)."
+    "description": "Libraries that are not on the official [p5.js Libraries page](https://p5js.org/libraries/), but appear to be useful and well-maintained.",
+    "details": "I've also included my own libraries from [Oliver’s p5.js libraries](https://osteele.github.io/p5.libs/)."
   }
 ]

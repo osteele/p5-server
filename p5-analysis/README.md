@@ -4,8 +4,7 @@
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
 - [Installation](#installation)
-- [Usage](#usage)
-  - [Command Line](#command-line)
+- [Command-Line Usage](#command-line-usage)
   - [API](#api)
 - [Implementation Notes](#implementation-notes)
   - [Sketch detection](#sketch-detection)
@@ -30,7 +29,7 @@ The API consists of three classes:
 
 - {@link Script} represents a JavaScript file. It provides script analysis
   features that are used to detect whether a script is a p5.js sketch, and to
-  perform library inference.
+  perform automatic library inclusion.
 
 - {@link Library} represents a [p5.js library](https://p5js.org/libraries/).
 
@@ -45,7 +44,7 @@ npm install --save p5-analysis
 yard add p5-analysis
 ```
 
-## Usage
+## Command-Line Usage
 
 `p5-libraries list` – list the known libraries
 
@@ -78,8 +77,6 @@ sketch
 If [p5-server](https://osteele.github.io/p5-server/) is installed, these
 commands can also be accessed via `p5 analyze`, `p5 libraries` and `p5 tree`
 (without the hyphen).
-
-### Command Line
 
 ### API
 
@@ -120,17 +117,17 @@ paragraph that begins with "`Description:` " in that block.
 
 ### Automatic library inclusion
 
-JavaScript-only sketches can automatically include any of [these
- libraries](https://osteele.github.io/p5-server/p5-analysis/libraries). For
- example, if the sketch calls `loadSound`, it will include the p5.sound library.
- If it refers to `ml5`, it will include the ml5.js library.
+JavaScript-only sketches can automatically include any of the libraries in [this
+list][libraries]. For example, if the sketch source contains a call to
+`loadSound`, the sketch will include the p5.sound library. If the sketch source
+ refers to `ml5`, the sketch will include the ml5.js library.
 
 Automatic library loading is done by examining the free variables, and
-references to `p5.prop` where `prop` is any property name, in the JavaScript source.
+references to `p5.prop` where `prop` is any property name, in the JavaScript
+source.
 
 A list of libraries, and the global variables that trigger including a library,
-is in `./src/libraries.json`. In order to qualify for automatic inclusion, an
-entry in this list must have either a `path` or `npmPackage` key.
+is in `./src/libraries.json`.
 
 ### Associated files
 
@@ -145,42 +142,48 @@ etc., and it does not inspect CSS files.
 The files that are associated with a script file are the string literal
 arguments to functions whose names begin with `load`, such as `loadImage()` and
 `loadModel()`. The server will recognize `cat.png` as an associated file in the
-call `loadImage("cat.png")`, but not in the following snippets:
+first call below, but not in the others:
+
+```js
+loadImage("cat.png"); // recognizes `cat.png` as an associated file
+```
 
 ```js
 let name = "cat.png";
-loadImage(name);
+loadImage(name); // does not recognize any associated files
 ```
 
 ```js
 let name = "cat";
-loadImage(`${name}.png`);
+loadImage(`${name}.png`); // does not recognize any associated files
 ```
 
 ```js
 for (let name of ['dog.png', 'cat.png']) {
-  loadImage(name);
+  loadImage(name); // does not recognize any associated files
 }
 ```
 
 ```js
 let loader = loadImage;
-loader("cat.png");
+loader("cat.png"); // does not recognize any associated files
 ```
 
 ## Limitations
 
 - This code hasn't been tested on Windows.
-- Generated sketches require an internet connection to run. They load the p5.js
-  and other libraries from a content delivery network (“CDN”). Browsers cache
-  these files, so reloading a page or running other sketches that use the same
-  (or no) libraries do not require additional internet access, but you will need
-  internet access the first time you use this extension or after the browser
-  cache has expired.
+- Generated sketches require an internet connection to run. (However: see the
+  [airplane mode][airplane-mode] features of [p5 server][p5-server].) They load
+  the p5.js libraries and other libraries from a content delivery network
+  (“CDN”). Browsers cache these files, so reloading a page or running other
+  sketches that use the same (or no) libraries do not require additional
+  internet access, but you will need internet access the first time you use this
+  extension or after the browser cache has expired.
 - This code hasn't been tested with
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches.
-- Library inference hasn't been tested with sketches that are written as
+- Automatic library inclusion hasn't been tested with sketches that are written
+  as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
 - See the implementation notes for limitations on the recognition of associated
   files.
@@ -188,3 +191,8 @@ loader("cat.png");
 ## License
 
 [MIT](LICENSE) © by Oliver Steele
+
+[p5-server]: https://osteele.github.io/p5-server/
+[p5-server-vscode-extensions]: https://marketplace.visualstudio.com/items?itemName=osteele.p5-server
+[airplane-mode]: https://osteele.github.io/p5-server/docs/proxy-cache
+[libraries]: https://osteele.github.io/p5-server/p5-analysis/libraries

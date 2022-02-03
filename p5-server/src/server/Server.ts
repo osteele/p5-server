@@ -173,7 +173,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
 }
 
 /** Server is a web server with live reload, sketch-aware directory listings,
- * and library inference for JavaScript-only sketches.
+ * and automatic library inclusion for JavaScript-only sketches.
  */
 export class Server {
   public server: http.Server | null = null;

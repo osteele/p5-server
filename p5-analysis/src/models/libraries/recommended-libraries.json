@@ -9,7 +9,7 @@
     }
   },
   {
-    "name": "https://github.com/antiboredom/p5.patgrad",
+    "name": "p5.patgrad",
     "description": "A p5.js library for adding gradients and repeating patterns to your sketches",
     "homepage": "https://github.com/antiboredom/p5.patgrad",
     "importPath": "https://cdn.jsdelivr.net/gh/antiboredom/p5.patgrad/p5.patgrad.min.js",

@@ -1,15 +1,29 @@
-# Recognized Libraries
+# p5.js Libraries for Automatic Inclusion
 
-[p5-server](https://osteele.github.io/p5-server/), and the [P5 Server Visual Studio Code extension](https://github.com/osteele/vscode-p5server#readme),
-automatically include these libraries if a sketch refers to
-functions or classes that they define, and the sketch does not
-include its own definitions of these variables.
+The [p5-server][p5-server] command-line tool, and the [P5 Server Visual Studio
+Code extension][p5-server-vscode-extensions], automatically include these libraries
+when a sketch uses a function or `p5` property that they define. See
+[automatic library includes][automatic-library-inclusion] for more
+information.
+
+Each library is listed with the symbols (functions, classes, and variables), and
+the `p5` properties, that it defines.
+A JavaScript-only sketch that *uses* one of these symbols or properties, and
+does not *define* it, causes the inclusion of the library that defines that
+symbol.
+
+This page is generated from the files in [this directory][library-definitions].
+
+[p5-server]: https://osteele.github.io/p5-server/
+[p5-server-vscode-extensions]: https://marketplace.visualstudio.com/items?itemName=osteele.p5-server
+[automatic-library-inclusion]: https://github.com/osteele/p5-server/tree/main/p5-analysis#automatic-library-inclusion
+[library-definitions]: https://github.com/osteele/p5-server/tree/main/p5-analysis/src/models/libraries
 
 {% for category in categories %}
 
-## {{ category.name }}
+## {{ category.name }} Libraries
 
-> {{ category.description }}
+<em>{{ category.description }}</em>
 
 {{ category.details }}
 

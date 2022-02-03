@@ -68,7 +68,7 @@ Changed:
 - `p5 convert` is smarter; can convert files into folders
 - A directory is classified as a single-directory sketch only if the HTML file
   is named index.html
-- performance improvements in sketch detection, library inference
+- performance improvements in sketch detection and automatic library inclusion
 
 API changes:
 

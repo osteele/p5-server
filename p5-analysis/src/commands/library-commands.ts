@@ -3,7 +3,7 @@ import { Library } from '..';
 import { die } from './helpers';
 import { exec } from 'child_process';
 
-function configureNunjucks() {
+export function configureNunjucks() {
   nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
 }
 

@@ -5,31 +5,35 @@ import lruCache from 'lru-cache';
 import path from 'path';
 import { sizeof } from '../helpers';
 import {
-  findGlobalReferences,
-  findGlobalDefinitions,
-  findCallArguments,
-  findPropertyReferences
+  findCallArguments, findGlobalDefinitions, findGlobalReferences, findPropertyReferences
 } from './script-analysis';
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 
 // This type definition is repeated here, instead of imported from
 // script-analysis.ts, in order to prevent a cascade of import dependencies that
-// would add a dependency on babel to the client of this API.
+// would add a dependency on babel to this package's clients.
 type DefinitionType = 'function' | 'class' | 'variable';
 
 interface ScriptAnalysis {
-  /** Names that are defined in the script. This is a map of symbols to definitions types. */
+  /** Names that are defined in the script. This is a map of symbols to
+   * definitions types. */
   defs: ReadonlyMap<string, DefinitionType>;
   /** Free variables that the script references. */
   refs: ReadonlySet<string>;
   /** String arguments that occur in the first position to calls `loadImage()`,
-   * etc.  */
+   * etc. */
   loadCallArguments: ReadonlySet<string>;
   p5propRefs: ReadonlySet<string>;
 }
 
+/** Analyzes a script (string or file) for automatic library inclusion. An
+ * instance of this class is used to analyze a single script. It is immutable:
+ * instantiate a new instance if the file changes.
+ *
+ * Analysis is cached in an lru-cache. */
 export class Script implements ScriptAnalysis {
+  // caches:
   private _analysis?: Readonly<ScriptAnalysis>;
   private _syntaxError?: SyntaxError;
   private _ast?: Readonly<ReturnType<typeof parse>>;
@@ -181,8 +185,9 @@ export class Script implements ScriptAnalysis {
 }
 
 // This is a global variable rather than a class property, so that it doesn't
-// appear in the typescript exports, where it would require that clients use
-// esModuleIterop to use this package or a package that re-exports its types.
+// appear in the typescript exports. If it did appear in exports, this would
+// require that clients of this package use esModuleIterop to use it or a
+// package that re-exports its types.
 const scriptAnalysisCache: lruCache<
   string,
   readonly [

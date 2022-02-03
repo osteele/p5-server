@@ -7,8 +7,7 @@
 
 <ul>
 <li><a href="#installation">Installation</a></li>
-<li><a href="#usage">Usage</a><ul>
-<li><a href="#command-line">Command Line</a></li>
+<li><a href="#command-line-usage">Command-Line Usage</a><ul>
 <li><a href="#api">API</a></li>
 </ul>
 </li>
@@ -36,7 +35,7 @@ and scan directories for sketches that they contain.</p>
 </li>
 <li><p><a href="classes/Script.html">Script</a> represents a JavaScript file. It provides script analysis
 features that are used to detect whether a script is a p5.js sketch, and to
-perform library inference.</p>
+perform automatic library inclusion.</p>
 </li>
 <li><p><a href="classes/Library.html">Library</a> represents a <a href="https://p5js.org/libraries/">p5.js library</a>.</p>
 </li>
@@ -50,8 +49,8 @@ perform library inference.</p>
 <pre><code class="language-sh"><span class="hl-0">npm install --save p5-analysis</span><br/><span class="hl-0">yard add p5-analysis</span>
 </code></pre>
 
-<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
-  <h2>Usage</h2>
+<a href="#command-line-usage" id="command-line-usage" style="color: inherit; text-decoration: none;">
+  <h2>Command-Line Usage</h2>
 </a>
 <p><code>p5-libraries list</code> – list the known libraries</p>
 <p>With <code>--json</code>, this can be used with <a href="https://stedolan.github.io/jq/">jq</a>, e.g.
@@ -75,10 +74,6 @@ sketch</p>
 <p>If <a href="https://osteele.github.io/p5-server/">p5-server</a> is installed, these
 commands can also be accessed via <code>p5 analyze</code>, <code>p5 libraries</code> and <code>p5 tree</code>
 (without the hyphen).</p>
-
-<a href="#command-line" id="command-line" style="color: inherit; text-decoration: none;">
-  <h3>Command Line</h3>
-</a>
 
 <a href="#api" id="api" style="color: inherit; text-decoration: none;">
   <h3>API</h3>
@@ -114,15 +109,15 @@ paragraph that begins with &quot;<code>Description:</code> &quot; in that block.
 <a href="#automatic-library-inclusion" id="automatic-library-inclusion" style="color: inherit; text-decoration: none;">
   <h3>Automatic library inclusion</h3>
 </a>
-<p>JavaScript-only sketches can automatically include any of <a href="https://osteele.github.io/p5-server/p5-analysis/libraries">these
- libraries</a>. For
- example, if the sketch calls <code>loadSound</code>, it will include the p5.sound library.
- If it refers to <code>ml5</code>, it will include the ml5.js library.</p>
+<p>JavaScript-only sketches can automatically include any of the libraries in <a href="https://osteele.github.io/p5-server/p5-analysis/libraries">this
+list</a>. For example, if the sketch source contains a call to
+<code>loadSound</code>, the sketch will include the p5.sound library. If the sketch source
+ refers to <code>ml5</code>, the sketch will include the ml5.js library.</p>
 <p>Automatic library loading is done by examining the free variables, and
-references to <code>p5.prop</code> where <code>prop</code> is any property name, in the JavaScript source.</p>
+references to <code>p5.prop</code> where <code>prop</code> is any property name, in the JavaScript
+source.</p>
 <p>A list of libraries, and the global variables that trigger including a library,
-is in <code>./src/libraries.json</code>. In order to qualify for automatic inclusion, an
-entry in this list must have either a <code>path</code> or <code>npmPackage</code> key.</p>
+is in <code>./src/libraries.json</code>.</p>
 
 <a href="#associated-files" id="associated-files" style="color: inherit; text-decoration: none;">
   <h3>Associated files</h3>
@@ -136,14 +131,16 @@ etc., and it does not inspect CSS files.</p>
 <p>The files that are associated with a script file are the string literal
 arguments to functions whose names begin with <code>load</code>, such as <code>loadImage()</code> and
 <code>loadModel()</code>. The server will recognize <code>cat.png</code> as an associated file in the
-call <code>loadImage(&quot;cat.png&quot;)</code>, but not in the following snippets:</p>
-<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> = </span><span class="hl-3">&quot;cat.png&quot;</span><span class="hl-0">;</span><br/><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-2">name</span><span class="hl-0">);</span>
+first call below, but not in the others:</p>
+<pre><code class="language-js"><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-3">&quot;cat.png&quot;</span><span class="hl-0">); </span><span class="hl-6">// recognizes `cat.png` as an associated file</span>
 </code></pre>
-<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> = </span><span class="hl-3">&quot;cat&quot;</span><span class="hl-0">;</span><br/><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-3">`</span><span class="hl-4">${</span><span class="hl-2">name</span><span class="hl-4">}</span><span class="hl-3">.png`</span><span class="hl-0">);</span>
+<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> = </span><span class="hl-3">&quot;cat.png&quot;</span><span class="hl-0">;</span><br/><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-2">name</span><span class="hl-0">); </span><span class="hl-6">// does not recognize any associated files</span>
 </code></pre>
-<pre><code class="language-js"><span class="hl-1">for</span><span class="hl-0"> (</span><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> </span><span class="hl-4">of</span><span class="hl-0"> [</span><span class="hl-3">&#39;dog.png&#39;</span><span class="hl-0">, </span><span class="hl-3">&#39;cat.png&#39;</span><span class="hl-0">]) {</span><br/><span class="hl-0">  </span><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-2">name</span><span class="hl-0">);</span><br/><span class="hl-0">}</span>
+<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> = </span><span class="hl-3">&quot;cat&quot;</span><span class="hl-0">;</span><br/><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-3">`</span><span class="hl-4">${</span><span class="hl-2">name</span><span class="hl-4">}</span><span class="hl-3">.png`</span><span class="hl-0">); </span><span class="hl-6">// does not recognize any associated files</span>
 </code></pre>
-<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">loader</span><span class="hl-0"> = </span><span class="hl-2">loadImage</span><span class="hl-0">;</span><br/><span class="hl-5">loader</span><span class="hl-0">(</span><span class="hl-3">&quot;cat.png&quot;</span><span class="hl-0">);</span>
+<pre><code class="language-js"><span class="hl-1">for</span><span class="hl-0"> (</span><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">name</span><span class="hl-0"> </span><span class="hl-4">of</span><span class="hl-0"> [</span><span class="hl-3">&#39;dog.png&#39;</span><span class="hl-0">, </span><span class="hl-3">&#39;cat.png&#39;</span><span class="hl-0">]) {</span><br/><span class="hl-0">  </span><span class="hl-5">loadImage</span><span class="hl-0">(</span><span class="hl-2">name</span><span class="hl-0">); </span><span class="hl-6">// does not recognize any associated files</span><br/><span class="hl-0">}</span>
+</code></pre>
+<pre><code class="language-js"><span class="hl-4">let</span><span class="hl-0"> </span><span class="hl-2">loader</span><span class="hl-0"> = </span><span class="hl-2">loadImage</span><span class="hl-0">;</span><br/><span class="hl-5">loader</span><span class="hl-0">(</span><span class="hl-3">&quot;cat.png&quot;</span><span class="hl-0">); </span><span class="hl-6">// does not recognize any associated files</span>
 </code></pre>
 
 <a href="#limitations" id="limitations" style="color: inherit; text-decoration: none;">
@@ -151,16 +148,18 @@ call <code>loadImage(&quot;cat.png&quot;)</code>, but not in the following snipp
 </a>
 <ul>
 <li>This code hasn&#39;t been tested on Windows.</li>
-<li>Generated sketches require an internet connection to run. They load the p5.js
-and other libraries from a content delivery network (“CDN”). Browsers cache
-these files, so reloading a page or running other sketches that use the same
-(or no) libraries do not require additional internet access, but you will need
-internet access the first time you use this extension or after the browser
-cache has expired.</li>
+<li>Generated sketches require an internet connection to run. (However: see the
+<a href="https://osteele.github.io/p5-server/docs/proxy-cache">airplane mode</a> features of <a href="https://osteele.github.io/p5-server/">p5 server</a>.) They load
+the p5.js libraries and other libraries from a content delivery network
+(“CDN”). Browsers cache these files, so reloading a page or running other
+sketches that use the same (or no) libraries do not require additional
+internet access, but you will need internet access the first time you use this
+extension or after the browser cache has expired.</li>
 <li>This code hasn&#39;t been tested with
 <a href="https://github.com/processing/p5.js/wiki/Global-and-instance-mode">instance-mode</a>
 sketches.</li>
-<li>Library inference hasn&#39;t been tested with sketches that are written as
+<li>Automatic library inclusion hasn&#39;t been tested with sketches that are written
+as
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>.</li>
 <li>See the implementation notes for limitations on the recognition of associated
 files.</li>

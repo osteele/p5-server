@@ -42,14 +42,14 @@ running `p5 server`.
 ## What is Cached?
 
 Requests for NPM packages from the JSDelivr, Skypack, and Unpkg content delivery
-networks are cached, as are resources from `fonts.googleapis.com and
+networks are cached, as are resources from `fonts.googleapis.com` and
 `fonts.gstatic.com`.
 
 Import paths from the community p5.js libraries are also cached. Most of these
-paths are either NPM packages or are served from `ghcdn.rawgit.org`, and would
-be cached in any case. A few of the community libraries are served from servers
-that are specific to those libraries or the organizations that public them; this
-ensures that they are cached as well.
+paths are served from a CDN and would be cached in any case. A few of the
+community libraries are served from servers that are specific to those libraries
+or the organizations that public them; this ensures that they are cached as
+well.
 
 ## Command Line
 
@@ -133,22 +133,19 @@ With the `--json` option, the output can be used with
 
 ```sh
 # List all the content-types
-$ p5 proxy-cache ls --json | jq '[.[].headers."content-type"] | unique'
-[
-  "application/javascript",
-  "application/javascript; charset=utf-8",
-  "application/vnd.ms-fontobject",
-  # etc.
-]
+$ p5 proxy-cache ls --json | jq '[.[].headers."content-type"] | unique | .[]'
+"application/javascript",
+"application/javascript; charset=utf-8",
+"application/vnd.ms-fontobject",
+# etc.
 
 # List content-types that start with "text/"
-$ p5 proxy-cache ls --json | jq '[.[].headers."content-type" | select(startswith("text/"))] | unique'
-[
-  "text/css; charset=utf-8",
-  "text/html; charset=utf-8",
-  "text/javascript",
-  "text/plain; charset=utf-8"
-]
+$ p5 proxy-cache ls --json | jq '[.[].headers."content-type" | select(startswith("text/"))] | unique | .[]'
+"text/css; charset=utf-8",
+"text/html; charset=utf-8",
+"text/javascript",
+"text/plain; charset=utf-8"
+# etc.
 
 # Display urls together with content-types
 $ p5 proxy-cache ls --json | jq '.[] | {originUrl, type: .headers."content-type"}'
@@ -162,9 +159,21 @@ $ p5 proxy-cache ls --json | jq '.[] | {originUrl, type: .headers."content-type"
 }
 # etc.
 
+# List the urls of CSS documents
+$ p5 proxy-cache list --json | jq '[.[] | select(.headers."content-type" | startswith("text/css")) | .originUrl] | unique | .[]'
+"https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css"
+"https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/github-dark.min.css"
+"https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css"
+"https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic&subset=latin"
+
 # Display entries that are not gzipped
 $ p5 proxy-cache ls --json | jq '.[] | select(.headers."content-encoding" != "gzip").originUrl'
 "https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/themes/default/assets/fonts/brand-icons.woff"
 "https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/themes/default/assets/fonts/brand-icons.woff2"
 # etc.
 ```
+
+## References
+
+* [MDN: HTTP Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
+* [MDN: Proxy Server](https://developer.mozilla.org/en-US/docs/Glossary/Proxy_server)

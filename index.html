@@ -178,44 +178,6 @@
 <header id="title-block-header">
 <h1 class="title">P5.js Server</h1>
 </header>
-<nav id="TOC" role="doc-toc">
-<ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#features">Features</a></li>
-<li><a href="#quick-start-installation">Quick Start – Installation</a></li>
-<li><a href="#quick-start-usage">Quick Start – Usage</a></li>
-<li><a href="#recipes">Recipes</a>
-<ul>
-<li><a href="#run-the-server">Run the Server</a>
-<ul>
-<li><a href="#serve-a-directory-inside-the-current-directory">Serve a directory inside the current directory</a></li>
-<li><a href="#open-the-browser-automatically">Open the browser automatically</a></li>
-<li><a href="#browse-directories-in-split-mode">Browse directories in split mode</a></li>
-<li><a href="#create-a-sketch-file">Create a sketch file</a></li>
-</ul></li>
-<li><a href="#build-a-static-site">Build a static site</a></li>
-<li><a href="#create-a-screenshot">Create a screenshot</a></li>
-<li><a href="#convert-between-javascript-only-and-html-sketches">Convert between JavaScript-only and HTML sketches</a></li>
-</ul></li>
-<li><a href="#command-line-reference">Command-Line Reference</a>
-<ul>
-<li><a href="#p5-build-directory"><code>p5 build [DIRECTORY]</code></a></li>
-<li><a href="#p5-convert-filename---to-format"><code>p5 convert FILENAME --to FORMAT</code></a></li>
-<li><a href="#p5-create-name"><code>p5 create [NAME]</code></a></li>
-<li><a href="#p5-serve-filename"><code>p5 serve [filename]</code></a></li>
-<li><a href="#p5-screenshot-filename"><code>p5 screenshot [filename]</code></a></li>
-<li><a href="#p5-tree-directory"><code>p5 tree [DIRECTORY]</code></a></li>
-<li><a href="#additional-commands">Additional commands</a></li>
-</ul></li>
-<li><a href="#implementation-notes">Implementation Notes</a></li>
-<li><a href="#limitations">Limitations</a></li>
-<li><a href="#api">API</a></li>
-<li><a href="#acknowledgements">Acknowledgements</a></li>
-<li><a href="#other-work">Other Work</a></li>
-<li><a href="#keeping-in-touch">Keeping in Touch</a></li>
-<li><a href="#license">License</a></li>
-</ul>
-</nav>
 <p><a href="https://www.npmjs.com/package/p5-server"><img src="https://badge.fury.io/js/p5-server.svg" alt="npm version" /></a> <a href="https://twitter.com/osteele"><img src="https://img.shields.io/badge/Twitter-1DA1F2" alt="Twitter" /></a> <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) --></p>
 <ul>
 <li><a href="#overview">Overview</a></li>
@@ -254,7 +216,7 @@
 <li><a href="#license">License</a></li>
 </ul>
 <h1 id="overview">Overview</h1>
-<p><strong>New feature: “airplane mode”. The server caches requests to known CDN servers (JSDelivr, Skypack, Unpkg). A sketch that uses libraries from these servers – as the files that this package generates do — can run without an internet connection, after the cache is warmed. See <a href="./docs/proxy-cache.md">here</a> for more details.</strong></p>
+<p><strong>New feature: “airplane mode”. The server caches requests to known CDN servers, so that you can run sketches without an internet connection. See <a href="docs/proxy-cache.md">here</a> for more details.</strong></p>
 <p><strong>p5-server</strong> is a development server for <a href="https://p5js.org/">p5.js</a>. It provides a web server with live reload, and command-line tools to generate HTML and JavaScript templates. The server can serve JavaScript-only sketches (that do not require an HTML file); it figures out which libraries a sketch needs in order to run.</p>
 <figure>
 <img src="docs/screenshot.png" alt="Directory listing in the browser" /><figcaption aria-hidden="true">Directory listing in the browser</figcaption>
@@ -262,7 +224,7 @@
 <p>p5-server can be used to develop sketches; or to browse a collection of sketches in a directory.</p>
 <p><a href="https://images.osteele.com/p5-server/explore-fullsize.gif"><img src="docs/explore.gif" alt="Using the split view to explore a collection of sketches. Click to see a higher-resolution version." /></a></p>
 <p>p5-server can also be used to create a set of HTML pages that present a collection of sketches. The <a href="https://osteele.github.io/p5.libs/p5.vector-arguments/examples">examples page</a> of the <a href="https://osteele.github.io/p5.libs/p5.vector-arguments">p5.vectorArguments</a> documentation demonstrates this.</p>
-<p>The web server, library inference, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a>, and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
+<p>The web server, automatic library inclusion, and sketch generation features are also available as a <a href="https://github.com/osteele/vscode-p5server#readme">Visual Studio Code extension</a>, and via a <a href="https://github.com/osteele/p5-server/tree/master/p5-analysis#readme">programmatic API</a>.</p>
 <h1 id="features">Features</h1>
 <ul>
 <li><p><strong><em>Live reload</em></strong>. The browser reloads the page when the source is modified.</p></li>
@@ -435,7 +397,7 @@
 <li>This code hasn’t been tested on Windows.</li>
 <li>Generated sketches require an internet connection the first time you run the server on a machine. Sketches load the p5.js and other libraries from a content delivery network (“CDN”). These libraries are cached (in <code>~/.cache/p5-server</code>), so that reloading a page or running other sketches that use the same (or no) libraries does not require additional internet access.</li>
 <li>This code hasn’t been tested with <a href="https://github.com/processing/p5.js/wiki/Global-and-instance-mode">instance-mode</a> sketches.</li>
-<li>Library inference hasn’t been tested with sketches that are written as <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>.</li>
+<li>Automatic library inclusion hasn’t been tested with sketches that are written as <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>.</li>
 <li>This is a development server, not a production server. It was not designed for security or performance.</li>
 <li>See the <a href="./p5-analysis/README.md#implementation-notes">p5-analysis implementation notes</a> notes for limitations on the recognition of associated files.</li>
 </ul>

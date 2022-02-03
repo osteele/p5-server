@@ -4,7 +4,7 @@ import { Category } from './Category';
 import { Cdn } from './Cdn';
 import { Script } from './Script';
 
-export const p5Version = '1.4.0';
+export const p5Version = '1.4';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Library {
@@ -150,6 +150,7 @@ export class Library implements Library.Properties {
     if (importPath) {
       libs = libs.filter(lib => lib.matchesImportPath(importPath));
     }
+    // if there's a unique library, return it
     return libs.length === 1 ? libs[0] : null;
   }
 
@@ -253,17 +254,28 @@ export class Library implements Library.Properties {
     if (!importPath) {
       return false;
     }
+    // normalize the paths by replacing '.min.js' with '.js'
     importPath = importPath.replace(/\.min\.js$/, '.js');
     path = path.replace(/\.min\.js$/, '.js');
+
+    // fast test: the normalized paths match
     if (path === importPath) {
       return true;
     }
+
     const { packageName } = this;
     if (packageName) {
       const parsed = Cdn.parseUrl(path);
       if (packageName === parsed?.packageName) {
         return true;
       }
+    }
+
+    // special case the sound library, since it is a file within p5 rather
+    // than an independent package
+    if (this.name === 'p5.sound' && path.endsWith('/lib/addons/p5.sound.js')) {
+      const parsed = Cdn.parseUrl(path);
+      return parsed?.packageName === 'p5';
     }
     return false;
   }

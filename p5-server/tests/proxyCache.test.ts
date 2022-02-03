@@ -5,13 +5,13 @@ describe('CDN Proxy', () => {
 
   describe('isCdnUrl', () => {
     test('accepts CDN urls', () => {
-      expect(isCdnUrl('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(
+      expect(isCdnUrl('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js')).toBe(
         true
       );
     });
 
     test.skip('accepts Library import paths', () => {
-      expect(isCdnUrl('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(
+      expect(isCdnUrl('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js')).toBe(
         false
       );
     });
@@ -26,8 +26,8 @@ describe('CDN Proxy', () => {
   describe('encodeProxyPath', () => {
     test('encodes CDN URL', () => {
       expect(
-        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')
-      ).toBe('/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
+        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js')
+      ).toBe('/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js');
     });
 
     test('ignores relative URLs', () => {
@@ -44,22 +44,22 @@ describe('CDN Proxy', () => {
 
     test('encodes query parameters', () => {
       expect(
-        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2')
+        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?a=1&b=2')
       ).toBe(
-        '/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?search=a%3D1%26b%3D2'
+        '/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?search=a%3D1%26b%3D2'
       );
     });
 
     test('preserves hashes', () => {
       expect(
-        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js#hash')
-      ).toBe('/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js#hash');
+        encodeProxyPath('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js#hash')
+      ).toBe('/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js#hash');
       expect(
         encodeProxyPath(
-          'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2#hash'
+          'https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?a=1&b=2#hash'
         )
       ).toBe(
-        '/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?search=a%3D1%26b%3D2#hash'
+        '/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?search=a%3D1%26b%3D2#hash'
       );
     });
   });
@@ -78,22 +78,22 @@ describe('CDN Proxy', () => {
     }
 
     test('decodes CDN URL', () =>
-      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js'));
+      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js'));
 
     test('decodes query parameters', () =>
       testRoundtripEquality(
-        'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2'
+        'https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?a=1&b=2'
       ));
 
     test('preserves hashes', () => {
-      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js#hash');
+      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js#hash');
       testRoundtripEquality(
-        'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js?a=1&b=2#hash'
+        'https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js?a=1&b=2#hash'
       );
     });
 
     test('preserves scheme', () => {
-      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
+      testRoundtripEquality('https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js');
       testRoundtripEquality('http://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js');
     });
   });

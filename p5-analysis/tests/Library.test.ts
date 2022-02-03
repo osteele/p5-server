@@ -15,8 +15,8 @@ describe('Library.find', () => {
   test('by import path', () => {
     expect(
       Library.find({
-        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/addons/p5.sound.min.js'
-      }).name
+        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4/lib/addons/p5.sound.min.js'
+      })?.name
     ).toBe('p5.sound');
     expect(
       Library.find({

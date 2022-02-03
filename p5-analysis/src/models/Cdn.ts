@@ -7,20 +7,22 @@ export class Cdn {
     return cdn;
   }
 
-  static parseUrl(url: string): { packageName: string } | null {
+  static parseUrl(url: string): { packageName: string, version: string | undefined } | null {
     const cdn = this.all.find(c => c.matchesUrl(url));
     return cdn ? cdn.parseUrl(url) : null;
   }
 
-  private constructor(private readonly matcher: RegExp) {}
+  private constructor(private readonly matcher: RegExp) { }
 
   matchesUrl(path: string): boolean {
     return this.matcher.test(path);
   }
 
-  parseUrl(url: string): { packageName: string } | null {
-    const name = this.matcher.exec(url)?.[1];
-    return name ? { packageName: name } : null;
+  parseUrl(url: string): { packageName: string, version: string | undefined } | null {
+    const nameWithVersion = this.matcher.exec(url)?.[1];
+    if (!nameWithVersion) return null;
+    const [packageName, version] = nameWithVersion.split('@');
+    return { packageName, version };
   }
 }
 

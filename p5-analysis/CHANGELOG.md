@@ -1,5 +1,13 @@
 # Change Log
 
+## Unreleased
+
+Changed:
+
+- Relaxed p5 library version 1.4.0 -> 1.4. This will automatically pick up the
+  latest 1.4.1, as well as future subminor (patch) releases.
+- Library detection ignores version numbers
+
 ## [0.6.10] - 2021-11-15
 
 Fixed:

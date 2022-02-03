@@ -1,5 +1,12 @@
 # Change Log
 
+## Unreleased
+
+Changed:
+
+- Relaxed p5 library version 1.4.0 -> 1.4
+- Library detection ignores version numbers
+
 ## [0.9.2] - 2021-11-15
 
 Changed:

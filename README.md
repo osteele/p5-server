@@ -1,7 +1,6 @@
 # P5.js Server
 
 [![npm version](https://badge.fury.io/js/p5-server.svg)](https://www.npmjs.com/package/p5-server)
-[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2)](https://twitter.com/osteele)
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
 - [Overview](#overview)
@@ -401,10 +400,7 @@ materials.
 ## Keeping in Touch
 
 Report bugs, features requests, and suggestions
-[here](https://github.com/osteele/p5-server/issues), or message me [on
-Twitter](https://twitter.com/osteele).
-
-Follow [\@osteele on Twitter](https://twitter.com/osteele) for updates.
+[here](https://github.com/osteele/p5-server/issues).
 
 ## License
 

@@ -389,7 +389,7 @@ This project builds on these libraries and frameworks:
 - marked for converting Markdown to HTML
 - nunjucks and pug for template generation
 - The Semantic UI CSS framework
-- And of course [p5.js]([https](https://p5js.org/)
+- And of course [p5.js](https://p5js.org/)
 
 ## Other Work
 

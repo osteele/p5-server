@@ -80,7 +80,7 @@
     "packageName": "createloop",
     "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
     "defines": {
-      "globals": ["createloop"]
+      "globals": ["createLoop"]
     }
   },
   {

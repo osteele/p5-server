@@ -1,5 +1,14 @@
 [
   {
+    "name": "openSimplexNoise",
+    "description": "Javascript implementation of OpenSimplex Noise.",
+    "homepage": "https://github.com/blindman67/SimplexNoiseJS",
+    "importPath": "https://cdn.jsdelivr.net/gh/blindman67/SimplexNoiseJS@master/simplexNoise.js",
+    "defines": {
+      "globals": ["openSimplexNoise"]
+    }
+  },
+  {
     "name": "anime",
     "description": "Anime.js (/ˈæn.ə.meɪ/) is a lightweight JavaScript animation library with a simple, yet powerful API.",
     "homepage": "https://animejs.com",

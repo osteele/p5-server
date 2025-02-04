@@ -1,5 +1,14 @@
 [
   {
+    "name": "p5.js-SVG",
+    "description": "SVG runtime for p5.js.",
+    "homepage": "https://github.com/zenozeng/p5.js-svg",
+    "importPath": "https://unpkg.com/p5.js-svg@1.5.1",
+    "defines": {
+      "globals": ["SVG"]
+    }
+  },
+  {
     "name": "ASCII Art",
     "description": "p5.asciiart is a simple and easy to use image-to-ASCII art converter for p5js.",
     "homepage": "https://www.tetoki.eu/asciiart/",

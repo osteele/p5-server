@@ -62,7 +62,7 @@
     "marked": "^3.0.8",
     "minimatch": "^3.0.4",
     "node-fetch": "^2.6.6",
-    "node-html-parser": "^5.1.0",
+    "node-html-parser": "^7.0.1",
     "nunjucks": "^3.2.3",
     "open": "^8.4.0",
     "p5-analysis": "workspace:*",

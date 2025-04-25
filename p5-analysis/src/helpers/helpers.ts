@@ -70,4 +70,5 @@ export function sizeof(value: unknown, seen?:WeakSet<any>): number {
         return size;
       }
   }
+  return 0; // Default case (should never reach here but satisfies TypeScript)
 }

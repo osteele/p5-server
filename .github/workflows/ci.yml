@@ -55,9 +55,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Patch workspace protocol for npm compatibility
         run: |
-          sed -i.bak 's#"p5-analysis": "workspace:\\*"#"p5-analysis": "file:../p5-analysis"#' p5-server/package.json
+          jq 'if .dependencies["p5-analysis"] == "workspace:*" then .dependencies["p5-analysis"] = "file:../p5-analysis" else . end' p5-server/package.json > p5-server/package.tmp.json && mv p5-server/package.tmp.json p5-server/package.json
 
       - name: Test & Build p5-analysis
         run: |

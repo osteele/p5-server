@@ -38,7 +38,7 @@
     "cli:libraries": "bun run --bun src/bin/p5-libraries-cli.ts",
     "cli:library": "bun run --bun src/bin/p5-libraries-cli.ts",
     "cli:tree": "bun run --bun src/bin/p5-tree-cli.ts",
-    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint": "eslint --quiet src/**/*.ts tests/**/*.ts",
     "prepack": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch"

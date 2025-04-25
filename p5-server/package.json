@@ -42,7 +42,7 @@
     "cli": "bun run --bun src/bin/p5-server.ts",
     "_dev": "bun --watch src/bin/p5-server.ts serve",
     "dev": "bun run _dev examples",
-    "lint": "eslint src tests",
+    "lint": "eslint --quiet src tests",
     "postpack": "rm README.md",
     "prepack": "bun run clean && bun run build && bun run build:readme",
     "start": "bun run --bun src/bin/p5-server.ts server",

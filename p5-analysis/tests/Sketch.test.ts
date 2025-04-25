@@ -284,6 +284,7 @@ describe('Sketch.convert', () => {
     );
     if (filePath instanceof Array) {
       filePath.forEach(file => {
+        ensureDirSync(path.dirname(path.join(outputDir, file)));
         fs.copyFileSync(path.join(testfileDir, file), path.join(outputDir, file));
       });
       mainFile = filePath[0];
@@ -297,6 +298,7 @@ describe('Sketch.convert', () => {
         .join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
+      ensureDirSync(path.dirname(path.join(outputDir, filePath)));
       fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
     }
     async function convert() {
@@ -317,6 +319,12 @@ describe('Sketch.convert', () => {
     }
   }
 });
+
+function ensureDirSync(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 function copyDirectory(src: string, dst: string) {
   fs.mkdirSync(dst, { recursive: true });
@@ -372,7 +380,7 @@ function getDirectoryJson(dir: string): DirectoryJson {
         name,
         fs.statSync(file).isDirectory()
           ? getDirectoryJson(file)
-          : fs.readFileSync(file, 'utf-8')
+          : fs.readFileSync(file, 'utf-8').replace(/\r\n/g, '\n') // for Windows
       ];
     });
 }

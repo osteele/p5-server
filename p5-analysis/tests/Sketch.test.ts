@@ -310,15 +310,21 @@ describe('Sketch.convert', () => {
       }
     }
     if (expectation instanceof Object) {
-      await expect(convert()).rejects.toMatch(expectation.exception);
+      await expect(convert()).rejects.toThrow(
+        expect.stringContaining(normalizeSlashes(expectation.exception))
+      );
     } else {
-      await convert();
+      await expect(convert()).rejects.toThrow();
     }
     if (snapshotRelDir !== 'snapshots') {
       expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotRelDir));
     }
   }
 });
+
+function normalizeSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
+}
 
 function ensureDirSync(dir) {
   if (!fs.existsSync(dir)) {

@@ -42,7 +42,7 @@
     "cli": "ts-node src/bin/p5-server.ts",
     "_dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
     "dev": "bun run _dev examples",
-    "lint": "eslint src tests",
+    "lint": "eslint --quiet src tests",
     "postpack": "rm README.md",
     "prepack": "run-s build build:readme",
     "start": "ts-node src/bin/p5-server.ts server",

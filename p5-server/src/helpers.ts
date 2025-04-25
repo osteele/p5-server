@@ -117,7 +117,9 @@ export function addScriptToHtmlHead(
     'script',
     {},
     typeof source === 'string' ? `src=${JSON.stringify(source)}` : '',
-    null
+    undefined,
+    undefined,
+    undefined
   );
   if (source instanceof Object) {
     scriptNode.textContent =
@@ -131,7 +133,7 @@ export function addScriptToHtmlHead(
   // htmlRoot.querySelector(tagName) always returns null.
   if (!htmlRoot.querySelector('head')) {
     const body = htmlRoot.querySelector('body');
-    if (body) body.appendChild(new HTMLElement('head', {}, '', null));
+    if (body) body.appendChild(new HTMLElement('head', {}, '', undefined, undefined, undefined));
     else if (!warnedAboutMissingHtmlBody) {
       console.warn('HTML document did not have a body');
       warnedAboutMissingHtmlBody = true;

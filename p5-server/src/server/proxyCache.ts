@@ -103,14 +103,14 @@ const cacachelsBind = () => cacache.ls('cachePath');
 // using separate logic to test and populate the cache.
 
 /** The express.Request properties that cdnProxyRouter depends on. */
-interface RequestI {
+export interface RequestI {
   headers: typeof express.request.headers;
   path: typeof express.request.path;
   query: typeof express.request.query;
 }
 
 /** The express.Response properties that cdnProxyRouter depends on. */
-interface ResponseI extends NodeJS.WritableStream {
+export interface ResponseI extends NodeJS.WritableStream {
   setHeader(key: string, value: string | number | readonly string[]): void;
   send(chunk: string | Buffer): void;
   status(code: number): void;

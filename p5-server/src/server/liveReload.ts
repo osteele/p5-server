@@ -20,6 +20,9 @@ export function injectLiveReloadScript(
 ): string {
   if (!liveReloadServer) return html;
   const address = liveReloadServer.server.address();
+  if (!address) {
+    throw new Error('liveReloadServer.address returned null');
+  }
   if (typeof address === 'string') {
     throw new Error(
       `liveReloadServer.address is a string ${address}; expected a WebSocket.AddressInfo`

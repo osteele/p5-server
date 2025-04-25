@@ -164,7 +164,7 @@ export function createRouter(config: RouterConfig): express.Router {
 
   return router;
 
-  function sendHtml<T>(
+  function sendHtml<T extends Record<string, unknown>>(
     req: Request<unknown, unknown, unknown, Record<string, unknown>, T>,
     res: Response<string, T>,
     html: string
@@ -190,7 +190,7 @@ export function createRouter(config: RouterConfig): express.Router {
   }
 }
 
-async function sendDirectoryListing<T>(
+async function sendDirectoryListing<T extends Record<string, unknown>>(
   config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<unknown, T>

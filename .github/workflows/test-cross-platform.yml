@@ -11,10 +11,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -24,5 +24,14 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Test
-        run: bun run test
+      - name: Test p5-analysis
+        run: bun run --cwd p5-analysis test
+
+      - name: Build p5-analysis
+        run: bun run --cwd p5-analysis build
+
+      - name: Test p5-server
+        run: bun run --cwd p5-server test
+
+      - name: Build p5-server
+        run: bun run --cwd p5-server build

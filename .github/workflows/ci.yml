@@ -1,4 +1,4 @@
-name: "unit tests"
+name: CI
 
 on:
   push:
@@ -8,19 +8,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  bun:
+    name: Bun (latest)
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x, 20.x]
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -30,8 +27,48 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Test
-        run: bun run test
+      - name: Build p5-analysis
+        run: bun run --cwd p5-analysis build
 
-      - name: Build
-        run: bun run build
+      - name: Test p5-analysis
+        run: bun run --cwd p5-analysis test
+
+      - name: Build p5-server
+        run: bun run --cwd p5-server build
+
+      - name: Test p5-server
+        run: bun run --cwd p5-server test
+
+  node:
+    name: Node.js (${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 'lts/*', 'lts/-1', 'lts/-2' ]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Patch workspace protocol for npm compatibility
+        run: |
+          sed -i.bak 's#"p5-analysis": "workspace:\\*"#"p5-analysis": "file:../p5-analysis"#' p5-server/package.json
+
+      - name: Test & Build p5-analysis
+        run: |
+          cd p5-analysis
+          npm install
+          npm test
+          npm run build
+
+      - name: Test & Build p5-server (with local p5-analysis)
+        run: |
+          cd p5-server
+          npm install ../p5-analysis
+          npm test
+          npm run build

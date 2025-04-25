@@ -8,7 +8,7 @@
   "scripts": {
     "build": "bun run --cwd p5-analysis build && bun run --cwd p5-server build",
     "build:docs": "bun run build:docs:root && bun run --cwd p5-analysis build:docs && bun run --cwd p5-server build:docs",
-    "build:docs:root": "pandoc -dpandoc.yml README.md -o gh-pages/index.html && cp -r docs LICENSE gh-pages",
+    "build:docs:root": "mkdir -p gh-pages && pandoc -dpandoc.yml README.md -o gh-pages/index.html && cp -r docs LICENSE gh-pages",
     "gh-pages:build": "rimraf 'gh-pages/*' && bun run build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "bun run gh-pages:build && bun run gh-pages:publish",

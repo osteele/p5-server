@@ -1,6 +1,16 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn lint --max-warnings=0
-yarn constraints
-yarn test --lastCommit
+# Run lint quietly, only show output on failure
+if ! bun run lint --max-warnings=0 >lint.log 2>&1; then
+  cat lint.log
+  exit 1
+fi
+
+# Run test quietly, only show output on failure
+if ! bun run test --lastCommit >test.log 2>&1; then
+  cat test.log
+  exit 1
+fi
+
+rm -f lint.log test.log

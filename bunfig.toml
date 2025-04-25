@@ -1,0 +1,5 @@
+[workspaces]
+folders = [
+  "p5-analysis",
+  "p5-server"
+]

@@ -1,5 +1,5 @@
 {
-  "jest.jestCommandLine": "yarn test",
+  "jest.jestCommandLine": "bun test",
   "jest.autoRun": "off",
   "files.exclude": {
     "p5-analysis": true,

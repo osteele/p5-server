@@ -30,18 +30,18 @@
   },
   "repository": "github:osteele/p5-server",
   "scripts": {
-    "build": "run-s clean build:copy-files && tsc --declaration",
-    "build:docs": "typedoc src/index.ts && yarn run cli:libraries docs | pandoc -s --toc --shift-heading-level-by -1 > build/docs/libraries.html",
+    "build": "bun run clean && bun run build:copy-files && tsc --declaration",
+    "build:docs": "typedoc src/index.ts && bun run cli:libraries docs | pandoc -s --toc --shift-heading-level-by -1 > build/docs/libraries.html",
     "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "clean": "rimraf dist",
-    "cli": "ts-node --files src/bin/p5-analyze-cli.ts",
-    "cli:libraries": "ts-node --files src/bin/p5-libraries-cli.ts",
-    "cli:library": "ts-node --files src/bin/p5-libraries-cli.ts",
-    "cli:tree": "ts-node --files src/bin/p5-tree-cli.ts",
+    "cli": "bun run --bun src/bin/p5-analyze-cli.ts",
+    "cli:libraries": "bun run --bun src/bin/p5-libraries-cli.ts",
+    "cli:library": "bun run --bun src/bin/p5-libraries-cli.ts",
+    "cli:tree": "bun run --bun src/bin/p5-tree-cli.ts",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
-    "prepack": "yarn run build",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "prepack": "bun run build",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
   },
   "dependencies": {
     "@babel/core": "^7.16.0",
@@ -90,16 +90,13 @@
     "node": ">=14.17"
   },
   "jest": {
-    "preset": "ts-jest",
+    "preset": "bun",
     "modulePathIgnorePatterns": [
       "tests/testdata/.*/output/.*"
     ],
     "testEnvironment": "node",
     "testMatch": [
       "**/tests/**/*.ts"
-    ],
-    "transform": {
-      "^.+\\.tsx?$": "esbuild-jest"
-    }
+    ]
   }
 }

@@ -12,19 +12,17 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          lfs: true
+          bun-version: latest
 
-      - name: Checkout LFS objects
-        run: git lfs checkout
-
-      - name: Install
-        run: |
-          npm install -g yarn
-          yarn install --immutable-cache
+      - name: Install dependencies
+        run: bun install
 
       - name: Build docs
-        run: yarn run build:docs
+        run: bun run build:docs
 
       - name: Analysis API
         uses: JamesIves/github-pages-deploy-action@4.1.4

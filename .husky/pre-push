@@ -1,9 +1,37 @@
 #!/bin/sh
-command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting .git/hooks/pre-push.\n"; exit 2; }
-git lfs pre-push "$@"
 
-yarn lint --max-warnings=0
-yarn constraints
-yarn test
-yarn build
-yarn workspaces foreach -tv run cli --version
+lint_log=$(mktemp)
+test_log=$(mktemp)
+build_log=$(mktemp)
+cli_log=$(mktemp)
+
+# Lint
+if ! bun run lint --max-warnings=0 >"$lint_log" 2>&1; then
+  cat "$lint_log"
+  exit 1
+fi
+
+# Test
+if ! bun run test >"$test_log" 2>&1; then
+  cat "$test_log"
+  exit 1
+fi
+
+# Build
+if ! bun run build >"$build_log" 2>&1; then
+  cat "$build_log"
+  exit 1
+fi
+
+# Workspace CLI versions
+for ws in p5-analysis p5-server; do
+  if [ -f "$ws/package.json" ]; then
+    if ! (cd "$ws" && bun run cli --version) >"$cli_log" 2>&1; then
+      echo "CLI version check failed in $ws:"
+      cat "$cli_log"
+      exit 1
+    fi
+  fi
+done
+
+rm -f "$lint_log" "$test_log" "$build_log" "$cli_log"

@@ -41,7 +41,7 @@ These APIs are not stable until this package reaches version 1.0.
 
 ```sh
 npm install --save p5-analysis
-yard add p5-analysis
+bun add p5-analysis
 ```
 
 ## Command-Line Usage
@@ -49,8 +49,8 @@ yard add p5-analysis
 `p5-libraries list` – list the known libraries
 
 With `--json`, this can be used with [jq](https://stedolan.github.io/jq/), e.g.
-`yarn cli:libraries list --json | jq '.[].importPath'` to list all the import
-paths, or `yarn cli:libraries list --json | jq '.[] | select(.packageName) |
+`bun run cli:libraries list --json | jq '.[].importPath'` to list all the import
+paths, or `bun run cli:libraries list --json | jq '.[] | select(.packageName) |
 .name'` to print the names of libraries that have been published as NPM
 packages.
 

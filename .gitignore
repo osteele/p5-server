@@ -4,13 +4,7 @@ dist
 *.tgz
 *.log
 
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
-.pnp.*
+# TypeScript
 *.tsbuildinfo
 
 gh-pages

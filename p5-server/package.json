@@ -33,22 +33,22 @@
     "directory": "p5-server"
   },
   "scripts": {
-    "build": "run-s clean build:client build:copy-files && tsc --declaration",
+    "build": "bun run clean && bun run build:client && bun run build:copy-files && tsc --declaration",
     "build:client": "node src/client/esbuild.config.js",
     "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "build:docs": "typedoc src/index.ts",
     "build:readme": "sed -f scripts/readme.sed < ../README.md > README.md",
     "clean": "rimraf dist 'src/server/static/*.min.js' 'src/server/static/*.min.js.map'",
-    "cli": "ts-node src/bin/p5-server.ts",
-    "_dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
-    "dev": "yarn _dev examples",
+    "cli": "bun run --bun src/bin/p5-server.ts",
+    "_dev": "bun --watch src/bin/p5-server.ts serve",
+    "dev": "bun run _dev examples",
     "lint": "eslint src tests",
     "postpack": "rm README.md",
-    "prepack": "run-s build build:readme",
-    "start": "ts-node src/bin/p5-server.ts server",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "watch:testdata": "yarn _dev tests/testdata"
+    "prepack": "bun run clean && bun run build && bun run build:readme",
+    "start": "bun run --bun src/bin/p5-server.ts server",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "watch:testdata": "bun run _dev tests/testdata"
   },
   "dependencies": {
     "@types/ws": "^8.2.2",
@@ -105,16 +105,13 @@
     "node": ">=14.17"
   },
   "jest": {
-    "preset": "ts-jest",
+    "preset": "bun",
     "modulePathIgnorePatterns": [
       "tests/testdata/.*/output/.*"
     ],
     "testEnvironment": "node",
     "testMatch": [
       "**/tests/**/*.ts"
-    ],
-    "transform": {
-      "^.+\\.tsx?$": "esbuild-jest"
-    }
+    ]
   }
 }

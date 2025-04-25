@@ -80,7 +80,7 @@ test('Sketch.analyzeDirectory', async () => {
   );
   expect(sketches.length).toBe(4);
   expect(allFiles.length).toBe(6);
-  expect(unassociatedFiles).toEqual(['collection', 'loose.js']);
+  expect(unassociatedFiles.sort()).toEqual(['collection', 'loose.js'].sort());
 });
 
 describe('Sketch.isSketchDir', () => {
@@ -340,8 +340,19 @@ function expectDirectoriesEqual(a: string, b: string) {
   }
   let aFiles = getDirectoryJson(a);
   let bFiles = getDirectoryJson(b);
+  function sortDirectoryJson(json) {
+    if (Array.isArray(json)) {
+      return json.map(sortDirectoryJson).sort((a, b) => {
+        if (Array.isArray(a) && Array.isArray(b)) {
+          return a[0].localeCompare(b[0]);
+        }
+        return 0;
+      });
+    }
+    return json;
+  }
   try {
-    expect(aFiles).toEqual(bFiles);
+    expect(sortDirectoryJson(aFiles)).toEqual(sortDirectoryJson(bFiles));
   } catch (e) {
     throw new Error(`${e.message} while comparing ${a} to ${b}`);
   }

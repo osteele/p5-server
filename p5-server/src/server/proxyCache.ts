@@ -494,7 +494,7 @@ export function createProxyCache({
               const encoding = headers['content-encoding'];
               switch (encoding) {
                 case 'deflate':
-                  data = zlib.deflateSync(data);
+                  data = zlib.inflateSync(data);
                   break;
                 case 'gzip':
                 case 'x-gzip':
@@ -611,8 +611,9 @@ export function createProxyCache({
     switch (encoding) {
       case 'deflate':
         {
-          const z = zlib.createInflate();
-          const uz = zlib.createDeflate();
+          // First decompress with inflate, then recompress with deflate
+          const uz = zlib.createInflate();
+          const z = zlib.createDeflate();
           const ws = makeCssRewriterStream(uz, base);
           istream.pipe(uz);
           ws.pipe(z);
@@ -621,8 +622,9 @@ export function createProxyCache({
       case 'gzip':
       case 'x-gzip':
         {
-          const z = zlib.createGzip();
+          // First decompress with gunzip, then recompress with gzip
           const uz = zlib.createGunzip();
+          const z = zlib.createGzip();
           const ws = makeCssRewriterStream(uz, base);
           istream.pipe(uz);
           ws.pipe(z);

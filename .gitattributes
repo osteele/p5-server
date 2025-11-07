@@ -1,7 +1,4 @@
 * text=auto
 *.njk		text
 *.pug		text
-/.yarn/releases/** binary
-/.yarn/plugins/** binary
-*.cjs filter=lfs diff=lfs merge=lfs -text
 docs/explore.gif filter=lfs diff=lfs merge=lfs -text

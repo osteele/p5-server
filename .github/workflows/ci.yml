@@ -28,18 +28,20 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14.7'
-          cache: yarn
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
       - name: Install
-        run: |
-          npm install -g yarn
-          yarn install --immutable-cache
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: yarn lint
+        run: bun run lint
 
       - name: Test
-        run: yarn test
+        run: bun run test
 
       - name: Build
-        run: yarn build
+        run: bun run build

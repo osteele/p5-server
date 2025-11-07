@@ -18,13 +18,16 @@ jobs:
       - name: Checkout LFS objects
         run: git lfs checkout
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: Install
-        run: |
-          npm install -g yarn
-          yarn install --immutable-cache
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: yarn run lint
+        run: bun run lint
 
       - name: Test
-        run: yarn test
+        run: bun run test

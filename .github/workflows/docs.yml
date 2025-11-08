@@ -24,7 +24,7 @@ jobs:
           bun-version: latest
 
       - name: Install
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Build docs
         run: bun run build:docs

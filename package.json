@@ -6,18 +6,18 @@
     "p5-server"
   ],
   "scripts": {
-    "build": "cd p5-analysis && bun run build && cd ../p5-server && bun run build",
-    "build:docs": "bun run build:docs:root && cd p5-analysis && bun run build:docs && cd ../p5-server && bun run build:docs",
+    "build": "bun --cwd p5-analysis run build && bun --cwd p5-server run build",
+    "build:docs": "bun run build:docs:root && bun --cwd p5-analysis run build:docs && bun --cwd p5-server run build:docs",
     "build:docs:root": "pandoc -dpandoc.yml README.md -o gh-pages/index.html && cp -r docs LICENSE gh-pages",
     "gh-pages:build": "rimraf 'gh-pages/*' && bun run build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "bun run gh-pages:build && bun run gh-pages:publish",
-    "clean": "cd p5-analysis && bun run clean:ws && cd ../p5-server && bun run clean:ws",
+    "clean": "bun --cwd p5-analysis run clean:ws && bun --cwd p5-server run clean:ws",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
-    "lint": "cd p5-analysis && bun run lint && cd ../p5-server && bun run lint",
+    "lint": "bun --cwd p5-analysis run lint && bun --cwd p5-server run lint",
     "prepare": "husky install",
-    "test": "cd p5-analysis && bun run build && cd ../p5-server && bun run test && cd ../p5-analysis && bun run test"
+    "test": "bun --cwd p5-analysis run build && bun --cwd p5-server run test && bun --cwd p5-analysis run test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.6.0",

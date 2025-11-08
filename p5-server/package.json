@@ -41,14 +41,14 @@
     "clean": "rimraf dist 'src/server/static/*.min.js' 'src/server/static/*.min.js.map'",
     "cli": "ts-node src/bin/p5-server.ts",
     "_dev": "nodemon -w src -e 'js ts css html json njk pug' src/bin/p5-server.ts serve",
-    "dev": "yarn _dev examples",
+    "dev": "bun run _dev examples",
     "lint": "eslint src tests",
     "postpack": "rm README.md",
     "prepack": "run-s build build:readme",
     "start": "ts-node src/bin/p5-server.ts server",
     "test": "jest",
     "test:watch": "jest --watch",
-    "watch:testdata": "yarn _dev tests/testdata"
+    "watch:testdata": "bun run _dev tests/testdata"
   },
   "dependencies": {
     "@types/ws": "^8.2.2",

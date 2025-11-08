@@ -11,35 +11,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x, 16.x]
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-        with:
-          lfs: true
 
-      - name: Checkout LFS objects
-        run: git lfs checkout
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '14.7'
-          cache: yarn
+          bun-version: latest
 
       - name: Install
-        run: |
-          npm install -g yarn
-          yarn install --immutable-cache
+        run: bun install
 
       - name: Lint
-        run: yarn lint
+        run: bun run lint
 
       - name: Test
-        run: yarn test
+        run: bun run test
 
       - name: Build
-        run: yarn build
+        run: bun run build

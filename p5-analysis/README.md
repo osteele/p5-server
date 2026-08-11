@@ -1,6 +1,7 @@
 # P5 Analysis
 
 [![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
+[![Changelog](https://img.shields.io/badge/changelog-gray.svg)](./CHANGELOG.md)
 <!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
 
 - [Installation](#installation)

@@ -1,9 +1,9 @@
 import chalk from 'chalk';
+import { EventEmitter } from 'events';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import pug from 'pug';
-import { EventEmitter } from 'stream';
 import { assertError } from '../ts-extras';
 import {
   attachBrowserScriptRelay,

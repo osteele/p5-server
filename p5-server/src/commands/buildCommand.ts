@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { rm as rmSync, writeFile } from 'fs/promises';
+import { rm, writeFile } from 'fs/promises';
 import minimatch from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
@@ -40,7 +40,9 @@ export default async function build(source: string, options: Options) {
 
   if (
     pathIsInDirectory(output, source) &&
-    !directoryExclusions.some(pattern => minimatch(output, pattern))
+    !directoryExclusions.some(pattern =>
+      minimatch(path.relative(source, output), pattern)
+    )
   ) {
     die('The output directory cannot be inside the source directory');
   }
@@ -49,14 +51,11 @@ export default async function build(source: string, options: Options) {
   }
 
   if (!options.dryRun && fs.existsSync(output)) {
-    fs.readdirSync(output)
+    const outputFiles = fs
+      .readdirSync(output)
       .filter(file => !file.startsWith('.'))
-      .map(file => path.join(output, file))
-      .forEach(file =>
-        fs.statSync(file).isDirectory()
-          ? rmSync(file, { recursive: true })
-          : fs.unlinkSync(file)
-      );
+      .map(file => path.join(output, file));
+    await Promise.all(outputFiles.map(file => rm(file, { recursive: true })));
   }
 
   const actions = createActions(source, output);

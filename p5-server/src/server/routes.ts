@@ -4,7 +4,7 @@ import fs from 'fs';
 import { readdir, readFile } from 'fs/promises';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
-import { addScriptToHtmlHead } from '../helpers';
+import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers';
 import { assertError } from '../ts-extras';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay';
 import { replaceUrlsInHtml } from './cdnProxy';
@@ -23,7 +23,8 @@ export function createRouter(config: RouterConfig): express.Router {
 
   router.get('/', async (req, res) => {
     const sketchFile = config.sketchFile;
-    const file = path.join(config.root, decodeURIComponent(req.path));
+    const file = requestPathToFilePath(req.path);
+    if (!file) return res.sendStatus(403);
 
     if (sketchFile) {
       if (await Sketch.isSketchScriptFile(sketchFile)) {
@@ -67,11 +68,12 @@ export function createRouter(config: RouterConfig): express.Router {
   );
 
   router.get('/*.html?', (req, res, next) => {
-    const file = path.join(config.root, decodeURIComponent(req.path));
+    const file = requestPathToFilePath(req.path);
+    if (!file) return res.sendStatus(403);
     try {
       if (req.query.fmt === 'view') {
         res.set('Content-Type', 'text/plain');
-        res.sendFile(req.path, { root: config.root });
+        res.sendFile(file);
         return;
       }
       if (req.headers['accept']?.match(/\btext\/html\b/)) {
@@ -90,7 +92,8 @@ export function createRouter(config: RouterConfig): express.Router {
   // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
   router.get('/*.js', async (req, res, next) => {
-    const filepath = path.join(config.root, decodeURIComponent(req.path));
+    const filepath = requestPathToFilePath(req.path);
+    if (!filepath) return res.sendStatus(403);
 
     // bare-javascript sketch; not view source
     if (
@@ -139,7 +142,8 @@ export function createRouter(config: RouterConfig): express.Router {
 
   router.get('/*.md', (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      const file = path.join(config.root, decodeURIComponent(req.path));
+      const file = requestPathToFilePath(req.path);
+      if (!file) return res.sendStatus(403);
       if (!fs.existsSync(file)) {
         return next();
       }
@@ -154,7 +158,8 @@ export function createRouter(config: RouterConfig): express.Router {
 
   router.get('*', (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
-      const file = path.join(config.root, decodeURIComponent(req.path));
+      const file = requestPathToFilePath(req.path);
+      if (!file) return res.sendStatus(403);
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
         return sendDirectoryListing(config, req, res);
       }
@@ -163,6 +168,15 @@ export function createRouter(config: RouterConfig): express.Router {
   });
 
   return router;
+
+  function requestPathToFilePath(requestPath: string): string | null {
+    try {
+      return resolvePathInDirectory(decodeURIComponent(requestPath), config.root);
+    } catch (err) {
+      if (err instanceof URIError) return null;
+      throw err;
+    }
+  }
 
   function sendHtml<T extends Record<string, unknown>>(
     req: Request<unknown, unknown, unknown, Record<string, unknown>, T>,
@@ -199,10 +213,17 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
   if (!req.originalUrl.endsWith('/')) {
     return res.redirect(req.originalUrl + '/');
   }
-  const dir = path.join(
-    config.root,
-    decodeURIComponent(req.path).replace(/\//g, path.sep)
-  );
+  let dir: string | null;
+  try {
+    dir = resolvePathInDirectory(decodeURIComponent(req.path), config.root);
+  } catch (err) {
+    if (!(err instanceof URIError)) throw err;
+    dir = null;
+  }
+  if (!dir) {
+    res.sendStatus(403);
+    return;
+  }
   // read the directory contents
   const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
   let html = indexFile

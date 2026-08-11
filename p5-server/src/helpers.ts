@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import fs from 'fs';
 import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import open from 'open';
 import path from 'path';
@@ -74,7 +75,28 @@ export function pathComponentsForBreadcrumbs(
 
 /** Tests whether filepath is inside the directory `dir`. */
 export function pathIsInDirectory(filepath: string, dir: string): boolean {
-  return !(path.relative(filepath, dir) + path.sep).startsWith('..' + path.sep);
+  const relativePath = path.relative(path.resolve(dir), path.resolve(filepath));
+  return (
+    relativePath === '' ||
+    (relativePath !== '..' &&
+      !relativePath.startsWith('..' + path.sep) &&
+      !path.isAbsolute(relativePath))
+  );
+}
+
+/** Resolve a relative path inside `dir`, rejecting lexical and symlink escapes. */
+export function resolvePathInDirectory(filepath: string, dir: string): string | null {
+  const resolvedDir = path.resolve(dir);
+  const relativePath = filepath.replace(/^[/\\]+/, '');
+  const resolvedPath = path.resolve(resolvedDir, relativePath);
+  if (!pathIsInDirectory(resolvedPath, resolvedDir)) return null;
+
+  if (fs.existsSync(resolvedPath)) {
+    const realDir = fs.realpathSync(resolvedDir);
+    const realPath = fs.realpathSync(resolvedPath);
+    if (!pathIsInDirectory(realPath, realDir)) return null;
+  }
+  return resolvedPath;
 }
 
 /** Returns true iff pathname ends in a markdown file suffix. */

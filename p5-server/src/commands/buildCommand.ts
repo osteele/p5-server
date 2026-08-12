@@ -1,16 +1,21 @@
-import fs from 'fs';
-import { rm, writeFile } from 'fs/promises';
+import fs from 'node:fs';
+import { rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import chalk from 'chalk';
 import { minimatch } from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
-import path from 'path';
+import {
+  die,
+  pathIsInDirectory,
+  pathIsMarkdown,
+  stringToOptions,
+} from '../helpers';
 import {
   createDirectoryListing,
-  defaultDirectoryExclusions
+  defaultDirectoryExclusions,
 } from '../server/directoryListing';
 import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates';
-import { die, pathIsInDirectory, pathIsMarkdown, stringToOptions } from '../helpers';
-import chalk from 'chalk';
 
 // TODO: copy the static icons into the build directory
 
@@ -40,7 +45,7 @@ export default async function build(source: string, options: Options) {
 
   if (
     pathIsInDirectory(output, source) &&
-    !directoryExclusions.some(pattern =>
+    !directoryExclusions.some((pattern) =>
       minimatch(path.relative(source, output), pattern)
     )
   ) {
@@ -50,18 +55,22 @@ export default async function build(source: string, options: Options) {
     die('The source directory cannot be inside the output directory');
   }
 
+  const actions: Action[] = [];
+  for await (const action of createActions(source, output))
+    actions.push(action);
+  assertDistinctOutputPaths(actions);
+
   if (!options.dryRun && fs.existsSync(output)) {
     const outputFiles = fs
       .readdirSync(output)
-      .filter(file => !file.startsWith('.'))
-      .map(file => path.join(output, file));
-    await Promise.all(outputFiles.map(file => rm(file, { recursive: true })));
+      .filter((file) => !file.startsWith('.'))
+      .map((file) => path.join(output, file));
+    await Promise.all(outputFiles.map((file) => rm(file, { recursive: true })));
   }
 
-  const actions = createActions(source, output);
   const count = await runActions(actions, options);
   const rootIndex = path.join(output, 'index.html');
-  const elapsed = Number(process.hrtime.bigint() - hrstart) / 1e9;
+  const elapsed = Number(process.hrtime.bigint() - hrstart) / 1e6;
   console.log(
     `p5 build wrote ${count} files to directory ${output} in ${elapsed.toFixed(2)}ms`
   );
@@ -84,6 +93,32 @@ type Action = (
 
 type ActionIterator = AsyncIterableIterator<Action>;
 
+function assertDistinctOutputPaths(actions: readonly Action[]): void {
+  const outputs = new Map<string, Action>();
+  for (const action of actions) {
+    const resolvedOutput = path.resolve(action.outputFile);
+    const key =
+      process.platform === 'win32'
+        ? resolvedOutput.toLowerCase()
+        : resolvedOutput;
+    const previous = outputs.get(key);
+    if (previous) {
+      throw new Error(
+        `Build output collision at ${resolvedOutput}: ${describeAction(previous)} and ${describeAction(action)}`
+      );
+    }
+    outputs.set(key, action);
+  }
+
+  function describeAction(action: Action): string {
+    if ('source' in action) return `${action.kind} from ${action.source}`;
+    if (action.kind === 'createSketchHtml') {
+      return `${action.kind} from ${action.sketch.scriptFilePath}`;
+    }
+    return `${action.kind} for ${action.dir}`;
+  }
+}
+
 function Action(
   kind: 'convertMarkdown' | 'copyDir' | 'copyFile' | 'mkdir',
   source: string,
@@ -101,18 +136,20 @@ function createActions(file: string, output: string): ActionIterator {
     } else {
       yield Action('copyFile', source, output);
       if (pathIsMarkdown(source)) {
-        yield Action('convertMarkdown', source, output + '.html');
+        yield Action('convertMarkdown', source, `${output}.html`);
       }
     }
   }
 
   async function* visitDir(dir: string, output: string): ActionIterator {
     const { sketches, allFiles } = await Sketch.analyzeDirectory(dir, {
-      exclusions: directoryExclusions
+      exclusions: directoryExclusions,
     });
     yield Action('mkdir', dir, output);
 
-    const scriptOnlySketches = sketches.filter(sk => sk.structureType === 'script');
+    const scriptOnlySketches = sketches.filter(
+      (sk) => sk.structureType === 'script'
+    );
     // TODO: check for collisions when choosing the output file path
     for (const sketch of scriptOnlySketches) {
       const outputFile = path
@@ -121,7 +158,7 @@ function createActions(file: string, output: string): ActionIterator {
       yield { kind: 'createSketchHtml', sketch, outputFile };
     }
 
-    const subdirectorySketches = sketches.filter(sk => sk.dir !== dir);
+    const subdirectorySketches = sketches.filter((sk) => sk.dir !== dir);
     for (const sketch of subdirectorySketches) {
       yield Action(
         'copyDir',
@@ -135,14 +172,18 @@ function createActions(file: string, output: string): ActionIterator {
       const outputFile = path
         .join(output, path.relative(dir, sketch.scriptFilePath))
         .replace(/\.js$/i, '.js.html');
-      yield { kind: 'createSourceView', source: sketch.scriptFilePath, outputFile };
+      yield {
+        kind: 'createSourceView',
+        source: sketch.scriptFilePath,
+        outputFile,
+      };
     }
 
     for (const file of allFiles) {
       yield* visit(path.join(dir, file), path.join(output, file));
     }
 
-    if (!allFiles.find(file => /^index\.html?$/i.test(file))) {
+    if (!allFiles.find((file) => /^index\.html?$/i.test(file))) {
       // Generate the index from the target, rather than the source, so that it
       // will refer to generated HTML files instead of the bare JavaScript
       // sketches.
@@ -153,13 +194,16 @@ function createActions(file: string, output: string): ActionIterator {
         kind: 'createIndex',
         dir,
         outputFile,
-        path: path.basename(dir)
+        path: path.basename(dir),
       };
     }
   }
 }
 
-async function runActions(actions: ActionIterator, options: Options) {
+async function runActions(
+  actions: Iterable<Action> | AsyncIterable<Action>,
+  options: Options
+) {
   let filesCreated = 0;
   for await (const action of actions) {
     if (options.verbose || options.dryRun) {
@@ -185,7 +229,12 @@ async function runActions(actions: ActionIterator, options: Options) {
       case 'createIndex':
         return ['Generate directory listing', outputFile];
       case 'createSketchHtml':
-        return ['Generate sketch HTML', action.sketch.scriptFile, '->', outputFile];
+        return [
+          'Generate sketch HTML',
+          action.sketch.scriptFile,
+          '->',
+          outputFile,
+        ];
       case 'createSourceView':
         return ['Create source view', action.source, '->', outputFile];
       case 'mkdir':
@@ -209,7 +258,9 @@ async function runActions(actions: ActionIterator, options: Options) {
         filesCreated += 1;
         break;
       case 'convertMarkdown': {
-        const html = markdownToHtmlPage(fs.readFileSync(action.source, 'utf-8'));
+        const html = markdownToHtmlPage(
+          fs.readFileSync(action.source, 'utf-8')
+        );
         fs.writeFileSync(outputFile, html);
         filesCreated += 1;
         break;
@@ -221,7 +272,7 @@ async function runActions(actions: ActionIterator, options: Options) {
         const html = await createDirectoryListing(dir, path, {
           staticMode: true,
           templateName: options.theme,
-          templateOptions
+          templateOptions,
         });
         await writeFile(outputFile, html);
         filesCreated += 1;

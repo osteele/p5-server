@@ -1,10 +1,10 @@
+import fs from 'node:fs';
+import { readdir, readFile } from 'node:fs/promises';
+import path from 'node:path';
 import express, { type Request, type Response } from 'express';
-import fs from 'fs';
-import { readdir, readFile } from 'fs/promises';
 import { Script, Sketch } from 'p5-analysis';
-import path from 'path';
+import { assertError } from '../assertError.js';
 import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers.js';
-import { assertError } from '../ts-extras.js';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay.js';
 import { replaceUrlsInHtml } from './cdnProxy.js';
 import { staticAssetPrefix } from './constants.js';
@@ -78,7 +78,7 @@ export function createRouter(config: RouterConfig): express.Router {
         res.sendFile(file);
         return;
       }
-      if (req.headers['accept']?.match(/\btext\/html\b/)) {
+      if (req.headers.accept?.match(/\btext\/html\b/)) {
         sendHtml(req, res, fs.readFileSync(file, 'utf-8'));
         return;
       }
@@ -99,7 +99,7 @@ export function createRouter(config: RouterConfig): express.Router {
 
     // bare-javascript sketch; not view source
     if (
-      req.headers['accept']?.match(/\btext\/html\b/) &&
+      req.headers.accept?.match(/\btext\/html\b/) &&
       req.query.fmt !== 'view' &&
       (await Sketch.isSketchScriptFile(filepath))
     ) {
@@ -119,7 +119,7 @@ export function createRouter(config: RouterConfig): express.Router {
 
     // view source
     if (
-      req.headers['accept']?.match(/\btext\/html\b/) &&
+      req.headers.accept?.match(/\btext\/html\b/) &&
       req.query.fmt === 'view'
     ) {
       const source = await readFile(filepath, 'utf-8');
@@ -149,7 +149,7 @@ export function createRouter(config: RouterConfig): express.Router {
   });
 
   router.get(/\.md$/, (req, res, next) => {
-    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    if (req.headers.accept?.match(/\btext\/html\b/)) {
       const file = requestPathToFilePath(req.path);
       if (!file) return res.sendStatus(403);
       if (!fs.existsSync(file)) {
@@ -165,7 +165,7 @@ export function createRouter(config: RouterConfig): express.Router {
   });
 
   router.get(/.*/, (req, res, next) => {
-    if (req.headers['accept']?.match(/\btext\/html\b/)) {
+    if (req.headers.accept?.match(/\btext\/html\b/)) {
       const file = requestPathToFilePath(req.path);
       if (!file) return res.sendStatus(403);
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
@@ -222,10 +222,11 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
   config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<unknown, T>
-): Promise<void | Response<unknown, T>> {
+): Promise<void> {
   // This is needed for linked files to work.
   if (!req.originalUrl.endsWith('/')) {
-    return res.redirect(req.originalUrl + '/');
+    res.redirect(`${req.originalUrl}/`);
+    return;
   }
   let dir: string | null;
   try {
@@ -255,5 +256,5 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
   }
   if (config.proxyCache) html = replaceUrlsInHtml(html);
-  return res.send(html);
+  res.send(html);
 }

@@ -15,7 +15,6 @@ import {
   isHtmlPathname,
   isScriptPathname,
 } from '../helpers/index.js';
-import { isDefined } from '../helpers/ts-extras.js';
 import { Library, p5Version } from './Library.js';
 import { Script } from './Script.js';
 
@@ -605,7 +604,7 @@ export class HtmlSketch extends Sketch {
       .querySelectorAll('script[src]')
       .map((node) => node.attributes.src)
       .map((importPath) => Library.find({ importPath }));
-    return libs.filter(isDefined);
+    return libs.filter((library) => library !== null);
   }
 
   protected getTitleFromFile(): string | null {

@@ -1,8 +1,8 @@
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Sketch, type SketchStructureType } from 'p5-analysis';
-import path from 'path';
+import { assertError } from '../assertError.js';
 import { die } from '../helpers.js';
-import { assertError } from '../ts-extras.js';
 
 const sketchTypes: Record<string, SketchStructureType | 'folder'> = {
   '^html$': 'html',
@@ -22,9 +22,9 @@ export default async function convert(
       options.to.match(regex)
     )?.[1] ?? die(`Invalid option --to ${options.to}`);
 
-  if (!fs.existsSync(sketchPath) && fs.existsSync(sketchPath + '.html'))
+  if (!fs.existsSync(sketchPath) && fs.existsSync(`${sketchPath}.html`))
     sketchPath += '.html';
-  if (!fs.existsSync(sketchPath) && fs.existsSync(sketchPath + '.js'))
+  if (!fs.existsSync(sketchPath) && fs.existsSync(`${sketchPath}.js`))
     sketchPath += '.js';
   // TODO: if it's a script file that belongs to an HTML index in the same directory, warn or rename the index instead
   const sketch = await Sketch.fromFile(sketchPath);

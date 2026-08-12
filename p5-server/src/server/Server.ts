@@ -1,12 +1,12 @@
+import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import type http from 'node:http';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
-import { EventEmitter } from 'events';
 import express from 'express';
-import fs from 'fs';
-import type http from 'http';
-import path from 'path';
 import pug from 'pug';
-import { assertError } from '../ts-extras.js';
+import { assertError } from '../assertError.js';
 import {
   attachBrowserScriptRelay,
   type BrowserScriptRelay,
@@ -21,7 +21,6 @@ import { templateDir } from './templates.js';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
   export type Options = Partial<{
     /** The http port number. Defaults to 3000. */
@@ -281,9 +280,9 @@ export class Server {
 
   public serverUrlToFileUrl(url: string): string | null {
     const baseUrl = this.url || this.defaultUrl;
-    if (url.startsWith(baseUrl + '/')) {
+    if (url.startsWith(`${baseUrl}/`)) {
       const filepath = this.urlPathToFilePath(url.slice(baseUrl.length));
-      if (filepath) return 'file://' + path.resolve(filepath);
+      if (filepath) return `file://${path.resolve(filepath)}`;
     }
     return null;
   }
@@ -304,7 +303,7 @@ export class Server {
       .map((mount) => (typeof mount === 'string' ? { filePath: mount } : mount))
       // default url paths from file paths
       .map((mount) => ({
-        urlPath: '/' + (mount.name || path.basename(mount.filePath)),
+        urlPath: `/${mount.name || path.basename(mount.filePath)}`,
         ...mount,
       }))
       // encode URL paths

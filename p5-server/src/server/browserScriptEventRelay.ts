@@ -1,10 +1,11 @@
 /** Receive and parse messages from the client-side console relay, and emit them
  * as events. */
 
-import type http from 'http';
-import type net from 'net';
-import { URL } from 'url';
+import type http from 'node:http';
+import type net from 'node:net';
+import { URL } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { assertError } from '../assertError.js';
 import type {
   ConnectionMessage,
   ConsoleMethodMessage,
@@ -15,7 +16,6 @@ import type {
 } from '../consoleRelayTypes.js';
 import { addScriptToHtmlHead } from '../helpers.js';
 import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
-import { assertError } from '../ts-extras.js';
 import { staticAssetPrefix } from './constants.js';
 import type {
   BrowserConnectionEvent,
@@ -27,7 +27,6 @@ import type {
 } from './eventTypes.js';
 
 export interface BrowserScriptRelay {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitScriptEvent(eventName: string | symbol, ...args: any[]): void;
   filePathToUrl(filePath: string): string | null;
   urlPathToFilePath(urlPath: string): string | null;
@@ -88,7 +87,6 @@ export function attachBrowserScriptRelay(
     route: 'window',
     handler: (event: WithClientKeys<WindowMessage>) => void
   ): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function defineHandler(route: string, handler: (event: any) => void) {
     handlers.set(route, handler);
   }

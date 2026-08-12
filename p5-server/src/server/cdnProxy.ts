@@ -1,8 +1,7 @@
+import os from 'node:os';
+import path from 'node:path';
 import { createProxyCache } from 'cdn-proxy-cache';
-import os from 'os';
 import { Cdn, Library, p5Version } from 'p5-analysis';
-import path from 'path';
-import { isDefined } from '../ts-extras.js';
 
 export const proxyPrefix = '/__p5_proxy_cache';
 const cacheRoot =
@@ -61,7 +60,9 @@ let _libraryImportPaths: Set<string>;
 
 function getLibraryImportPaths() {
   _libraryImportPaths ??= new Set(
-    Library.all.map((lib) => lib.importPath).filter(isDefined)
+    Library.all
+      .map((lib) => lib.importPath)
+      .filter((importPath) => importPath !== undefined)
   );
   return _libraryImportPaths;
 }

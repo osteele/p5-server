@@ -1,8 +1,8 @@
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Sketch } from 'p5-analysis';
-import path from 'path';
+import { assertError } from '../assertError.js';
 import { die, stringToOptions } from '../helpers.js';
-import { assertError } from '../ts-extras.js';
 
 type Options = {
   force: boolean;

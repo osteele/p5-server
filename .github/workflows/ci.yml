@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 'lts/*', 'lts/-1', 'lts/-2' ]
+        node-version: [20, 22, 24]
 
     steps:
       - name: Checkout repo
@@ -43,24 +43,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install jq and sponge
-        run: sudo apt-get update && sudo apt-get install -y jq moreutils
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
 
-      - name: Patch workspace protocol for npm compatibility
-        run: |
-          cd p5-server
-          jq 'if .dependencies then (.dependencies |= with_entries(if .value == "workspace:*" then .value = ("file:../" + .key) else . end)) else . end' package.json | sponge package.json
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Test & Build p5-analysis
-        run: |
-          cd p5-analysis
-          npm install
-          npm test
-          npm run build
-
-      - name: Test & Build p5-server (with local p5-analysis)
-        run: |
-          cd p5-server
-          npm install ../p5-analysis
-          npm test
-          npm run build
+      - name: Test packed packages with Node.js
+        run: bun run test:packages

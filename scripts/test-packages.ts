@@ -44,8 +44,22 @@ try {
     ],
     consumerDir
   );
-  for (const executable of ['p5', 'p5-analyze', 'p5-libraries', 'p5-tree']) {
-    await run(['bun', 'run', executable, '--help'], consumerDir);
+  const executables = [
+    ['p5', 'p5-server', 'dist/bin/p5-server.js'],
+    ['p5-analyze', 'p5-analysis', 'dist/bin/p5-analyze-cli.js'],
+    ['p5-libraries', 'p5-analysis', 'dist/bin/p5-libraries-cli.js'],
+    ['p5-tree', 'p5-analysis', 'dist/bin/p5-tree-cli.js'],
+  ];
+  for (const [binName, packageName, executable] of executables) {
+    const command =
+      process.platform === 'win32'
+        ? [
+            'node',
+            path.join(consumerDir, 'node_modules', packageName, executable),
+            '--help',
+          ]
+        : [path.join(consumerDir, 'node_modules', '.bin', binName), '--help'];
+    await run(command, consumerDir);
   }
   console.log('Packed packages install and load successfully');
 } finally {

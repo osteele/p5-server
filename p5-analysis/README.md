@@ -182,9 +182,9 @@ loader("cat.png"); // does not recognize any associated files
   sketches that use the same (or no) libraries do not require additional
   internet access, but you will need internet access the first time you use this
   extension or after the browser cache has expired.
-- This code hasn't been tested with
+- Support for
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
-  sketches.
+  sketches is limited to recognizing the common `new p5(callback)` form.
 - Automatic library inclusion hasn't been tested with sketches that are written
   as
   [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).

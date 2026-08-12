@@ -35,8 +35,8 @@ split-screen browser, and error pages.
 To run the server without the proxy cache, run the `p5 serve` command with the
 `--no-proxy-cache` option.
 
-The files created by `p5 build` and `p5 create` do not reference the CDN
-servers directly, and do not depend on the cache. The cache is only used when
+The files created by `p5 build` and `p5 create` reference the CDN servers
+directly, and do not depend on the cache. The cache is only used when
 running `p5 serve`.
 
 ## What is Cached?

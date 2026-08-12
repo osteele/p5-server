@@ -238,7 +238,8 @@ Run `p5 <command> --help` to see command-line options for a particular command.
 
 - `p5 convert FILENAME --to html` creates an HTML file that uses the `<script>`
   tag to include the JavaScript sketch.
-- `p5 convert FILENAME --to javascript` removes an HTML file, leaving only the JavaScript file.
+- `p5 convert FILENAME --to script` removes an HTML file, leaving only the
+  JavaScript file.
 
 Converting a JavaScript-only sketch is simple. An HTML file with the same base
 name is created, that includes the script, the p5.js source (from a CDN), and
@@ -290,8 +291,7 @@ template options. The options are:
   current directory. (This is the same as `p5 serve .`.)
 
 By default, the server runs on port 3000. You can open it in a browser by
-visiting <http://localhost:3000>. The `p5 serve --open` will do this
-automatically.
+visiting <http://localhost:3000>. `p5 serve --open` does this automatically.
 
 The server listens only on the local machine by default. To make it available
 to other devices on the network, pass `--host 0.0.0.0`. Only do this on a
@@ -371,7 +371,7 @@ automatic library inclusion, and other details of the implementation.
 - This is a development server, not a production server. It was not designed for
   security or performance.
 - See the [p5-analysis implementation
-  notes](./p5-analysis/README.md#implementation-notes) notes for limitations on
+  notes](./p5-analysis/README.md#implementation-notes) for limitations on
   the recognition of associated files.
 
 ## API

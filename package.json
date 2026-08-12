@@ -23,6 +23,7 @@
     "test:packages:built": "bun run scripts/test-packages.ts",
     "release": "bun run check && changeset publish",
     "test:workspaces": "bun run --parallel --filter '*' test",
+    "update:library-catalog": "bun run scripts/update-library-catalog.ts",
     "typecheck": "bun run build && bun run typecheck:workspaces",
     "typecheck:workspaces": "bun run --parallel --filter '*' typecheck",
     "version-packages": "changeset version && bun install --lockfile-only"
@@ -32,6 +33,7 @@
     "@changesets/cli": "^3.0.0",
     "@types/bun": "^1.3.14",
     "copyfiles": "^2.4.1",
-    "rimraf": "^6.1.3"
+    "rimraf": "^6.1.3",
+    "yaml": "^2.9.0"
   }
 }

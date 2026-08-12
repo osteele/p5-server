@@ -16,6 +16,12 @@ import {
   isScriptPathname,
 } from '../helpers/index.js';
 import { Library, p5Version } from './Library.js';
+import {
+  LibraryIndex,
+  type LibraryPolicy,
+  type LibraryQuery,
+  type LibraryResolution,
+} from './LibraryIndex.js';
 import { Script } from './Script.js';
 
 const templateDir = fileURLToPath(new URL('./templates', import.meta.url));
@@ -27,6 +33,7 @@ const defaultDirectoryExclusions = [
   'node_modules',
   'package.json',
   'package-lock.json',
+  'p5-server.config.json',
 
   // Linux
   '~*', // backup file
@@ -41,6 +48,11 @@ const defaultDirectoryExclusions = [
 export type SketchStructureType =
   | 'html' /** The main file is an HTML file */
   | 'script'; /** The main file is a script file */
+
+export type SketchRenderOptions = {
+  libraryPolicy?: LibraryPolicy;
+  p5Version?: string;
+};
 
 /** Sketch represents a p5.js Sketch. Is an interface to generate sketch files,
  *  find associated files, infer libraries, and scan directories for sketches that
@@ -431,14 +443,24 @@ export abstract class Sketch {
    * @category Libraries
    */
   get libraries(): readonly Library[] {
-    return this.impliedLibraries();
+    return this.resolveLibraries().libraries;
   }
 
   protected impliedLibraries(): readonly Library[] {
-    return Library.inferFromScripts(
+    return LibraryIndex.default.resolveScripts(
       this.files
         .filter((name) => isScriptPathname(name))
         .map((name) => path.join(this.dir, name))
+    ).libraries;
+  }
+
+  /** Resolve libraries and report policy exclusions and ambiguous signals. */
+  public resolveLibraries(options: LibraryQuery = {}): LibraryResolution {
+    return LibraryIndex.default.resolveScripts(
+      this.files
+        .filter((name) => isScriptPathname(name))
+        .map((name) => path.join(this.dir, name)),
+      options
     );
   }
 
@@ -500,11 +522,20 @@ export abstract class Sketch {
     base: string,
     options: Record<string, unknown>
   ): Promise<string> {
-    const libraries = this.libraries;
+    const selectedP5Version =
+      typeof options.p5Version === 'string' ? options.p5Version : p5Version;
+    const libraryPolicy =
+      typeof options.libraryPolicy === 'object' && options.libraryPolicy
+        ? (options.libraryPolicy as LibraryPolicy)
+        : undefined;
+    const libraries = this.resolveLibraries({
+      p5Version: selectedP5Version,
+      policy: libraryPolicy,
+    }).libraries;
     const data = {
       title: this.title,
       libraries,
-      p5Version,
+      p5Version: selectedP5Version,
       scriptFile: this.scriptFile,
       ...defaultGenerationOptions,
       ...options,
@@ -527,10 +558,12 @@ export abstract class Sketch {
     throw new Error(`Unknown template extension: ${templatePath}`);
   }
 
-  public async getHtmlContent(): Promise<string> {
+  public async getHtmlContent(
+    options: SketchRenderOptions = {}
+  ): Promise<string> {
     return this.htmlFilePath
       ? await readFile(this.htmlFilePath, 'utf-8')
-      : this.getGeneratedFileContent(Sketch.indexTemplateName, {});
+      : this.getGeneratedFileContent(Sketch.indexTemplateName, options);
   }
   //#endregion
 
@@ -649,6 +682,19 @@ export class HtmlSketch extends Sketch {
   get libraries(): readonly Library[] {
     if (!this._libraries) this._libraries = this.explicitLibraries();
     return this._libraries;
+  }
+
+  public resolveLibraries({
+    p5Version: selectedP5Version = p5Version,
+    policy,
+  }: LibraryQuery = {}): LibraryResolution {
+    return {
+      libraries: [...this.libraries],
+      excluded: [],
+      ambiguities: [],
+      p5Version: selectedP5Version,
+      policy: LibraryIndex.effectivePolicy(policy),
+    };
   }
 
   private explicitLibraries(): Library[] {
@@ -851,7 +897,7 @@ export class ScriptSketch extends Sketch {
   }
 
   get libraries(): readonly Library[] {
-    if (!this._libraries) this._libraries = this.impliedLibraries();
+    if (!this._libraries) this._libraries = this.resolveLibraries().libraries;
     return this._libraries;
   }
 

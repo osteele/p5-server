@@ -7,6 +7,13 @@ import { Script } from './Script.js';
 export const p5Version = '2.3';
 const p5SoundVersion = '0.4';
 
+export type LibraryLifecycle = 'active' | 'maintenance' | 'legacy' | 'archived';
+
+export type LibraryCompatibility = {
+  p5Range: string;
+  confidence: 'verified' | 'reported' | 'incompatible';
+};
+
 export namespace Library {
   export type Properties = {
     name: string;
@@ -17,6 +24,11 @@ export namespace Library {
     repository?: string;
     importPath?: string;
     defines?: Record<'globals' | 'p5', string[]>;
+    lifecycle?: LibraryLifecycle;
+    compatibility?: readonly LibraryCompatibility[];
+    inference?: 'automatic' | 'directive-only';
+    lastReviewed?: string;
+    replacedBy?: string;
   };
 }
 
@@ -41,6 +53,11 @@ export class Library implements Library.Properties {
   /** Global variables (functions and classes) and p5.* properties that the
    * library defines. */
   public readonly defines?: Record<'globals' | 'p5', string[]>;
+  public readonly lifecycle: LibraryLifecycle;
+  public readonly compatibility: readonly LibraryCompatibility[];
+  public readonly inference: 'automatic' | 'directive-only';
+  public readonly lastReviewed?: string;
+  public readonly replacedBy?: string;
   private _importPath?: string;
 
   private constructor(spec: Library.Properties) {
@@ -50,18 +67,27 @@ export class Library implements Library.Properties {
     this.repository = spec.repository;
     this.categoryKey = spec.categoryKey;
     this._importPath = spec.importPath;
+    this.lifecycle = spec.lifecycle ?? 'active';
+    this.compatibility = spec.compatibility ?? [];
+    this.inference = spec.inference ?? 'automatic';
     Object.assign(this, spec);
   }
 
   toJSON(): unknown {
     return {
       name: this.name,
+      categoryKey: this.categoryKey,
       description: this.description,
       homepage: this.homepage,
       packageName: this.packageName,
       repository: this.repository,
       importPath: this.importPath,
       defines: this.defines,
+      lifecycle: this.lifecycle,
+      compatibility: this.compatibility,
+      inference: this.inference,
+      lastReviewed: this.lastReviewed,
+      replacedBy: this.replacedBy,
     };
   }
 
@@ -102,7 +128,7 @@ export class Library implements Library.Properties {
   static fromUrl(importPath: string): Library {
     // TODO: if it's a CDN URL, recognize the package name
     // TODO: if it's a GitHub URL, infer the homepage
-    return Library.fromProperties({
+    return new Library({
       name: '<library named in comment directive>',
       description: 'Library specified in script file comment directive',
       homepage: '',
@@ -111,7 +137,7 @@ export class Library implements Library.Properties {
   }
 
   static fromPackageName(packageName: string): Library {
-    return Library.fromProperties({
+    return new Library({
       name: packageName,
       description: 'Library specified in script file comment directive',
       homepage: '',

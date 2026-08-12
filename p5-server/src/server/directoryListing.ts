@@ -1,6 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Sketch } from 'p5-analysis';
+import {
+  p5Version as defaultP5Version,
+  type LibraryPolicy,
+  Sketch,
+} from 'p5-analysis';
 import pug from 'pug';
 import { pathComponentsForBreadcrumbs } from '../helpers.js';
 import { staticAssetPrefix } from './constants.js';
@@ -13,6 +17,7 @@ export const defaultDirectoryExclusions = [
   'node_modules',
   'package.json',
   'package-lock.json',
+  'p5-server.config.json',
 
   // Linux
   '~*', // backup file
@@ -31,12 +36,22 @@ export async function createDirectoryListing(
     staticMode: boolean;
     templateName: string;
     templateOptions: Record<string, string | boolean>;
+    libraryPolicy: LibraryPolicy;
+    p5Version: string;
   }> = {}
 ): Promise<string> {
-  const { staticMode, templateName, templateOptions } = {
+  const {
+    staticMode,
+    templateName,
+    templateOptions,
+    libraryPolicy,
+    p5Version,
+  } = {
     staticMode: false,
     templateName: 'directory.pug',
     templateOptions: {},
+    libraryPolicy: {},
+    p5Version: defaultP5Version,
     ...options,
   };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
@@ -95,6 +110,7 @@ export async function createDirectoryListing(
     path_to,
     path_to_src_view,
     markdown,
+    libraries_for,
     play_link,
 
     // pug options
@@ -130,5 +146,12 @@ export async function createDirectoryListing(
         : sk.mainFile,
       sk
     );
+  }
+
+  function libraries_for(sketch: Sketch) {
+    return sketch.resolveLibraries({
+      p5Version,
+      policy: libraryPolicy,
+    }).libraries;
   }
 }

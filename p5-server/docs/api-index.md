@@ -37,6 +37,26 @@ const server = await Server.start({
 });
 ```
 
+Generated pages and automatic library inclusion can be configured through the
+same API:
+
+```js
+const server = await Server.start({
+  p5Version: '2.3.2',
+  libraryPolicy: {
+    compatibility: 'verified',
+    includeLegacy: false,
+    allow: ['p5.woff2'],
+    deny: ['dat.gui'],
+  },
+});
+```
+
+`GET /__p5_server/api/libraries` returns the effective policy, eligible
+catalog, and excluded entries with reasons. Applications can also use the
+re-exported `LibraryIndex` and `Sketch.resolveLibraries()` APIs directly to
+inspect ambiguities and source-specific exclusions.
+
 The sketch page exposes `window.__p5Agent`. It can report sketch status, wait
 for a canvas or p5 frame, set the random and noise seeds, and return the canvas
 as a data URL. The [Agent support

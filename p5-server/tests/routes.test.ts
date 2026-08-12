@@ -34,6 +34,28 @@ describe('Express routes', () => {
     expect(html).toContain('https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js');
   });
 
+  test('serves the effective library catalog', async () => {
+    const response = await request(
+      '/__p5_server/api/libraries',
+      'application/json'
+    );
+    const catalog = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(catalog.p5Version).toBe('2.3');
+    expect(catalog.libraries).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'p5.brush' })])
+    );
+    expect(catalog.excluded).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          library: expect.objectContaining({ name: 'p5.asciify' }),
+          reason: 'archived',
+        }),
+      ])
+    );
+  });
+
   test('renders JavaScript source on request', async () => {
     const response = await request('/circles.js?fmt=view', 'text/html');
     const html = await response.text();

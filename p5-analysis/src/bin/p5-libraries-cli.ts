@@ -72,6 +72,7 @@ libraryCommands
 
 libraryCommands
   .command('collisions')
+  .option('--include-legacy', 'include legacy and archived libraries')
   .description('Report libraries that define the same symbols')
   .action(checkLibraryCollisions);
 

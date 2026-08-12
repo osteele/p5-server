@@ -6,8 +6,13 @@
   },
   {
     "key": "community",
-    "description": "“Community” libraries from the official [p5.js Libraries page](https://p5js.org/libraries/).",
-    "details": "This category excludes a couple of libraries that could not be automatically included: ."
+    "description": "Libraries in the current official [p5.js library directory](https://p5js.org/libraries/).",
+    "details": "Libraries without a distinctive signal or browser-loadable distribution remain available for explicit directives but are not inferred automatically."
+  },
+  {
+    "key": "legacy",
+    "description": "Libraries retained for older sketches but no longer present in the current official p5.js library directory.",
+    "details": "Legacy libraries are excluded by the default library policy and can be enabled with includeLegacy."
   },
   {
     "key": "peer",

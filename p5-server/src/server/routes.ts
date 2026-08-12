@@ -27,6 +27,10 @@ import {
 
 export function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
+  const sketchRenderOptions = {
+    libraryPolicy: config.libraryPolicy,
+    p5Version: config.p5Version,
+  };
 
   router.get('/', async (req, res) => {
     const sketchFile = config.sketchFile;
@@ -36,7 +40,7 @@ export function createRouter(config: RouterConfig): express.Router {
     if (sketchFile) {
       if (await Sketch.isSketchScriptFile(sketchFile)) {
         const sketch = await Sketch.fromFile(sketchFile);
-        sendHtml(req, res, await sketch.getHtmlContent());
+        sendHtml(req, res, await sketch.getHtmlContent(sketchRenderOptions));
       } else {
         sendHtml(req, res, await readFile(sketchFile, 'utf-8'));
       }
@@ -51,7 +55,7 @@ export function createRouter(config: RouterConfig): express.Router {
       const [sketch] = sketches;
       const html = sketch.htmlFile
         ? await readFile(sketch.htmlFilePath!, 'utf-8')
-        : await sketch.getHtmlContent();
+        : await sketch.getHtmlContent(sketchRenderOptions);
       sendHtml(req, res, html);
     } else {
       await sendDirectoryListing(config, req, res);
@@ -118,7 +122,11 @@ export function createRouter(config: RouterConfig): express.Router {
         sketch.files.includes(path.basename(filepath))
       );
       if (sketch) {
-        return sendHtml(req, res, await sketch.getHtmlContent());
+        return sendHtml(
+          req,
+          res,
+          await sketch.getHtmlContent(sketchRenderOptions)
+        );
       }
     }
 
@@ -263,6 +271,8 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
+        libraryPolicy: config.libraryPolicy,
+        p5Version: config.p5Version,
         templateName: config.theme,
       });
 

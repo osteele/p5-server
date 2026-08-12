@@ -96,7 +96,7 @@ above. `p5-library` is an alias for `p5-libraries`.
 ## API
 
 ```js
-import { Sketch } from 'p5-analysis';
+import { LibraryIndex, Sketch } from 'p5-analysis';
 
 const { sketches } = await Sketch.analyzeDirectory('.');
 
@@ -104,6 +104,22 @@ const sketch = await Sketch.fromFile('sketch.js');
 console.log(sketch.description);
 console.log(sketch.libraries);
 console.log(sketch.files);
+
+const policy = {
+  compatibility: 'verified',
+  includeLegacy: false,
+  deny: ['dat.gui'],
+};
+const catalog = LibraryIndex.default.query({
+  p5Version: '2.3.2',
+  policy,
+});
+const resolution = sketch.resolveLibraries({
+  p5Version: '2.3.2',
+  policy,
+});
+console.log(catalog.excluded);
+console.log(resolution.ambiguities);
 ```
 
 The [p5-server source](https://github.com/osteele/p5-server) contains additional
@@ -142,7 +158,16 @@ Automatic library loading examines free variables and references of the form
 `p5.prop` in the JavaScript source.
 
 The [library definitions](https://github.com/osteele/p5-server/tree/main/p5-analysis/src/models/libraries)
-record the global variables that trigger inclusion.
+record the global variables that trigger inclusion, p5.js compatibility,
+lifecycle state, and whether a library can be inferred or requires an explicit
+directive. The checked-in community catalog is a snapshot of the current
+official p5.js library directory. `bun run update:library-catalog` refreshes
+that snapshot; runtime analysis does not access the network.
+
+`LibraryIndex.query()` applies a `LibraryPolicy` to the catalog.
+`LibraryIndex.resolve()` and `Sketch.resolveLibraries()` additionally resolve
+source signals and report exclusions and ambiguities. Ambiguous signals do not
+load any candidate until a `library:` directive or policy resolves them.
 
 ### Associated files
 

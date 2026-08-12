@@ -1,0 +1,365 @@
+[
+  {
+    "name": "ASCII Art",
+    "description": "p5.asciiart is a simple and easy to use image-to-ASCII art converter for p5js.",
+    "homepage": "https://www.tetoki.eu/asciiart/",
+    "importPath": "https://www.tetoki.eu/asciiart/asciiart/p5.asciiart.min.js",
+    "defines": {
+      "globals": ["AsciiArt"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "grafica.js",
+    "description": "grafica.js lets you add simple but highly configurable 2D plots to your p5.js sketches.",
+    "homepage": "https://github.com/jagracar/grafica.js",
+    "importPath": "/releases/grafica.min.js",
+    "defines": {
+      "globals": ["GPlot"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "Mappa",
+    "description": "Mappa provides a set of tools for working with static maps, tile maps, and geo-data. Useful when building geolocation-based visual representations",
+    "homepage": "https://github.com/cvalenzuela/Mappa",
+    "packageName": "mappa-mundi",
+    "importPath": "https://cdn.jsdelivr.net/npm/mappa-mundi/dist/mappa.min.js",
+    "defines": {
+      "globals": ["Mappa"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "marching",
+    "description": "Raster to vector conversion, isosurfaces",
+    "homepage": "https://github.com/jtnimoy/marching",
+    "importPath": "/lib/p5.marching.min.js",
+    "defines": {
+      "globals": ["marchingSquares"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.3D",
+    "description": "p5.3D is a library for creating 3D graphics 3D Text and Images in WebGL",
+    "homepage": "https://github.com/FreddieRa/p5.3D",
+    "importPath": "/p5.3D.js",
+    "defines": {
+      "globals": ["createWord3D", "createPicture3D", "createCanvas3D"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.bots",
+    "description": "With p5.bots you can interact with your Arduino (or other microprocessor) from within the browser. Use sensor data to drive a sketch; use a sketch to drive LEDs, motors, and more!",
+    "homepage": "https://github.com/sarahgp/p5bots",
+    "importPath": "/lib/p5bots.min.js",
+    "defines": {
+      "p5": ["board", "serial"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.clickable",
+    "description": "Event driven, easy-to-use button library.",
+    "homepage": "https://github.com/Lartu/p5.clickable",
+    "importPath": "/library/p5.clickable.min.js",
+    "defines": {
+      "globals": ["Clickable"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.dimensions.js",
+    "description": "p5.dimensions extends p5.js’ vector functions to work in any number of dimensions.",
+    "homepage": "https://github.com/Smilebags/p5.dimensions.js",
+    "importPath": "/libraries/p5.dimensions.js",
+    "defines": {
+      "globals": [
+        "nDist",
+        "nDistSq",
+        "nDot",
+        "nLerp",
+        "nAdd",
+        "nSub",
+        "nMul",
+        "nDiv",
+        "nSetMag",
+        "nCross",
+        "nEqual",
+        "nNormalize",
+        "nMag",
+        "nMagSq"
+      ]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.EasyCam",
+    "description": "Simple 3D camera control with inertial pan, zoom, and rotate",
+    "homepage": "https://github.com/freshfork/p5.EasyCam",
+    "importPath": "https://freshfork.github.io/p5.EasyCam/p5.easycam.min.js",
+    "defines": {
+      "globals": ["Dw", "createEasyCam"],
+      "p5": ["RoverCam"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.experience.js",
+    "description": "Extensive library for p5.js that adds additional event-listening functionality for creating canvas-based web applications",
+    "homepage": "https://github.com/loneboarder/p5.experience.js",
+    "importPath": "/p5.experience.min.js",
+    "defines": {
+      "globals": [
+        "uxRect",
+        "uxSquare",
+        "uxTriangle",
+        "uxCircle",
+        "uxEllipse",
+        "uxFillColor",
+        "uxnoFill",
+        "uxStroke",
+        "uxNoStroke",
+        "uxStrokeWeight"
+      ]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.func",
+    "description": "p5.func is a p5 extension that provides new objects and utilities for function generation in the time, frequency, and spatial domains",
+    "homepage": "https://idmnyu.github.io/p5.js-func/",
+    "importPath": "/lib/p5.func.min.js",
+    "defines": {
+      "globals": [
+        "imap",
+        "wrap",
+        "createArray",
+        "normalizeArray",
+        "resizeArray",
+        "multiplyArray",
+        "addArray",
+        "subtractArray",
+        "divideArray",
+        "moduloArray",
+        "sumArray",
+        "f2ib",
+        "ib2f",
+        "sinc",
+        "besselI0",
+        "fplot"
+      ],
+      "p5": ["Gen", "Ease", "ArrayEval", "Filt", "FastFourierTransform"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.gui",
+    "description": "p5.gui generates a graphical user interface for your p5.js sketches.",
+    "homepage": "https://github.com/bitcraftlab/p5.gui",
+    "defines": {
+      "globals": ["createGui"]
+    },
+    "lifecycle": "legacy",
+    "inference": "directive-only",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.js-SVG",
+    "description": "SVG runtime for p5.js.",
+    "homepage": "https://github.com/zenozeng/p5.js-svg",
+    "importPath": "https://unpkg.com/p5.js-svg@1.5.1",
+    "defines": {
+      "globals": ["SVG"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12",
+    "compatibility": [
+      {
+        "p5Range": ">=1.11.0 <2.0.0",
+        "confidence": "reported"
+      },
+      {
+        "p5Range": ">=2.0.0",
+        "confidence": "incompatible"
+      }
+    ]
+  },
+  {
+    "name": "p5.localmessage",
+    "description": "p5.localmessage provides a simple interface to send messages locally from one sketch to another for easy multi-window sketching",
+    "homepage": "https://github.com/bmoren/p5.localmessage",
+    "importPath": "/p5.localmessage.min.js",
+    "defines": {
+      "globals": ["registerServiceWorker", "sendMessage", "listenMessage"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.particle",
+    "description": "The Particle and Fountain objects can be used to create data-driven effects that are defined through user structures or JSON input and user-draw functions",
+    "homepage": "https://github.com/bobcgausa/cook-js",
+    "importPath": "/p5.particle.js",
+    "defines": {
+      "globals": ["Particle", "Fountain"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.play",
+    "description": "p5.play provides sprites, animations, input and collision functions for games and gamelike applications",
+    "homepage": "https://molleindustria.github.io/p5.play/",
+    "importPath": "/lib/p5.play.js",
+    "defines": {
+      "globals": ["createSprite", "loadAnimation"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.scribble",
+    "description": "Draw 2D primitives in a sketchy look",
+    "homepage": "https://github.com/generative-light/p5.scribble.js",
+    "importPath": "/p5.scribble.js",
+    "defines": {
+      "globals": ["Scribble"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.serial",
+    "description": "p5.serial enables serial communication between devices that support serial (RS-232) and p5 sketches running in the browser",
+    "homepage": "https://github.com/p5-serial/p5.serialport",
+    "packageName": "p5.serialserver",
+    "defines": {
+      "p5": ["SerialPort"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.shape.js",
+    "description": "A library built to add more simple shapes to the p5.js framework.",
+    "homepage": "https://github.com/gaba5/p5.shape.js",
+    "importPath": "/p5.shape.js",
+    "defines": {
+      "globals": [
+        "tri",
+        "pent",
+        "hexagon",
+        "hept",
+        "octo",
+        "nona",
+        "heart",
+        "center",
+        "deca",
+        "trap",
+        "rightTri"
+      ]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.start2d.js",
+    "description": "p5 extension for 2D static art using px, mm, cm or inches",
+    "homepage": "https://github.com/eltapir/p5.start2d.js",
+    "importPath": "/js/p5.start2d.js",
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.tiledmap",
+    "description": "Add Tiled maps to p5.js.",
+    "homepage": "https://github.com/linux-man/p5.tiledmap",
+    "packageName": "p5.tiledmap",
+    "defines": {
+      "globals": ["loadTiledMap"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5.voronoi",
+    "description": "p5.voronoi is a library for creating Voronoi diagrams in p5.js",
+    "homepage": "https://github.com/Dozed12/p5.voronoi",
+    "importPath": "/library/p5.voronoi.min.js",
+    "defines": {
+      "globals": ["voronoi", "voronoiGetDiagram"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "p5js.screenPosition",
+    "description": "p5js.screenPosition is a library that provides a function for getting the position of the mouse on the screen",
+    "homepage": "https://github.com/bohnacker/p5js-screenPosition",
+    "importPath": "/addScreenPositionFunction.js",
+    "defines": {
+      "globals": ["addScreenPositionFunction"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "Rotating Knobs",
+    "description": "Make knobs you can rotate with custom graphics and return value ranges",
+    "homepage": "http://codeforartists.com/RotatingKnobMaker/",
+    "defines": {
+      "globals": ["MakeKnob"]
+    },
+    "lifecycle": "archived",
+    "inference": "directive-only",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "Shape5",
+    "description": "Shape5 is a library for creating and manipulating shapes in p5.js",
+    "homepage": "https://github.com/pfe1223/Shape5js",
+    "importPath": "/shape5.js",
+    "defines": {
+      "globals": [
+        "Circle",
+        "Square",
+        "Triangle",
+        "Polygon",
+        "Oval",
+        "Rectangle",
+        "Semicircle",
+        "Rhombus",
+        "RightTriangle",
+        "IsoscelesTriangle",
+        "Stripe"
+      ]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  },
+  {
+    "name": "vida",
+    "description": "Vida is a simple library that adds camera (or video) based motion detection and blob tracking functionality to p5js",
+    "homepage": "https://www.tetoki.eu/vida/",
+    "importPath": "https://www.tetoki.eu/vida/vida/p5.vida.min.js",
+    "defines": {
+      "globals": ["Vida"]
+    },
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12"
+  }
+]

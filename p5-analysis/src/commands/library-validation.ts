@@ -27,7 +27,7 @@ export async function checkLibraryHomepagePaths() {
 
 export async function checkLibraryImportPaths({ parseScripts = false }) {
   const missingImportPaths = Library.all.filter(
-    (library) => !library.importPath
+    (library) => library.inference === 'automatic' && !library.importPath
   );
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);

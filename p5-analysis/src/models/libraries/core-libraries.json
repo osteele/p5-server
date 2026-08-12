@@ -5,6 +5,17 @@
     "description": "p5.sound extends p5 with Web Audio functionality including audio input, playback, analysis and synthesis.",
     "packageName": "p5.sound",
     "importPath": "https://cdn.jsdelivr.net/npm/p5.sound@$(P5SoundVersion)/dist/p5.sound.min.js",
+    "compatibility": [
+      {
+        "p5Range": "<2.0.0",
+        "confidence": "incompatible"
+      },
+      {
+        "p5Range": ">=2.0.0 <3.0.0",
+        "confidence": "verified"
+      }
+    ],
+    "lastReviewed": "2026-08-12",
     "defines": {
       "globals": [
         "getAudioContext",

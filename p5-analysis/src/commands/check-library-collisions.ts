@@ -1,8 +1,13 @@
-import { Library } from '../index.js';
+import { Library, LibraryIndex } from '../index.js';
 
-export default async function checkLibraryCollisions(): Promise<void> {
+export default async function checkLibraryCollisions(
+  options: { includeLegacy?: boolean } = {}
+): Promise<void> {
   const definitions = new Map<string, Library[]>();
-  Library.all.forEach((library) => {
+  const libraries = LibraryIndex.default
+    .query({ policy: { includeLegacy: options.includeLegacy } })
+    .libraries.filter((library) => library.inference === 'automatic');
+  libraries.forEach((library) => {
     library.globals.forEach((name) => {
       let libs = definitions.get(name);
       if (!libs) {

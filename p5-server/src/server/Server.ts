@@ -5,6 +5,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import express from 'express';
+import {
+  p5Version as defaultP5Version,
+  LibraryIndex,
+  type LibraryPolicy,
+} from 'p5-analysis';
 import pug from 'pug';
 import { assertError } from '../assertError.js';
 import type { AgentSupportSettings } from './agentSupport.js';
@@ -51,6 +56,12 @@ export namespace Server {
     /** Cache requests to CND servers, for use without an internet connection.
      */
     proxyCache: boolean;
+
+    /** Select which indexed libraries are eligible for automatic inclusion. */
+    libraryPolicy: LibraryPolicy;
+
+    /** The p5.js version used for generated sketch pages. */
+    p5Version: string;
 
     /** Suppress server status messages. */
     quiet: boolean;
@@ -107,9 +118,11 @@ const defaultServerOptions = {
   fileWatchProvider: undefined,
   host: '127.0.0.1',
   liveServer: true,
+  libraryPolicy: {},
   logConsoleEvents: false,
   port: 3000,
   proxyCache: true,
+  p5Version: defaultP5Version,
   quiet: false,
   relayConsoleMessages: false,
   scanPorts: true,
@@ -132,6 +145,14 @@ async function startServer(
   app.use(staticAssetPrefix, express.static(path.join(dirname, 'static')));
   app.get('/favicon.ico', (_req, res) => {
     res.sendFile(path.join(dirname, 'static/favicon.png'));
+  });
+  app.get('/__p5_server/api/libraries', (_req, res) => {
+    res.json(
+      LibraryIndex.default.query({
+        p5Version: config.p5Version,
+        policy: config.libraryPolicy,
+      })
+    );
   });
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
@@ -164,6 +185,8 @@ async function startServer(
   // browser request.
   if (fs.statSync(mountPoints[0].filePath).isDirectory()) {
     createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath, {
+      libraryPolicy: config.libraryPolicy,
+      p5Version: config.p5Version,
       templateName: config.theme,
     });
   }

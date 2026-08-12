@@ -176,6 +176,35 @@ Displays directory listings in grid view.
 You can combine options. For example, `p5 serve examples --theme grid --open`
 opens the examples directory in grid view.
 
+#### Configure p5.js and automatic libraries
+
+Place `p5-server.config.json` in the served directory to select the p5.js
+version and the indexed libraries that are eligible for automatic inclusion:
+
+```json
+{
+  "p5Version": "2.3.2",
+  "libraries": {
+    "compatibility": "verified",
+    "includeLegacy": false,
+    "collections": ["core", "community", "recommended", "peer"],
+    "allow": ["p5.woff2"],
+    "deny": ["dat.gui"]
+  }
+}
+```
+
+`compatibility` can be `verified`, `allow-unknown` (the default), or `any`.
+`allow` makes a library eligible when the source contains one of its inference
+signals; it does not load the library unconditionally. `deny` also applies to
+explicit `library:` directives. An explicit directive bypasses the other soft
+filters.
+
+Use `p5 serve --config FILE` to select another config file, or
+`--p5-version VERSION` to override the configured p5.js version. The effective
+catalog and the reasons for excluded entries are available as JSON at
+`/__p5_server/api/libraries` while the server is running.
+
 #### Create a sketch file
 
 - `p5 create` creates a JavaScript sketch file named `sketch.js` in the current

@@ -161,7 +161,7 @@ test('Sketch.libraries', async () => {
   expect(sketch.libraries.map((lib) => lib.name)).toEqual([
     'p5.sound',
     'ml5.js',
-    'RiTa',
+    'rita.js',
   ]);
 
   sketch = await Sketch.fromFile(`${testfilesPath}/html-includes/index.html`);
@@ -172,9 +172,21 @@ test('Sketch.libraries', async () => {
   expect(sketch.libraries.map((l) => l.name)).toEqual([
     'p5.sound',
     'ml5.js',
-    'RiTa',
+    'rita.js',
   ]);
   expect(sketch.libraries).toBe(libraries);
+});
+
+test('Sketch.getHtmlContent applies runtime and library policy', async () => {
+  const sketch = await Sketch.fromFile(
+    `${testfilesPath}/library-inference/loadSound.js`
+  );
+  const html = await sketch.getHtmlContent({
+    p5Version: '2.3.2',
+    libraryPolicy: { deny: ['p5.sound'] },
+  });
+  expect(html).toContain('p5@2.3.2/lib/p5.min.js');
+  expect(html).not.toContain('p5.sound');
 });
 
 test('Sketch.description', async () => {

@@ -135,6 +135,8 @@ program
   .option('--host <HOST>', 'Host interface to listen on', '127.0.0.1')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
   .option('-t, --theme [FILE]', 'template file')
+  .option('--config <FILE>', 'p5-server configuration file')
+  .option('--p5-version <VERSION>', 'p5.js version for generated pages')
   .option(
     '--browser <NAME>',
     'safari | chrome | firefox | edge (implies --open)'

@@ -31,8 +31,21 @@
     "description": "dat.gui is a lightweight controller library for JavaScript. It provides a highly customizable user interface building block called dat.gui. It has no dependencies on other libraries. Use it to easily build powerful and flexible user interfaces.",
     "homepage": "https://github.com/dataarts/dat.gui",
     "packageName": "dat.gui",
+    "lifecycle": "legacy",
+    "lastReviewed": "2026-08-12",
+    "replacedBy": "lil-gui",
     "defines": {
       "globals": ["dat"]
+    }
+  },
+  {
+    "name": "lil-gui",
+    "description": "A lightweight graphical user interface for changing variables in JavaScript.",
+    "homepage": "https://lil-gui.georgealways.com/",
+    "packageName": "lil-gui",
+    "lastReviewed": "2026-08-12",
+    "defines": {
+      "globals": ["lil"]
     }
   }
 ]

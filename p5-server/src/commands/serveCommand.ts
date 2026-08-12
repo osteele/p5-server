@@ -11,6 +11,7 @@ import type {
   BrowserWindowEvent,
 } from '../server/eventTypes.js';
 import { Server } from '../server/Server.js';
+import { loadServerConfig } from '../serverConfig.js';
 import {
   parseDimensions,
   parseFiniteNumber,
@@ -21,11 +22,13 @@ type Options = {
   agent?: boolean;
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
   canvasSize?: string;
+  config?: string;
   console?: boolean | 'json' | 'passive';
   host?: string;
   open?: boolean;
   port?: string;
   pixelDensity?: string;
+  p5Version?: string;
   proxyCache?: boolean;
   seed?: string;
   split?: boolean;
@@ -54,6 +57,7 @@ export default async function serve(files: string[], options: Options) {
   }
 
   const file = files[0] || '.';
+  const config = loadServerConfig(file, options.config);
   const displayName = file === '.' ? process.cwd() : file;
   if (
     !options.agent &&
@@ -83,6 +87,10 @@ export default async function serve(files: string[], options: Options) {
       Boolean(options.console) && options.console !== 'passive',
     theme: options.theme || undefined,
   };
+  if (config.libraries) serverOptions.libraryPolicy = config.libraries;
+  if (options.p5Version ?? config.p5Version) {
+    serverOptions.p5Version = options.p5Version ?? config.p5Version;
+  }
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);
   if (options.console)

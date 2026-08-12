@@ -51,6 +51,36 @@
         "items": {
           "type": "object"
         }
+      },
+      "lifecycle": {
+        "type": "string",
+        "enum": ["active", "maintenance", "legacy", "archived"]
+      },
+      "compatibility": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "p5Range": { "type": "string" },
+            "confidence": {
+              "type": "string",
+              "enum": ["verified", "reported", "incompatible"]
+            }
+          },
+          "required": ["p5Range", "confidence"]
+        }
+      },
+      "inference": {
+        "type": "string",
+        "enum": ["automatic", "directive-only"]
+      },
+      "lastReviewed": {
+        "type": "string",
+        "format": "date"
+      },
+      "replacedBy": {
+        "type": "string"
       }
     },
     "required": ["name", "homepage", "description"],

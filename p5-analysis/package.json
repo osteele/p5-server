@@ -18,6 +18,14 @@
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "p5-analyze": "dist/bin/p5-analyze-cli.js",
     "p5-libraries": "dist/bin/p5-libraries-cli.js",

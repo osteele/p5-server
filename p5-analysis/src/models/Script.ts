@@ -1,14 +1,15 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { parse } from '@babel/parser';
-import crypto from 'crypto';
-import fs from 'fs';
 import { LRUCache } from 'lru-cache';
-import path from 'path';
 import { sizeof } from '../helpers';
 import {
   findCallArguments,
   findGlobalDefinitions,
   findGlobalReferences,
   findPropertyReferences,
+  isP5InstanceSketch,
 } from './script-analysis';
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
@@ -28,6 +29,7 @@ interface ScriptAnalysis {
    * etc. */
   loadCallArguments: ReadonlySet<string>;
   p5propRefs: ReadonlySet<string>;
+  isP5InstanceSketch: boolean;
 }
 
 /** Analyzes a script (string or file) for automatic library inclusion. An
@@ -41,7 +43,10 @@ export class Script implements ScriptAnalysis {
   private _syntaxError?: SyntaxError;
   private _ast?: Readonly<ReturnType<typeof parse>>;
 
-  constructor(public readonly source: string, public readonly filename?: string) {
+  constructor(
+    public readonly source: string,
+    public readonly filename?: string
+  ) {
     if (this.cacheKey) {
       const [hash, data] = scriptAnalysisCache.get(this.cacheKey) || [];
       if (hash === this.cacheDigest && data) {
@@ -97,13 +102,14 @@ export class Script implements ScriptAnalysis {
       defs: findGlobalDefinitions(ast),
       refs: findGlobalReferences(ast),
       loadCallArguments: findCallArguments(ast, /^load.*/),
-      p5propRefs: findPropertyReferences(ast, 'p5')
+      p5propRefs: findPropertyReferences(ast, 'p5'),
+      isP5InstanceSketch: isP5InstanceSketch(ast),
     };
     this._analysis = analysis;
     if (this.cacheKey) {
       scriptAnalysisCache.set(this.cacheKey, [
         this.cacheDigest!,
-        { type: 'analysis', analysis }
+        { type: 'analysis', analysis },
       ]);
     }
     return analysis;
@@ -119,7 +125,7 @@ export class Script implements ScriptAnalysis {
         if (this.cacheKey) {
           scriptAnalysisCache.set(this.cacheKey, [
             this.cacheDigest!,
-            { type: 'syntaxError', syntaxError: err }
+            { type: 'syntaxError', syntaxError: err },
           ]);
         }
       }
@@ -144,6 +150,10 @@ export class Script implements ScriptAnalysis {
     return this.analysis.p5propRefs;
   }
 
+  get isP5InstanceSketch(): boolean {
+    return this.analysis.isP5InstanceSketch;
+  }
+
   findMatchingComments(pattern: RegExp): readonly string[] {
     const cacheKey = this.cacheKey && `${this.cacheKey}-${pattern.toString()}`;
     if (cacheKey) {
@@ -156,8 +166,11 @@ export class Script implements ScriptAnalysis {
     }
 
     const comments =
-      this.ast.comments?.map(c => c.value.trim()).filter(s => pattern.test(s)) || [];
-    if (cacheKey) commentDirectiveCache.set(cacheKey, [this.cacheDigest!, comments]);
+      this.ast.comments
+        ?.map((c) => c.value.trim())
+        .filter((s) => pattern.test(s)) || [];
+    if (cacheKey)
+      commentDirectiveCache.set(cacheKey, [this.cacheDigest!, comments]);
     return comments;
   }
 
@@ -172,7 +185,7 @@ export class Script implements ScriptAnalysis {
   }
 
   getAssociatedFiles(): string[] {
-    return [...this.loadCallArguments].map(s => s.replace(/^\.\//, ''));
+    return [...this.loadCallArguments].map((s) => s.replace(/^\.\//, ''));
   }
 
   static getAssociatedFiles(file: string): string[] {
@@ -196,7 +209,7 @@ type ScriptAnalysisCacheValue = readonly [
   Readonly<
     | { type: 'analysis'; analysis: ScriptAnalysis }
     | { type: 'syntaxError'; syntaxError: Error }
-  >
+  >,
 ];
 
 type CommentDirectiveCacheValue = readonly [string, readonly string[]];

@@ -27,7 +27,7 @@ describe('Script..defs', () => {
     expect(Script.fromSource('function f() {}; function g() {}').defs).toEqual(
       new Map([
         ['f', 'function'],
-        ['g', 'function']
+        ['g', 'function'],
       ])
     );
   });
@@ -41,7 +41,7 @@ describe('Script..defs', () => {
     expect(Script.fromSource('let a, b').defs).toEqual(
       new Map([
         ['a', 'variable'],
-        ['b', 'variable']
+        ['b', 'variable'],
       ])
     ));
 
@@ -50,7 +50,7 @@ describe('Script..defs', () => {
       new Map([
         ['a', 'variable'],
         ['b', 'variable'],
-        ['c', 'variable']
+        ['c', 'variable'],
       ])
     );
 
@@ -58,25 +58,30 @@ describe('Script..defs', () => {
       new Map([
         ['a', 'variable'],
         ['c', 'variable'],
-        ['e', 'variable']
+        ['e', 'variable'],
       ])
     );
   });
 
   test('ignores local variables', () =>
-    expect(Script.fromSource('function f() {function g(){let a;}}').defs).toEqual(
-      new Map([['f', 'function']])
-    ));
+    expect(
+      Script.fromSource('function f() {function g(){let a;}}').defs
+    ).toEqual(new Map([['f', 'function']])));
 
   test('ignores variable initializers', () =>
-    expect(Script.fromSource('let a = b').defs).toEqual(new Map([['a', 'variable']])));
+    expect(Script.fromSource('let a = b').defs).toEqual(
+      new Map([['a', 'variable']])
+    ));
 
   test('finds class definitions', () =>
-    expect(Script.fromSource('class C {}').defs).toEqual(new Map([['C', 'class']])));
+    expect(Script.fromSource('class C {}').defs).toEqual(
+      new Map([['C', 'class']])
+    ));
 });
 
 describe('Script.refs', () => {
-  const free = (code: string) => Array.from(Script.fromSource(code).refs).sort();
+  const free = (code: string) =>
+    Array.from(Script.fromSource(code).refs).sort();
 
   test('finds references in functions', () => {
     expect(free('function f() {}')).toEqual([]);
@@ -93,7 +98,7 @@ describe('Script.refs', () => {
     expect(free('function f(a) {let b=a; let c=b}')).toEqual([]);
   });
 
-  test.skip('finds references to variables that are used before they are defined', () => {
+  test('finds references to variables that are used before they are defined', () => {
     expect(free('function f() {let b=c; let c=b}')).toEqual(['c']);
   });
 
@@ -107,7 +112,9 @@ describe('Script.refs', () => {
   test('finds references in function calls and nested functions', () => {
     expect(free('function f(a) {g()}')).toEqual(['g']);
     expect(free('function f(a) {f(a); g(b)}')).toEqual(['b', 'g']);
-    expect(free('function f(a) {let b; function g(c) {a+b+c+d}}')).toEqual(['d']);
+    expect(free('function f(a) {let b; function g(c) {a+b+c+d}}')).toEqual([
+      'd',
+    ]);
   });
 
   test('finds references in function expressions', () => {
@@ -121,16 +128,23 @@ describe('Script.refs', () => {
       'b',
       'c',
       'd',
-      'i'
+      'i',
     ]);
     expect(free('function f() {for (let i=a; i<b; i+=c) d;}')).toEqual([
       'a',
       'b',
       'c',
-      'd'
+      'd',
     ]);
-    expect(free('function f() {for (p of obj) p, a;}')).toEqual(['a', 'obj', 'p']);
-    expect(free('function f() {for (const p of obj) p, a;}')).toEqual(['a', 'obj']);
+    expect(free('function f() {for (p of obj) p, a;}')).toEqual([
+      'a',
+      'obj',
+      'p',
+    ]);
+    expect(free('function f() {for (const p of obj) p, a;}')).toEqual([
+      'a',
+      'obj',
+    ]);
     expect(free('function f() {if(a)b;else c}')).toEqual(['a', 'b', 'c']);
   });
 
@@ -142,7 +156,9 @@ describe('Script.refs', () => {
   });
 
   test('finds references in class expressions', () => {
-    expect(free('const A = class { constructor() { this.a = b; A}}')).toEqual(['b']);
+    expect(free('const A = class { constructor() { this.a = b; A}}')).toEqual([
+      'b',
+    ]);
   });
 
   test('finds references in template literals', () => {
@@ -153,7 +169,7 @@ describe('Script.refs', () => {
   test('finds references in array spread', () => {
     expect(free('let a = [b, ...c, ...d]')).toEqual(['b', 'c', 'd']);
   });
-  test.skip('finds references in object spread', () => {
+  test('finds references in object spread', () => {
     expect(free('let a = {b: c, ...d, ...e}')).toEqual(['c', 'd', 'e']);
   });
 

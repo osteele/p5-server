@@ -1,16 +1,18 @@
-import fs from 'fs';
-import path from 'path';
-import { Sketch, SketchStructureType } from '../src';
+import fs from 'node:fs';
+import path from 'node:path';
+import { Sketch, type SketchStructureType } from '../src';
 
 const testfilesPath = './tests/testdata';
 
 /* f`foo/bar` == `${testfilesPath}/foo/bar` */
 function f(strings: TemplateStringsArray) {
-  return path.join(testfilesPath, ...strings.flatMap(s => s.split('/')));
+  return path.join(testfilesPath, ...strings.flatMap((s) => s.split('/')));
 }
 
 test('Sketch.fromHtmlFile', async () => {
-  const sketch = await Sketch.fromHtmlFile(f`Sketch.analyzeDirectory/sketch.html`);
+  const sketch = await Sketch.fromHtmlFile(
+    f`Sketch.analyzeDirectory/sketch.html`
+  );
   expect(sketch.structureType).toBe('html');
   expect(sketch.name).toBe('sketch');
   expect(sketch.title).toBe('HTML-based sketch');
@@ -32,9 +34,9 @@ test('Sketch.fromScriptFile', async () => {
 });
 
 test('Sketch.isSketchHtmlFile', async () => {
-  expect(await Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)).toBe(
-    true
-  );
+  expect(
+    await Sketch.isSketchHtmlFile(f`Sketch.analyzeDirectory/sketch.html`)
+  ).toBe(true);
   expect(await Sketch.isSketchHtmlFile(f`missing-file.html`)).toBe(false);
 
   expect(fs.existsSync(f`circles.js`)).toBe(true);
@@ -49,14 +51,14 @@ describe('Sketch.isSketchScriptFile', () => {
     path.join(
       testfilesPath,
       'Sketch.isSketchScriptFile',
-      ...strings.flatMap(s => s.split('/'))
+      ...strings.flatMap((s) => s.split('/'))
     );
 
   test('recognizes sketch scripts', async () => {
     expect(await Sketch.isSketchScriptFile(f`circles.js`)).toBe(true);
   });
 
-  test.skip('recognizes sketch script modules', async () => {
+  test('recognizes instance-mode sketch scripts', async () => {
     expect(await Sketch.isSketchScriptFile(g`instance-mode.js`)).toBe(true);
   });
 
@@ -69,14 +71,15 @@ describe('Sketch.isSketchScriptFile', () => {
   });
 
   test("rejects sketches that don't call createCanvas()", async () => {
-    expect(await Sketch.isSketchScriptFile(g`without-create-canvas.js`)).toBe(false);
+    expect(await Sketch.isSketchScriptFile(g`without-create-canvas.js`)).toBe(
+      false
+    );
   });
 });
 
 test('Sketch.analyzeDirectory', async () => {
-  const { sketches, allFiles, unassociatedFiles } = await Sketch.analyzeDirectory(
-    f`Sketch.analyzeDirectory`
-  );
+  const { sketches, allFiles, unassociatedFiles } =
+    await Sketch.analyzeDirectory(f`Sketch.analyzeDirectory`);
   expect(sketches.length).toBe(4);
   expect(allFiles.length).toBe(6);
   expect(unassociatedFiles.sort()).toEqual(['collection', 'loose.js'].sort());
@@ -101,7 +104,9 @@ describe('Sketch.isSketchDir', () => {
     ).toBeFalsy());
 
   test('rejects directory containing more than one sketch', async () =>
-    expect(await Sketch.isSketchDir(path.join(testfileDir, 'collection'))).toBeFalsy());
+    expect(
+      await Sketch.isSketchDir(path.join(testfileDir, 'collection'))
+    ).toBeFalsy());
 });
 
 test('Sketch.files', async () => {
@@ -113,19 +118,29 @@ test('Sketch.files', async () => {
 
 test('Sketch.libraries', async () => {
   let sketch = await Sketch.fromScriptFile(f`library-inference/loadSound.js`);
-  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
+  expect(sketch.libraries.map((lib) => lib.name)).toEqual(['p5.sound']);
 
-  sketch = await Sketch.fromFile(f`Sketch.convert/uninferred-library/index.html`);
-  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound']);
+  sketch = await Sketch.fromFile(
+    f`Sketch.convert/uninferred-library/index.html`
+  );
+  expect(sketch.libraries.map((lib) => lib.name)).toEqual(['p5.sound']);
 
   sketch = await Sketch.fromFile(f`Sketch.convert/explicit-imports.html`);
-  expect(sketch.libraries.map(lib => lib.name)).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
+  expect(sketch.libraries.map((lib) => lib.name)).toEqual([
+    'p5.sound',
+    'ml5.js',
+    'RiTa',
+  ]);
 
   sketch = await Sketch.fromFile(`${testfilesPath}/html-includes/index.html`);
-  expect(sketch.libraries.map(l => l.name)).toEqual([]);
+  expect(sketch.libraries.map((l) => l.name)).toEqual([]);
 
   sketch = await Sketch.fromFile(`${testfilesPath}/explicit-imports.html`);
-  expect(sketch.libraries.map(l => l.name)).toEqual(['p5.sound', 'ml5.js', 'RiTa']);
+  expect(sketch.libraries.map((l) => l.name)).toEqual([
+    'p5.sound',
+    'ml5.js',
+    'RiTa',
+  ]);
 });
 
 test('Sketch.description', async () => {
@@ -161,7 +176,8 @@ describe('Sketch.generate', () => {
     fs.mkdirSync(outputDir);
   });
 
-  test('with default options', () => testSketchGeneration('test.js', {}, 'default'));
+  test('with default options', () =>
+    testSketchGeneration('test.js', {}, 'default'));
 
   describe('with options:', () => {
     test('comments=true', () =>
@@ -169,7 +185,11 @@ describe('Sketch.generate', () => {
     test('preload=true', () =>
       testSketchGeneration('test.js', { preload: true }, 'preload'));
     test('windowResized=true', () =>
-      testSketchGeneration('test.js', { windowResized: true }, 'windowResized'));
+      testSketchGeneration(
+        'test.js',
+        { windowResized: true },
+        'windowResized'
+      ));
     test('draw=false', () =>
       testSketchGeneration('test.js', { draw: false }, 'no-draw'));
     test('examples=false', () =>
@@ -202,7 +222,8 @@ describe('Sketch.convert', () => {
   });
 
   describe('script -> html', () => {
-    test('simple case', () => testConvert('sketch.js', { type: 'html' }, 'html'));
+    test('simple case', () =>
+      testConvert('sketch.js', { type: 'html' }, 'html'));
     // TODO: test the description
     // TODO: remove the description from the js file?
 
@@ -214,7 +235,11 @@ describe('Sketch.convert', () => {
       ));
 
     test('library', () =>
-      testConvert('use-sound-library.js', { type: 'html' }, 'use-sound-library'));
+      testConvert(
+        'use-sound-library.js',
+        { type: 'html' },
+        'use-sound-library'
+      ));
   });
 
   describe('html -> script', () => {
@@ -235,7 +260,7 @@ describe('Sketch.convert', () => {
         { type: 'script' },
         {
           exception:
-            'index.html contains libraries that are not implied by sketch.js: p5.sound'
+            'index.html contains libraries that are not implied by sketch.js: p5.sound',
         }
       ));
 
@@ -276,44 +301,49 @@ describe('Sketch.convert', () => {
     options: { type: SketchStructureType },
     expectation: string | { exception: string | RegExp }
   ) {
-    let mainFile = filePath instanceof Array ? filePath[0] : filePath;
+    let mainFile = Array.isArray(filePath) ? filePath[0] : filePath;
     let snapshotRelDir = path.join(
       'snapshots',
       typeof expectation === 'string' ? expectation : path.dirname(mainFile)
     );
-    if (filePath instanceof Array) {
-      filePath.forEach(file => {
+    if (Array.isArray(filePath)) {
+      filePath.forEach((file) => {
         ensureDirSync(path.dirname(path.join(outputDir, file)));
-        fs.copyFileSync(path.join(testfileDir, file), path.join(outputDir, file));
+        fs.copyFileSync(
+          path.join(testfileDir, file),
+          path.join(outputDir, file)
+        );
       });
       mainFile = filePath[0];
       // if the file is in a directory, copy all the files
     } else if (filePath.indexOf(path.sep) !== -1) {
       const srcDir = filePath.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
-      mainFile = filePath
-        .split(path.sep)
-        .slice(1)
-        .join(path.sep);
+      mainFile = filePath.split(path.sep).slice(1).join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
       ensureDirSync(path.dirname(path.join(outputDir, filePath)));
-      fs.copyFileSync(path.join(testfileDir, filePath), path.join(outputDir, filePath));
+      fs.copyFileSync(
+        path.join(testfileDir, filePath),
+        path.join(outputDir, filePath)
+      );
     }
     async function convert() {
-      const sketch = await Sketch.fromFile(path.join(outputDir, mainFile!));
+      const sketch = await Sketch.fromFile(path.join(outputDir, mainFile));
       try {
         await sketch.convert(options);
       } catch (e) {
         throw String(e);
       }
     }
-    if (expectation instanceof Object) {
+    if (typeof expectation === 'string') {
+      await convert();
+    } else if (expectation.exception instanceof RegExp) {
+      await expect(convert()).rejects.toThrow(expectation.exception);
+    } else {
       await expect(convert()).rejects.toThrow(
         expect.stringContaining(normalizeSlashes(expectation.exception))
       );
-    } else {
-      await expect(convert()).rejects.toThrow();
     }
     if (snapshotRelDir !== 'snapshots') {
       expectDirectoriesEqual(outputDir, path.join(testfileDir, snapshotRelDir));
@@ -333,7 +363,7 @@ function ensureDirSync(dir) {
 
 function copyDirectory(src: string, dst: string) {
   fs.mkdirSync(dst, { recursive: true });
-  fs.readdirSync(src).forEach(file => {
+  fs.readdirSync(src).forEach((file) => {
     const srcPath = path.join(src, file);
     const dstPath = path.join(dst, file);
     if (fs.statSync(srcPath).isDirectory()) {
@@ -348,11 +378,11 @@ function expectDirectoriesEqual(a: string, b: string) {
   if (process.env.JEST_UPDATE_FILE_SNAPSHOTS) {
     fs.cpSync(a, b, {
       recursive: true,
-      filter: (src: string) => !src.startsWith('.')
+      filter: (src: string) => !src.startsWith('.'),
     });
   }
-  let aFiles = getDirectoryJson(a);
-  let bFiles = getDirectoryJson(b);
+  const aFiles = getDirectoryJson(a);
+  const bFiles = getDirectoryJson(b);
   function sortDirectoryJson(json) {
     if (Array.isArray(json)) {
       return json.map(sortDirectoryJson).sort((a, b) => {
@@ -378,14 +408,14 @@ function getDirectoryJson(dir: string): DirectoryJson {
   expect(fs.statSync(dir).isDirectory()).toBe(true);
   return fs
     .readdirSync(dir)
-    .filter(name => !name.startsWith('.'))
-    .map(name => {
+    .filter((name) => !name.startsWith('.'))
+    .map((name) => {
       const file = path.join(dir, name);
       return [
         name,
         fs.statSync(file).isDirectory()
           ? getDirectoryJson(file)
-          : fs.readFileSync(file, 'utf-8').replace(/\r\n/g, '\n') // for Windows
+          : fs.readFileSync(file, 'utf-8').replace(/\r\n/g, '\n'), // for Windows
       ];
     });
 }

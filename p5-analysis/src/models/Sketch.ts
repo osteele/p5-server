@@ -1,10 +1,10 @@
-import fs from 'fs';
-import { readdir, readFile, writeFile } from 'fs/promises';
+import fs from 'node:fs';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import beautify from 'js-beautify';
 import { minimatch } from 'minimatch';
-import { HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
+import { type HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
-import path from 'path';
 import pug from 'pug';
 import {
   asyncFilter,
@@ -12,7 +12,7 @@ import {
   asyncSome,
   capitalize,
   isHtmlPathname,
-  isScriptPathname
+  isScriptPathname,
 } from '../helpers';
 import { isDefined } from '../helpers/ts-extras';
 import { Library, p5Version } from './Library';
@@ -35,7 +35,7 @@ const defaultDirectoryExclusions = [
   'Icon\r', // Custom Finder icon
 
   // Windows
-  'Thumbs.db'
+  'Thumbs.db',
 ];
 
 export type SketchStructureType =
@@ -92,7 +92,11 @@ export abstract class Sketch {
           `Cannot specify both a JavaScript mainFile and options.scriptFile`
         );
       }
-      return new ScriptSketch(path.dirname(mainFile), path.basename(mainFile), options);
+      return new ScriptSketch(
+        path.dirname(mainFile),
+        path.basename(mainFile),
+        options
+      );
     } else {
       throw new Error(`Unsupported file type: ${mainFile}`);
     }
@@ -156,16 +160,20 @@ export abstract class Sketch {
   static async analyzeDirectory(
     dir: string,
     options?: { exclusions?: string[] }
-  ): Promise<{ sketches: Sketch[]; allFiles: string[]; unassociatedFiles: string[] }> {
+  ): Promise<{
+    sketches: Sketch[];
+    allFiles: string[];
+    unassociatedFiles: string[];
+  }> {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
     let files = (await readdir(dir)).filter(
-      file => !exclusions.some(pattern => minimatch(file, pattern))
+      (file) => !exclusions.some((pattern) => minimatch(file, pattern))
     );
 
     // collect directory sketches, and remove them from the list of files
-    files = await asyncFilter(files, async name => {
+    files = await asyncFilter(files, async (name) => {
       const dirPath = path.join(dir, name);
       const sketch = await Sketch.isSketchDir(dirPath, { exclusions });
       if (sketch) {
@@ -193,11 +201,11 @@ export abstract class Sketch {
     return {
       sketches,
       allFiles: files,
-      unassociatedFiles: removeProjectFiles(files)
+      unassociatedFiles: removeProjectFiles(files),
     };
 
     function removeProjectFiles(files: string[]) {
-      return files.filter(f => !sketches.some(s => s.files.includes(f)));
+      return files.filter((f) => !sketches.some((s) => s.files.includes(f)));
     }
   }
 
@@ -228,7 +236,8 @@ export abstract class Sketch {
    */
   static async isSketchFile(file: string): Promise<boolean> {
     return (
-      (await Sketch.isSketchHtmlFile(file)) || (await Sketch.isSketchScriptFile(file))
+      (await Sketch.isSketchHtmlFile(file)) ||
+      (await Sketch.isSketchScriptFile(file))
     );
   }
 
@@ -253,12 +262,12 @@ export abstract class Sketch {
 
     const files = await fs
       .readdirSync(dir)
-      .filter(file => !exclusions.some(pattern => minimatch(file, pattern)))
-      .map(file => path.join(dir, file));
+      .filter((file) => !exclusions.some((pattern) => minimatch(file, pattern)))
+      .map((file) => path.join(dir, file));
 
     // is there an index.html file?
     const indexFiles = await asyncFilter(
-      files.filter(file => /^index\.html?$/i.test(path.basename(file))),
+      files.filter((file) => /^index\.html?$/i.test(path.basename(file))),
       Sketch.isSketchHtmlFile
     );
     if (indexFiles.length > 1) {
@@ -268,7 +277,7 @@ export abstract class Sketch {
     // are there other HTML sketch files?
     const [indexFile] = indexFiles;
     const otherHtmlSketches = await asyncFilter(
-      files.filter(file => file !== indexFile),
+      files.filter((file) => file !== indexFile),
       Sketch.isSketchHtmlFile
     );
     if (otherHtmlSketches.length > 0) {
@@ -278,10 +287,10 @@ export abstract class Sketch {
     // are there JavaScript sketch files that aren't associated with the index.html sketch?
     const sketch = indexFile ? await Sketch.fromHtmlFile(indexFile) : null;
     const associatedScripts = new Set(
-      sketch ? sketch.files.map(file => path.join(sketch.dir, file)) : []
+      sketch ? sketch.files.map((file) => path.join(sketch.dir, file)) : []
     );
     const scriptSketches = await asyncFilter(
-      files.filter(file => !associatedScripts.has(file)),
+      files.filter((file) => !associatedScripts.has(file)),
       Sketch.isSketchScriptFile
     );
     if (indexFiles.length + scriptSketches.length !== 1) {
@@ -305,14 +314,16 @@ export abstract class Sketch {
       }
       const files = fs
         .readdirSync(dir)
-        .filter(file => !exclusions.some(pattern => minimatch(file, pattern)))
-        .map(file => path.join(dir, file));
-      return asyncSome(files, file =>
+        .filter(
+          (file) => !exclusions.some((pattern) => minimatch(file, pattern))
+        )
+        .map((file) => path.join(dir, file));
+      return asyncSome(files, (file) =>
         fs.statSync(file).isDirectory()
           ? subdirectoriesContainSketchFiles(file, depth - 1)
           : includeFiles
-          ? Sketch.isSketchFile(file)
-          : Promise.resolve(false)
+            ? Sketch.isSketchFile(file)
+            : Promise.resolve(false)
       );
     }
   }
@@ -404,8 +415,8 @@ export abstract class Sketch {
   protected impliedLibraries(): readonly Library[] {
     return Library.inferFromScripts(
       this.files
-        .filter(name => isScriptPathname(name))
-        .map(name => path.join(this.dir, name))
+        .filter((name) => isScriptPathname(name))
+        .map((name) => path.join(this.dir, name))
     );
   }
 
@@ -432,7 +443,7 @@ export abstract class Sketch {
     // Don't create any files unless we can create them all.
     // This allows a race condition if two calls to generate() occur run in parallel.
     if (!force) {
-      [...files.keys()].filter(fs.existsSync).forEach(filename => {
+      [...files.keys()].filter(fs.existsSync).forEach((filename) => {
         writeFile(filename, ''); // force the error to be thrown
         // if it raced away, remove it before moving onto the next extant file (if there is one)
         fs.unlinkSync(filename);
@@ -452,7 +463,10 @@ export abstract class Sketch {
     templateOptions: Record<string, unknown>
   ): Promise<string> {
     const filepath = path.join(this.dir, filename);
-    const content = await this.getGeneratedFileContent(templateName, templateOptions);
+    const content = await this.getGeneratedFileContent(
+      templateName,
+      templateOptions
+    );
     await writeFile(filepath, content, force ? {} : { flag: 'wx' });
     return filepath;
   }
@@ -471,7 +485,7 @@ export abstract class Sketch {
       p5Version,
       scriptFile: this.scriptFile,
       ...defaultGenerationOptions,
-      ...options
+      ...options,
     };
     const templatePath = path.join(templateDir, base);
     if (templatePath.endsWith('.njk')) {
@@ -479,7 +493,7 @@ export abstract class Sketch {
       // suite, but the code fails to find the file when imported from another
       // package
       const template = nunjucks.compile(await readFile(templatePath, 'utf-8'));
-      return template.render(data).trim() + '\n';
+      return `${template.render(data).trim()}\n`;
     }
     if (templatePath.endsWith('.pug')) {
       const html = pug
@@ -507,7 +521,9 @@ export abstract class Sketch {
    *
    * @category Sketch conversion
    */
-  public abstract convert(options: { type: SketchStructureType }): Promise<void>;
+  public abstract convert(options: {
+    type: SketchStructureType;
+  }): Promise<void>;
 }
 
 export class HtmlSketch extends Sketch {
@@ -530,13 +546,13 @@ export class HtmlSketch extends Sketch {
     const description = htmlRoot
       .querySelector('head meta[name=description]')
       ?.attributes.content.trim();
-    const scripts = this.getLocalScriptFiles(htmlRoot);
+    const scripts = HtmlSketch.getLocalScriptFiles(htmlRoot);
     const scriptFile =
-      (await asyncFind(scripts, name =>
+      (await asyncFind(scripts, (name) =>
         Sketch.isSketchScriptFile(path.join(dir, name))
       )) || scripts[0];
     return new HtmlSketch(dir, path.basename(htmlFilePath), scriptFile, {
-      description
+      description,
     });
   }
 
@@ -553,9 +569,9 @@ export class HtmlSketch extends Sketch {
     const htmlRoot = parseHtml(html);
     const scriptSrcs = htmlRoot
       .querySelectorAll('script[src]')
-      .map(node => node.attributes.src);
+      .map((node) => node.attributes.src);
     // TODO: also require that a script contains setup()
-    return scriptSrcs.some(src => src.search(/\bp5(\.min)?\.js$/));
+    return scriptSrcs.some((src) => src.search(/\bp5(\.min)?\.js$/));
   }
 
   get structureType(): SketchStructureType {
@@ -567,7 +583,11 @@ export class HtmlSketch extends Sketch {
   }
 
   get files(): readonly string[] {
-    const files = [this.htmlFile, this.scriptFile, ...this.getAssociatedFiles()];
+    const files = [
+      this.htmlFile,
+      this.scriptFile,
+      ...this.getAssociatedFiles(),
+    ];
     return [...new Set(files)];
   }
 
@@ -582,8 +602,8 @@ export class HtmlSketch extends Sketch {
     const htmlRoot = parse(content);
     const libs: (Library | null)[] = htmlRoot
       .querySelectorAll('script[src]')
-      .map(node => node.attributes.src)
-      .map(importPath => Library.find({ importPath }));
+      .map((node) => node.attributes.src)
+      .map((importPath) => Library.find({ importPath }));
     return libs.filter(isDefined);
   }
 
@@ -608,11 +628,11 @@ export class HtmlSketch extends Sketch {
         ...this.getLocalScriptFiles(htmlRoot),
         ...htmlRoot
           .querySelectorAll('head link[href]')
-          .map(e => e.attributes.href.replace(/^\.\//, ''))
-          .filter(s => !s.match(/https?:/)),
-        ...scriptFiles.flatMap(name =>
+          .map((e) => e.attributes.href.replace(/^\.\//, ''))
+          .filter((s) => !s.match(/https?:/)),
+        ...scriptFiles.flatMap((name) =>
           Script.getAssociatedFiles(path.join(this.dir, name))
-        )
+        ),
       ];
     } else {
       return [];
@@ -630,8 +650,8 @@ export class HtmlSketch extends Sketch {
   private static getLocalScriptFiles(htmlRoot: HTMLElement) {
     return htmlRoot
       .querySelectorAll('script[src]')
-      .map(e => e.attributes.src.replace(/^\.\//, ''))
-      .filter(s => !s.match(/https?:/));
+      .map((e) => e.attributes.src.replace(/^\.\//, ''))
+      .filter((s) => !s.match(/https?:/));
   }
 
   public async convert(options: { type: SketchStructureType }): Promise<void> {
@@ -645,12 +665,12 @@ export class HtmlSketch extends Sketch {
         const htmlRoot = parseHtml(html);
         const scriptSrcs = htmlRoot
           .querySelectorAll('script')
-          .map(e => e.attributes.src);
+          .map((e) => e.attributes.src);
         // if scriptSrcs contains a null, it means there's an inline script
-        if (scriptSrcs.some(s => !s)) {
+        if (scriptSrcs.some((s) => !s)) {
           throw new Error(`${htmlPath} contains an inline script`);
         }
-        const localScripts = scriptSrcs.filter(s => !/^https?:/.test(s));
+        const localScripts = scriptSrcs.filter((s) => !/^https?:/.test(s));
         switch (localScripts.length) {
           case 0:
             throw new Error(`${htmlPath} does not contain any local scripts`);
@@ -676,23 +696,23 @@ export class HtmlSketch extends Sketch {
         const htmlLibs = this.explicitLibraries();
         const scriptLibs = this.impliedLibraries();
         const htmlNotScript = htmlLibs.filter(
-          lib => !scriptLibs.some(s => s.name === lib.name)
+          (lib) => !scriptLibs.some((s) => s.name === lib.name)
         );
         const scriptNotHtml = scriptLibs.filter(
-          lib => !htmlLibs.some(h => h.name === lib.name)
+          (lib) => !htmlLibs.some((h) => h.name === lib.name)
         );
         if (htmlNotScript.length) {
           throw new Error(
             `${this.htmlFile} contains libraries that are not implied by ${
               this.scriptFile
-            }: ${htmlLibs.map(lib => lib.name)}`
+            }: ${htmlLibs.map((lib) => lib.name)}`
           );
         }
         if (scriptNotHtml.length) {
           throw new Error(
             `${this.scriptFile} implies libraries that are not in ${
               this.htmlFile
-            }: ${scriptNotHtml.map(lib => lib.name)}`
+            }: ${scriptNotHtml.map((lib) => lib.name)}`
           );
         }
 
@@ -705,10 +725,10 @@ export class HtmlSketch extends Sketch {
 export class ScriptSketch extends Sketch {
   static async fromFile(scriptFile: string): Promise<Sketch> {
     const dir = path.dirname(scriptFile);
-    let description;
+    let description: string | undefined;
     if (fs.existsSync(scriptFile)) {
       const source = await readFile(scriptFile, 'utf-8');
-      description = this.getDescriptionFromScript(source);
+      description = ScriptSketch.getDescriptionFromScript(source);
     }
     return new ScriptSketch(dir, path.basename(scriptFile), { description });
   }
@@ -723,13 +743,17 @@ export class ScriptSketch extends Sketch {
     }
 
     try {
-      const { defs, refs } = Script.fromFile(file);
-      return defs.get('setup') === 'function' && refs.has('createCanvas');
+      const { defs, refs, isP5InstanceSketch } = Script.fromFile(file);
+      return (
+        (defs.get('setup') === 'function' && refs.has('createCanvas')) ||
+        isP5InstanceSketch
+      );
     } catch (e) {
       if (e instanceof SyntaxError) {
         const source = await readFile(file, 'utf-8');
         return (
-          /function\s+(setup)\b/.test(source) && /\bcreateCanvas\s*\(/.test(source)
+          /function\s+(setup)\b/.test(source) &&
+          /\bcreateCanvas\s*\(/.test(source)
         );
       }
       throw e;
@@ -751,7 +775,7 @@ export class ScriptSketch extends Sketch {
   get files(): readonly string[] {
     const files = [
       this.scriptFile,
-      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile))
+      ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile)),
     ];
     return [...new Set(files)];
   }
@@ -760,18 +784,23 @@ export class ScriptSketch extends Sketch {
     switch (options.type) {
       case 'html': {
         // javascript -> html
-        const htmlName = this.mainFile.replace(/\.js$/, '') + '.html';
+        const htmlName = `${this.mainFile.replace(/\.js$/, '')}.html`;
         const htmlPath = path.join(this.dir, htmlName);
         if (fs.existsSync(htmlPath)) {
           throw new Error(`${htmlPath} already exists`);
         }
-        await this.writeGeneratedFile(Sketch.indexTemplateName, htmlName, false, {});
+        await this.writeGeneratedFile(
+          Sketch.indexTemplateName,
+          htmlName,
+          false,
+          {}
+        );
       }
     }
   }
 
-  private static getDescriptionFromScript(content: string) {
-    let text;
+  private static getDescriptionFromScript(content: string): string | undefined {
+    let text: string | undefined;
     let m = content.match(/\n*((?:\/\/.*\n)+)/);
     if (m) {
       text = m[1].replace(/^\/\//gm, '').trim();

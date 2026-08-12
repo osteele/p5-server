@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import fs from 'fs';
-import fetch from 'node-fetch';
 
 const CACHE_DIR = '/tmp/node-cdn-fetch-cache';
 

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import marked from 'marked';
+import { marked } from 'marked';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';

@@ -4,7 +4,7 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "extends": "@tsconfig/node14/tsconfig.json",
+  "extends": "@tsconfig/node20/tsconfig.json",
   "exclude": [
     "dist",
     "build",

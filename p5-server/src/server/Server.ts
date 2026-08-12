@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { EventEmitter } from 'events';
 import express from 'express';
 import fs from 'fs';
+import http from 'http';
 import path from 'path';
 import pug from 'pug';
 import { assertError } from '../ts-extras';
@@ -16,7 +17,6 @@ import { promiseClose, promiseListen } from './httpServerUtils';
 import { createLiveReloadServer, LiveReloadServer } from './liveReload';
 import { createRouter } from './routes';
 import { templateDir } from './templates';
-import http = require('http');
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {

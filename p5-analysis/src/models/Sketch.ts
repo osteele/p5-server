@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import beautify from 'js-beautify';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 import { HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import path from 'path';

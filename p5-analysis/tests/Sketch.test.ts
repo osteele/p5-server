@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import rimraf from 'rimraf';
 import { Sketch, SketchStructureType } from '../src';
 
 const testfilesPath = './tests/testdata';
@@ -158,7 +157,7 @@ describe('Sketch.generate', () => {
   const outputDir = path.join(testfileDir, 'output');
 
   beforeEach(() => {
-    rimraf.sync(outputDir);
+    fs.rmSync(outputDir, { force: true, recursive: true });
     fs.mkdirSync(outputDir);
   });
 
@@ -198,7 +197,7 @@ describe('Sketch.convert', () => {
   const outputDir = path.join(testfileDir, 'output');
 
   beforeEach(() => {
-    rimraf.sync(outputDir);
+    fs.rmSync(outputDir, { force: true, recursive: true });
     fs.mkdirSync(outputDir);
   });
 

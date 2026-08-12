@@ -1,6 +1,6 @@
 {
   "private": true,
-  "packageManager": "bun@1.0.0",
+  "packageManager": "bun@1.2.10",
   "workspaces": [
     "p5-analysis",
     "p5-server"
@@ -12,21 +12,19 @@
     "gh-pages:build": "rimraf 'gh-pages/*' && bun run build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "bun run gh-pages:build && bun run gh-pages:publish",
-    "clean": "bun --cwd p5-analysis run clean:ws && bun --cwd p5-server run clean:ws",
+    "clean": "bun run --cwd p5-analysis clean && bun run --cwd p5-server clean",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
-    "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.ts\"",
-    "lint": "bun --cwd p5-analysis run lint && bun --cwd p5-server run lint",
-    "prepare": "husky install",
-    "test": "bun --cwd p5-analysis run build && bun --cwd p5-server run test && bun --cwd p5-analysis run test"
+    "format": "biome format --write .",
+    "lint": "bun run --cwd p5-analysis lint && bun run --cwd p5-server lint",
+    "test": "bun run --cwd p5-server test"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.6.0",
-    "@typescript-eslint/parser": "^5.6.0",
+    "@biomejs/biome": "^2.5.8",
+    "@types/bun": "^1.3.14",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^8.4.1",
-    "eslint-plugin-jest": "^25.3.0",
-    "husky": "^7.0.4",
-    "prettier-eslint-cli": "^5.0.1",
-    "rimraf": "^3.0.2"
+    "eslint": "^8.57.1",
+    "rimraf": "^6.1.3"
   }
 }

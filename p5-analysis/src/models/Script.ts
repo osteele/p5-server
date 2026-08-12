@@ -1,11 +1,14 @@
 import { parse } from '@babel/parser';
 import crypto from 'crypto';
 import fs from 'fs';
-import lruCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 import path from 'path';
 import { sizeof } from '../helpers';
 import {
-  findCallArguments, findGlobalDefinitions, findGlobalReferences, findPropertyReferences
+  findCallArguments,
+  findGlobalDefinitions,
+  findGlobalReferences,
+  findPropertyReferences,
 } from './script-analysis';
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
@@ -53,8 +56,8 @@ export class Script implements ScriptAnalysis {
 
   static set options({ cacheSize }: { cacheSize?: number }) {
     if (cacheSize) {
-      scriptAnalysisCache.max = cacheSize;
-      commentDirectiveCache.max = cacheSize;
+      scriptAnalysisCache = createScriptAnalysisCache(cacheSize);
+      commentDirectiveCache = createCommentDirectiveCache(cacheSize);
     }
   }
 
@@ -160,7 +163,7 @@ export class Script implements ScriptAnalysis {
 
   getErrors(): SyntaxError[] {
     try {
-      this.analysis; // for effect
+      void this.analysis;
     } catch (err) {
       if (err instanceof SyntaxError) return [err];
       throw err;
@@ -188,24 +191,29 @@ export class Script implements ScriptAnalysis {
 // appear in the typescript exports. If it did appear in exports, this would
 // require that clients of this package use esModuleIterop to use it or a
 // package that re-exports its types.
-const scriptAnalysisCache: lruCache<
+type ScriptAnalysisCacheValue = readonly [
   string,
-  readonly [
-    string,
-    Readonly<
-      | { type: 'analysis'; analysis: ScriptAnalysis }
-      | { type: 'syntaxError'; syntaxError: Error }
-    >
-  ]
-> = new lruCache({
-  max: 20000,
-  length: (value, key) => sizeof(value) + sizeof(key)
-});
+  Readonly<
+    | { type: 'analysis'; analysis: ScriptAnalysis }
+    | { type: 'syntaxError'; syntaxError: Error }
+  >
+];
 
-const commentDirectiveCache: lruCache<
-  string,
-  readonly [string, readonly string[]]
-> = new lruCache({
-  max: 20000,
-  length: (value, key) => sizeof(value) + sizeof(key)
-});
+type CommentDirectiveCacheValue = readonly [string, readonly string[]];
+
+let scriptAnalysisCache = createScriptAnalysisCache(20000);
+let commentDirectiveCache = createCommentDirectiveCache(20000);
+
+function createScriptAnalysisCache(maxSize: number) {
+  return new LRUCache<string, ScriptAnalysisCacheValue>({
+    maxSize,
+    sizeCalculation: (value, key) => sizeof(value) + sizeof(key),
+  });
+}
+
+function createCommentDirectiveCache(maxSize: number) {
+  return new LRUCache<string, CommentDirectiveCacheValue>({
+    maxSize,
+    sizeCalculation: (value, key) => sizeof(value) + sizeof(key),
+  });
+}

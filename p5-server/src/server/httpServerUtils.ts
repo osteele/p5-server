@@ -1,6 +1,6 @@
 import express from 'express';
-import http = require('http');
-import net = require('net');
+import http from 'http';
+import net from 'net';
 
 /** A wrapper for express.Application#listen that returns a Promise.
  *

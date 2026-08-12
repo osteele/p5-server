@@ -4,7 +4,7 @@ import hljscss from 'highlight.js/lib/languages/css';
 import hljsjavascript from 'highlight.js/lib/languages/javascript';
 import hljsplaintext from 'highlight.js/lib/languages/plaintext';
 import hljsshell from 'highlight.js/lib/languages/shell';
-import marked from 'marked';
+import { marked } from 'marked';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';

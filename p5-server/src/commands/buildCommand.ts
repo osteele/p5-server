@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { rm, writeFile } from 'fs/promises';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import path from 'path';

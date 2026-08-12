@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { replaceUrlsInStack } from '../src/server/browserScriptEventRelay';
 import { Server } from '../src/server/Server';
 

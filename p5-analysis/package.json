@@ -30,7 +30,7 @@
   },
   "repository": "github:osteele/p5-server",
   "scripts": {
-    "build": "run-s clean build:copy-files && tsc --declaration",
+    "build": "bun run clean && bun run build:copy-files && tsc --declaration",
     "build:docs": "typedoc src/index.ts && bun run cli:libraries docs | pandoc -s --toc --shift-heading-level-by -1 > build/docs/libraries.html",
     "build:copy-files": "copyfiles -u 1 'src/**/*' -e '**/*.ts' dist/",
     "clean": "rimraf dist",
@@ -40,66 +40,36 @@
     "cli:tree": "bun run --bun src/bin/p5-tree-cli.ts",
     "lint": "eslint --quiet src/**/*.ts tests/**/*.ts",
     "prepack": "bun run build",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "bun test",
+    "test:watch": "bun test --watch"
   },
   "dependencies": {
-    "@babel/core": "^7.16.0",
-    "commander": "^8.3.0",
-    "js-beautify": "^1.14.0",
-    "jstransformer-marked": "^1.0.3",
-    "lru-cache": "^6.0.0",
-    "minimatch": "^3.0.4",
-    "node-fetch": "^2.6.6",
-    "node-html-parser": "^5.1.0",
+    "@babel/parser": "^7.29.8",
+    "@babel/traverse": "^7.29.8",
+    "@babel/types": "^7.29.8",
+    "commander": "^11.1.0",
+    "js-beautify": "^2.0.3",
+    "lru-cache": "^11.5.2",
+    "minimatch": "^10.2.6",
+    "node-html-parser": "^9.0.1",
     "nunjucks": "^3.2.3",
-    "pug": "^3.0.2"
+    "pug": "^3.0.4"
   },
   "devDependencies": {
-    "@babel/parser": "^7.16.4",
-    "@babel/traverse": "^7.16.3",
-    "@babel/types": "^7.16.0",
-    "@tsconfig/node14": "^1.0.1",
-    "@types/babel-core": "^6.25.7",
-    "@types/babel__traverse": "^7.14.2",
-    "@types/copyfiles": "^2.4.1",
-    "@types/eslint": "^8.2.1",
-    "@types/jest": "^27.0.3",
-    "@types/js-beautify": "^1.13.3",
-    "@types/lru-cache": "^5.1.1",
-    "@types/minimatch": "^3.0.5",
-    "@types/node": "^16.11.12",
-    "@types/node-fetch": "^2.5.12",
-    "@types/nunjucks": "^3.2.0",
-    "@types/pug": "^2.0.5",
-    "@types/rimraf": "^3.0.2",
+    "@tsconfig/node20": "^20.1.9",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/copyfiles": "^2.4.4",
+    "@types/js-beautify": "^1.14.3",
+    "@types/node": "^20.19.43",
+    "@types/nunjucks": "^3.2.6",
+    "@types/pug": "^2.0.10",
     "copyfiles": "^2.4.1",
-    "esbuild": "^0.14.2",
-    "esbuild-jest": "^0.5.0",
-    "eslint": "^8.4.1",
-    "eslint-plugin-jest": "^25.3.0",
-    "jest": "^27.4.3",
-    "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^27.1.1",
-    "ts-node": "^10.4.0",
-    "typedoc": "^0.22.10",
-    "typescript": "^4.5.2"
+    "eslint": "^8.57.1",
+    "rimraf": "^6.1.3",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=14.17"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "modulePathIgnorePatterns": [
-      "tests/testdata/.*/output/.*"
-    ],
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/tests/**/*.ts"
-    ],
-    "transform": {
-      "^.+\\.tsx?$": "esbuild-jest"
-    }
+    "node": ">=20"
   }
 }

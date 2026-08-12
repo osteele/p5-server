@@ -1,3 +1,0 @@
-ignorePatterns:
-  - "src/server/static/*.min.js"
-  - "tests/testdata/syntax-error/syntax-error.js"

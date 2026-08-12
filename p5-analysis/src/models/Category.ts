@@ -1,5 +1,5 @@
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import fs from 'fs';
 import { capitalize } from '../helpers/index.js';
 import { Library } from './Library.js';
 

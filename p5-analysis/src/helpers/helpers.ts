@@ -3,8 +3,7 @@ export function capitalize(str: string): string {
 }
 
 // This is a very loose approximation, for purposes of sizing the LRU cache
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sizeof(value: unknown, seen?:WeakSet<any>): number {
+export function sizeof(value: unknown, seen?: WeakSet<any>): number {
   if (value === null) {
     return 0;
   }
@@ -32,19 +31,21 @@ export function sizeof(value: unknown, seen?:WeakSet<any>): number {
       }
       if (Array.isArray(value)) {
         return value.reduce((sum, v) => sum + sizeof(v, seen), 8);
-      } else if (value instanceof ArrayBuffer
-        || value instanceof Int8Array
-        || value instanceof Uint8Array
-        || value instanceof Uint8ClampedArray
-        || value instanceof Int16Array
-        || value instanceof Uint16Array
-        || value instanceof Int32Array
-        || value instanceof Uint32Array
-        || value instanceof Float32Array
-        || value instanceof Float64Array
-        || value instanceof BigInt64Array
-        || value instanceof BigUint64Array
-        || value instanceof DataView) {
+      } else if (
+        value instanceof ArrayBuffer ||
+        value instanceof Int8Array ||
+        value instanceof Uint8Array ||
+        value instanceof Uint8ClampedArray ||
+        value instanceof Int16Array ||
+        value instanceof Uint16Array ||
+        value instanceof Int32Array ||
+        value instanceof Uint32Array ||
+        value instanceof Float32Array ||
+        value instanceof Float64Array ||
+        value instanceof BigInt64Array ||
+        value instanceof BigUint64Array ||
+        value instanceof DataView
+      ) {
         return 32 + value.byteLength;
       } else if (value instanceof Map) {
         let size = 40;
@@ -62,7 +63,7 @@ export function sizeof(value: unknown, seen?:WeakSet<any>): number {
         let size = 60;
         const obj = value as Record<string, unknown>;
         for (const key in value) {
-          if (Object.hasOwnProperty.call(obj, key)) {
+          if (Object.hasOwn(obj, key)) {
             size += sizeof(key, seen);
             size += sizeof(obj[key], seen);
           }

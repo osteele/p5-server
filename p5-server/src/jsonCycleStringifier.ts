@@ -1,11 +1,11 @@
-export function jsonCycleStringifier(
-  prefix = '$__jsonCycleStringifer:'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): { stringify: (value: unknown) => string; parse: (json: string) => any } {
-  const scopeKey = prefix + 'circular';
-  const defKey = prefix + 'def';
-  const refKey = prefix + 'ref';
-  const hasOwnProperty = Object.prototype.hasOwnProperty;
+export function jsonCycleStringifier(prefix = '$__jsonCycleStringifer:'): {
+  stringify: (value: unknown) => string;
+  parse: (json: string) => any;
+} {
+  const scopeKey = `${prefix}circular`;
+  const defKey = `${prefix}def`;
+  const refKey = `${prefix}ref`;
+  const objectHasOwnProperty = Object.prototype.hasOwnProperty;
 
   function stringify(value: unknown) {
     try {
@@ -63,20 +63,20 @@ export function jsonCycleStringifier(
 
   function parse(json: string) {
     const value = JSON.parse(json);
-    if (!(typeof value === 'object' && hasOwnProperty.call(value, scopeKey)))
+    if (
+      !(typeof value === 'object' && objectHasOwnProperty.call(value, scopeKey))
+    )
       return value;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defs: any[] = [];
     return resolve(value[scopeKey]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function resolve(value: any) {
       if (value && typeof value === 'object') {
-        if (hasOwnProperty.call(value, defKey)) {
+        if (objectHasOwnProperty.call(value, defKey)) {
           value = value[defKey];
           defs.push(value);
-        } else if (hasOwnProperty.call(value, refKey)) {
+        } else if (objectHasOwnProperty.call(value, refKey)) {
           return defs[value[refKey]];
         }
         for (const key in value) {

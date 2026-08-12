@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import nunjucks from 'nunjucks';
 import { Library } from '../index.js';
 import { die } from './helpers.js';
@@ -28,7 +28,7 @@ export function generateLibraryPage({
     .replace(/\n{3,}/g, '\n\n')
     .trim();
   if (output) {
-    fs.writeFileSync(output, markdown + '\n');
+    fs.writeFileSync(output, `${markdown}\n`);
   } else {
     console.log(markdown);
   }

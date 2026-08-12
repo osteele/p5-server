@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Sketch } from 'p5-analysis';
-import path from 'path';
 import pug from 'pug';
 import { pathComponentsForBreadcrumbs } from '../helpers.js';
 import { staticAssetPrefix } from './constants.js';

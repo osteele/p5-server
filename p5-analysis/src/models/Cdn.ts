@@ -1,5 +1,5 @@
 export class Cdn {
-  static all = new Array<Cdn>();
+  static all = [] as Cdn[];
 
   static create({ matcher }: { matcher: RegExp }): Cdn {
     const cdn = new Cdn(matcher);
@@ -7,18 +7,22 @@ export class Cdn {
     return cdn;
   }
 
-  static parseUrl(url: string): { packageName: string, version: string | undefined } | null {
-    const cdn = this.all.find(c => c.matchesUrl(url));
+  static parseUrl(
+    url: string
+  ): { packageName: string; version: string | undefined } | null {
+    const cdn = Cdn.all.find((c) => c.matchesUrl(url));
     return cdn ? cdn.parseUrl(url) : null;
   }
 
-  private constructor(private readonly matcher: RegExp) { }
+  private constructor(private readonly matcher: RegExp) {}
 
   matchesUrl(path: string): boolean {
     return this.matcher.test(path);
   }
 
-  parseUrl(url: string): { packageName: string, version: string | undefined } | null {
+  parseUrl(
+    url: string
+  ): { packageName: string; version: string | undefined } | null {
     const nameWithVersion = this.matcher.exec(url)?.[1];
     if (!nameWithVersion) return null;
     const [packageName, version] = nameWithVersion.split('@');

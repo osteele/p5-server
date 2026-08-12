@@ -1,5 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import fs from 'fs';
 import hljs from 'highlight.js/lib/core';
 import hljscss from 'highlight.js/lib/languages/css';
 import hljsjavascript from 'highlight.js/lib/languages/javascript';
@@ -9,7 +10,6 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import { markedSmartypants } from 'marked-smartypants';
 import nunjucks from 'nunjucks';
-import path from 'path';
 import pug from 'pug';
 import { escapeHTML } from '../helpers.js';
 
@@ -55,11 +55,11 @@ class SyntaxErrorFormatter {
     autoescape: false,
   });
 
-  private static readonly syntaxErrorTemplate = pug.compileFile(
+  static readonly syntaxErrorTemplate = pug.compileFile(
     path.join(templateDir, 'syntax-error.pug')
   );
 
-  private static readonly syntaxErrorJsTemplate = fs.readFileSync(
+  static readonly syntaxErrorJsTemplate = fs.readFileSync(
     path.join(templateDir, 'report-syntax-error.js.njk'),
     'utf-8'
   );
@@ -71,7 +71,6 @@ class SyntaxErrorFormatter {
   render(filepath: string, error: SyntaxError): string {
     const { jsTemplateEnv, syntaxErrorTemplate, syntaxErrorJsTemplate } =
       SyntaxErrorFormatter;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { line: lineNo, column } = (error as any).loc;
     let message = error.message;
     const locationSuffix = ` (${lineNo}:${column})`;
@@ -86,7 +85,7 @@ class SyntaxErrorFormatter {
       let lineLabel = String(1 + index);
       lineLabel = ' '.repeat(lineNumberColWidth - lineLabel.length) + lineLabel;
       if (1 + index === lineNo) {
-        lineLabel = '<span style="color:red">▶︎</span> ' + lineLabel.slice(2);
+        lineLabel = `<span style="color:red">▶︎</span> ${lineLabel.slice(2)}`;
       }
       return `${lineLabel} │ ${escapeHTML(line)}`;
     });

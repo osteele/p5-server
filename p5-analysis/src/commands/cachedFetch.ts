@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import fs from 'fs';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 
 const CACHE_DIR = '/tmp/node-cdn-fetch-cache';
 
@@ -30,7 +30,6 @@ export async function cachedFetch(url: string): Promise<Response> {
     fs.statSync(cacheMetaPath).mtime.getTime() < Date.now() - 86400000
   ) {
     if (process.env.DEBUG_NODE_CDN_CACHE) {
-      // eslint-disable-next-line no-console
       console.debug(`cache miss: ${url}`);
     }
     const res = await fetch(url);
@@ -53,11 +52,14 @@ export async function cachedFetch(url: string): Promise<Response> {
 
   // Read from the cache we just wrote. In a development context, this has no
   // noticeable efficiency impact; and, it reduces the number of code paths.
-  const meta = JSON.parse(fs.readFileSync(cacheMetaPath, 'utf-8')) as CacheEntry;
+  const meta = JSON.parse(
+    fs.readFileSync(cacheMetaPath, 'utf-8')
+  ) as CacheEntry;
   const text = meta.ok ? fs.readFileSync(cacheDataPath, 'utf-8') : undefined;
   return {
     ...meta,
-    text: () => (meta.ok ? Promise.resolve(text!) : Promise.reject(meta.statusText)),
+    text: () =>
+      meta.ok ? Promise.resolve(text!) : Promise.reject(meta.statusText),
     url,
   };
 }

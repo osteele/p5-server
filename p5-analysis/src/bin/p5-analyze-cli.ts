@@ -1,9 +1,9 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
-import fs from 'fs';
 import nunjucks from 'nunjucks';
-import path from 'path';
 import { Sketch } from '../index.js';
 
 export const program = new Command();

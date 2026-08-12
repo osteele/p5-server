@@ -9,9 +9,11 @@ export async function printTree(
   tabWidth = 4
 ): Promise<void> {
   const prefixStack = [];
-  const branchString = '├' + '─'.repeat(Math.max(0, tabWidth - 2)) + ' ';
+  const branchString = `├${'─'.repeat(Math.max(0, tabWidth - 2))} `;
   let prefix = '';
-  for await (const { item, index, isFirst, isLast } of addTreeProperties(iter)) {
+  for await (const { item, index, isFirst, isLast } of addTreeProperties(
+    iter
+  )) {
     if (isFirst && index > 0) {
       prefixStack.push(prefix);
       prefix = prefix.replace(/├/g, '│').replace(/─/g, ' ') + branchString;
@@ -46,7 +48,12 @@ export async function printTree(
  */
 async function* addTreeProperties<T>(
   iter: AsyncTreeInputIterable<T>
-): AsyncIterable<{ item: T; index: number; isFirst: boolean; isLast: boolean }> {
+): AsyncIterable<{
+  item: T;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+}> {
   let index = 0;
   for await (const [prev, item, next] of asyncIterateWindows(
     dropEmptyGroups(iter),

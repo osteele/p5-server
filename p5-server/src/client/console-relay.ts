@@ -27,7 +27,7 @@ window.onerror = (message, url, line, col, err) => {
     url,
     line,
     col,
-    stack: err && err.stack,
+    stack: err?.stack,
   });
   return savedOnError ? savedOnError(message, url, line, col, err) : false;
 };
@@ -113,7 +113,7 @@ function undefinedValueReplacer(_key: unknown, value: any) {
     : value;
 }
 
-const ws = new WebSocket('ws://' + window.location.host);
+const ws = new WebSocket(`ws://${window.location.host}`);
 const q: (string | ArrayBufferView | ArrayBuffer | Blob)[] = [];
 
 const clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2)))
@@ -138,7 +138,7 @@ function send(route: string, data: MessageCore) {
   const payload = stringify([
     route,
     Object.assign(
-      { clientId, url: document.documentURI, timestamp: +new Date() },
+      { clientId, url: document.documentURI, timestamp: Date.now() },
       data
     ),
   ]);

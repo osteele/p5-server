@@ -8,7 +8,8 @@ and for documentation of command-line usage.
 
 ```sh
 npm install --save p5-server
-yarn add p5-server
+# or
+bun add p5-server
 ```
 
 ## Usage

@@ -1,5 +1,5 @@
+import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { exec } from 'child_process';
 import nunjucks from 'nunjucks';
 import { Library } from '../index.js';
 import { die } from './helpers.js';

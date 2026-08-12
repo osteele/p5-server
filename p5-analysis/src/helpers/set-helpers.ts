@@ -1,13 +1,19 @@
 /** Modifies target by removing the items in other. */
-export function removeSetElements<T>(target: Set<T>, other: ReadonlySet<T>): Set<T> {
+export function removeSetElements<T>(
+  target: Set<T>,
+  other: ReadonlySet<T>
+): Set<T> {
   for (const element of other) {
     target.delete(element);
   }
   return target;
 }
 
-export function setDifference<T>(target: Set<T>, other: ReadonlySet<T>): Set<T> {
-  return new Set([...target].filter(x => !other.has(x)));
+export function setDifference<T>(
+  target: Set<T>,
+  other: ReadonlySet<T>
+): Set<T> {
+  return new Set([...target].filter((x) => !other.has(x)));
 }
 
 export function setUnion<T>(...sets: ReadonlySet<T>[]): Set<T> {

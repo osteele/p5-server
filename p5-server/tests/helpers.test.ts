@@ -1,10 +1,10 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   pathComponentsForBreadcrumbs,
   pathIsInDirectory,
-  resolvePathInDirectory
+  resolvePathInDirectory,
 } from '../src/helpers';
 
 test('pathIsInDirectory', () => {
@@ -38,19 +38,23 @@ test('resolvePathInDirectory', () => {
 });
 
 test('pathComponentsForBreadcrumbs', () => {
-  expect(pathComponentsForBreadcrumbs('')).toEqual([{ path: '/', name: 'Home' }]);
-  expect(pathComponentsForBreadcrumbs('/')).toEqual([{ path: '/', name: 'Home' }]);
+  expect(pathComponentsForBreadcrumbs('')).toEqual([
+    { path: '/', name: 'Home' },
+  ]);
+  expect(pathComponentsForBreadcrumbs('/')).toEqual([
+    { path: '/', name: 'Home' },
+  ]);
   expect(pathComponentsForBreadcrumbs('/a')).toEqual([
     { path: '/', name: 'Home' },
-    { path: '/a', name: 'a' }
+    { path: '/a', name: 'a' },
   ]);
   expect(pathComponentsForBreadcrumbs('/a/')).toEqual([
     { path: '/', name: 'Home' },
-    { path: '/a', name: 'a' }
+    { path: '/a', name: 'a' },
   ]);
   expect(pathComponentsForBreadcrumbs('/a/b')).toEqual([
     { path: '/', name: 'Home' },
     { path: '/a', name: 'a' },
-    { path: '/a/b', name: 'b' }
+    { path: '/a/b', name: 'b' },
   ]);
 });

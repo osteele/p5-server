@@ -1,9 +1,9 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command } from 'commander';
-import fs from 'fs';
-import path from 'path';
 import updateNotifier from 'update-notifier';
 import build from '../commands/buildCommand.js';
 import {

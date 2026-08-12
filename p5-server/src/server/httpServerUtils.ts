@@ -1,6 +1,6 @@
-import express from 'express';
-import http from 'http';
-import net from 'net';
+import type http from 'node:http';
+import type net from 'node:net';
+import type express from 'express';
 
 /** A wrapper for express.Application#listen that returns a Promise.
  *

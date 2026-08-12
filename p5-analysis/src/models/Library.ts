@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { removeSetElements, setUnion } from '../helpers/set-helpers.js';
 import { Category } from './Category.js';
 import { Cdn } from './Cdn.js';
@@ -6,7 +6,6 @@ import { Script } from './Script.js';
 
 export const p5Version = '1.4';
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Library {
   export type Properties = {
     name: string;

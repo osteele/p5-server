@@ -3,21 +3,13 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": [
-    "build",
-    "dist",
-    "node_modules",
-    "tests"
-  ],
+  "exclude": ["build", "dist", "node_modules", "tests"],
   "extends": "@tsconfig/node20/tsconfig.json",
   "typedocOptions": {
     "name": "p5-analysis API documentation",
     "out": "build/docs",
     "excludePrivate": true,
     "excludeProtected": true,
-    "sort": [
-      "static-first",
-      "alphabetical"
-    ]
+    "sort": ["static-first", "alphabetical"]
   }
 }

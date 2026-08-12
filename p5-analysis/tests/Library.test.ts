@@ -15,22 +15,23 @@ describe('Library.find', () => {
   test('by import path', () => {
     expect(
       Library.find({
-        importPath: 'https://cdn.jsdelivr.net/npm/p5@1.4/lib/addons/p5.sound.min.js'
+        importPath:
+          'https://cdn.jsdelivr.net/npm/p5@1.4/lib/addons/p5.sound.min.js',
       })?.name
     ).toBe('p5.sound');
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.rotate-about'
+        importPath: 'https://unpkg.com/p5.rotate-about',
       })?.name
     ).toBe('p5.rotate-about');
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.rotate-about@latest'
+        importPath: 'https://unpkg.com/p5.rotate-about@latest',
       })?.name
     ).toBe('p5.rotate-about');
     expect(
       Library.find({
-        importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0'
+        importPath: 'https://unpkg.com/p5.vector-arguments@1.0.0',
       })?.name
     ).toBe('p5.vector-arguments');
     expect(
@@ -38,7 +39,7 @@ describe('Library.find', () => {
     ).toBeNull();
     expect(
       Library.find({
-        importPath: 'https://cdn.skypack.dev/p5.rotate-about'
+        importPath: 'https://cdn.skypack.dev/p5.rotate-about',
       })?.name
     ).toBe('p5.rotate-about');
   });
@@ -47,9 +48,9 @@ describe('Library.find', () => {
 describe('Library.inferLibrariesFromScripts', () => {
   const dir = `${testfilesPath}/library-inference`;
   const inferLibraries = (filename: string) =>
-    Library.inferFromScripts([`${dir}/${filename}`], { ifNotExists: 'error' }).map(
-      lib => lib.name
-    );
+    Library.inferFromScripts([`${dir}/${filename}`], {
+      ifNotExists: 'error',
+    }).map((lib) => lib.name);
 
   test('infers libraries from global variable references', () => {
     expect(inferLibraries(`no-libraries.js`)).toHaveLength(0);
@@ -62,13 +63,13 @@ describe('Library.inferLibrariesFromScripts', () => {
 
   test('infers libraries from comment directives', () => {
     const libs = Library.inferFromScripts([
-      `${testfilesPath}/library-config-comments.js`
+      `${testfilesPath}/library-config-comments.js`,
     ]);
     expect(libs[0]).toBe(Library.find({ name: 'p5.sound' }));
-    const importPaths = libs.map(lib => lib.importPath);
+    const importPaths = libs.map((lib) => lib.importPath);
     expect(importPaths.slice(1)).toEqual([
       'https://unpkg.com/@mediapipe/pose',
-      'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection'
+      'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
     ]);
   });
 });

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Sketch } from '../index.js';
 import {
   type AsyncTreeInputIterable,
@@ -47,7 +47,7 @@ function sketchTreeIter(
     depth: number
   ): AsyncIterable<string | symbol> {
     const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
-    yield* ['📁' + path.basename(dir), indentSymbol];
+    yield* [`📁${path.basename(dir)}`, indentSymbol];
     if (depth >= 0) {
       for (const sketch of sketches.sort((a, b) =>
         a.name.localeCompare(b.name)
@@ -79,7 +79,7 @@ function sketchTreeIter(
       printDescriptions && sketch.description
         ? ` - ${sketch.description.replace(/\s*\n\s*/g, ' ')}`
         : '';
-    yield* ['🎨' + `${sketch.name}${mainFile}${description}`, indentSymbol];
+    yield* [`🎨${sketch.name}${mainFile}${description}`, indentSymbol];
     if (depth >= 0 && sketch.files.length > 1) {
       yield* sketch.files;
     }

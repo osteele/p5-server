@@ -35,7 +35,6 @@ describe('sizeof', () => {
   });
 
   test('function', () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     expect(sizeof(() => {})).toBe(40);
   });
 
@@ -55,7 +54,7 @@ describe('sizeof', () => {
       sizeof(
         new Map([
           ['a', 1],
-          ['b', 2]
+          ['b', 2],
         ])
       )
     ).toBe(68);

@@ -1,6 +1,6 @@
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path/posix';
 import { Sketch } from 'p5-analysis';
-import path from 'path/posix';
 import { die, openInBrowser } from '../helpers.js';
 import { Server } from '../server/Server.js';
 

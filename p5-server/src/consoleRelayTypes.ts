@@ -3,7 +3,13 @@
 
 // TODO: merge these with the types in eventTypes.ts
 
-export type ConsoleMethodName = 'clear' | 'debug' | 'error' | 'info' | 'log' | 'warn';
+export type ConsoleMethodName =
+  | 'clear'
+  | 'debug'
+  | 'error'
+  | 'info'
+  | 'log'
+  | 'warn';
 
 export type ConnectionMessage = {
   type: 'opened';

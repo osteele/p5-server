@@ -1,9 +1,9 @@
 import type { ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import chalk from 'chalk';
-import fs from 'fs';
 import { HTMLElement, parse as parseHtml } from 'node-html-parser';
 import open, { type AppName, apps, type Options as OpenOptions } from 'open';
-import path from 'path';
 
 /** Print the message to standard output; then exit with status code 1.
  */
@@ -56,25 +56,16 @@ export function pathComponentsForBreadcrumbs(
   relDirPath: string
 ): { name: string; path: string }[] {
   // normalize the path: remove the final '/' if it exists
-  return (
-    relDirPath
-      .replace(/\/$/, '')
-      .split('/')
-      // skip the first element. We're going to use an init arg to reduce()
-      // instead.
-      .slice(1)
-      .reduce(
-        (crumbs, name) => [
-          ...crumbs,
-          {
-            name,
-            path:
-              (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name,
-          },
-        ],
-        [{ name: 'Home', path: '/' }]
-      )
-  );
+  const names = relDirPath.replace(/\/$/, '').split('/').slice(1);
+  const crumbs = [{ name: 'Home', path: '/' }];
+  for (const name of names) {
+    const parentPath = crumbs[crumbs.length - 1].path;
+    crumbs.push({
+      name,
+      path: path.posix.join(parentPath, name),
+    });
+  }
+  return crumbs;
 }
 
 /** Tests whether filepath is inside the directory `dir`. */
@@ -83,7 +74,7 @@ export function pathIsInDirectory(filepath: string, dir: string): boolean {
   return (
     relativePath === '' ||
     (relativePath !== '..' &&
-      !relativePath.startsWith('..' + path.sep) &&
+      !relativePath.startsWith(`..${path.sep}`) &&
       !path.isAbsolute(relativePath))
   );
 }
@@ -173,7 +164,7 @@ export function addScriptToHtmlHead(
   }
   const head = htmlRoot.querySelector('head');
   if (!head) {
-    return html.replace(/(<\/head>)/, '$1' + scriptNode.outerHTML);
+    return html.replace(/(<\/head>)/, `$1${scriptNode.outerHTML}`);
   }
   head.appendChild(scriptNode);
   return htmlRoot.outerHTML;

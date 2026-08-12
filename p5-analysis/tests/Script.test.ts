@@ -162,7 +162,9 @@ describe('Script.refs', () => {
   });
 
   test('finds references in template literals', () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the string is JavaScript parser input
     expect(free('let a = `${b+c} ${d}}`')).toEqual(['b', 'c', 'd']);
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the string is JavaScript parser input
     expect(free('let a = f`${b+c} ${d}`')).toEqual(['b', 'c', 'd', 'f']);
   });
 

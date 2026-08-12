@@ -1,5 +1,5 @@
+import util from 'node:util';
 import chalk, { type ChalkInstance } from 'chalk';
-import util from 'util';
 import { die, openInBrowser } from '../helpers.js';
 import type {
   BrowserConnectionEvent,

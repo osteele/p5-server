@@ -1,4 +1,4 @@
-import stream from 'stream';
+import stream from 'node:stream';
 import { contentProxyCache, isCdnUrl } from '../src/server/cdnProxy';
 
 describe('CDN Proxy', () => {

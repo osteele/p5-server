@@ -1,4 +1,4 @@
-import net from 'net';
+import net from 'node:net';
 import { createLiveReloadServer } from '../src/server/liveReload';
 
 test('LiveReload retries an occupied port on loopback', async () => {
@@ -24,7 +24,7 @@ test('LiveReload retries an occupied port on loopback', async () => {
   } finally {
     liveReloadServer.close();
     await new Promise<void>((resolve, reject) => {
-      blocker.close(err => (err ? reject(err) : resolve()));
+      blocker.close((err) => (err ? reject(err) : resolve()));
     });
   }
 });

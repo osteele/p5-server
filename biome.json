@@ -1,7 +1,15 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
   "files": {
-    "includes": ["**", "!**/build", "!**/dist", "!gh-pages"]
+    "includes": [
+      "**",
+      "!**/build",
+      "!**/dist",
+      "!gh-pages",
+      "!**/examples",
+      "!**/tests/testdata",
+      "!p5-server/src/server/static"
+    ]
   },
   "formatter": {
     "indentStyle": "space",
@@ -11,6 +19,21 @@
     "formatter": {
       "quoteStyle": "single",
       "trailingCommas": "es5"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "complexity": {
+        "noImportantStyles": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off"
+      }
     }
   }
 }

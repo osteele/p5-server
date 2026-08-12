@@ -22,7 +22,7 @@ export default async function checkLibraryCollisions(): Promise<void> {
   if (collisions.size === 0) {
     console.log('No collisions found');
   } else {
-    console.log(collisions.size + ' collision(s) found:');
+    console.log(`${collisions.size} collision(s) found:`);
     collisions.forEach((name) => {
       console.log(
         `${name} implies all of:`,

@@ -51,7 +51,7 @@
     "cli": "bun run --bun src/bin/p5-server.ts",
     "_dev": "bun --watch src/bin/p5-server.ts serve",
     "dev": "bun run _dev examples",
-    "lint": "eslint --quiet src tests",
+    "lint": "biome check src tests --diagnostic-level=error",
     "postpack": "rm README.md",
     "prepack": "bun run clean && bun run build && bun run build:readme",
     "start": "bun run --bun src/bin/p5-server.ts server",
@@ -90,7 +90,6 @@
     "@types/ws": "^8.18.1",
     "copyfiles": "^2.4.1",
     "esbuild": "^0.28.2",
-    "eslint": "^8.57.1",
     "rimraf": "^6.1.3",
     "typedoc": "^0.28.20",
     "typescript": "^5.9.3"

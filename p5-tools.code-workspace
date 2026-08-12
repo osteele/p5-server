@@ -15,7 +15,7 @@
   ],
   "settings": {
     "files.associations": {
-      "NOTES": "markdown",
+      "NOTES": "markdown"
     },
     "files.exclude": {
       "dist": true,

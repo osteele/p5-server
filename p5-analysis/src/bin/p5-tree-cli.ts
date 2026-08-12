@@ -1,8 +1,8 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
-import fs from 'fs';
-import path from 'path';
 import tree from '../commands/tree.js';
 
 export const program = new Command();

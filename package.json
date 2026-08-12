@@ -15,17 +15,21 @@
     "check": "bun run build && bun run lint && bun run typecheck:workspaces && bun run test:workspaces && bun run test:packages:built",
     "clean": "bun run --parallel --filter '*' clean",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
+    "changeset": "changeset",
     "format": "biome format --write .",
     "lint": "bun run --parallel --filter '*' lint",
     "test": "bun run build && bun run test:workspaces",
     "test:packages": "bun run build && bun run test:packages:built",
     "test:packages:built": "bun run scripts/test-packages.ts",
+    "release": "bun run check && changeset publish",
     "test:workspaces": "bun run --parallel --filter '*' test",
     "typecheck": "bun run build && bun run typecheck:workspaces",
-    "typecheck:workspaces": "bun run --parallel --filter '*' typecheck"
+    "typecheck:workspaces": "bun run --parallel --filter '*' typecheck",
+    "version-packages": "changeset version && bun install --lockfile-only"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
+    "@changesets/cli": "^3.0.0",
     "@types/bun": "^1.3.14",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",

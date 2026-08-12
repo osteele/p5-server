@@ -395,6 +395,8 @@ The root scripts build, lint, type-check, and test both workspaces. `bun run
 test:packages` also packs the publishable packages and verifies them in a clean
 consumer project.
 
+See [RELEASING.md](./RELEASING.md) for the package release workflow.
+
 ## Acknowledgements
 
 This project builds on these libraries and frameworks:

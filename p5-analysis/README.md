@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
 [![Changelog](https://img.shields.io/badge/changelog-gray.svg)](./CHANGELOG.md)
-<!-- [![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml) -->
+[![CI workflow](https://github.com/osteele/p5-server/actions/workflows/ci.yml/badge.svg)](https://github.com/osteele/p5-server/actions/workflows/ci.yml)
 
 - [Installation](#installation)
 - [Command-Line Usage](#command-line-usage)
@@ -23,8 +23,8 @@ extension](https://github.com/osteele/vscode-p5server#readme).
 
 The API consists of three classes:
 
-- {@link Sketch} represents an sketch. This is at least a script file, and may
-  also include an HTML file and additional scripts an  assets. It is the
+- {@link Sketch} represents a sketch. This is at least a script file, and may
+  also include an HTML file and additional scripts and assets. It is the
   interface to generate sketch files, find associated files, infer libraries,
   and scan directories for sketches that they contain.
 
@@ -41,8 +41,9 @@ These APIs are not stable until this package reaches version 1.0.
 ## Installation
 
 ```sh
-npm install --save p5-analysis
-yard add p5-analysis
+npm install p5-analysis
+# or
+bun add p5-analysis
 ```
 
 ## Command-Line Usage
@@ -84,9 +85,9 @@ commands can also be accessed via `p5 analyze`, `p5 libraries` and `p5 tree`
 ```js
 import { Sketch } from "p5-analysis";
 
-let { sketches } = Sketch.analyzeDirectory(); // find all the sketches in a directory
+const { sketches } = await Sketch.analyzeDirectory(); // find all sketches in a directory
 
-let sketch = Sketch.fromFile('sketch.js');
+const sketch = await Sketch.fromFile('sketch.js');
 console.log(sketch.description);
 console.log(sketch.libraries);
 console.log(sketch.files);
@@ -99,9 +100,10 @@ for additional usage examples.
 
 ### Sketch detection
 
-A “JavaScript-only sketch file” is a JavaScript file that includes a function
-definition for `setup()` function, and a call to `createCanvas()` (and does not
-itself define `createCanvas`).
+A “JavaScript-only sketch file” is a JavaScript file that defines `setup()` and
+calls `createCanvas()` (and does not
+itself define `createCanvas`). Common instance-mode sketches that pass a callback
+to `new p5(...)` are also recognized.
 
 An HTML sketch file is an HTML file that includes a `<script>` element with a
 `src` attribute that ends in `p5.js` or `p5.min.js`.

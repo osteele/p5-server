@@ -1,7 +1,7 @@
 # Proxy Cache
 
 The proxy cache enables “airplane mode”, where the p5-server development server
-can used without an internet connection.
+can be used without an internet connection.
 
 It works by caching requests to known Content Delivery Network (CDN) servers, so
 that they are served from a local cache instead.
@@ -21,7 +21,7 @@ With the proxy cache:
 ## How to Use the Cache
 
 The proxy cache is enabled by default. To use it, simply browse your sketches
-while your computer is connected the internet. This loads any CDN files that are
+while your computer is connected to the internet. This loads any CDN files that are
 necessary to run the sketches that you view. At any later point, you can view
 the same sketches without an internet connection.
 
@@ -32,12 +32,12 @@ split-screen browser, and error pages.
 
 ## Disabling the Cache
 
-To run the server without the proxy cache, run the `p5 server` command with the
+To run the server without the proxy cache, run the `p5 serve` command with the
 `--no-proxy-cache` option.
 
-The files created by `p5 build` and `p5 generate` do not reference the CDN
+The files created by `p5 build` and `p5 create` do not reference the CDN
 servers directly, and do not depend on the cache. The cache is only used when
-running `p5 server`.
+running `p5 serve`.
 
 ## What is Cached?
 
@@ -48,7 +48,7 @@ networks are cached, as are resources from `fonts.googleapis.com` and
 Import paths from the community p5.js libraries are also cached. Most of these
 paths are served from a CDN and would be cached in any case. A few of the
 community libraries are served from servers that are specific to those libraries
-or the organizations that public them; this ensures that they are cached as
+or the organizations that publish them; this ensures that they are cached as
 well.
 
 ## Command Line
@@ -109,22 +109,19 @@ illustrated in the screenshot at the top of this document).
 
 Status codes and response headers are cached. Each step of a redirect is cached.
 
-The server uses npm's [cacache](https://github.com/npm/cacache) to manage the
-cache, and [node-html-parser](https://github.com/taoqf/node-fast-html-parser)
-and [css-tree](https://github.com/csstree/csstree) to parse and re-generate HTML
-and CSS documents.
+The server uses [cdn-proxy-cache](https://github.com/osteele/cdn-proxy-cache),
+which stores content with [cacache](https://github.com/npm/cacache) and rewrites
+HTML and CSS with node-html-parser and css-tree.
 
-The cache is stored on disk at `~/.cache/p5-server`.
+Run `p5 proxy-cache path` to display the platform-specific cache directory.
 
 ## Limitations
 
-The proxy cache ignores the [Cache Control
+The proxy cache honors important [Cache-Control
 directives](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
-In particular, it caches all CDN content, regardless of the presence of
-`no-cache`, `no-store`. `must-revalidate`, `proxy-revalidate`, and
-`no-transform`. In practice, the only directives I've observed from cached
-requests to the CDN servers, aside from `max-age` and `s-maxage`, are
-`immutable`, `public`, and `private`, which don't affect the caching policy.
+It does not store responses marked `no-store` or `private`, and it re-fetches
+`no-cache` and expired `must-revalidate` responses before serving them. Other
+expired entries are served immediately while they refresh in the background.
 
 ## Appendix: JSON Recipes
 

@@ -17,6 +17,7 @@ publishes changed packages to npm.
 `p5-analysis` is versioned before `p5-server` so that the server's dependency
 always refers to an available analysis package.
 
-The repository must define an `NPM_TOKEN` Actions secret for npm publication.
-The npm packages should also trust the GitHub Actions release workflow for npm
-provenance.
+Each npm package must trust `osteele/p5-server` and the `release.yml` GitHub
+Actions workflow for publication. The workflow uses npm trusted publishing, so
+it does not require a long-lived npm token. npm adds provenance attestations to
+the published packages automatically.

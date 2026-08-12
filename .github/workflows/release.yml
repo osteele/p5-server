@@ -36,11 +36,11 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Create release pull request or publish packages
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          commit: 'chore: release packages'
-          publish: bun run release
-          title: 'chore: release packages'
-          version: bun run version-packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: release packages'
+          create-github-releases: true
+          pr-title: 'chore: release packages'
+          publish-script: bun run release
+          push-git-tags: true
+          version-script: bun run version-packages

@@ -51,7 +51,7 @@ export async function createLiveReloadServer({
       port = port < lastPort ? port + 1 : 0;
     }
   }
-  for (const dir of watchDirs) lrServer.watch(dir);
+  if (watchDirs.length > 0) lrServer.watch(watchDirs);
   return lrServer;
 }
 

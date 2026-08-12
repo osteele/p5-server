@@ -18,6 +18,20 @@ test('Script.getErrors', () => {
   expect(errs[0].message).toMatch(/Unexpected keyword 'const'/);
 });
 
+test('Script parses ECMAScript modules', () => {
+  const script = Script.fromSource(`
+    import { helper } from './helper.js';
+    export function setup() {
+      helper();
+      createCanvas(100, 100);
+    }
+  `);
+
+  expect(script.getErrors()).toEqual([]);
+  expect(script.defs).toEqual(new Map([['setup', 'function']]));
+  expect(script.refs).toEqual(new Set(['createCanvas']));
+});
+
 describe('Script..defs', () => {
   test('finds function definitions', () => {
     expect(Script.fromSource('function f() {}').defs).toEqual(

@@ -118,7 +118,10 @@ export class Script implements ScriptAnalysis {
   private get ast(): ReturnType<typeof parse> {
     if (!this._ast && !this._syntaxError) {
       try {
-        this._ast = parse(this.source, { sourceFilename: this.filename });
+        this._ast = parse(this.source, {
+          sourceFilename: this.filename,
+          sourceType: 'unambiguous',
+        });
       } catch (err) {
         if (!(err instanceof SyntaxError)) throw err;
         this._syntaxError = err;

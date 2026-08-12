@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { replaceUrlsInStack } from '../src/server/browserScriptEventRelay';
 import { Server } from '../src/server/Server';
 
@@ -46,6 +47,11 @@ describe('Server', () => {
     expect(server.filePathToUrl('mapped/a')).toEqual('http://localhost:3000/a');
     expect(server.filePathToUrl('unmapped/a')).toBeNull();
 
+    server = new Server({ root: './tests/testdata/circles.js' });
+    expect(server.filePathToUrl('./tests/testdata/circles.js')).toEqual(
+      'http://localhost:3000/circles.js'
+    );
+
     server = new Server({ root: 'mapped' });
     server = new Server({
       mountPoints: [
@@ -72,6 +78,29 @@ describe('Server', () => {
     expect(server.urlPathToFilePath('/p1/a')).toEqual('f1/a');
     expect(server.urlPathToFilePath('/p2/a')).toEqual('f2/a');
     expect(server.urlPathToFilePath('/p3/a')).toBeNull();
+
+    server = new Server({ root: './tests/testdata/circles.js' });
+    expect(server.urlPathToFilePath('/circles.js')).toEqual(
+      './tests/testdata/circles.js'
+    );
+  });
+
+  test('serverUrlToFileUrl maps sketch files but not internal routes', () => {
+    const server = new Server({ root: './tests/testdata/circles.js' });
+
+    expect(server.serverUrlToFileUrl('http://localhost:3000/circles.js')).toBe(
+      `file://${path.resolve('./tests/testdata/circles.js')}`
+    );
+    expect(
+      server.serverUrlToFileUrl(
+        'http://localhost:3000/__p5_proxy_cache/cdn.jsdelivr.net/p5.js'
+      )
+    ).toBeNull();
+    expect(
+      server.serverUrlToFileUrl(
+        'http://localhost:3000/__p5_server_static/agent-support.min.js'
+      )
+    ).toBeNull();
   });
 
   test('should be able to start on loopback', async () => {

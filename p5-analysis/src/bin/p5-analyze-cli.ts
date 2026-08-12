@@ -2,8 +2,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Command } from 'commander';
-import nunjucks from 'nunjucks';
+import { Command, Option } from 'commander';
+import { formatSketchAnalysis } from '../commands/analyze-sketch.js';
 import { Sketch } from '../index.js';
 
 export const program = new Command();
@@ -31,26 +31,20 @@ program.command(
 );
 
 async function analyzeSketch(name: string, { json = false }) {
-  const sketch = await Sketch.fromFile(name);
   if (json) {
+    const sketch = await Sketch.fromFile(name);
     console.log(JSON.stringify(sketch, null, 2));
-  } else {
-    nunjucks.configure(path.join(dirname, '../commands/templates'), {
-      autoescape: false,
-    });
-    const markdown = nunjucks
-      .render('sketch.njk', { sketch })
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\n+$/, '');
-    console.log(markdown);
+    return;
   }
+  process.stdout.write(await formatSketchAnalysis(name));
 }
 
-const sketch = program.command('sketch');
-sketch
-  .command('analyze', 'Analyze a sketch')
+program
+  .command('sketch')
   .description('Display information about a sketch')
-  .option('--json', 'Output JSON')
+  .addOption(
+    new Option('--json', 'Output the legacy JSON representation').hideHelp()
+  )
   .argument('<SKETCH_FILE>', 'The sketch to analyze')
   .action(analyzeSketch);
 

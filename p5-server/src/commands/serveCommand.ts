@@ -11,14 +11,23 @@ import type {
   BrowserWindowEvent,
 } from '../server/eventTypes.js';
 import { Server } from '../server/Server.js';
+import {
+  parseDimensions,
+  parseFiniteNumber,
+  parsePositiveNumber,
+} from './agentOptions.js';
 
 type Options = {
+  agent?: boolean;
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
+  canvasSize?: string;
   console?: boolean | 'json' | 'passive';
   host?: string;
   open?: boolean;
   port?: string;
+  pixelDensity?: string;
   proxyCache?: boolean;
+  seed?: string;
   split?: boolean;
   theme?: string;
 };
@@ -46,7 +55,26 @@ export default async function serve(files: string[], options: Options) {
 
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
+  if (
+    !options.agent &&
+    (options.canvasSize || options.pixelDensity || options.seed)
+  ) {
+    die('--canvas-size, --pixel-density, and --seed require --agent');
+  }
   const serverOptions: Server.Options = {
+    agentSupport: options.agent
+      ? {
+          canvasDimensions: options.canvasSize
+            ? parseDimensions(options.canvasSize, 'canvas size')
+            : undefined,
+          pixelDensity: options.pixelDensity
+            ? parsePositiveNumber(options.pixelDensity, 'pixel density')
+            : undefined,
+          seed: options.seed
+            ? parseFiniteNumber(options.seed, 'seed')
+            : undefined,
+        }
+      : false,
     host: options.host,
     proxyCache: options.proxyCache,
     port: Number(options.port),
@@ -60,6 +88,12 @@ export default async function serve(files: string[], options: Options) {
   if (options.console)
     subscribeToBrowserEvents(server, options.console === 'json');
   console.log(`Serving ${displayName} at ${server.url}`);
+  if (options.agent) {
+    console.log(
+      'Agent support is available in the page as window.__p5Agent.\n' +
+        'It can report readiness, wait for a frame, set the random seed, and capture the canvas.'
+    );
+  }
   if ((options.open || options.browser) && server.url)
     openInBrowser(server.url, options.browser?.toLowerCase());
 }

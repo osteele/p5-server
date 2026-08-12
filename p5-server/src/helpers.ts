@@ -130,7 +130,8 @@ let warnedAboutMissingHtmlBody = false;
  */
 export function addScriptToHtmlHead(
   html: string,
-  source: string | Record<string, unknown>
+  source: string | Record<string, unknown>,
+  options: { prepend?: boolean } = {}
 ): string {
   const htmlRoot = parseHtml(html);
   const scriptNode = new HTMLElement(
@@ -166,6 +167,10 @@ export function addScriptToHtmlHead(
   if (!head) {
     return html.replace(/(<\/head>)/, `$1${scriptNode.outerHTML}`);
   }
-  head.appendChild(scriptNode);
+  if (options.prepend) {
+    head.insertAdjacentHTML('afterbegin', scriptNode.outerHTML);
+  } else {
+    head.appendChild(scriptNode);
+  }
   return htmlRoot.outerHTML;
 }

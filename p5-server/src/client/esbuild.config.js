@@ -1,6 +1,7 @@
 import { buildSync } from 'esbuild';
 
 for (const input of [
+  'agent-support.ts',
   'console-relay.ts',
   'iframe-manager.js',
   'screenshot.js',

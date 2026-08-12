@@ -15,11 +15,18 @@
     - [Create a sketch file](#create-a-sketch-file)
   - [Build a static site](#build-a-static-site)
   - [Create a screenshot](#create-a-screenshot)
+  - [Use p5-server with coding agents](#use-p5-server-with-coding-agents)
+    - [Install p5-server as an agent skill](#install-p5-server-as-an-agent-skill)
+    - [Inspect a sketch](#inspect-a-sketch)
+    - [Render and check a sketch](#render-and-check-a-sketch)
+    - [Use an existing browser integration](#use-an-existing-browser-integration)
   - [Convert between JavaScript-only and HTML sketches](#convert-between-javascript-only-and-html-sketches)
 - [Command-Line Reference](#command-line-reference)
+  - [`p5 analyze sketch PATH`](#p5-analyze-sketch-path)
   - [`p5 build [DIRECTORY]`](#p5-build-directory)
   - [`p5 convert FILENAME --to FORMAT`](#p5-convert-filename---to-format)
   - [`p5 create [NAME]`](#p5-create-name)
+  - [`p5 render FILENAME`](#p5-render-filename)
   - [`p5 serve [PATH...]`](#p5-serve-path)
   - [`p5 screenshot FILENAME`](#p5-screenshot-filename)
   - [`p5 tree [DIRECTORY]`](#p5-tree-directory)
@@ -39,7 +46,9 @@
 provides a web server with live reload, and command-line tools to generate HTML
 and JavaScript templates. The server can serve JavaScript-only sketches (that do
 not require an HTML file); it figures out which libraries a sketch needs in
-order to run.
+order to run. Coding agents can inspect sketches, render them in a bounded
+headless browser session, and connect their existing browser tools to a
+p5-aware page API.
 
 ![Directory listing in the browser](docs/screenshot.png)
 
@@ -62,6 +71,10 @@ API](https://github.com/osteele/p5-server/tree/main/p5-analysis#readme).
 
 ## Features
 
+- **Agent support.** `p5 analyze sketch` describes a sketch and its problems in
+  readable text. `p5 render` runs it headlessly and reports static, browser,
+  console, and request failures. `p5 serve --agent` adds p5-specific controls
+  for browser integrations.
 - **Live reload.** The browser reloads the page when the source is
   modified.
 - **JavaScript-only sketches.** A sketch can be a single JavaScript file. You
@@ -212,6 +225,77 @@ Notes:
   screenshot.
 - The screenshot feature has not been tested with instance-mode sketches.
 
+### Use p5-server with coding agents
+
+p5-server gives coding agents a p5-aware test loop. Its reports use labeled,
+readable sections so an agent can read the whole result directly. A written
+image does not by itself mean that a render succeeded. The final `Errors`
+section and the process exit status determine success.
+
+#### Install p5-server as an agent skill
+
+Give a coding agent this prompt:
+
+> Install `p5-server` from https://github.com/osteele/p5-server and create a
+> coding skill for using its agent-support features.
+
+For an unreleased build, replace the repository URL with its download URL.
+
+#### Inspect a sketch
+
+```sh
+p5 analyze sketch path/to/sketch.js
+```
+
+The report identifies the entry files, associated assets, additional p5.js
+libraries, missing files, and JavaScript syntax errors. Absolute paths make the
+reported files easy to open from another tool.
+
+#### Render and check a sketch
+
+```sh
+p5 render path/to/sketch.js --frame 60 --seed 42 --canvas-size 800x800
+```
+
+`p5 render` starts a temporary server and a headless browser, waits for the
+requested p5 frame, saves the first canvas, closes both processes, and prints a
+report. The report includes the browser and canvas state, output path, files,
+libraries, console messages, warnings, runtime errors, and failed requests.
+The command exits with a nonzero status when the sketch has a syntax error,
+missing asset, browser error, failed request, `console.error()` message, missing
+canvas, or timeout.
+
+The default browser is an installed Google Chrome. Use `--browser msedge` for
+Microsoft Edge, or `--browser-path PATH` for another Chromium executable. Use
+`--full-page` to capture p5.js DOM elements and the rest of the page instead of
+the first canvas.
+
+Set the frame, seed, viewport, canvas size, and pixel density when they affect
+the result. These settings make comparisons between edits more meaningful.
+
+#### Use an existing browser integration
+
+```sh
+p5 serve path/to/sketch.js --agent --seed 42 --canvas-size 800x800
+```
+
+Open the printed URL with Puppeteer, Playwright, a browser plugin, or a computer
+use tool. The sketch page exposes `window.__p5Agent`:
+
+```js
+await window.__p5Agent.waitForReady();
+await window.__p5Agent.waitForFrame(60);
+window.__p5Agent.getStatus();
+window.__p5Agent.setSeed(42);
+window.__p5Agent.captureCanvas();
+```
+
+`getStatus()` reports document readiness, canvas dimensions, the observed p5
+frame, and loop state. `captureCanvas()` returns a PNG data URL by default. The
+wait methods accept an optional timeout in milliseconds. The browser
+integration remains responsible for navigation, screenshots, DOM inspection,
+and input events such as clicks and key presses.
+
 ### Convert between JavaScript-only and HTML sketches
 
 `p5 convert sketch.html --to script` converts an HTML sketch to a
@@ -227,6 +311,13 @@ sketch.
 Run `p5 --help` to see a list of commands.
 
 Run `p5 <command> --help` to see command-line options for a particular command.
+
+### `p5 analyze sketch PATH`
+
+> Describe a sketch and report problems found without running it.
+
+The report includes the sketch type, description, entry files, associated
+files, inferred libraries, missing files, and syntax diagnostics.
 
 ### `p5 build [DIRECTORY]`
 
@@ -276,6 +367,21 @@ template options. The options are:
 - `no-draw` – omit the `draw()` function to create a static sketch
 - `no-examples` – omit the example call inside of `draw()`
 
+### `p5 render FILENAME`
+
+> Run a sketch in a bounded headless browser session and save an image.
+
+The default command captures the first canvas at frame 1:
+
+```sh
+p5 render sketch.js
+```
+
+Use `--frame`, `--seed`, `--viewport`, `--canvas-size`, and `--pixel-density`
+to control the render. `--timeout` sets the limit for the complete operation in
+seconds. `--full-page` captures the whole document. Run `p5 render --help` for
+the full option list.
+
 ### `p5 serve [PATH...]`
 
 > Runs a web server that knows about p5.js sketches.
@@ -300,6 +406,10 @@ trusted network; p5-server is a development server, not a production server.
 
 If another server is already running on port 3000, the server will choose
 another port.
+
+`p5 serve PATH --agent` injects `window.__p5Agent` into sketch pages. The
+`--seed`, `--canvas-size`, and `--pixel-density` options set p5 behavior before
+the sketch starts. These options require `--agent`.
 
 ### `p5 screenshot FILENAME`
 
@@ -411,6 +521,7 @@ This project builds on these libraries and frameworks:
 - LiveReload for live reload
 - Marked for converting Markdown to HTML
 - Nunjucks and Pug for template generation
+- Playwright for headless browser control
 - Semantic UI for directory-page styles
 - [p5.js](https://p5js.org/)
 

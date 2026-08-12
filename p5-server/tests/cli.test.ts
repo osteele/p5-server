@@ -1,6 +1,7 @@
 import build from '../src/commands/buildCommand';
 import convert from '../src/commands/convertSketch';
 import create from '../src/commands/createSketch';
+import render from '../src/commands/renderCommand';
 import serve from '../src/commands/serveCommand';
 
 test('cli', () => {
@@ -9,5 +10,6 @@ test('cli', () => {
   expect(build).toBeInstanceOf(Function);
   expect(convert).toBeInstanceOf(Function);
   expect(create).toBeInstanceOf(Function);
+  expect(render).toBeInstanceOf(Function);
   expect(serve).toBeInstanceOf(Function);
 });

@@ -75,6 +75,7 @@
     "nunjucks": "^3.2.3",
     "open": "^11.0.0",
     "p5-analysis": "^1.0.0",
+    "playwright-core": "^1.62.1",
     "pug": "^3.0.4",
     "update-notifier": "^7.3.1",
     "ws": "^8.18.3"

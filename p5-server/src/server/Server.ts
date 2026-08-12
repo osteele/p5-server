@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import express from 'express';
 import pug from 'pug';
 import { assertError } from '../assertError.js';
+import type { AgentSupportSettings } from './agentSupport.js';
 import {
   attachBrowserScriptRelay,
   type BrowserScriptRelay,
@@ -23,6 +24,9 @@ const dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export namespace Server {
   export type Options = Partial<{
+    /** Inject the browser API used by agents and the headless renderer. */
+    agentSupport: boolean | AgentSupportSettings;
+
     /** The http port number. Defaults to 3000. */
     port: number;
 
@@ -43,6 +47,9 @@ export namespace Server {
     /** Cache requests to CND servers, for use without an internet connection.
      */
     proxyCache: boolean;
+
+    /** Suppress server status messages. */
+    quiet: boolean;
 
     /** If true, relay console events from the sketch to an emitter on the
      * server. */
@@ -86,11 +93,13 @@ export type RouterConfig = Server.Options & {
 type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
+  agentSupport: false,
   host: '127.0.0.1',
   liveServer: true,
   logConsoleEvents: false,
   port: 3000,
   proxyCache: true,
+  quiet: false,
   relayConsoleMessages: false,
   scanPorts: true,
   screenshot: null,
@@ -110,6 +119,9 @@ async function startServer(
 
   // add routes
   app.use(staticAssetPrefix, express.static(path.join(dirname, 'static')));
+  app.get('/favicon.ico', (_req, res) => {
+    res.sendFile(path.join(dirname, 'static/favicon.png'));
+  });
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -131,7 +143,9 @@ async function startServer(
   }
   app.use(proxyPrefix, cdnProxyRouter);
   app.use((req, _res, next) => {
-    console.warn(chalk.red(`Not found (404): ${req.originalUrl}`));
+    if (!config.quiet) {
+      console.warn(chalk.red(`Not found (404): ${req.originalUrl}`));
+    }
     next();
   });
 
@@ -146,16 +160,20 @@ async function startServer(
   // Scan for an avialable port
   let server: http.Server | null = null;
   const port = config.port;
-  for (let p = port; p < port + 10; p++) {
-    try {
-      server = await promiseListen(app, p, config.host);
-      break; // success!
-    } catch (err) {
-      assertError(err);
-      if (err.code !== 'EADDRINUSE' || !config.scanPorts) {
-        throw err;
+  if (port === 0) {
+    server = await promiseListen(app, 0, config.host);
+  } else {
+    for (let p = port; p < port + 10; p++) {
+      try {
+        server = await promiseListen(app, p, config.host);
+        break; // success!
+      } catch (err) {
+        assertError(err);
+        if (err.code !== 'EADDRINUSE' || !config.scanPorts) {
+          throw err;
+        }
+        if (!config.quiet) console.log(`Port ${p} is in use, retrying...`);
       }
-      console.log(`Port ${p} is in use, retrying...`);
     }
   }
   // If the port scan didn't find an available port within the range. Allow
@@ -258,7 +276,7 @@ export class Server {
   public filePathToUrl(filePath: string): string | null {
     const baseUrl = this.url || this.defaultUrl;
     for (const mountPoint of this.mountPoints) {
-      const filePrefix = mountPoint.filePath + path.sep;
+      const filePrefix = this.mountPointFileRoot(mountPoint) + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
       if (filePath.startsWith(filePrefix)) {
         return baseUrl + filePath.replace(filePrefix, pathPrefix);
@@ -269,7 +287,7 @@ export class Server {
 
   public urlPathToFilePath(urlPath: string): string | null {
     for (const mountPoint of this.mountPoints) {
-      const filePrefix = mountPoint.filePath + path.sep;
+      const filePrefix = this.mountPointFileRoot(mountPoint) + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
       if (urlPath.startsWith(pathPrefix)) {
         return urlPath.replace(pathPrefix, filePrefix);
@@ -281,7 +299,14 @@ export class Server {
   public serverUrlToFileUrl(url: string): string | null {
     const baseUrl = this.url || this.defaultUrl;
     if (url.startsWith(`${baseUrl}/`)) {
-      const filepath = this.urlPathToFilePath(url.slice(baseUrl.length));
+      const urlPath = url.slice(baseUrl.length);
+      if (
+        urlPath.startsWith(`${proxyPrefix}/`) ||
+        urlPath.startsWith(`${staticAssetPrefix}/`)
+      ) {
+        return null;
+      }
+      const filepath = this.urlPathToFilePath(urlPath);
       if (filepath) return `file://${path.resolve(filepath)}`;
     }
     return null;
@@ -289,6 +314,13 @@ export class Server {
 
   private get defaultUrl(): string {
     return `http://${hostForUrl(this.config.host)}:${this.config.port}`;
+  }
+
+  private mountPointFileRoot(mountPoint: MountPoint): string {
+    return fs.existsSync(mountPoint.filePath) &&
+      !fs.statSync(mountPoint.filePath).isDirectory()
+      ? path.dirname(mountPoint.filePath)
+      : mountPoint.filePath;
   }
 
   /** Normalize file paths; remove trailing slashes from file and url paths;

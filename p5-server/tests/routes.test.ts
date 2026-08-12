@@ -73,6 +73,30 @@ describe('Express routes', () => {
     expect(response.headers.get('location')).toBe('/collection/');
   });
 
+  test('injects agent support into a sketch directory index', async () => {
+    const agentServer = await Server.start({
+      agentSupport: { seed: 42 },
+      liveServer: false,
+      port: 0,
+      proxyCache: false,
+      root: './tests/testdata/single-sketch-directory',
+    });
+    try {
+      const response = await fetch(agentServer.url!, {
+        headers: { accept: 'text/html' },
+      });
+      const html = await response.text();
+
+      expect(html).toContain('__p5_server_agent_settings');
+      expect(html).toContain('/__p5_server_static/agent-support.min.js');
+      expect(html.indexOf('agent-support.min.js')).toBeLessThan(
+        html.indexOf('sketch.js')
+      );
+    } finally {
+      await agentServer.close();
+    }
+  });
+
   function request(path: string, accept: string): Promise<Response> {
     return fetch(`${server.url}${path}`, { headers: { accept } });
   }

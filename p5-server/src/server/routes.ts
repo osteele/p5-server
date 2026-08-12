@@ -5,6 +5,7 @@ import express, { type Request, type Response } from 'express';
 import { Script, Sketch } from 'p5-analysis';
 import { assertError } from '../assertError.js';
 import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers.js';
+import { injectAgentSupport } from './agentSupport.js';
 import { injectScriptEventRelayScript } from './browserScriptEventRelay.js';
 import { replaceUrlsInHtml } from './cdnProxy.js';
 import { staticAssetPrefix } from './constants.js';
@@ -132,7 +133,9 @@ export function createRouter(config: RouterConfig): express.Router {
     try {
       const errs = Script.fromFile(filepath).getErrors();
       if (errs.length) {
-        console.error(`Syntax error in ${filepath}: ${errs[0].message}`);
+        if (!config.quiet) {
+          console.error(`Syntax error in ${filepath}: ${errs[0].message}`);
+        }
         res.set('Content-Type', 'text/html');
         return res.send(createSyntaxErrorJsReporter(filepath, errs));
       }
@@ -194,6 +197,12 @@ export function createRouter(config: RouterConfig): express.Router {
     res: Response<string, T>,
     html: string
   ) {
+    if (config.agentSupport) {
+      html = injectAgentSupport(
+        html,
+        typeof config.agentSupport === 'object' ? config.agentSupport : {}
+      );
+    }
     html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
     if (
       config.relayConsoleMessages ||
@@ -248,6 +257,13 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
     : await createDirectoryListing(dir, req.originalUrl, {
         templateName: config.theme,
       });
+
+  if (config.agentSupport && indexFile) {
+    html = injectAgentSupport(
+      html,
+      typeof config.agentSupport === 'object' ? config.agentSupport : {}
+    );
+  }
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents

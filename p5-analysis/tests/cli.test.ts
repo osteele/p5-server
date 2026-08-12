@@ -4,6 +4,9 @@ import { program as treeProgram } from '../src/bin/p5-tree-cli';
 
 test('cli', () => {
   expect(program.commands.length).toBeGreaterThanOrEqual(3);
+  expect(
+    program.commands.find((command) => command.name() === 'sketch')?.commands
+  ).toHaveLength(0);
   expect(libraryProgram.commands.length).toBeGreaterThan(3);
   expect(treeProgram.commands.length).toBe(0);
 });

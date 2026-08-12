@@ -14,6 +14,10 @@ import {
 } from '../commands/cacheCommands.js';
 import convert from '../commands/convertSketch.js';
 import create from '../commands/createSketch.js';
+import render, {
+  formatRenderReport,
+  type RenderOptions,
+} from '../commands/renderCommand.js';
 import screenshot from '../commands/screenshotCommand.js';
 import serve from '../commands/serveCommand.js';
 import { contentProxyCache } from '../server/cdnProxy.js';
@@ -31,14 +35,16 @@ const pkg = JSON.parse(
 );
 program.version(pkg.version);
 
-updateNotifier({ pkg }).notify({
-  isGlobal: true,
-  message: `Update available ${chalk.dim('{currentVersion}')} ${chalk.reset(
-    '→'
-  )} ${chalk.green('{latestVersion}')}
+if (process.stdout.isTTY && process.stderr.isTTY) {
+  updateNotifier({ pkg }).notify({
+    isGlobal: true,
+    message: `Update available ${chalk.dim('{currentVersion}')} ${chalk.reset(
+      '→'
+    )} ${chalk.green('{latestVersion}')}
   Run ${chalk.cyan('{updateCommand}')} to update
   Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`,
-});
+  });
+}
 
 program
   .command('create')
@@ -74,6 +80,30 @@ program
   .action(convert);
 
 program
+  .command('render')
+  .description('Render a sketch in a headless browser and report what happened')
+  .argument('SKETCH_FILE')
+  .option('-o, --output <OUTPUT>', 'screenshot output file')
+  .option('--frame <NUMBER>', 'capture after this p5 frame', '1')
+  .option('--seed <NUMBER>', 'seed p5 random() and noise()')
+  .option(
+    '--viewport <DIMENSIONS>',
+    'browser viewport, e.g. 800x600',
+    '800x600'
+  )
+  .option('--canvas-size <DIMENSIONS>', 'override canvas size')
+  .option('--pixel-density <NUMBER>', 'override p5 pixel density', '1')
+  .option('--timeout <SECONDS>', 'maximum render time', '15')
+  .option('--browser <NAME>', 'chrome | chromium | msedge', 'chrome')
+  .option('--browser-path <PATH>', 'browser executable path')
+  .option('--full-page', 'capture the full page instead of the first canvas')
+  .action(async (source: string, options: RenderOptions) => {
+    const report = await render(source, options);
+    process.stdout.write(formatRenderReport(report));
+    if (!report.success) process.exitCode = 1;
+  });
+
+program
   .command('screenshot')
   .argument('SKETCH_FILE')
   .option('-o, --output <OUTPUT>', 'the output file')
@@ -92,6 +122,16 @@ program
   .alias('r')
   .alias('run')
   .option('-o, --open', 'Open the page in a browser')
+  .option('--agent', 'Expose the p5 agent support API in each sketch page')
+  .option('--seed <NUMBER>', 'seed p5 random() and noise() (requires --agent)')
+  .option(
+    '--canvas-size <DIMENSIONS>',
+    'override canvas size (requires --agent)'
+  )
+  .option(
+    '--pixel-density <NUMBER>',
+    'override p5 pixel density (requires --agent)'
+  )
   .option('--host <HOST>', 'Host interface to listen on', '127.0.0.1')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
   .option('-t, --theme [FILE]', 'template file')

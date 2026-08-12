@@ -1,10 +1,10 @@
-import fs from 'node:fs';
+import fs, { type Dirent } from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import beautify from 'js-beautify';
 import { minimatch } from 'minimatch';
-import { type HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
+import { type HTMLElement, parse as parseHtml } from 'node-html-parser';
 import nunjucks from 'nunjucks';
 import pug from 'pug';
 import {
@@ -168,12 +168,19 @@ export abstract class Sketch {
     const sketches: Sketch[] = [];
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
-    let files = (await readdir(dir)).filter(
-      (file) => !exclusions.some((pattern) => minimatch(file, pattern))
+    const entries = (await readdir(dir, { withFileTypes: true })).filter(
+      (entry) => !exclusions.some((pattern) => minimatch(entry.name, pattern))
     );
+    let files = entries.map((entry) => entry.name);
 
     // collect directory sketches, and remove them from the list of files
+    const directoryNames = new Set(
+      entries
+        .filter((entry) => isDirectoryEntry(dir, entry))
+        .map((entry) => entry.name)
+    );
     files = await asyncFilter(files, async (name) => {
+      if (!directoryNames.has(name)) return true;
       const dirPath = path.join(dir, name);
       const sketch = await Sketch.isSketchDir(dirPath, { exclusions });
       if (sketch) {
@@ -186,26 +193,36 @@ export abstract class Sketch {
     // collect HTML sketches
     for (const file of files) {
       const filePath = path.join(dir, file);
-      if (await Sketch.isSketchHtmlFile(filePath)) {
-        sketches.push(await Sketch.fromHtmlFile(filePath));
-      }
+      const sketch = await HtmlSketch.fromSketchFile(filePath);
+      if (sketch) sketches.push(sketch);
     }
 
+    const associatedFiles = new Set<string>();
+    const resolvedDir = path.resolve(dir);
+    collectAssociatedFiles();
+
     // collect JS sketches
-    for (const file of removeProjectFiles(files)) {
+    for (const file of files.filter((file) => !associatedFiles.has(file))) {
       const filePath = path.join(dir, file);
       if (await Sketch.isSketchScriptFile(filePath)) {
-        sketches.push(await Sketch.fromScriptFile(filePath));
+        const sketch = await Sketch.fromScriptFile(filePath);
+        sketches.push(sketch);
+        addAssociatedFiles(sketch);
       }
     }
     return {
       sketches,
       allFiles: files,
-      unassociatedFiles: removeProjectFiles(files),
+      unassociatedFiles: files.filter((file) => !associatedFiles.has(file)),
     };
 
-    function removeProjectFiles(files: string[]) {
-      return files.filter((f) => !sketches.some((s) => s.files.includes(f)));
+    function collectAssociatedFiles() {
+      for (const sketch of sketches) addAssociatedFiles(sketch);
+    }
+
+    function addAssociatedFiles(sketch: Sketch) {
+      if (path.resolve(sketch.dir) !== resolvedDir) return;
+      for (const file of sketch.files) associatedFiles.add(file);
     }
   }
 
@@ -260,10 +277,14 @@ export abstract class Sketch {
       return null;
     }
 
-    const files = await fs
-      .readdirSync(dir)
-      .filter((file) => !exclusions.some((pattern) => minimatch(file, pattern)))
-      .map((file) => path.join(dir, file));
+    const entries = fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter(
+        (entry) => !exclusions.some((pattern) => minimatch(entry.name, pattern))
+      );
+    const files = entries
+      .filter((entry) => !isDirectoryEntry(dir, entry))
+      .map((entry) => path.join(dir, entry.name));
 
     // is there an index.html file?
     const indexFiles = await asyncFilter(
@@ -312,19 +333,20 @@ export abstract class Sketch {
       if (depth <= 0) {
         return false;
       }
-      const files = fs
-        .readdirSync(dir)
+      const entries = fs
+        .readdirSync(dir, { withFileTypes: true })
         .filter(
-          (file) => !exclusions.some((pattern) => minimatch(file, pattern))
-        )
-        .map((file) => path.join(dir, file));
-      return asyncSome(files, (file) =>
-        fs.statSync(file).isDirectory()
-          ? subdirectoriesContainSketchFiles(file, depth - 1)
+          (entry) =>
+            !exclusions.some((pattern) => minimatch(entry.name, pattern))
+        );
+      return asyncSome(entries, (entry) => {
+        const file = path.join(dir, entry.name);
+        return isDirectoryEntry(dir, entry)
+          ? subdirectoriesContainSketchFiles(file, depth - 1, true)
           : includeFiles
             ? Sketch.isSketchFile(file)
-            : Promise.resolve(false)
-      );
+            : Promise.resolve(false);
+      });
     }
   }
 
@@ -528,6 +550,9 @@ export abstract class Sketch {
 
 export class HtmlSketch extends Sketch {
   public readonly htmlFile: string;
+  private _htmlRoot: HTMLElement | null | undefined;
+  private _files?: readonly string[];
+  private _libraries?: readonly Library[];
 
   constructor(
     dir: string,
@@ -539,10 +564,27 @@ export class HtmlSketch extends Sketch {
     this.htmlFile = htmlFile;
   }
 
-  static async fromFile(htmlFilePath: string): Promise<Sketch> {
-    const dir = path.dirname(htmlFilePath);
+  static async fromFile(htmlFilePath: string): Promise<HtmlSketch> {
     const htmlContent = await readFile(htmlFilePath, 'utf-8');
     const htmlRoot = parseHtml(htmlContent);
+    return HtmlSketch.fromHtmlRoot(htmlFilePath, htmlRoot);
+  }
+
+  static async fromSketchFile(
+    htmlFilePath: string
+  ): Promise<HtmlSketch | null> {
+    if (!HtmlSketch.isHtmlFile(htmlFilePath)) return null;
+    const htmlContent = await readFile(htmlFilePath, 'utf-8');
+    const htmlRoot = parseHtml(htmlContent);
+    if (!HtmlSketch.isSketchHtmlRoot(htmlRoot)) return null;
+    return HtmlSketch.fromHtmlRoot(htmlFilePath, htmlRoot);
+  }
+
+  private static async fromHtmlRoot(
+    htmlFilePath: string,
+    htmlRoot: HTMLElement
+  ): Promise<HtmlSketch> {
+    const dir = path.dirname(htmlFilePath);
     const description = htmlRoot
       .querySelector('head meta[name=description]')
       ?.attributes.content.trim();
@@ -551,27 +593,38 @@ export class HtmlSketch extends Sketch {
       (await asyncFind(scripts, (name) =>
         Sketch.isSketchScriptFile(path.join(dir, name))
       )) || scripts[0];
-    return new HtmlSketch(dir, path.basename(htmlFilePath), scriptFile, {
-      description,
-    });
+    const sketch = new HtmlSketch(
+      dir,
+      path.basename(htmlFilePath),
+      scriptFile,
+      {
+        description,
+      }
+    );
+    sketch._htmlRoot = htmlRoot;
+    return sketch;
   }
 
   static async isSketchHtmlFile(htmlFilePath: string): Promise<boolean> {
-    if (
-      !isHtmlPathname(htmlFilePath) ||
-      !fs.existsSync(htmlFilePath) ||
-      fs.statSync(htmlFilePath).isDirectory()
-    ) {
-      return false;
-    }
+    if (!HtmlSketch.isHtmlFile(htmlFilePath)) return false;
 
     const html = await readFile(htmlFilePath, 'utf-8');
     const htmlRoot = parseHtml(html);
-    const scriptSrcs = htmlRoot
+    return HtmlSketch.isSketchHtmlRoot(htmlRoot);
+  }
+
+  private static isHtmlFile(htmlFilePath: string): boolean {
+    return (
+      isHtmlPathname(htmlFilePath) &&
+      fs.existsSync(htmlFilePath) &&
+      !fs.statSync(htmlFilePath).isDirectory()
+    );
+  }
+
+  private static isSketchHtmlRoot(htmlRoot: HTMLElement): boolean {
+    return htmlRoot
       .querySelectorAll('script[src]')
-      .map((node) => node.attributes.src);
-    // TODO: also require that a script contains setup()
-    return scriptSrcs.some((src) => src.search(/\bp5(\.min)?\.js$/));
+      .some((node) => /\bp5(\.min)?\.js$/.test(node.attributes.src));
   }
 
   get structureType(): SketchStructureType {
@@ -583,23 +636,24 @@ export class HtmlSketch extends Sketch {
   }
 
   get files(): readonly string[] {
+    if (this._files) return this._files;
     const files = [
       this.htmlFile,
       this.scriptFile,
       ...this.getAssociatedFiles(),
     ];
-    return [...new Set(files)];
+    this._files = [...new Set(files)];
+    return this._files;
   }
 
-  get libraries(): Library[] {
-    return this.explicitLibraries();
+  get libraries(): readonly Library[] {
+    if (!this._libraries) this._libraries = this.explicitLibraries();
+    return this._libraries;
   }
 
   private explicitLibraries(): Library[] {
-    const htmlFilePath = this.htmlFilePath!;
-    if (!fs.existsSync(htmlFilePath)) return [];
-    const content = fs.readFileSync(htmlFilePath, 'utf-8');
-    const htmlRoot = parse(content);
+    const htmlRoot = this.getHtmlRoot();
+    if (!htmlRoot) return [];
     const libs: (Library | null)[] = htmlRoot
       .querySelectorAll('script[src]')
       .map((node) => node.attributes.src)
@@ -608,24 +662,17 @@ export class HtmlSketch extends Sketch {
   }
 
   protected getTitleFromFile(): string | null {
-    const filePath = this.htmlFilePath!;
-    if (fs.existsSync(filePath)) {
-      const htmlContent = fs.readFileSync(filePath, 'utf-8');
-      const htmlRoot = parseHtml(htmlContent);
-      const title = htmlRoot.querySelector('head title')?.text?.trim();
-      if (title) return title;
-    }
-    return null;
+    return (
+      this.getHtmlRoot()?.querySelector('head title')?.text?.trim() || null
+    );
   }
 
   private getAssociatedFiles() {
-    const htmlFile = this.htmlFilePath!;
-    if (fs.existsSync(htmlFile)) {
-      const html = fs.readFileSync(htmlFile, 'utf-8');
-      const htmlRoot = parseHtml(html);
+    const htmlRoot = this.getHtmlRoot();
+    if (htmlRoot) {
       const scriptFiles = this.getLocalScriptFiles(htmlRoot);
       return [
-        ...this.getLocalScriptFiles(htmlRoot),
+        ...scriptFiles,
         ...htmlRoot
           .querySelectorAll('head link[href]')
           .map((e) => e.attributes.href.replace(/^\.\//, ''))
@@ -641,10 +688,18 @@ export class HtmlSketch extends Sketch {
 
   protected getLocalScriptFiles(htmlRoot?: HTMLElement): readonly string[] {
     if (!htmlRoot) {
-      const html = fs.readFileSync(this.htmlFilePath!, 'utf-8');
-      htmlRoot = parseHtml(html);
+      htmlRoot = this.getHtmlRoot() || undefined;
     }
-    return HtmlSketch.getLocalScriptFiles(htmlRoot);
+    return htmlRoot ? HtmlSketch.getLocalScriptFiles(htmlRoot) : [];
+  }
+
+  private getHtmlRoot(): HTMLElement | null {
+    if (this._htmlRoot !== undefined) return this._htmlRoot;
+    const htmlFile = this.htmlFilePath!;
+    this._htmlRoot = fs.existsSync(htmlFile)
+      ? parseHtml(fs.readFileSync(htmlFile, 'utf-8'))
+      : null;
+    return this._htmlRoot;
   }
 
   private static getLocalScriptFiles(htmlRoot: HTMLElement) {
@@ -717,13 +772,26 @@ export class HtmlSketch extends Sketch {
         }
 
         fs.unlinkSync(htmlPath);
+        this._htmlRoot = null;
+        this._files = undefined;
+        this._libraries = undefined;
       }
     }
   }
 }
 
+function isDirectoryEntry(parent: string, entry: Dirent): boolean {
+  if (entry.isDirectory()) return true;
+  if (!entry.isSymbolicLink()) return false;
+  const file = path.join(parent, entry.name);
+  return fs.existsSync(file) && fs.statSync(file).isDirectory();
+}
+
 export class ScriptSketch extends Sketch {
-  static async fromFile(scriptFile: string): Promise<Sketch> {
+  private _files?: readonly string[];
+  private _libraries?: readonly Library[];
+
+  static async fromFile(scriptFile: string): Promise<ScriptSketch> {
     const dir = path.dirname(scriptFile);
     let description: string | undefined;
     if (fs.existsSync(scriptFile)) {
@@ -773,11 +841,18 @@ export class ScriptSketch extends Sketch {
   }
 
   get files(): readonly string[] {
+    if (this._files) return this._files;
     const files = [
       this.scriptFile,
       ...Script.getAssociatedFiles(path.join(this.dir, this.scriptFile)),
     ];
-    return [...new Set(files)];
+    this._files = [...new Set(files)];
+    return this._files;
+  }
+
+  get libraries(): readonly Library[] {
+    if (!this._libraries) this._libraries = this.impliedLibraries();
+    return this._libraries;
   }
 
   public async convert(options: { type: SketchStructureType }): Promise<void> {

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- Apply script injection and CDN URL rewriting in one HTML parse per response.
+  In a local synthetic benchmark on a 10,000-node document with six script
+  insertions, median transformation time fell from 276.54 ms to 44.51 ms (84%
+  lower, or 6.2 times faster). This benchmark used Bun 1.3.14 on macOS and is
+  not a production guarantee.
+
 ## [1.0.1] - 2026-08-12
 
 ### Fixed

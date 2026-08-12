@@ -77,3 +77,7 @@ export const contentProxyCache = createProxyCache({
 });
 
 export const { replaceUrlsInHtml, router: cdnProxyRouter } = contentProxyCache;
+
+export function proxyCdnUrl(url: string): string | undefined {
+  return isCdnUrl(url) ? contentProxyCache.encodeProxyPath(url) : undefined;
+}

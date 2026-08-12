@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { parse } from 'node-html-parser';
 import {
   pathComponentsForBreadcrumbs,
   pathIsInDirectory,
   resolvePathInDirectory,
+  transformHtml,
 } from '../src/helpers';
 
 test('pathIsInDirectory', () => {
@@ -57,4 +59,36 @@ test('pathComponentsForBreadcrumbs', () => {
     { path: '/a', name: 'a' },
     { path: '/a/b', name: 'b' },
   ]);
+});
+
+test('transformHtml batches scripts and URL rewrites', () => {
+  const html = transformHtml(
+    '<html><head><script src="https://cdn.example/app.js"></script></head><body></body></html>',
+    {
+      headScripts: [
+        { source: '/after.js' },
+        { source: { settings: { seed: 42 } }, prepend: true },
+      ],
+      transformUrl: (url) =>
+        url.startsWith('https://cdn.example/')
+          ? `/proxy/${url.slice('https://'.length)}`
+          : undefined,
+    }
+  );
+  const scripts = parse(html).querySelectorAll('script');
+
+  expect(scripts).toHaveLength(3);
+  expect(scripts[0].text).toContain('const settings = {"seed":42};');
+  expect(scripts[1].attributes.src).toBe('/proxy/cdn.example/app.js');
+  expect(scripts[2].attributes.src).toBe('/after.js');
+});
+
+test('transformHtml can rewrite relative URLs', () => {
+  const html = transformHtml('<script src="app.js"></script>', {
+    transformUrl: (url) => `/assets/${url}`,
+  });
+
+  expect(parse(html).querySelector('script')?.attributes.src).toBe(
+    '/assets/app.js'
+  );
 });

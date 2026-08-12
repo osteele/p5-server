@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { Sketch, type SketchStructureType } from '../src';
 
@@ -44,6 +45,19 @@ test('Sketch.isSketchHtmlFile', async () => {
 
   expect(fs.existsSync(f`non-sketch.html`)).toBe(true);
   expect(await Sketch.isSketchHtmlFile(f`non-sketch.html`)).toBe(false);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p5-html-detection-test-'));
+  try {
+    const appFile = path.join(dir, 'app.html');
+    fs.writeFileSync(appFile, '<script src="app.js"></script>');
+    expect(await Sketch.isSketchHtmlFile(appFile)).toBe(false);
+
+    const p5File = path.join(dir, 'p5.html');
+    fs.writeFileSync(p5File, '<script src="p5.js"></script>');
+    expect(await Sketch.isSketchHtmlFile(p5File)).toBe(true);
+  } finally {
+    fs.rmSync(dir, { force: true, recursive: true });
+  }
 });
 
 describe('Sketch.isSketchScriptFile', () => {
@@ -107,13 +121,31 @@ describe('Sketch.isSketchDir', () => {
     expect(
       await Sketch.isSketchDir(path.join(testfileDir, 'collection'))
     ).toBeFalsy());
+
+  test('rejects a sketch directory that contains a nested sketch', async () => {
+    const dir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-nested-sketch-test-')
+    );
+    const nestedDir = path.join(dir, 'nested');
+    try {
+      fs.mkdirSync(nestedDir);
+      const source = 'function setup() { createCanvas(100, 100); }';
+      fs.writeFileSync(path.join(dir, 'sketch.js'), source);
+      fs.writeFileSync(path.join(nestedDir, 'sketch.js'), source);
+      expect(await Sketch.isSketchDir(dir)).toBeNull();
+    } finally {
+      fs.rmSync(dir, { force: true, recursive: true });
+    }
+  });
 });
 
 test('Sketch.files', async () => {
   const sketch = await Sketch.fromDirectory(f`html-includes`);
+  const files = sketch.files;
   expect([...sketch.files].sort()).toEqual(
     ['index.html', 'sketch.js', 'test.css', 'data.json', 'cat.png'].sort()
   );
+  expect(sketch.files).toBe(files);
 });
 
 test('Sketch.libraries', async () => {
@@ -136,11 +168,13 @@ test('Sketch.libraries', async () => {
   expect(sketch.libraries.map((l) => l.name)).toEqual([]);
 
   sketch = await Sketch.fromFile(`${testfilesPath}/explicit-imports.html`);
+  const libraries = sketch.libraries;
   expect(sketch.libraries.map((l) => l.name)).toEqual([
     'p5.sound',
     'ml5.js',
     'RiTa',
   ]);
+  expect(sketch.libraries).toBe(libraries);
 });
 
 test('Sketch.description', async () => {

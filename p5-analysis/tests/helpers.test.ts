@@ -1,4 +1,10 @@
-import { sizeof } from '../src/helpers';
+import { isHtmlPathname, sizeof } from '../src/helpers';
+
+test('isHtmlPathname requires an HTML file extension', () => {
+  expect(isHtmlPathname('sketch.html')).toBe(true);
+  expect(isHtmlPathname('sketch.htm')).toBe(true);
+  expect(isHtmlPathname('sketch.html.bak')).toBe(false);
+});
 
 describe('sizeof', () => {
   test('boolean', () => {

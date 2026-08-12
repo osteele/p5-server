@@ -117,6 +117,84 @@ export function stringToOptions(str: string | null): { [k: string]: boolean } {
 
 let warnedAboutMissingHtmlBody = false;
 
+export type HtmlHeadScript = {
+  source: string | Record<string, unknown>;
+  prepend?: boolean;
+};
+
+export type HtmlTransformOptions = {
+  headScripts?: readonly HtmlHeadScript[];
+  transformUrl?: (url: string) => string | undefined;
+};
+
+/** Apply script insertions and URL rewrites in a single HTML parse. */
+export function transformHtml(
+  html: string,
+  { headScripts = [], transformUrl }: HtmlTransformOptions
+): string {
+  if (headScripts.length === 0 && !transformUrl) return html;
+
+  const htmlRoot = parseHtml(html);
+  let modified = false;
+
+  if (transformUrl) {
+    const attributes: readonly [selector: string, attribute: string][] = [
+      ['script[src]', 'src'],
+      ['link[rel=stylesheet][href]', 'href'],
+    ];
+    for (const [selector, attribute] of attributes) {
+      for (const element of htmlRoot.querySelectorAll(selector)) {
+        const value = element.attributes[attribute];
+        const replacement = transformUrl(value);
+        if (replacement !== undefined && replacement !== value) {
+          element.setAttribute(attribute, replacement);
+          modified = true;
+        }
+      }
+    }
+  }
+
+  if (headScripts.length === 0) {
+    return modified ? htmlRoot.outerHTML : html;
+  }
+
+  const scriptNodes = headScripts.map(({ source }) => createScriptNode(source));
+  if (!htmlRoot.querySelector('head')) {
+    const body = htmlRoot.querySelector('body');
+    if (body) {
+      body.appendChild(
+        new HTMLElement('head', {}, '', undefined, undefined, undefined)
+      );
+    } else if (!warnedAboutMissingHtmlBody) {
+      console.warn('HTML document did not have a body');
+      warnedAboutMissingHtmlBody = true;
+    }
+  }
+  const head = htmlRoot.querySelector('head');
+  if (!head) {
+    return html.replace(
+      /(<\/head>)/,
+      `$1${scriptNodes.map((node) => node.outerHTML).join('')}`
+    );
+  }
+  for (const [index, { prepend }] of headScripts.entries()) {
+    const scriptHtml = scriptNodes[index].outerHTML;
+    if (prepend) {
+      head.insertAdjacentHTML('afterbegin', scriptHtml);
+    } else {
+      head.appendChild(scriptNodes[index]);
+    }
+  }
+  return htmlRoot.outerHTML;
+}
+
+export function addScriptsToHtmlHead(
+  html: string,
+  scripts: readonly HtmlHeadScript[]
+): string {
+  return transformHtml(html, { headScripts: scripts });
+}
+
 /** Insert a <script> element in an HTML document's head.
  *
  * If the source argument is a string, it becomes the value of the element's
@@ -133,7 +211,12 @@ export function addScriptToHtmlHead(
   source: string | Record<string, unknown>,
   options: { prepend?: boolean } = {}
 ): string {
-  const htmlRoot = parseHtml(html);
+  return addScriptsToHtmlHead(html, [{ source, prepend: options.prepend }]);
+}
+
+function createScriptNode(
+  source: string | Record<string, unknown>
+): HTMLElement {
   const scriptNode = new HTMLElement(
     'script',
     {},
@@ -150,27 +233,5 @@ export function addScriptToHtmlHead(
             .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
             .join('\n');
   }
-  // The following works during development. Previously it has failed in distr:
-  // htmlRoot.querySelector(tagName) always returns null.
-  if (!htmlRoot.querySelector('head')) {
-    const body = htmlRoot.querySelector('body');
-    if (body)
-      body.appendChild(
-        new HTMLElement('head', {}, '', undefined, undefined, undefined)
-      );
-    else if (!warnedAboutMissingHtmlBody) {
-      console.warn('HTML document did not have a body');
-      warnedAboutMissingHtmlBody = true;
-    }
-  }
-  const head = htmlRoot.querySelector('head');
-  if (!head) {
-    return html.replace(/(<\/head>)/, `$1${scriptNode.outerHTML}`);
-  }
-  if (options.prepend) {
-    head.insertAdjacentHTML('afterbegin', scriptNode.outerHTML);
-  } else {
-    head.appendChild(scriptNode);
-  }
-  return htmlRoot.outerHTML;
+  return scriptNode;
 }

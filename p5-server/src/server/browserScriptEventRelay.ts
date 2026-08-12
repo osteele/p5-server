@@ -14,7 +14,7 @@ import type {
   Message,
   WindowMessage,
 } from '../consoleRelayTypes.js';
-import { addScriptToHtmlHead } from '../helpers.js';
+import { addScriptsToHtmlHead, type HtmlHeadScript } from '../helpers.js';
 import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
 import { staticAssetPrefix } from './constants.js';
 import type {
@@ -167,7 +167,11 @@ export function replaceUrlsInStack(
 }
 
 export function injectScriptEventRelayScript(html: string): string {
-  return addScriptToHtmlHead(html, `${staticAssetPrefix}/console-relay.min.js`);
+  return addScriptsToHtmlHead(html, scriptEventRelayHeadScripts());
+}
+
+export function scriptEventRelayHeadScripts(): HtmlHeadScript[] {
+  return [{ source: `${staticAssetPrefix}/console-relay.min.js` }];
 }
 
 const serializationPrefix = '__p5_server_serialization_:';

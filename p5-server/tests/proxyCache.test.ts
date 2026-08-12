@@ -1,5 +1,10 @@
 import stream from 'node:stream';
-import { contentProxyCache, isCdnUrl } from '../src/server/cdnProxy';
+import { transformHtml } from '../src/helpers';
+import {
+  contentProxyCache,
+  isCdnUrl,
+  proxyCdnUrl,
+} from '../src/server/cdnProxy';
 
 describe('CDN Proxy', () => {
   test('recognizes only configured CDN URLs', () => {
@@ -12,6 +17,17 @@ describe('CDN Proxy', () => {
     expect(isCdnUrl('/npm/p5@1.4.0/lib/p5.min.js')).toBe(false);
     expect(isCdnUrl('ftp://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js')).toBe(
       false
+    );
+  });
+
+  test('rewrites configured CDN URLs during a shared HTML transform', () => {
+    const html = transformHtml(
+      '<script src="https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js"></script>',
+      { transformUrl: proxyCdnUrl }
+    );
+
+    expect(html).toContain(
+      'src="/__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js"'
     );
   });
 

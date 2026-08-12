@@ -1,16 +1,9 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from '@babel/parser';
 import { LRUCache } from 'lru-cache';
 import { sizeof } from '../helpers/index.js';
-import {
-  findCallArguments,
-  findGlobalDefinitions,
-  findGlobalReferences,
-  findPropertyReferences,
-  isP5InstanceSketch,
-} from './script-analysis.js';
+import { analyzeScript } from './script-analysis.js';
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 
@@ -42,18 +35,27 @@ export class Script implements ScriptAnalysis {
   private _analysis?: Readonly<ScriptAnalysis>;
   private _syntaxError?: SyntaxError;
   private _ast?: Readonly<ReturnType<typeof parse>>;
+  private readonly cacheKey?: string;
+  private readonly cacheDigest?: string;
+  private isFileBacked = false;
 
   constructor(
     public readonly source: string,
     public readonly filename?: string
   ) {
-    if (this.cacheKey) {
-      const [hash, data] = scriptAnalysisCache.get(this.cacheKey) || [];
-      if (hash === this.cacheDigest && data) {
-        if (data.type === 'analysis') {
-          this._analysis = data.analysis;
+    this.cacheKey = filename ? path.resolve(filename) : undefined;
+    this.cacheDigest = filename ? createFileDigest(filename) : undefined;
+    if (this.cacheKey && this.cacheDigest) {
+      const cached = scriptAnalysisCache.get(this.cacheKey);
+      if (
+        cached?.digest === this.cacheDigest &&
+        cached.source === this.source &&
+        cached.data
+      ) {
+        if (cached.data.type === 'analysis') {
+          this._analysis = cached.data.analysis;
         } else {
-          this._syntaxError = data.syntaxError;
+          this._syntaxError = cached.data.syntaxError;
         }
       }
     }
@@ -71,20 +73,23 @@ export class Script implements ScriptAnalysis {
   }
 
   static fromFile(filePath: string): Script {
-    return new Script(fs.readFileSync(filePath, 'utf-8'), filePath);
-  }
-
-  private get cacheKey() {
-    return this.filename ? path.resolve(this.filename) : undefined;
-  }
-  private get cacheDigest() {
-    const { filename } = this;
-    if (!filename || !fs.existsSync(filename)) return undefined;
-    const info = fs.statSync(filename);
-    return crypto
-      .createHash('sha256')
-      .update(JSON.stringify({ filename, size: info.size, mtime: info.mtime }))
-      .digest('hex');
+    const cacheKey = path.resolve(filePath);
+    const digest = createFileDigest(filePath);
+    const cached = scriptAnalysisCache.get(cacheKey);
+    const source =
+      digest && cached?.digest === digest && cached.fileBacked
+        ? cached.source
+        : fs.readFileSync(filePath, 'utf-8');
+    if (digest && (cached?.digest !== digest || !cached.fileBacked)) {
+      scriptAnalysisCache.set(cacheKey, {
+        digest,
+        fileBacked: true,
+        source,
+      });
+    }
+    const script = new Script(source, filePath);
+    script.isFileBacked = true;
+    return script;
   }
 
   private get analysis(): Readonly<ScriptAnalysis> {
@@ -97,20 +102,15 @@ export class Script implements ScriptAnalysis {
     if (P5_ANALYSIS_PRINT_CACHE_STATS) {
       console.log(`Script analysis cache miss: ${this.filename}`);
     }
-    const { ast } = this;
-    const analysis = {
-      defs: findGlobalDefinitions(ast),
-      refs: findGlobalReferences(ast),
-      loadCallArguments: findCallArguments(ast, /^load.*/),
-      p5propRefs: findPropertyReferences(ast, 'p5'),
-      isP5InstanceSketch: isP5InstanceSketch(ast),
-    };
+    const analysis = analyzeScript(this.ast);
     this._analysis = analysis;
-    if (this.cacheKey) {
-      scriptAnalysisCache.set(this.cacheKey, [
-        this.cacheDigest!,
-        { type: 'analysis', analysis },
-      ]);
+    if (this.cacheKey && this.cacheDigest) {
+      scriptAnalysisCache.set(this.cacheKey, {
+        data: { type: 'analysis', analysis },
+        digest: this.cacheDigest,
+        fileBacked: this.isFileBacked,
+        source: this.source,
+      });
     }
     return analysis;
   }
@@ -125,11 +125,13 @@ export class Script implements ScriptAnalysis {
       } catch (err) {
         if (!(err instanceof SyntaxError)) throw err;
         this._syntaxError = err;
-        if (this.cacheKey) {
-          scriptAnalysisCache.set(this.cacheKey, [
-            this.cacheDigest!,
-            { type: 'syntaxError', syntaxError: err },
-          ]);
+        if (this.cacheKey && this.cacheDigest) {
+          scriptAnalysisCache.set(this.cacheKey, {
+            data: { type: 'syntaxError', syntaxError: err },
+            digest: this.cacheDigest,
+            fileBacked: this.isFileBacked,
+            source: this.source,
+          });
         }
       }
     }
@@ -158,12 +160,15 @@ export class Script implements ScriptAnalysis {
   }
 
   findMatchingComments(pattern: RegExp): readonly string[] {
-    const cacheKey = this.cacheKey && `${this.cacheKey}-${pattern.toString()}`;
+    const cacheKey =
+      this.cacheKey &&
+      this.cacheDigest &&
+      `${this.cacheKey}-${pattern.toString()}`;
     if (cacheKey) {
       if (P5_ANALYSIS_PRINT_CACHE_STATS)
         console.log(`Script comment cache miss: ${this.filename} / ${pattern}`);
-      const [hash, data] = commentDirectiveCache.get(cacheKey) || [];
-      if (hash === this.cacheDigest) {
+      const [digest, source, data] = commentDirectiveCache.get(cacheKey) || [];
+      if (digest === this.cacheDigest && source === this.source) {
         return data!;
       }
     }
@@ -173,7 +178,11 @@ export class Script implements ScriptAnalysis {
         ?.map((c) => c.value.trim())
         .filter((s) => pattern.test(s)) || [];
     if (cacheKey)
-      commentDirectiveCache.set(cacheKey, [this.cacheDigest!, comments]);
+      commentDirectiveCache.set(cacheKey, [
+        this.cacheDigest!,
+        this.source,
+        comments,
+      ]);
     return comments;
   }
 
@@ -207,18 +216,22 @@ export class Script implements ScriptAnalysis {
 // appear in the typescript exports. If it did appear in exports, this would
 // require that clients of this package use esModuleIterop to use it or a
 // package that re-exports its types.
-type ScriptAnalysisCacheValue = readonly [
-  string,
-  Readonly<
+type ScriptAnalysisCacheValue = {
+  digest: string;
+  source: string;
+  fileBacked: boolean;
+  data?: Readonly<
     | { type: 'analysis'; analysis: ScriptAnalysis }
     | { type: 'syntaxError'; syntaxError: Error }
-  >,
-];
+  >;
+};
 
-type CommentDirectiveCacheValue = readonly [string, readonly string[]];
+type CommentDirectiveCacheValue = readonly [string, string, readonly string[]];
 
-let scriptAnalysisCache = createScriptAnalysisCache(20000);
-let commentDirectiveCache = createCommentDirectiveCache(20000);
+const defaultCacheSize = 20 * 1024 * 1024;
+
+let scriptAnalysisCache = createScriptAnalysisCache(defaultCacheSize);
+let commentDirectiveCache = createCommentDirectiveCache(defaultCacheSize);
 
 function createScriptAnalysisCache(maxSize: number) {
   return new LRUCache<string, ScriptAnalysisCacheValue>({
@@ -232,4 +245,10 @@ function createCommentDirectiveCache(maxSize: number) {
     maxSize,
     sizeCalculation: (value, key) => sizeof(value) + sizeof(key),
   });
+}
+
+function createFileDigest(filename: string): string | undefined {
+  if (!fs.existsSync(filename)) return undefined;
+  const { mtimeNs, size } = fs.statSync(filename, { bigint: true });
+  return `${size}:${mtimeNs}`;
 }

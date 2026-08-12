@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+### Changed
+
+- Make directory analysis linear in the number of files and sketches by
+  collecting associated files once, reusing each sketch's parsed HTML and
+  derived properties, and using directory entries instead of per-file stat
+  calls. In a local synthetic warm-cache benchmark, scanning 40 HTML sketches
+  fell from approximately 303 ms to a 29 ms median (about 90% lower).
+- Analyze scripts with one Babel traversal instead of five. For a synthetic
+  2,000-declaration script, median parse-and-analysis time fell from 92.67 ms to
+  54.14 ms (42% lower).
+- Increase the script-analysis cache from 20 KB to 20 MiB, retain cached source
+  text, and avoid rereading unchanged files. For a synthetic script whose cache
+  entry exceeded 20 KB, median warm analysis time fell from about 22 ms to
+  0.03 ms per call (more than 99% lower).
+
+The measurements above used Bun 1.3.14 on macOS and are synthetic local
+benchmarks rather than production guarantees. The approximately 90% directory
+scan reduction is cumulative across the directory, HTML-reuse, and cache
+changes.
+
+### Fixed
+
+- Recognize p5.js script tags with an explicit regular-expression test instead
+  of treating the numeric result of `String.search` as a boolean.
+- Require `.html` or `.htm` to occur at the end of HTML filenames.
+- Detect nested sketches when deciding whether a directory contains exactly one
+  sketch.
+
 ## [1.0.0] - 2026-08-12
 
 ### Added

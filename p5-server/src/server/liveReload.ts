@@ -1,5 +1,5 @@
 import livereload from 'livereload';
-import { addScriptToHtmlHead } from '../helpers.js';
+import { addScriptsToHtmlHead, type HtmlHeadScript } from '../helpers.js';
 
 export type Options = {
   fileWatchProvider?: FileWatchProvider;
@@ -32,9 +32,15 @@ export const liveReloadTemplate = `
 
 export function injectLiveReloadScript(
   html: string,
-  liveReloadServer: LiveReloadServer
+  liveReloadServer: LiveReloadServer | null | undefined
 ): string {
-  if (!liveReloadServer) return html;
+  return addScriptsToHtmlHead(html, liveReloadHeadScripts(liveReloadServer));
+}
+
+export function liveReloadHeadScripts(
+  liveReloadServer: LiveReloadServer | null | undefined
+): HtmlHeadScript[] {
+  if (!liveReloadServer) return [];
   const address = liveReloadServer.server.address();
   if (!address) {
     throw new Error('liveReloadServer.address returned null');
@@ -48,7 +54,7 @@ export function injectLiveReloadScript(
     '$(port)',
     address.port.toString()
   );
-  return addScriptToHtmlHead(html, { script: liveReloadScript });
+  return [{ source: { script: liveReloadScript } }];
 }
 
 export async function createLiveReloadServer({

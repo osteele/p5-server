@@ -7,6 +7,15 @@ test('Script.fromFile', () => {
   expect(script.filename).toBe(filePath);
 });
 
+test('Script.fromSource does not reuse file analysis for different source', () => {
+  const filePath = './tests/testdata/circles.js';
+  void Script.fromFile(filePath).defs;
+
+  const script = Script.fromSource('function replacement() {}', filePath);
+
+  expect(script.defs).toEqual(new Map([['replacement', 'function']]));
+});
+
 test('Script.getErrors', () => {
   expect(() => Script.fromSource('const const;').defs).toThrow(
     /Unexpected keyword 'const'/

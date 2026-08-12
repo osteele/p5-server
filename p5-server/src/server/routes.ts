@@ -4,16 +4,20 @@ import path from 'node:path';
 import express, { type Request, type Response } from 'express';
 import { Script, Sketch } from 'p5-analysis';
 import { assertError } from '../assertError.js';
-import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers.js';
-import { injectAgentSupport } from './agentSupport.js';
-import { injectScriptEventRelayScript } from './browserScriptEventRelay.js';
-import { replaceUrlsInHtml } from './cdnProxy.js';
+import {
+  type HtmlHeadScript,
+  resolvePathInDirectory,
+  transformHtml,
+} from '../helpers.js';
+import { agentSupportHeadScripts } from './agentSupport.js';
+import { scriptEventRelayHeadScripts } from './browserScriptEventRelay.js';
+import { proxyCdnUrl, replaceUrlsInHtml } from './cdnProxy.js';
 import { staticAssetPrefix } from './constants.js';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions,
 } from './directoryListing.js';
-import { injectLiveReloadScript } from './liveReload.js';
+import { liveReloadHeadScripts } from './liveReload.js';
 import type { RouterConfig } from './Server.js';
 import {
   createSyntaxErrorJsReporter,
@@ -197,31 +201,35 @@ export function createRouter(config: RouterConfig): express.Router {
     res: Response<string, T>,
     html: string
   ) {
+    const headScripts: HtmlHeadScript[] = [];
     if (config.agentSupport) {
-      html = injectAgentSupport(
-        html,
-        typeof config.agentSupport === 'object' ? config.agentSupport : {}
+      headScripts.push(
+        ...agentSupportHeadScripts(
+          typeof config.agentSupport === 'object' ? config.agentSupport : {}
+        )
       );
     }
-    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
+    headScripts.push(...liveReloadHeadScripts(req.app.locals.liveReloadServer));
     if (
       config.relayConsoleMessages ||
       'send-console-messages' in req.query ||
       'vscodeBrowserReqId' in req.query
     ) {
-      html = injectScriptEventRelayScript(html);
+      headScripts.push(...scriptEventRelayHeadScripts());
     }
     if (config.screenshot && req.path === '/') {
-      html = addScriptToHtmlHead(
-        html,
-        `${staticAssetPrefix}/screenshot.min.js`
+      headScripts.push(
+        { source: `${staticAssetPrefix}/screenshot.min.js` },
+        {
+          source: { __p5_server_screenshot_settings: config.screenshot },
+        }
       );
-      html = addScriptToHtmlHead(html, {
-        __p5_server_screenshot_settings: config.screenshot,
-      });
     }
 
-    if (config.proxyCache) html = replaceUrlsInHtml(html);
+    html = transformHtml(html, {
+      headScripts,
+      transformUrl: config.proxyCache ? proxyCdnUrl : undefined,
+    });
     res.set('Content-Type', 'text/html');
     res.send(html);
   }
@@ -258,10 +266,12 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
         templateName: config.theme,
       });
 
+  const headScripts: HtmlHeadScript[] = [];
   if (config.agentSupport && indexFile) {
-    html = injectAgentSupport(
-      html,
-      typeof config.agentSupport === 'object' ? config.agentSupport : {}
+    headScripts.push(
+      ...agentSupportHeadScripts(
+        typeof config.agentSupport === 'object' ? config.agentSupport : {}
+      )
     );
   }
 
@@ -269,8 +279,11 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
   // pages. This ensures that the index page reloads when the directory contents
   // change.
   if (config.liveServer) {
-    html = injectLiveReloadScript(html, req.app.locals.liveReloadServer);
+    headScripts.push(...liveReloadHeadScripts(req.app.locals.liveReloadServer));
   }
-  if (config.proxyCache) html = replaceUrlsInHtml(html);
+  html = transformHtml(html, {
+    headScripts,
+    transformUrl: config.proxyCache ? proxyCdnUrl : undefined,
+  });
   res.send(html);
 }

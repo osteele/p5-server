@@ -87,6 +87,7 @@
     "@types/node": "^20.19.43",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
+    "@types/update-notifier": "^6.0.8",
     "@types/ws": "^8.18.1",
     "copyfiles": "^2.4.1",
     "esbuild": "^0.28.2",

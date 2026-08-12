@@ -1,11 +1,33 @@
-# Change Log
+# Changelog
 
 ## Unreleased
 
-Changed:
+## [1.0.0] - 2026-08-12
 
-- Relaxed p5 library version 1.4.0 -> 1.4
-- Library detection ignores version numbers
+### Added
+
+- Add `--host` for choosing the network interface used by the development
+  server.
+
+### Changed
+
+- Distribute the package as an ECMAScript module and require Node.js 20 or
+  newer.
+- Replace the in-tree CDN proxy implementation with `cdn-proxy-cache`.
+- Bind the development and live-reload servers to the loopback interface by
+  default.
+- Update runtime dependencies, including Express 5 and p5-analysis 1.0.0.
+- Match library URLs independently of version numbers and accept all p5.js 1.4
+  patch releases.
+
+### Fixed
+
+- Reject requests outside configured source roots, including paths that escape
+  through symbolic links.
+- Validate static build destinations before writing or removing output.
+- Correct compressed proxy responses and nested CSS URL rewrites through the
+  updated proxy-cache implementation.
+- Parse ECMAScript module syntax during automatic library analysis.
 
 ## [0.9.2] - 2021-11-15
 

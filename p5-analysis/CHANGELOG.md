@@ -1,12 +1,27 @@
-# Change Log
+# Changelog
 
 ## Unreleased
 
-Changed:
+## [1.0.0] - 2026-08-12
 
-- Relaxed p5 library version 1.4.0 -> 1.4. This will automatically pick up the
-  latest 1.4.1, as well as future subminor (patch) releases.
-- Library detection ignores version numbers
+### Added
+
+- Parse and analyze ECMAScript module syntax.
+- Add p5.js-SVG and openSimplexNoise to the automatic library catalog.
+
+### Changed
+
+- Distribute the package as an ECMAScript module and require Node.js 20 or
+  newer.
+- Recognize forward lexical references, object spreads, destructuring patterns,
+  and common p5.js instance-mode sketches during script analysis.
+- Match library URLs independently of version numbers and accept all p5.js 1.4
+  patch releases.
+- Update runtime dependencies and package exports.
+
+### Fixed
+
+- Correct the p5.createloop global definitions.
 
 ## [0.6.10] - 2021-11-15
 

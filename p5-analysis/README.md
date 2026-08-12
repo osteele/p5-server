@@ -83,13 +83,13 @@ libraries. `TEMPLATE` must be a
 `p5-tree PATH` prints the sketches in `PATH` and its subdirectories, along with
 the files and libraries that each sketch uses.
 
-`p5-analyze sketch analyze PATH` prints the files and libraries associated with
-a sketch.
+`p5-analyze sketch PATH` prints the files and libraries associated with a
+sketch.
 
 If [p5-server](https://osteele.github.io/p5-server/) is installed, these
 commands are also available through `p5 analyze`, `p5 libraries`, and `p5 tree`.
-For example, `p5 analyze sketch analyze PATH` is equivalent to the
-`p5-analyze` command above. `p5-library` is an alias for `p5-libraries`.
+For example, `p5 analyze sketch PATH` is equivalent to the `p5-analyze` command
+above. `p5-library` is an alias for `p5-libraries`.
 
 ## API
 

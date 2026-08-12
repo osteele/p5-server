@@ -13,7 +13,7 @@
     },
     "p5-analysis": {
       "name": "p5-analysis",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bin": {
         "p5-analyze": "dist/bin/p5-analyze-cli.js",
         "p5-libraries": "dist/bin/p5-libraries-cli.js",
@@ -66,7 +66,7 @@
         "node-html-parser": "^9.0.1",
         "nunjucks": "^3.2.3",
         "open": "^11.0.0",
-        "p5-analysis": "workspace:*",
+        "p5-analysis": "^1.0.0",
         "pug": "^3.0.4",
         "update-notifier": "^7.3.1",
         "ws": "^8.18.3",

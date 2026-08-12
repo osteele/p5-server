@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [1.0.1] - 2026-08-12
+
+### Fixed
+
+- Publish an npm-compatible `p5-analysis` dependency range instead of the Bun
+  workspace protocol.
+
 ## [1.0.0] - 2026-08-12
 
 ### Added

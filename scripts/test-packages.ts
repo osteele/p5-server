@@ -13,6 +13,7 @@ try {
 
   const archives: string[] = [];
   for (const workspace of ['p5-analysis', 'p5-server']) {
+    await assertPublishableDependencies(workspace);
     const filename = `${workspace}.tgz`;
     await run(
       ['bun', 'pm', 'pack', '--filename', path.join(archiveDir, filename)],
@@ -64,6 +65,21 @@ try {
   console.log('Packed packages install and load successfully');
 } finally {
   await rm(tempDir, { force: true, recursive: true });
+}
+
+async function assertPublishableDependencies(workspace: string): Promise<void> {
+  const manifest = await Bun.file(
+    path.join(projectRoot, workspace, 'package.json')
+  ).json();
+  for (const [name, version] of Object.entries<string>(
+    manifest.dependencies ?? {}
+  )) {
+    if (version.startsWith('workspace:')) {
+      throw new Error(
+        `${workspace} dependency ${name} uses non-publishable range ${version}`
+      );
+    }
+  }
 }
 
 async function run(command: string[], cwd: string): Promise<void> {

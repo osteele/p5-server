@@ -5,16 +5,14 @@ inclusion][automatic-library-inclusion]. For each library, it lists the global
 variables (functions, classes, constants, and other variables) that the library
 defines, and the properties that the library adds to the `p5` global object.
 
-In order to qualify for automatic inclusion, a library must have either a `path`
-or `npmPackage` key.
+A library must have either an `importPath` or `packageName` property to qualify
+for automatic inclusion.
 
-See [this page][libraries] for a formatted description of the
-categories and libraries in this directory.
+The [library catalog][libraries] presents the categories and libraries in this
+directory.
 
-These files use the schemas [here
-`categories.json`](osteele.github.io/p5-server/p5-analysis/src/models/schemas/libraries.json)
-and [here
-`xxx-libraries.json`](osteele.github.io/p5-server/p5-analysis/src/models/schemas/libraries.json).
+The files are described by the [`categories.json`](../schemas/categories.json)
+and [`libraries.json`](../schemas/libraries.json) schemas.
 
 [automatic-library-inclusion]: https://github.com/osteele/p5-server/tree/main/p5-analysis#automatic-library-inclusion
 [libraries]: https://osteele.github.io/p5-server/p5-analysis/libraries

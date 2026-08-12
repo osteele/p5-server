@@ -1,14 +1,13 @@
 # Proxy Cache
 
-The proxy cache enables “airplane mode”, where the p5-server development server
-can be used without an internet connection.
+The proxy cache lets the p5-server development server run without an internet
+connection after its resources have been cached.
 
-It works by caching requests to known Content Delivery Network (CDN) servers, so
-that they are served from a local cache instead.
+It stores requests to known content delivery networks (CDNs) and serves later
+requests from a local cache.
 
-(This feature, or a server that provides this feature, are variously referred to
-on the web as a *proxy cache*, a *reverse proxy cache*, a *caching proxy*, or a
-*web accelerator*.)
+This feature is also called a *reverse proxy cache*, *caching proxy*, or *web
+accelerator*.
 
 Without the proxy cache:
 
@@ -20,15 +19,12 @@ With the proxy cache:
 
 ## How to Use the Cache
 
-The proxy cache is enabled by default. To use it, simply browse your sketches
-while your computer is connected to the internet. This loads any CDN files that are
-necessary to run the sketches that you view. At any later point, you can view
-the same sketches without an internet connection.
+The proxy cache is enabled by default. Browse sketches while connected to the
+internet to cache the CDN resources they use. You can then view the same
+sketches without an internet connection.
 
-The `p5 proxy-cache warm` command can also be used to pre-load the cache with
-import paths for p5.js and its community libraries, and with the resources that
-the p5 server itself uses to display, for example, directory pages, the
-split-screen browser, and error pages.
+The `p5 proxy-cache warm` command preloads resources for p5.js, community
+libraries, directory pages, the split-screen browser, and error pages.
 
 ## Disabling the Cache
 
@@ -41,15 +37,13 @@ running `p5 serve`.
 
 ## What is Cached?
 
-Requests for NPM packages from the JSDelivr, Skypack, and Unpkg content delivery
+Requests for npm packages from jsDelivr, Skypack, and unpkg content delivery
 networks are cached, as are resources from `fonts.googleapis.com` and
 `fonts.gstatic.com`.
 
-Import paths from the community p5.js libraries are also cached. Most of these
-paths are served from a CDN and would be cached in any case. A few of the
-community libraries are served from servers that are specific to those libraries
-or the organizations that publish them; this ensures that they are cached as
-well.
+Import paths from community p5.js libraries are also cached. Most are already
+served by a recognized CDN. The explicit list also covers libraries hosted on
+their own project or organization servers.
 
 ## Command Line
 
@@ -75,24 +69,23 @@ $ p5 proxy-cache ls --json | jq '[.[].headers."content-type"] | unique'
 ]
 ```
 
-See section "JSON Recipes" below for additional recipes.
+See [JSON Recipes](#appendix-json-recipes) for more examples.
 
 **`p5 proxy-cache path`** prints the path to the cache.
 
-**`p5 proxy-cache warm`** “warms” the cache, by loading it with requests for
-p5.js and community libraries.
+**`p5 proxy-cache warm`** loads resources for p5.js and community libraries into
+the cache.
 
-Many of these commands take options. Use `--help` to see these; for example, `p5
-cache ls --help`.
+Many of these commands take options. Run `p5 proxy-cache ls --help` for an
+example.
 
 ## Implementation Details
 
-The server rewrites HTML and CSS files, as they are served, to load resources
-from the server itself instead of from CDN servers. This allows the server to
-cache these resources, and to serve them without an internet connection.
+As it serves HTML and CSS files, the server rewrites CDN URLs to pass through
+the local proxy. The proxy can then cache and serve those resources offline.
 
-In HTML documents, the `src` attributes of `script` elements, and the `href`
-attributes of `link` element with a `type="stylesheet"` attribute, are modified.
+In HTML documents, the proxy modifies `src` attributes on `script` elements and
+`href` attributes on stylesheet `link` elements.
 
 In CSS documents, URLs that resolve to CDN resources are also rewritten. This
 ensures that if the HTML for a sketch links to a CSS document that in turn
@@ -104,8 +97,8 @@ example, is rewritten as a request for
 `__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js`. A request for
 `https://unpkg.com/p5.vector-arguments.min.js` is rewritten as
 `__p5_proxy_cache/unpkg.com/p5.vector-arguments.min.js`. This naming scheme was
-selected to make the source list of the browser's developer console readable (as
-illustrated in the screenshot at the top of this document).
+selected to keep the browser developer console's source list readable, as shown
+in the opening screenshots.
 
 Status codes and response headers are cached. Each step of a redirect is cached.
 
@@ -172,5 +165,5 @@ $ p5 proxy-cache ls --json | jq '.[] | select(.headers."content-encoding" != "gz
 
 ## References
 
-* [MDN: HTTP Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
-* [MDN: Proxy Server](https://developer.mozilla.org/en-US/docs/Glossary/Proxy_server)
+- [MDN: HTTP Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
+- [MDN: Proxy Server](https://developer.mozilla.org/en-US/docs/Glossary/Proxy_server)

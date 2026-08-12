@@ -1,4 +1,4 @@
-# P5 Analysis
+# p5-analysis
 
 [![npm version](https://badge.fury.io/js/p5-analysis.svg)](https://www.npmjs.com/package/p5-analysis)
 [![Changelog](https://img.shields.io/badge/changelog-gray.svg)](./CHANGELOG.md)
@@ -6,7 +6,7 @@
 
 - [Installation](#installation)
 - [Command-Line Usage](#command-line-usage)
-  - [API](#api)
+- [API](#api)
 - [Implementation Notes](#implementation-notes)
   - [Sketch detection](#sketch-detection)
   - [Sketch descriptions](#sketch-descriptions)
@@ -16,27 +16,27 @@
 - [License](#license)
 
 This library provides a programmatic API for finding, analyzing, and generating
-[P5.js sketches](https://p5js.org). It was created for the
-[p5-server](https://github.com/osteele/p5-server#p5js-server) command-line tool,
-and the [P5 Server Visual Studio Code
+[p5.js sketches](https://p5js.org). It was created for the
+[p5-server](https://github.com/osteele/p5-server#p5js-server) command-line tool
+and the [p5 Server Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme).
 
-The API consists of three classes:
+The API centers on three classes:
 
-- {@link Sketch} represents a sketch. This is at least a script file, and may
+- `Sketch` represents a sketch. A sketch contains at least a script file and may
   also include an HTML file and additional scripts and assets. It is the
-  interface to generate sketch files, find associated files, infer libraries,
-  and scan directories for sketches that they contain.
+  interface for generating sketch files, finding associated files, inferring
+  libraries, and scanning directories for sketches.
 
-- {@link Script} represents a JavaScript file. It provides script analysis
-  features that are used to detect whether a script is a p5.js sketch, and to
-  perform automatic library inclusion.
+- `Script` represents a JavaScript file. Its analysis determines whether a
+  script is a p5.js sketch and supports automatic library inclusion.
 
-- {@link Library} represents a [p5.js library](https://p5js.org/libraries/).
+- `Library` represents a [p5.js library](https://p5js.org/libraries/).
 
-The API reference is [here](https://osteele.github.io/p5-server/p5-analysis/).
+See the [API reference](https://osteele.github.io/p5-server/p5-analysis/) for
+class and method documentation.
 
-These APIs are not stable until this package reaches version 1.0.
+The package follows semantic versioning.
 
 ## Installation
 
@@ -46,46 +46,57 @@ npm install p5-analysis
 bun add p5-analysis
 ```
 
+p5-analysis requires Node.js 20 or newer and is distributed as an ECMAScript
+module.
+
 ## Command-Line Usage
 
-`p5-libraries list` – list the known libraries
+`p5-libraries list` lists the known libraries.
 
-With `--json`, this can be used with [jq](https://stedolan.github.io/jq/), e.g.
-`bun run cli:libraries list --json | jq '.[].importPath'` to list all the import
-paths, or `bun run cli:libraries list --json | jq '.[] | select(.packageName) |
-.name'` to print the names of libraries that have been published as NPM
-packages.
+The `--json` output can be queried with [jq](https://jqlang.github.io/jq/). This
+command lists all import paths:
 
-`p5-libraries check all` – validate the library homepages, import paths, and
-other properties
+```sh
+p5-libraries list --json | jq '.[].importPath'
+```
 
-`p5-library describe LIBRARY_NAME` – print the name, home page, import path,
-and defines of a specific library
+This command prints the names of libraries published to npm:
 
-`p5-library property LIBRARY_NAME import-path [--html]` – print the import path
-for named library. With the `--html` options, print a `<script>` element that
-can be included in an HTML page.
+```sh
+p5-libraries list --json | jq '.[] | select(.packageName) | .name'
+```
 
-`p5-library docs [-o OUTPUT] [-t TEMPLATE]` – create a documentation page that
-lists all the libraries. TEMPLATE should be a
-[Nunjucks](https://mozilla.github.io/nunjucks/) file.
+`p5-libraries check all` validates library home pages, import paths, and other
+properties.
 
-`p5-tree PATH` – print the sketches in PATH and its subfolders, and the files
- and libraries that each sketch uses.
+`p5-libraries describe LIBRARY_NAME` prints the name, home page, import path,
+and definitions of a library.
 
-`p5-analyze sketch PATH` - print the files and libraries associated with a
-sketch
+`p5-libraries property LIBRARY_NAME import-path [--html]` prints a library's
+import path. The `--html` option prints a `<script>` element for use in an HTML
+page.
+
+`p5-libraries docs [-o OUTPUT] [-t TEMPLATE]` creates a page that lists all
+libraries. `TEMPLATE` must be a
+[Nunjucks](https://mozilla.github.io/nunjucks/) template.
+
+`p5-tree PATH` prints the sketches in `PATH` and its subdirectories, along with
+the files and libraries that each sketch uses.
+
+`p5-analyze sketch analyze PATH` prints the files and libraries associated with
+a sketch.
 
 If [p5-server](https://osteele.github.io/p5-server/) is installed, these
-commands can also be accessed via `p5 analyze`, `p5 libraries` and `p5 tree`
-(without the hyphen).
+commands are also available through `p5 analyze`, `p5 libraries`, and `p5 tree`.
+For example, `p5 analyze sketch analyze PATH` is equivalent to the
+`p5-analyze` command above. `p5-library` is an alias for `p5-libraries`.
 
-### API
+## API
 
 ```js
-import { Sketch } from "p5-analysis";
+import { Sketch } from 'p5-analysis';
 
-const { sketches } = await Sketch.analyzeDirectory(); // find all sketches in a directory
+const { sketches } = await Sketch.analyzeDirectory('.');
 
 const sketch = await Sketch.fromFile('sketch.js');
 console.log(sketch.description);
@@ -93,17 +104,17 @@ console.log(sketch.libraries);
 console.log(sketch.files);
 ```
 
-See the source to [p5-server](https://github.com/osteele/p5-server)
-for additional usage examples.
+The [p5-server source](https://github.com/osteele/p5-server) contains additional
+usage examples.
 
 ## Implementation Notes
 
 ### Sketch detection
 
 A “JavaScript-only sketch file” is a JavaScript file that defines `setup()` and
-calls `createCanvas()` (and does not
-itself define `createCanvas`). Common instance-mode sketches that pass a callback
-to `new p5(...)` are also recognized.
+calls `createCanvas()` without defining `createCanvas` itself. Common
+instance-mode sketches that pass a callback to `new p5(...)` are also
+recognized.
 
 An HTML sketch file is an HTML file that includes a `<script>` element with a
 `src` attribute that ends in `p5.js` or `p5.min.js`.
@@ -123,24 +134,22 @@ paragraph that begins with "`Description:` " in that block.
 JavaScript-only sketches can automatically include any of the libraries in [this
 list][libraries]. For example, if the sketch source contains a call to
 `loadSound`, the sketch will include the p5.sound library. If the sketch source
- refers to `ml5`, the sketch will include the ml5.js library.
+refers to `ml5`, the sketch will include the ml5.js library.
 
-Automatic library loading is done by examining the free variables, and
-references to `p5.prop` where `prop` is any property name, in the JavaScript
-source.
+Automatic library loading examines free variables and references of the form
+`p5.prop` in the JavaScript source.
 
-A list of libraries, and the global variables that trigger including a library,
-is in `./src/libraries.json`.
+The [library definitions](https://github.com/osteele/p5-server/tree/main/p5-analysis/src/models/libraries)
+record the global variables that trigger inclusion.
 
 ### Associated files
 
 The directory listing groups the files that are associated with a project into
 the card for that project.
 
-The files that are associated with an HTML file are just the local script files
-that are included via the `<script>` tag and `<link>` tags. The server does not
-inspect `<img>` tags,
-etc., and it does not inspect CSS files.
+Files associated with an HTML sketch include local files referenced by
+`<script src>` and `<link href>` elements. The analyzer does not inspect `<img>`
+elements or CSS contents.
 
 The files that are associated with a script file are the string literal
 arguments to functions whose names begin with `load`, such as `loadImage()` and
@@ -174,20 +183,17 @@ loader("cat.png"); // does not recognize any associated files
 
 ## Limitations
 
-- This code hasn't been tested on Windows.
-- Generated sketches require an internet connection to run. (However: see the
-  [airplane mode][airplane-mode] features of [p5 server][p5-server].) They load
-  the p5.js libraries and other libraries from a content delivery network
-  (“CDN”). Browsers cache these files, so reloading a page or running other
-  sketches that use the same (or no) libraries do not require additional
-  internet access, but you will need internet access the first time you use this
-  extension or after the browser cache has expired.
+- Routine CI runs on Linux. macOS and Windows checks are available as a manual
+  workflow.
+- Generated sketches load p5.js and other libraries from content delivery
+  networks. They require internet access until those resources are present in
+  the browser cache. When sketches are served by [p5-server][p5-server], its
+  [proxy cache][airplane-mode] can provide the resources offline.
 - Support for
   [instance-mode](https://github.com/processing/p5.js/wiki/Global-and-instance-mode)
   sketches is limited to recognizing the common `new p5(callback)` form.
-- Automatic library inclusion hasn't been tested with sketches that are written
-  as
-  [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- The script analyzer parses ECMAScript modules but does not follow imports to
+  analyze other modules.
 - See the implementation notes for limitations on the recognition of associated
   files.
 
@@ -196,6 +202,5 @@ loader("cat.png"); // does not recognize any associated files
 [MIT](LICENSE) © by Oliver Steele
 
 [p5-server]: https://osteele.github.io/p5-server/
-[p5-server-vscode-extensions]: https://marketplace.visualstudio.com/items?itemName=osteele.p5-server
 [airplane-mode]: https://osteele.github.io/p5-server/docs/proxy-cache
 [libraries]: https://osteele.github.io/p5-server/p5-analysis/libraries

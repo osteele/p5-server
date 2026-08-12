@@ -48,6 +48,7 @@
     "start": "bun run --bun src/bin/p5-server.ts server",
     "test": "bun test",
     "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit",
     "watch:testdata": "bun run _dev tests/testdata"
   },
   "dependencies": {

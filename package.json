@@ -1,22 +1,26 @@
 {
   "private": true,
-  "packageManager": "bun@1.2.10",
+  "packageManager": "bun@1.3.14",
   "workspaces": [
     "p5-analysis",
     "p5-server"
   ],
   "scripts": {
-    "build": "bun run --cwd p5-analysis build && bun run --cwd p5-server build",
-    "build:docs": "bun run build:docs:root && bun run --cwd p5-analysis build:docs && bun run --cwd p5-server build:docs",
+    "build": "bun run --filter '*' build",
+    "build:docs": "bun run build:docs:root && bun run --filter '*' build:docs",
     "build:docs:root": "mkdir -p gh-pages && pandoc -dpandoc.yml README.md -o gh-pages/index.html && cp -r docs LICENSE gh-pages",
     "gh-pages:build": "rimraf 'gh-pages/*' && bun run build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "bun run gh-pages:build && bun run gh-pages:publish",
-    "clean": "bun run --cwd p5-analysis clean && bun run --cwd p5-server clean",
+    "check": "bun run build && bun run lint && bun run typecheck:workspaces && bun run test:workspaces",
+    "clean": "bun run --parallel --filter '*' clean",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "format": "biome format --write .",
-    "lint": "bun run --cwd p5-analysis lint && bun run --cwd p5-server lint",
-    "test": "bun run --cwd p5-server test"
+    "lint": "bun run --parallel --filter '*' lint",
+    "test": "bun run build && bun run test:workspaces",
+    "test:workspaces": "bun run --parallel --filter '*' test",
+    "typecheck": "bun run build && bun run typecheck:workspaces",
+    "typecheck:workspaces": "bun run --parallel --filter '*' typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",

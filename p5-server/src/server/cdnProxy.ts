@@ -1,6 +1,5 @@
 import { createProxyCache } from 'cdn-proxy-cache';
-import { Cdn, Library } from 'p5-analysis';
-import { p5Version } from 'p5-analysis/dist/models/Library';
+import { Cdn, Library, p5Version } from 'p5-analysis';
 import { isDefined } from '../ts-extras';
 
 export const proxyPrefix = '/__p5_proxy_cache';

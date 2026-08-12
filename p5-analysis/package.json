@@ -41,7 +41,8 @@
     "lint": "eslint --quiet src/**/*.ts tests/**/*.ts",
     "prepack": "bun run build",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@babel/parser": "^7.29.8",

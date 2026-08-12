@@ -12,10 +12,12 @@ import net from 'net';
 export function promiseListen(
   app: express.Application | http.Server,
   port?: number,
+  host?: string,
   timeout: number = 1000
 ): Promise<http.Server> {
   return new Promise<http.Server>((resolve, reject) => {
-    const server = app.listen(port);
+    const listenPort = port ?? 0;
+    const server = host ? app.listen(listenPort, host) : app.listen(listenPort);
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
       const address = server.address();

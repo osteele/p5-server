@@ -1,5 +1,4 @@
-import express from 'express';
-import { Request, Response } from 'express-serve-static-core';
+import express, { Request, Response } from 'express';
 import fs from 'fs';
 import { readdir, readFile } from 'fs/promises';
 import { Script, Sketch } from 'p5-analysis';
@@ -208,7 +207,7 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
   config: RouterConfig,
   req: Request<unknown, unknown, unknown, unknown, T>,
   res: Response<unknown, T>
-): Promise<void | Response<unknown, T, number>> {
+): Promise<void | Response<unknown, T>> {
   // This is needed for linked files to work.
   if (!req.originalUrl.endsWith('/')) {
     return res.redirect(req.originalUrl + '/');

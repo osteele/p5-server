@@ -84,6 +84,7 @@ program
   .alias('run')
   .alias('r')
   .option('-o, --open', 'Open the page in a browser')
+  .option('--host <HOST>', 'Host interface to listen on', '127.0.0.1')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
   .option('-t, --theme [FILE]', 'template file')
   .option('--browser <NAME>', 'safari | chrome | firefox | edge (implies --open)')

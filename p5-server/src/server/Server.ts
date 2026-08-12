@@ -24,6 +24,9 @@ export namespace Server {
     /** The http port number. Defaults to 3000. */
     port: number;
 
+    /** The host interface to listen on. Defaults to 127.0.0.1. */
+    host: string;
+
     /** If true, then if the specified port number is not available, find
      * another port. Defaults to true. */
     scanPorts: boolean;
@@ -81,6 +84,7 @@ export type RouterConfig = Server.Options & {
 type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
+  host: '127.0.0.1',
   liveServer: true,
   logConsoleEvents: false,
   port: 3000,
@@ -138,7 +142,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   const port = config.port;
   for (let p = port; p < port + 10; p++) {
     try {
-      server = await promiseListen(app, p);
+      server = await promiseListen(app, p, config.host);
       break; // success!
     } catch (err) {
       assertError(err);
@@ -150,7 +154,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   // If the port scan didn't find an available port within the range. Allow
   // server.listen to choose a port.
-  if (!server) server = await promiseListen(app);
+  if (!server) server = await promiseListen(app, undefined, config.host);
 
   const address = server.address();
   if (!address || typeof address === 'string') {
@@ -158,13 +162,16 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   }
   attachBrowserScriptRelay(server, sketchRelay);
   try {
-    const liveReloadServer = await createLiveReloadServer({
-      port: Math.min(port + 35729 - config.port, 30000),
-      scanPorts: true,
-      watchDirs: [templateDir, ...mountPoints.map(mount => mount.filePath)],
-    });
+    const liveReloadServer = config.liveServer
+      ? await createLiveReloadServer({
+        host: config.host,
+        port: 35729,
+        scanPorts: true,
+        watchDirs: [templateDir, ...mountPoints.map(mount => mount.filePath)],
+      })
+      : null;
     app.locals.liveReloadServer = liveReloadServer;
-    const url = `http://localhost:${address.port}`;
+    const url = `http://${hostForUrl(config.host)}:${address.port}`;
     return { server, liveReloadServer, url };
   } catch (e) {
     server.close();
@@ -230,7 +237,7 @@ export class Server {
   }
 
   public filePathToUrl(filePath: string): string | null {
-    const baseUrl = this.url || `http://localhost:${this.config.port}`;
+    const baseUrl = this.url || this.defaultUrl;
     for (const mountPoint of this.mountPoints) {
       const filePrefix = mountPoint.filePath + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
@@ -253,12 +260,16 @@ export class Server {
   }
 
   public serverUrlToFileUrl(url: string): string | null {
-    const baseUrl = this.url || `http://localhost:${this.config.port}`;
+    const baseUrl = this.url || this.defaultUrl;
     if (url.startsWith(baseUrl + '/')) {
       const filepath = this.urlPathToFilePath(url.slice(baseUrl.length));
       if (filepath) return 'file://' + path.resolve(filepath);
     }
     return null;
+  }
+
+  private get defaultUrl(): string {
+    return `http://${hostForUrl(this.config.host)}:${this.config.port}`;
   }
 
   /** Normalize file paths; remove trailing slashes from file and url paths;
@@ -316,4 +327,11 @@ export class Server {
       }
     }
   }
+}
+
+function hostForUrl(host: string): string {
+  if (host === '127.0.0.1' || host === '0.0.0.0' || host === '::') {
+    return 'localhost';
+  }
+  return host.includes(':') ? `[${host}]` : host;
 }

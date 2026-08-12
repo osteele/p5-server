@@ -15,6 +15,7 @@ import { Server } from '../server/Server';
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
   console?: boolean | 'json' | 'passive';
+  host?: string;
   open?: boolean;
   port?: string;
   proxyCache?: boolean;
@@ -46,6 +47,7 @@ export default async function serve(files: string[], options: Options) {
   const file = files[0] || '.';
   const displayName = file === '.' ? process.cwd() : file;
   const serverOptions: Server.Options = {
+    host: options.host,
     proxyCache: options.proxyCache,
     port: Number(options.port),
     root: file,

@@ -1,9 +1,15 @@
 import { createProxyCache } from 'cdn-proxy-cache';
+import os from 'os';
 import { Cdn, Library, p5Version } from 'p5-analysis';
+import path from 'path';
 import { isDefined } from '../ts-extras';
 
 export const proxyPrefix = '/__p5_proxy_cache';
-export const cachePath = process.env.HOME + '/.cache/p5-server';
+const cacheRoot =
+  process.env.XDG_CACHE_HOME ||
+  (process.platform === 'win32' && process.env.LOCALAPPDATA) ||
+  path.join(os.homedir(), '.cache');
+export const cachePath = path.join(cacheRoot, 'p5-server');
 
 /** A list of CDNs that aren't listed in the p5-analysis Library model (because
  * they aren't specific to serving NPM packages).

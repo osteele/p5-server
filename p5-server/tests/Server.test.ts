@@ -74,17 +74,26 @@ describe('Server', () => {
     expect(server.urlPathToFilePath('/p3/a')).toBeNull();
   });
 
-  test.skip('should be able to start', async () => {
-    const server = new Server({ root: './tests/testdata' });
-    await server.start();
-    expect(server.url).toMatch(/http:\/\/localhost:\d+/);
+  test('should be able to start on loopback', async () => {
+    const server = new Server({
+      liveServer: false,
+      port: 0,
+      proxyCache: false,
+      root: './tests/testdata',
+    });
+    try {
+      await server.start();
+      expect(server.server?.address()).toMatchObject({ address: '127.0.0.1' });
+      expect(server.url).toMatch(/http:\/\/localhost:\d+/);
 
-    let req = await fetch(server.url!);
-    let text = await req.text();
-    expect(text).toMatch(/<html/);
-    expect(text).toMatch(/Sketches/);
-
-    await server.close();
+      const response = await fetch(server.url!);
+      const text = await response.text();
+      expect(text).toMatch(/<html/);
+      expect(text).toMatch(/<title>testdata<\/title>/);
+      expect(text).toMatch(/circles\.js/);
+    } finally {
+      await server.close();
+    }
   });
 });
 

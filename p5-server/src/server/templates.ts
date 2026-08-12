@@ -1,34 +1,47 @@
+import { fileURLToPath } from 'node:url';
 import fs from 'fs';
 import hljs from 'highlight.js/lib/core';
 import hljscss from 'highlight.js/lib/languages/css';
 import hljsjavascript from 'highlight.js/lib/languages/javascript';
 import hljsplaintext from 'highlight.js/lib/languages/plaintext';
 import hljsshell from 'highlight.js/lib/languages/shell';
-import { marked } from 'marked';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import { markedSmartypants } from 'marked-smartypants';
 import nunjucks from 'nunjucks';
 import path from 'path';
 import pug from 'pug';
-import { escapeHTML } from '../helpers';
+import { escapeHTML } from '../helpers.js';
 
-export const templateDir = path.join(__dirname, './templates');
+export const templateDir = fileURLToPath(
+  new URL('./templates', import.meta.url)
+);
 
 hljs.registerLanguage('css', hljscss);
 hljs.registerLanguage('javascript', hljsjavascript);
 hljs.registerLanguage('plaintext', hljsplaintext);
 hljs.registerLanguage('shell', hljsshell);
 
-const markdownPageTemplate = pug.compileFile(path.join(templateDir, 'markdown.pug'));
+const markdownPageTemplate = pug.compileFile(
+  path.join(templateDir, 'markdown.pug')
+);
 
-export const markedOptions: marked.MarkedOptions = {
-  smartypants: true,
-  highlight(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'javascript';
-    return hljs.highlight(code, { language }).value;
-  }
-};
+export const markdownParser = new Marked(
+  markedHighlight({
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'javascript';
+      return hljs.highlight(code, { language }).value;
+    },
+  }),
+  markedSmartypants()
+);
+
+export function markdownToHtml(data: string): string {
+  return markdownParser.parse(data) as string;
+}
 
 export function markdownToHtmlPage(data: string): string {
-  const markdown = marked(data, markedOptions);
+  const markdown = markdownToHtml(data);
   const title = data.match(/^#\s*(.+)\s*$/m)?.[1] ?? '';
   return markdownPageTemplate({ markdown, title });
 }
@@ -39,7 +52,7 @@ export const sourceViewTemplate = pug.compileFile(
 
 class SyntaxErrorFormatter {
   private static readonly jsTemplateEnv = new nunjucks.Environment(null, {
-    autoescape: false
+    autoescape: false,
   });
 
   private static readonly syntaxErrorTemplate = pug.compileFile(
@@ -52,15 +65,16 @@ class SyntaxErrorFormatter {
   );
 
   static {
-    this.jsTemplateEnv.addFilter('quote', JSON.stringify);
+    SyntaxErrorFormatter.jsTemplateEnv.addFilter('quote', JSON.stringify);
   }
 
   render(filepath: string, error: SyntaxError): string {
-    const {jsTemplateEnv,syntaxErrorTemplate,syntaxErrorJsTemplate} = SyntaxErrorFormatter;
+    const { jsTemplateEnv, syntaxErrorTemplate, syntaxErrorJsTemplate } =
+      SyntaxErrorFormatter;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { line: lineNo, column } = (error as any).loc;
     let message = error.message;
-    const locationSuffix = ` (${lineNo}:${column})`
+    const locationSuffix = ` (${lineNo}:${column})`;
     if (message.endsWith(locationSuffix)) {
       message = message.slice(0, -locationSuffix.length);
     }
@@ -94,24 +108,24 @@ class SyntaxErrorFormatter {
 
     // render HTML
     const contextHtml = syntaxErrorTemplate({
-      error: {...error, message},
+      error: { ...error, message },
       filepath,
       fullpath: path.resolve(filepath),
-      context: lines.join('\n')
+      context: lines.join('\n'),
     });
 
     // return JS that will set the page body to the HTML
     return jsTemplateEnv.renderString(syntaxErrorJsTemplate, {
       fileName: path.basename(filepath),
       error,
-      contextHtml
+      contextHtml,
     });
   }
 }
 
 export function createSyntaxErrorJsReporter(
   filepath: string,
-  [error]: SyntaxError[],
+  [error]: SyntaxError[]
 ): string {
   return new SyntaxErrorFormatter().render(filepath, error);
 }

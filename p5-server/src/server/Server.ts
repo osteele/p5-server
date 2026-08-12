@@ -1,22 +1,25 @@
+import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { EventEmitter } from 'events';
 import express from 'express';
 import fs from 'fs';
-import http from 'http';
+import type http from 'http';
 import path from 'path';
 import pug from 'pug';
-import { assertError } from '../ts-extras';
+import { assertError } from '../ts-extras.js';
 import {
   attachBrowserScriptRelay,
-  BrowserScriptRelay
-} from './browserScriptEventRelay';
-import { cdnProxyRouter, proxyPrefix } from './cdnProxy';
-import { staticAssetPrefix } from './constants';
-import { createDirectoryListing } from './directoryListing';
-import { promiseClose, promiseListen } from './httpServerUtils';
-import { createLiveReloadServer, LiveReloadServer } from './liveReload';
-import { createRouter } from './routes';
-import { templateDir } from './templates';
+  type BrowserScriptRelay,
+} from './browserScriptEventRelay.js';
+import { cdnProxyRouter, proxyPrefix } from './cdnProxy.js';
+import { staticAssetPrefix } from './constants.js';
+import { createDirectoryListing } from './directoryListing.js';
+import { promiseClose, promiseListen } from './httpServerUtils.js';
+import { createLiveReloadServer, type LiveReloadServer } from './liveReload.js';
+import { createRouter } from './routes.js';
+import { templateDir } from './templates.js';
+
+const dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Server {
@@ -95,7 +98,10 @@ const defaultServerOptions = {
   theme: 'split',
 };
 
-async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay) {
+async function startServer(
+  config: ServerConfig,
+  sketchRelay: BrowserScriptRelay
+) {
   const mountPoints = config.mountPoints as MountPoint[];
   const app = express();
   // app.use((req, res, next) => {
@@ -104,7 +110,7 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   // });
 
   // add routes
-  app.use(staticAssetPrefix, express.static(path.join(__dirname, 'static')));
+  app.use(staticAssetPrefix, express.static(path.join(dirname, 'static')));
   for (const { filePath, urlPath } of mountPoints) {
     let root = filePath;
     let sketchFile: string | undefined;
@@ -116,12 +122,13 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
     app.use(urlPath, createRouter(routerConfig));
     app.use(urlPath, express.static(root));
   }
-  if (mountPoints.every(mp => mp.urlPath !== '/')) {
-    const mountListTmpl = pug.compileFile(path.join(templateDir, 'mountPoints.pug'));
-    app.get('/', (_req, res) => {
-      res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }))
-    }
+  if (mountPoints.every((mp) => mp.urlPath !== '/')) {
+    const mountListTmpl = pug.compileFile(
+      path.join(templateDir, 'mountPoints.pug')
     );
+    app.get('/', (_req, res) => {
+      res.send(mountListTmpl({ mountPoints, staticAssetPrefix, path }));
+    });
   }
   app.use(proxyPrefix, cdnProxyRouter);
   app.use((req, _res, next) => {
@@ -164,11 +171,14 @@ async function startServer(config: ServerConfig, sketchRelay: BrowserScriptRelay
   try {
     const liveReloadServer = config.liveServer
       ? await createLiveReloadServer({
-        host: config.host,
-        port: 35729,
-        scanPorts: true,
-        watchDirs: [templateDir, ...mountPoints.map(mount => mount.filePath)],
-      })
+          host: config.host,
+          port: 35729,
+          scanPorts: true,
+          watchDirs: [
+            templateDir,
+            ...mountPoints.map((mount) => mount.filePath),
+          ],
+        })
       : null;
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://${hostForUrl(config.host)}:${address.port}`;
@@ -204,17 +214,27 @@ export class Server {
     this.mountPoints = mountPoints;
     // null out the root. It is only used in initialization, and is now captured
     // in mountPoints instead.
-    this.config = { ...defaultServerOptions, root: null, ...options, mountPoints };
+    this.config = {
+      ...defaultServerOptions,
+      root: null,
+      ...options,
+      mountPoints,
+    };
     this.config.theme ||= defaultServerOptions.theme;
   }
 
   /** Create and start the server. Returns the instance. */
-  public static async start(options: Partial<Server.Options> = {}): Promise<Server> {
+  public static async start(
+    options: Partial<Server.Options> = {}
+  ): Promise<Server> {
     return new Server(options).start();
   }
 
   public async start(): Promise<this> {
-    const { server, liveReloadServer, url } = await startServer(this.config, this);
+    const { server, liveReloadServer, url } = await startServer(
+      this.config,
+      this
+    );
     this.server = server;
     this.liveReloadServer = liveReloadServer;
     this.url = url;
@@ -275,22 +295,27 @@ export class Server {
   /** Normalize file paths; remove trailing slashes from file and url paths;
    * generate unique names and prefixes for mount points that don't specify
    * them. */
-  private static _normalizeMountPoints(mountPoints: MountPointOptions[]): MountPoint[] {
+  private static _normalizeMountPoints(
+    mountPoints: MountPointOptions[]
+  ): MountPoint[] {
     const finalPathSep = new RegExp(`${path.sep}$`);
     const mounts = mountPoints
       // normalize to records
-      .map(mount => (typeof mount === 'string' ? { filePath: mount } : mount))
+      .map((mount) => (typeof mount === 'string' ? { filePath: mount } : mount))
       // default url paths from file paths
-      .map(mount => ({
+      .map((mount) => ({
         urlPath: '/' + (mount.name || path.basename(mount.filePath)),
         ...mount,
       }))
       // encode URL paths
-      .map(mount => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
+      .map((mount) => ({ ...mount, urlPath: mount.urlPath.replace(/ /g, ' ') }))
       // normalize Windows paths
-      .map(mount => ({ ...mount, filePath: mount.filePath.replace(/\//g, path.sep) }))
+      .map((mount) => ({
+        ...mount,
+        filePath: mount.filePath.replace(/\//g, path.sep),
+      }))
       // remove trailing slashes from file and url paths
-      .map(mount => ({
+      .map((mount) => ({
         ...mount,
         filePath: mount.filePath.replace(finalPathSep, ''),
         urlPath: mount.urlPath.replace(/\/$/, ''),

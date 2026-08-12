@@ -1,13 +1,16 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import tree from '../commands/tree';
+import tree from '../commands/tree.js';
 
 export const program = new Command();
 
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 const pkg = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
+  fs.readFileSync(path.join(dirname, '../../package.json'), 'utf-8')
 );
 const appVersion = pkg.version;
 program.version(appVersion);
@@ -20,6 +23,6 @@ program
   .option('--tabWidth <WIDTH>', 'Indentation width', '4')
   .action(tree);
 
-if (require.main === module) {
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === filename) {
   program.parse(process.argv);
 }

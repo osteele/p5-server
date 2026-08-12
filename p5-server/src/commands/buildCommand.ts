@@ -10,12 +10,12 @@ import {
   pathIsInDirectory,
   pathIsMarkdown,
   stringToOptions,
-} from '../helpers';
+} from '../helpers.js';
 import {
   createDirectoryListing,
   defaultDirectoryExclusions,
-} from '../server/directoryListing';
-import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates';
+} from '../server/directoryListing.js';
+import { markdownToHtmlPage, sourceViewTemplate } from '../server/templates.js';
 
 // TODO: copy the static icons into the build directory
 

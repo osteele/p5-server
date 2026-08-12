@@ -1,10 +1,13 @@
-import nunjucks from 'nunjucks';
-import { Library } from '..';
-import { die } from './helpers';
+import { fileURLToPath } from 'node:url';
 import { exec } from 'child_process';
+import nunjucks from 'nunjucks';
+import { Library } from '../index.js';
+import { die } from './helpers.js';
 
 export function configureNunjucks() {
-  nunjucks.configure(`${__dirname}/templates`, { autoescape: false });
+  nunjucks.configure(fileURLToPath(new URL('./templates', import.meta.url)), {
+    autoescape: false,
+  });
 }
 
 export function describeLibrary(name: string, { json = false }) {
@@ -47,26 +50,27 @@ export function listLibraries({ json = false, verbose = false }) {
     console.log(
       nunjucks.render('list-libraries.njk', {
         libraries: Library.all,
-        categories: Library.categories
+        categories: Library.categories,
       })
     );
   } else {
-    console.log(Library.all.map(l => l.name).join('\n'));
+    console.log(Library.all.map((l) => l.name).join('\n'));
   }
 }
 
 export async function updateDescriptions() {
-  const libs = Library.all.filter(lib => lib.packageName);
+  const libs = Library.all.filter((lib) => lib.packageName);
   const packageDescriptions = await Promise.all(
     libs.map(
-      lib =>
+      (lib) =>
         new Promise((resolve, reject) =>
           exec(
             `npm view --json ${lib.packageName} description`,
             {
-              encoding: 'utf-8'
+              encoding: 'utf-8',
             },
-            (error, stdout) => (error ? reject(error) : resolve(JSON.parse(stdout)))
+            (error, stdout) =>
+              error ? reject(error) : resolve(JSON.parse(stdout))
           )
         )
     )
@@ -76,8 +80,12 @@ export async function updateDescriptions() {
     const packageDescription = packageDescriptions[i];
     if (lib.description !== packageDescription) {
       console.log(`${lib.name}:`);
-      console.log(`Library file description = ${JSON.stringify(lib.description)} !=`);
-      console.log(` npm package description = ${JSON.stringify(packageDescription)}\n`);
+      console.log(
+        `Library file description = ${JSON.stringify(lib.description)} !=`
+      );
+      console.log(
+        ` npm package description = ${JSON.stringify(packageDescription)}\n`
+      );
     }
   });
 }

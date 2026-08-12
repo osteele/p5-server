@@ -1,6 +1,9 @@
-import traverse, { type Node } from '@babel/traverse';
+import traverseModule, { type Node } from '@babel/traverse';
 
 import * as t from '@babel/types';
+
+const traverse = (traverseModule.default ??
+  traverseModule) as typeof traverseModule.default;
 
 export type DefinitionType = 'function' | 'class' | 'variable';
 

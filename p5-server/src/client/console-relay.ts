@@ -1,23 +1,23 @@
-import { jsonCycleStringifier } from '../jsonCycleStringifier';
-import {
-  ConsoleMethodName,
+import type {
   ConnectionMessage,
   ConsoleMethodMessage,
+  ConsoleMethodName,
   DocumentMessage,
   ErrorMessage,
+  MessageCore,
   UnhandledRejectionMessage,
   WindowMessage,
-  MessageCore
-} from '../consoleRelayTypes';
+} from '../consoleRelayTypes.js';
+import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
+
 const { stringify } = jsonCycleStringifier();
 
 const serializationPrefix = '__p5_server_serialization_:';
 const unserializablePrimitives = [undefined, NaN, -Infinity, Infinity];
 
 // so we can use e.g savedMethods.debug() to debug the code in this file.
-const savedMethods: Partial<Record<ConsoleMethodName, typeof console.log>> = new Object(
-  null
-);
+const savedMethods: Partial<Record<ConsoleMethodName, typeof console.log>> =
+  new Object(null);
 
 const savedOnError = window.onerror;
 window.onerror = (message, url, line, col, err) => {
@@ -27,17 +27,17 @@ window.onerror = (message, url, line, col, err) => {
     url,
     line,
     col,
-    stack: err && err.stack
+    stack: err && err.stack,
   });
   return savedOnError ? savedOnError(message, url, line, col, err) : false;
 };
 
-window.addEventListener('unhandledrejection', event => {
+window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   send('error', {
     type: 'unhandledRejection',
     message: reason.message || String(reason),
-    stack: reason.stack
+    stack: reason.stack,
   });
 });
 
@@ -47,7 +47,7 @@ const consoleEventMethods: ConsoleMethodName[] = [
   'error',
   'info',
   'log',
-  'warn'
+  'warn',
 ];
 
 Object.entries(console).forEach(([key, originalFn]) => {
@@ -55,7 +55,7 @@ Object.entries(console).forEach(([key, originalFn]) => {
   if (!consoleEventMethods.includes(method)) return;
   function newFn(...args: unknown[]) {
     originalFn.apply(console, args);
-    const argStrings = args.map(value =>
+    const argStrings = args.map((value) =>
       value &&
       (typeof value === 'object' || typeof value === 'function') &&
       !Array.isArray(value) &&
@@ -71,7 +71,7 @@ Object.entries(console).forEach(([key, originalFn]) => {
       method,
       args: args.map((value, i) => undefinedValueReplacer(i, value)),
       argStrings: argStrings.length ? argStrings : undefined,
-      ...getSourceLocation()
+      ...getSourceLocation(),
     };
     send('console', payload);
   }
@@ -93,7 +93,7 @@ function getSourceLocation() {
   const urlMatcher = /^https?:\/\/[^:/]+?(:\d+)?\/[^:]+/;
   const firstUrl = lines.shift()?.match(urlMatcher)?.[0];
   const firstLine =
-    firstUrl && lines.find(line => line.match(urlMatcher)?.[0] !== firstUrl);
+    firstUrl && lines.find((line) => line.match(urlMatcher)?.[0] !== firstUrl);
   if (!firstLine) return { stack };
 
   const firstLineMatch = firstLine.match(/(.+?):(\d+):(\d+)/);
@@ -102,20 +102,22 @@ function getSourceLocation() {
         url: firstLineMatch[1],
         line: Number(firstLineMatch[2]),
         col: Number(firstLineMatch[3]),
-        stack
+        stack,
       }
     : { url: firstLine, stack };
 }
 
 function undefinedValueReplacer(_key: unknown, value: any) {
-  return unserializablePrimitives.includes(value) ? serializationPrefix + value : value;
+  return unserializablePrimitives.includes(value)
+    ? serializationPrefix + value
+    : value;
 }
 
 const ws = new WebSocket('ws://' + window.location.host);
 const q: (string | ArrayBufferView | ArrayBuffer | Blob)[] = [];
 
 const clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2)))
-  .map(n => n.toString(16))
+  .map((n) => n.toString(16))
   .join('-');
 
 ws.onopen = () => {
@@ -127,12 +129,18 @@ ws.onopen = () => {
 function send(route: 'connection', message: ConnectionMessage): void;
 function send(route: 'console', message: ConsoleMethodMessage): void;
 function send(route: 'document', message: DocumentMessage): void;
-function send(route: 'error', message: ErrorMessage | UnhandledRejectionMessage): void;
+function send(
+  route: 'error',
+  message: ErrorMessage | UnhandledRejectionMessage
+): void;
 function send(route: 'window', message: WindowMessage): void;
 function send(route: string, data: MessageCore) {
   const payload = stringify([
     route,
-    Object.assign({ clientId, url: document.documentURI, timestamp: +new Date() }, data)
+    Object.assign(
+      { clientId, url: document.documentURI, timestamp: +new Date() },
+      data
+    ),
   ]);
   if (ws.readyState === 1 && !q.length) {
     ws.send(payload);
@@ -144,7 +152,7 @@ function send(route: string, data: MessageCore) {
 document.addEventListener('visibilitychange', () => {
   send('document', {
     type: 'visibilitychange',
-    visibilityState: document.visibilityState
+    visibilityState: document.visibilityState,
   });
 });
 

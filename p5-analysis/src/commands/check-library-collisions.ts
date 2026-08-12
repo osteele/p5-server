@@ -1,9 +1,9 @@
-import { Library } from '..';
+import { Library } from '../index.js';
 
 export default async function checkLibraryCollisions(): Promise<void> {
   const definitions = new Map<string, Library[]>();
-  Library.all.forEach(library => {
-    library.globals.forEach(name => {
+  Library.all.forEach((library) => {
+    library.globals.forEach((name) => {
       let libs = definitions.get(name);
       if (!libs) {
         libs = [];
@@ -23,12 +23,12 @@ export default async function checkLibraryCollisions(): Promise<void> {
     console.log('No collisions found');
   } else {
     console.log(collisions.size + ' collision(s) found:');
-    collisions.forEach(name => {
+    collisions.forEach((name) => {
       console.log(
         `${name} implies all of:`,
         definitions
           .get(name)!
-          .map(lib => lib.name)
+          .map((lib) => lib.name)
           .join(', ')
       );
     });

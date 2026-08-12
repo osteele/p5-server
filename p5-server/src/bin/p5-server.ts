@@ -1,20 +1,29 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import updateNotifier from 'update-notifier';
-import build from '../commands/buildCommand';
-import { clearCache, fillCache, lsCache, printCacheInfo } from '../commands/cacheCommands';
-import convert from '../commands/convertSketch';
-import create from '../commands/createSketch';
-import screenshot from '../commands/screenshotCommand';
-import serve from '../commands/serveCommand';
-import { contentProxyCache } from '../server/cdnProxy';
+import build from '../commands/buildCommand.js';
+import {
+  clearCache,
+  fillCache,
+  lsCache,
+  printCacheInfo,
+} from '../commands/cacheCommands.js';
+import convert from '../commands/convertSketch.js';
+import create from '../commands/createSketch.js';
+import screenshot from '../commands/screenshotCommand.js';
+import serve from '../commands/serveCommand.js';
+import { contentProxyCache } from '../server/cdnProxy.js';
 
 const program = new Command();
 
-const PROJECT_HOME = path.join(__dirname, '../../');
+const PROJECT_HOME = path.join(
+  fileURLToPath(new URL('.', import.meta.url)),
+  '../../'
+);
 const P5_ANALYSIS_BIN = path.join(PROJECT_HOME, 'node_modules/.bin');
 
 const pkg = JSON.parse(
@@ -28,7 +37,7 @@ updateNotifier({ pkg }).notify({
     '→'
   )} ${chalk.green('{latestVersion}')}
   Run ${chalk.cyan('{updateCommand}')} to update
-  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`
+  Changes: ${chalk.blue('https://bit.ly/p5-server-changelog')}`,
 });
 
 program
@@ -82,12 +91,14 @@ program
   .alias('server')
   .alias('r')
   .alias('run')
-  .alias('r')
   .option('-o, --open', 'Open the page in a browser')
   .option('--host <HOST>', 'Host interface to listen on', '127.0.0.1')
   .option('-p, --port [PORT]', 'HTTP port to listen on', '3000')
   .option('-t, --theme [FILE]', 'template file')
-  .option('--browser <NAME>', 'safari | chrome | firefox | edge (implies --open)')
+  .option(
+    '--browser <NAME>',
+    'safari | chrome | firefox | edge (implies --open)'
+  )
   .option('--split', 'Use the split (directory + sketch) template')
   .option('--no-proxy-cache', 'disable the CDN proxy cache')
   .option(
@@ -137,21 +148,21 @@ cacheCommand
   .description('Fill the cache from known library import paths')
   .option('--force', 'Force refresh of cached entries')
   .option('-v, --verbose', 'verbose output')
-  .action(opts => fillCache(opts));
+  .action((opts) => fillCache(opts));
 
 cacheCommand
   .command('refresh')
   .alias('reload')
   .description('Re-fetch cached resources')
   .option('-v, --verbose', 'verbose output')
-  .action(opts => fillCache({ ...opts, force: true, reload: true }));
+  .action((opts) => fillCache({ ...opts, force: true, reload: true }));
 
 /*
  * Subcommands
  */
 
 program.command('analyze', 'Display information about a sketch', {
-  executableFile: `${P5_ANALYSIS_BIN}/p5-analyze`
+  executableFile: `${P5_ANALYSIS_BIN}/p5-analyze`,
 });
 
 for (const command of ['library', 'libraries']) {
@@ -159,13 +170,17 @@ for (const command of ['library', 'libraries']) {
     command,
     'Print information about p5.js libraries known to p5-server',
     {
-      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`
+      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`,
     }
   );
 }
 
-program.command('tree', 'Print the tree structure of a directory and its sketches', {
-  executableFile: `${P5_ANALYSIS_BIN}/p5-tree`
-});
+program.command(
+  'tree',
+  'Print the tree structure of a directory and its sketches',
+  {
+    executableFile: `${P5_ANALYSIS_BIN}/p5-tree`,
+  }
+);
 
 program.parse(process.argv);

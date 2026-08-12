@@ -2,9 +2,9 @@ import {
   clearCache as clearProxyCache,
   listCache,
   showCacheInfo,
-  warmCache
+  warmCache,
 } from 'cdn-proxy-cache';
-import { contentProxyCache } from '../server/cdnProxy';
+import { contentProxyCache } from '../server/cdnProxy.js';
 
 export function clearCache(): Promise<void> {
   return clearProxyCache(contentProxyCache);

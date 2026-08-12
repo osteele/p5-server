@@ -1,4 +1,4 @@
-import { access, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -24,21 +24,29 @@ try {
   await writeFile(
     path.join(consumerDir, 'package.json'),
     JSON.stringify(
-      { name: 'p5-tools-package-smoke-test', private: true },
+      {
+        name: 'p5-tools-package-smoke-test',
+        overrides: { 'p5-analysis': archives[0] },
+        private: true,
+      },
       null,
       2
     )
   );
-  await run(['bun', 'add', '--ignore-scripts', ...archives], consumerDir);
+  for (const archive of archives) {
+    await run(['bun', 'add', '--ignore-scripts', archive], consumerDir);
+  }
   await run(
     [
       'node',
       '-e',
-      "const analysis = require('p5-analysis'); const server = require('p5-server'); if (!analysis.Sketch || !server.Server) process.exit(1)",
+      "Promise.all([import('p5-analysis'), import('p5-server')]).then(([analysis, server]) => { if (!analysis.Sketch || !server.Server) process.exit(1) })",
     ],
     consumerDir
   );
-  await access(path.join(consumerDir, 'node_modules', '.bin', 'p5'));
+  for (const executable of ['p5', 'p5-analyze', 'p5-libraries', 'p5-tree']) {
+    await run(['bun', 'run', executable, '--help'], consumerDir);
+  }
   console.log('Packed packages install and load successfully');
 } finally {
   await rm(tempDir, { force: true, recursive: true });

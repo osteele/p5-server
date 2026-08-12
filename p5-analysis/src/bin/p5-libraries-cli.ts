@@ -1,24 +1,27 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import checkLibraryCollisions from '../commands/check-library-collisions.js';
 import {
   describeLibrary,
   listLibraries,
   printLibraryProperty,
-  updateDescriptions
-} from '../commands/library-commands';
-import { generateLibraryPage } from '../commands/library-docs';
-import checkLibraryCollisions from '../commands/check-library-collisions';
+  updateDescriptions,
+} from '../commands/library-commands.js';
+import { generateLibraryPage } from '../commands/library-docs.js';
 import {
   checkLibraries,
-  checkLibraryImportPaths
-} from '../commands/library-validation';
+  checkLibraryImportPaths,
+} from '../commands/library-validation.js';
 
 export const program = new Command();
 
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 const pkg = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8')
+  fs.readFileSync(path.join(dirname, '../../package.json'), 'utf-8')
 );
 const appVersion = pkg.version;
 program.version(appVersion);
@@ -82,6 +85,6 @@ libraryCommands
   .description('Verify that the import paths exist')
   .action(checkLibraryImportPaths);
 
-if (require.main === module) {
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === filename) {
   program.parse(process.argv);
 }

@@ -1,6 +1,7 @@
 {
   "name": "p5-analysis",
   "version": "0.6.10",
+  "type": "module",
   "description": "API to find, create, and analyze p5.js sketch files.",
   "keywords": [
     "creative coding",
@@ -21,7 +22,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
+      "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
@@ -56,7 +57,7 @@
     "@babel/parser": "^7.29.8",
     "@babel/traverse": "^7.29.8",
     "@babel/types": "^7.29.8",
-    "commander": "^11.1.0",
+    "commander": "^15.0.0",
     "js-beautify": "^2.0.3",
     "lru-cache": "^11.5.2",
     "minimatch": "^10.2.6",

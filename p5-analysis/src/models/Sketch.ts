@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import beautify from 'js-beautify';
 import { minimatch } from 'minimatch';
 import { type HTMLElement, parse, parse as parseHtml } from 'node-html-parser';
@@ -13,12 +14,12 @@ import {
   capitalize,
   isHtmlPathname,
   isScriptPathname,
-} from '../helpers';
-import { isDefined } from '../helpers/ts-extras';
-import { Library, p5Version } from './Library';
-import { Script } from './Script';
+} from '../helpers/index.js';
+import { isDefined } from '../helpers/ts-extras.js';
+import { Library, p5Version } from './Library.js';
+import { Script } from './Script.js';
 
-const templateDir = path.join(__dirname, './templates');
+const templateDir = fileURLToPath(new URL('./templates', import.meta.url));
 const defaultGenerationOptions = { draw: true, examples: true };
 const defaultDirectoryExclusions = [
   '.*',

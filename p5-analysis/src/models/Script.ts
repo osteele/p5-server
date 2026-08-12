@@ -3,14 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from '@babel/parser';
 import { LRUCache } from 'lru-cache';
-import { sizeof } from '../helpers';
+import { sizeof } from '../helpers/index.js';
 import {
   findCallArguments,
   findGlobalDefinitions,
   findGlobalReferences,
   findPropertyReferences,
   isP5InstanceSketch,
-} from './script-analysis';
+} from './script-analysis.js';
 
 const { P5_ANALYSIS_PRINT_CACHE_STATS } = process.env;
 

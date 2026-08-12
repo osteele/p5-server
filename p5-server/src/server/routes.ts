@@ -1,21 +1,24 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import fs from 'fs';
 import { readdir, readFile } from 'fs/promises';
 import { Script, Sketch } from 'p5-analysis';
 import path from 'path';
-import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers';
-import { assertError } from '../ts-extras';
-import { injectScriptEventRelayScript } from './browserScriptEventRelay';
-import { replaceUrlsInHtml } from './cdnProxy';
-import { staticAssetPrefix } from './constants';
-import { createDirectoryListing, defaultDirectoryExclusions } from './directoryListing';
-import { injectLiveReloadScript } from './liveReload';
-import { RouterConfig } from './Server';
+import { addScriptToHtmlHead, resolvePathInDirectory } from '../helpers.js';
+import { assertError } from '../ts-extras.js';
+import { injectScriptEventRelayScript } from './browserScriptEventRelay.js';
+import { replaceUrlsInHtml } from './cdnProxy.js';
+import { staticAssetPrefix } from './constants.js';
+import {
+  createDirectoryListing,
+  defaultDirectoryExclusions,
+} from './directoryListing.js';
+import { injectLiveReloadScript } from './liveReload.js';
+import type { RouterConfig } from './Server.js';
 import {
   createSyntaxErrorJsReporter,
   markdownToHtmlPage,
-  sourceViewTemplate
-} from './templates';
+  sourceViewTemplate,
+} from './templates.js';
 
 export function createRouter(config: RouterConfig): express.Router {
   const router = express.Router();
@@ -35,8 +38,8 @@ export function createRouter(config: RouterConfig): express.Router {
     } else if (config.screenshot) {
       const { sketches } = fs.statSync(file).isDirectory()
         ? await Sketch.analyzeDirectory(file, {
-          exclusions: defaultDirectoryExclusions
-        })
+            exclusions: defaultDirectoryExclusions,
+          })
         : { sketches: [] };
       if (sketches.length !== 1)
         throw new Error(`Expected exactly one sketch in ${file}`);
@@ -60,13 +63,13 @@ export function createRouter(config: RouterConfig): express.Router {
       await config.screenshot.onFrameData({
         imageType: m[1],
         data: Buffer.from(m[2], 'base64'),
-        frameNumber: req.body.frameNumber
+        frameNumber: req.body.frameNumber,
       });
       res.sendStatus(200);
     }
   );
 
-  router.get('/*.html?', (req, res, next) => {
+  router.get(/\.html?$/, (req, res, next) => {
     const file = requestPathToFilePath(req.path);
     if (!file) return res.sendStatus(403);
     try {
@@ -90,7 +93,7 @@ export function createRouter(config: RouterConfig): express.Router {
 
   // A request for the HTML of a JavaScript file returns HTML that includes the sketch.
   // A request for the HTML of a main sketch js file redirects to the sketch's index page.
-  router.get('/*.js', async (req, res, next) => {
+  router.get(/\.js$/, async (req, res, next) => {
     const filepath = requestPathToFilePath(req.path);
     if (!filepath) return res.sendStatus(403);
 
@@ -100,10 +103,13 @@ export function createRouter(config: RouterConfig): express.Router {
       req.query.fmt !== 'view' &&
       (await Sketch.isSketchScriptFile(filepath))
     ) {
-      const { sketches } = await Sketch.analyzeDirectory(path.dirname(filepath), {
-        exclusions: defaultDirectoryExclusions
-      });
-      const sketch = sketches.find(sketch =>
+      const { sketches } = await Sketch.analyzeDirectory(
+        path.dirname(filepath),
+        {
+          exclusions: defaultDirectoryExclusions,
+        }
+      );
+      const sketch = sketches.find((sketch) =>
         sketch.files.includes(path.basename(filepath))
       );
       if (sketch) {
@@ -112,7 +118,10 @@ export function createRouter(config: RouterConfig): express.Router {
     }
 
     // view source
-    if (req.headers['accept']?.match(/\btext\/html\b/) && req.query.fmt === 'view') {
+    if (
+      req.headers['accept']?.match(/\btext\/html\b/) &&
+      req.query.fmt === 'view'
+    ) {
       const source = await readFile(filepath, 'utf-8');
       const title = req.path.replace(/^\//, '');
       const html = sourceViewTemplate({ source, title });
@@ -139,7 +148,7 @@ export function createRouter(config: RouterConfig): express.Router {
     next();
   });
 
-  router.get('/*.md', (req, res, next) => {
+  router.get(/\.md$/, (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
       const file = requestPathToFilePath(req.path);
       if (!file) return res.sendStatus(403);
@@ -155,7 +164,7 @@ export function createRouter(config: RouterConfig): express.Router {
     return next();
   });
 
-  router.get('*', (req, res, next) => {
+  router.get(/.*/, (req, res, next) => {
     if (req.headers['accept']?.match(/\btext\/html\b/)) {
       const file = requestPathToFilePath(req.path);
       if (!file) return res.sendStatus(403);
@@ -170,7 +179,10 @@ export function createRouter(config: RouterConfig): express.Router {
 
   function requestPathToFilePath(requestPath: string): string | null {
     try {
-      return resolvePathInDirectory(decodeURIComponent(requestPath), config.root);
+      return resolvePathInDirectory(
+        decodeURIComponent(requestPath),
+        config.root
+      );
     } catch (err) {
       if (err instanceof URIError) return null;
       throw err;
@@ -191,9 +203,12 @@ export function createRouter(config: RouterConfig): express.Router {
       html = injectScriptEventRelayScript(html);
     }
     if (config.screenshot && req.path === '/') {
-      html = addScriptToHtmlHead(html, `${staticAssetPrefix}/screenshot.min.js`);
+      html = addScriptToHtmlHead(
+        html,
+        `${staticAssetPrefix}/screenshot.min.js`
+      );
       html = addScriptToHtmlHead(html, {
-        __p5_server_screenshot_settings: config.screenshot
+        __p5_server_screenshot_settings: config.screenshot,
       });
     }
 
@@ -224,12 +239,14 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
     return;
   }
   // read the directory contents
-  const indexFile = (await readdir(dir)).find(file => /^index\.html?$/i.test(file));
+  const indexFile = (await readdir(dir)).find((file) =>
+    /^index\.html?$/i.test(file)
+  );
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {
-      templateName: config.theme
-    });
+        templateName: config.theme,
+      });
 
   // Note: This injects the reload script into both static and generated index
   // pages. This ensures that the index page reloads when the directory contents

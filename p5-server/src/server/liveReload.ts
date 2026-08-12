@@ -1,5 +1,5 @@
 import livereload from 'livereload';
-import { addScriptToHtmlHead } from '../helpers';
+import { addScriptToHtmlHead } from '../helpers.js';
 
 export type Options = {
   host?: string;
@@ -39,7 +39,7 @@ export async function createLiveReloadServer({
   host = '127.0.0.1',
   port = 35729,
   scanPorts = true,
-  watchDirs = <string[]>[]
+  watchDirs = <string[]>[],
 }: Options): Promise<LiveReloadServer> {
   const lastPort = port + 9;
   let lrServer: LiveReloadServer | undefined;
@@ -51,7 +51,7 @@ export async function createLiveReloadServer({
       port = port < lastPort ? port + 1 : 0;
     }
   }
-  watchDirs.forEach(dir => lrServer.watch(dir));
+  for (const dir of watchDirs) lrServer.watch(dir);
   return lrServer;
 }
 
@@ -61,7 +61,9 @@ function isAddressInUseError(err: unknown): err is NodeJS.ErrnoException {
 
 function listen(port: number, host: string): Promise<LiveReloadServer> {
   return new Promise((resolve, reject) => {
-    type ServerOptions = NonNullable<Parameters<typeof livereload.createServer>[0]> & {
+    type ServerOptions = NonNullable<
+      Parameters<typeof livereload.createServer>[0]
+    > & {
       host: string;
     };
     const options: ServerOptions = { host, noListen: true, port };

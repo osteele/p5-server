@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { Sketch } from 'p5-analysis';
 import path from 'path/posix';
-import { Server } from '../server/Server';
-import { die, openInBrowser } from '../helpers';
+import { die, openInBrowser } from '../helpers.js';
+import { Server } from '../server/Server.js';
 
 type Options = {
   output?: string;
@@ -16,7 +16,7 @@ type Options = {
 const typeMap: Record<string, 'jpeg' | 'png'> = {
   jpeg: 'jpeg',
   jpg: 'jpeg',
-  png: 'png'
+  png: 'png',
 };
 
 export default async function screenshot(source: string, options: Options) {
@@ -45,8 +45,8 @@ export default async function screenshot(source: string, options: Options) {
     screenshot: {
       onFrameData,
       imageType,
-      ...parseScreenshotOptions(options)
-    }
+      ...parseScreenshotOptions(options),
+    },
   };
   let remainingFrames = serverOptions.screenshot?.frameCount || 1;
   if (remainingFrames > 1 && !/%\d*d/.test(output)) {
@@ -60,14 +60,14 @@ export default async function screenshot(source: string, options: Options) {
 
   async function onFrameData({
     data,
-    frameNumber
+    frameNumber,
   }: {
     data: Buffer;
     frameNumber: number;
   }) {
     if (remainingFrames < 0) return;
 
-    const fname = output.replace(/%\d*d/g, fmt => {
+    const fname = output.replace(/%\d*d/g, (fmt) => {
       let s = String(frameNumber);
       const m = fmt.match(/%(0)?(\d+)/);
       if (m) {
@@ -81,7 +81,7 @@ export default async function screenshot(source: string, options: Options) {
     await writeFile(fname, data);
     console.log(`Saved screenshot from ${source} to ${fname}`);
 
-    if (--remainingFrames == 0) {
+    if (--remainingFrames === 0) {
       // Give the client time to receive the request response, so that it knows
       // to close.
       setTimeout(() => process.exit(0), 100);
@@ -89,10 +89,12 @@ export default async function screenshot(source: string, options: Options) {
   }
 }
 
-function parseScreenshotOptions(options: Options): Server.Options['screenshot'] {
+function parseScreenshotOptions(
+  options: Options
+): Server.Options['screenshot'] {
   const skipFrames = Number(options.skipFrames || 0);
 
-  let canvasDimensions = undefined;
+  let canvasDimensions: { width: number; height: number } | undefined;
   if (options.canvasSize) {
     const m = options.canvasSize.match(/^(\d+)(?:[x, ](\d+))?$/);
     if (!m) {
@@ -101,7 +103,7 @@ function parseScreenshotOptions(options: Options): Server.Options['screenshot'] 
     canvasDimensions = { width: Number(m[1]), height: Number(m[2] ?? m[1]) };
   }
 
-  let pixelDensity = undefined;
+  let pixelDensity: number | undefined;
   if (options.pixelDensity) {
     const m = options.pixelDensity.match(
       /^(\d+(?:\.\d*)?|\.\d+)(?:\/(\d+(?:\.\d*)?|\.\d+))?$/
@@ -118,6 +120,6 @@ function parseScreenshotOptions(options: Options): Server.Options['screenshot'] 
     canvasDimensions,
     frameCount,
     pixelDensity,
-    skipFrames
+    skipFrames,
   };
 }

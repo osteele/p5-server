@@ -1,10 +1,15 @@
-import { Sketch } from 'p5-analysis';
-import { die, stringToOptions } from '../helpers';
-import { assertError } from '../ts-extras';
 import fs from 'fs';
+import { Sketch } from 'p5-analysis';
 import path from 'path';
+import { die, stringToOptions } from '../helpers.js';
+import { assertError } from '../ts-extras.js';
 
-type Options = { force: boolean; title: string; options: string; type?: 'folder' };
+type Options = {
+  force: boolean;
+  title: string;
+  options: string;
+  type?: 'folder';
+};
 
 export default async function create(file: string, options: Options) {
   let scriptFile: string | undefined;
@@ -46,5 +51,5 @@ export default async function create(file: string, options: Options) {
     console.error(Object.entries(err));
     throw err;
   }
-  files.forEach(file => console.log(`Created ${file}`));
+  for (const file of files) console.log(`Created ${file}`);
 }

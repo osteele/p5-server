@@ -1,7 +1,8 @@
+import type { ChildProcess } from 'node:child_process';
 import chalk from 'chalk';
 import fs from 'fs';
 import { HTMLElement, parse as parseHtml } from 'node-html-parser';
-import open from 'open';
+import open, { type AppName, apps, type Options as OpenOptions } from 'open';
 import path from 'path';
 
 /** Print the message to standard output; then exit with status code 1.
@@ -31,18 +32,20 @@ export function escapeHTML(str: string): string {
 export function openInBrowser(
   url: string,
   browser?: string
-): Promise<import('child_process').ChildProcess> {
-  const appName: open.AppName | 'safari' | undefined =
+): Promise<ChildProcess> {
+  const appName: AppName | 'safari' | undefined =
     browser === 'safari'
       ? 'safari'
-      : browser! in open.apps
-      ? (browser as open.AppName)
-      : undefined;
-  if (browser && !browser) {
+      : browser && browser in apps
+        ? (browser as AppName)
+        : undefined;
+  if (browser && !appName) {
     die(`Unknown browser: ${browser}`);
   }
-  const openApps = { safari: 'safari', ...open.apps };
-  const openOptions: open.Options = appName ? { app: { name: openApps[appName] } } : {};
+  const openApps = { safari: 'safari', ...apps };
+  const openOptions: OpenOptions = appName
+    ? { app: { name: openApps[appName] } }
+    : {};
   return open(url, openOptions);
 }
 
@@ -65,8 +68,9 @@ export function pathComponentsForBreadcrumbs(
           ...crumbs,
           {
             name,
-            path: (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name
-          }
+            path:
+              (crumbs[crumbs.length - 1].path + '/').replace('//', '/') + name,
+          },
         ],
         [{ name: 'Home', path: '/' }]
       )
@@ -85,7 +89,10 @@ export function pathIsInDirectory(filepath: string, dir: string): boolean {
 }
 
 /** Resolve a relative path inside `dir`, rejecting lexical and symlink escapes. */
-export function resolvePathInDirectory(filepath: string, dir: string): string | null {
+export function resolvePathInDirectory(
+  filepath: string,
+  dir: string
+): string | null {
   const resolvedDir = path.resolve(dir);
   const relativePath = filepath.replace(/^[/\\]+/, '');
   const resolvedPath = path.resolve(resolvedDir, relativePath);
@@ -112,7 +119,7 @@ export function pathIsMarkdown(filepath: string): boolean {
 export function stringToOptions(str: string | null): { [k: string]: boolean } {
   return str
     ? Object.fromEntries<boolean>(
-        str.split(',').map(s => [s.replace(/^no-/, ''), !s.startsWith('no-')])
+        str.split(',').map((s) => [s.replace(/^no-/, ''), !s.startsWith('no-')])
       )
     : {};
 }
@@ -155,7 +162,10 @@ export function addScriptToHtmlHead(
   // htmlRoot.querySelector(tagName) always returns null.
   if (!htmlRoot.querySelector('head')) {
     const body = htmlRoot.querySelector('body');
-    if (body) body.appendChild(new HTMLElement('head', {}, '', undefined, undefined, undefined));
+    if (body)
+      body.appendChild(
+        new HTMLElement('head', {}, '', undefined, undefined, undefined)
+      );
     else if (!warnedAboutMissingHtmlBody) {
       console.warn('HTML document did not have a body');
       warnedAboutMissingHtmlBody = true;

@@ -1,15 +1,18 @@
 import fs from 'fs';
-import { Library } from '..';
 import nunjucks from 'nunjucks';
-import { die } from './helpers';
-import { configureNunjucks } from './library-commands';
+import { Library } from '../index.js';
+import { die } from './helpers.js';
+import { configureNunjucks } from './library-commands.js';
 
 type Options = {
   output?: string;
   template?: string;
 };
 
-export function generateLibraryPage({ output, template: templateFile }: Options) {
+export function generateLibraryPage({
+  output,
+  template: templateFile,
+}: Options) {
   configureNunjucks();
   const context = {
     categories: Library.categories,

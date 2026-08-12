@@ -1,30 +1,30 @@
 /** Receive and parse messages from the client-side console relay, and emit them
  * as events. */
 
-import http from 'http';
-import net from 'net';
+import type http from 'http';
+import type net from 'net';
 import { URL } from 'url';
-import ws from 'ws';
-import {
+import { WebSocketServer } from 'ws';
+import type {
   ConnectionMessage,
   ConsoleMethodMessage,
   DocumentMessage,
   ErrorMessage,
   Message,
   WindowMessage,
-} from '../consoleRelayTypes';
-import { addScriptToHtmlHead } from '../helpers';
-import { jsonCycleStringifier } from '../jsonCycleStringifier';
-import { assertError } from '../ts-extras';
-import { staticAssetPrefix } from './constants';
-import {
+} from '../consoleRelayTypes.js';
+import { addScriptToHtmlHead } from '../helpers.js';
+import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
+import { assertError } from '../ts-extras.js';
+import { staticAssetPrefix } from './constants.js';
+import type {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
   BrowserDocumentEvent,
   BrowserErrorEvent,
   BrowserEventCommon,
   BrowserWindowEvent,
-} from './eventTypes';
+} from './eventTypes.js';
 
 export interface BrowserScriptRelay {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,11 +43,13 @@ export function attachBrowserScriptRelay(
   relay: BrowserScriptRelay
 ): void {
   const handlers = new Map<string, (event: WithClientKeys<Message>) => void>();
-  const wsServer = new ws.Server({ noServer: true });
+  const wsServer = new WebSocketServer({ noServer: true });
 
-  wsServer.on('connection', socket => {
-    socket.on('message', message => {
-      const [route, data]: [string, Message] = parseCyclicJson(message.toString());
+  wsServer.on('connection', (socket) => {
+    socket.on('message', (message) => {
+      const [route, data]: [string, Message] = parseCyclicJson(
+        message.toString()
+      );
       const handler = handlers.get(route);
       if (handler) {
         handler({
@@ -61,7 +63,7 @@ export function attachBrowserScriptRelay(
   });
 
   server.on('upgrade', (request, socket: net.Socket, head) => {
-    wsServer.handleUpgrade(request, socket, head, socket => {
+    wsServer.handleUpgrade(request, socket, head, (socket) => {
       wsServer.emit('connection', socket, request);
     });
   });
@@ -97,7 +99,11 @@ export function attachBrowserScriptRelay(
   });
 
   defineHandler('console', (message: WithClientKeys<ConsoleMethodMessage>) => {
-    const event: BrowserConsoleEvent = { type: 'console', argStrings: [], ...message };
+    const event: BrowserConsoleEvent = {
+      type: 'console',
+      argStrings: [],
+      ...message,
+    };
     const args = event.args.map(decodeUnserializableValue);
     // const argStrings = event.argStrings || [];
     const data: BrowserConsoleEvent = { ...event, type: 'console', args };
@@ -157,7 +163,7 @@ export function replaceUrlsInStack(
       // http:// -> file:///
       .replace(
         /\bhttps?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/[^\s:]+/g,
-        url => relay.serverUrlToFileUrl(url) || url
+        (url) => relay.serverUrlToFileUrl(url) || url
       )
   );
 }
@@ -168,9 +174,20 @@ export function injectScriptEventRelayScript(html: string): string {
 
 const serializationPrefix = '__p5_server_serialization_:';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function decodeUnserializableValue(value: any) {
-  return typeof value === 'string' && value.startsWith(serializationPrefix)
-    ? eval(value.slice(serializationPrefix.length))
-    : value;
+function decodeUnserializableValue(value: unknown): unknown {
+  if (typeof value !== 'string' || !value.startsWith(serializationPrefix)) {
+    return value;
+  }
+  switch (value.slice(serializationPrefix.length)) {
+    case 'undefined':
+      return undefined;
+    case 'NaN':
+      return Number.NaN;
+    case '-Infinity':
+      return Number.NEGATIVE_INFINITY;
+    case 'Infinity':
+      return Number.POSITIVE_INFINITY;
+    default:
+      return value;
+  }
 }

@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { Sketch } from '..';
+import { Sketch } from '../index.js';
 import {
-  AsyncTreeInputIterable,
+  type AsyncTreeInputIterable,
   dedentSymbol,
   indentSymbol,
   printTree,
-} from './helpers/printTree';
+} from './helpers/printTree.js';
 
 export default async function tree(
   dirs: string[],
@@ -27,7 +27,10 @@ function sketchTreeIter(
 ): AsyncTreeInputIterable<string> {
   return visit(file, depth) as AsyncTreeInputIterable<string>;
 
-  async function* visit(file: string, depth: number): AsyncIterable<string | symbol> {
+  async function* visit(
+    file: string,
+    depth: number
+  ): AsyncIterable<string | symbol> {
     if (fs.statSync(file).isDirectory()) {
       yield* visitDir(file, depth - 1);
     } else if (await Sketch.isSketchFile(file)) {
@@ -39,19 +42,25 @@ function sketchTreeIter(
   }
 
   // Recursively visit directory
-  async function* visitDir(dir: string, depth: number): AsyncIterable<string | symbol> {
+  async function* visitDir(
+    dir: string,
+    depth: number
+  ): AsyncIterable<string | symbol> {
     const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir);
     yield* ['📁' + path.basename(dir), indentSymbol];
     if (depth >= 0) {
-      for (const sketch of sketches.sort((a, b) => a.name.localeCompare(b.name))) {
+      for (const sketch of sketches.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )) {
         yield* visitSketch(sketch, depth - 1);
       }
       const files = [...unassociatedFiles]
-        .map(f => path.join(dir, f))
+        .map((f) => path.join(dir, f))
         .sort((a, b) => a.localeCompare(b))
         .sort(
           (a, b) =>
-            Number(fs.statSync(b).isDirectory()) - Number(fs.statSync(a).isDirectory())
+            Number(fs.statSync(b).isDirectory()) -
+            Number(fs.statSync(a).isDirectory())
         );
       for (const file of files) {
         yield* visit(file, depth - 1);

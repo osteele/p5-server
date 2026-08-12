@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url';
 import fs from 'fs';
-import { capitalize } from '../helpers';
-import { Library } from './Library';
+import { capitalize } from '../helpers/index.js';
+import { Library } from './Library.js';
+
+const dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export class Category {
   static all: Category[] = [];
@@ -24,12 +27,14 @@ export class Category {
   }
 
   static load(): void {
-    (JSON.parse(
-      fs.readFileSync(`${__dirname}/libraries/categories.json`, 'utf-8')
-    ) as CategoryProperties[])
+    (
+      JSON.parse(
+        fs.readFileSync(`${dirname}/libraries/categories.json`, 'utf-8')
+      ) as CategoryProperties[]
+    )
       .map(Category.fromProperties)
-      .forEach(cat => {
-        cat.addFromJsonFile(`${__dirname}/libraries/${cat.key}-libraries.json`);
+      .forEach((cat) => {
+        cat.addFromJsonFile(`${dirname}/libraries/${cat.key}-libraries.json`);
       });
   }
 
@@ -38,11 +43,11 @@ export class Category {
   }
 
   public static findByKey(key: string): Category | undefined {
-    return Category.all.find(cat => cat.key === key);
+    return Category.all.find((cat) => cat.key === key);
   }
 
   get libraries(): Library[] {
-    return Library.all.filter(lib => lib.categoryKey === this.key);
+    return Library.all.filter((lib) => lib.categoryKey === this.key);
   }
 }
 

@@ -1,11 +1,10 @@
 import fs from 'fs';
-import { marked } from 'marked';
 import { Sketch } from 'p5-analysis';
 import path from 'path';
 import pug from 'pug';
-import { pathComponentsForBreadcrumbs } from '../helpers';
-import { staticAssetPrefix } from './constants';
-import { markedOptions, templateDir } from './templates';
+import { pathComponentsForBreadcrumbs } from '../helpers.js';
+import { staticAssetPrefix } from './constants.js';
+import { markdownToHtml, templateDir } from './templates.js';
 
 export const defaultDirectoryExclusions = [
   '.*',
@@ -44,9 +43,11 @@ export async function createDirectoryListing(
     exclusions: defaultDirectoryExclusions,
   });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
-  unassociatedFiles.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  unassociatedFiles.sort((a, b) =>
+    a.toLowerCase().localeCompare(b.toLowerCase())
+  );
 
-  const readmeName = unassociatedFiles.find(name =>
+  const readmeName = unassociatedFiles.find((name) =>
     /^readme\.(md|mkd|mkdn|mdwn|mdown|markdown)$/i.test(name)
   );
   const readme = readmeName
@@ -57,20 +58,20 @@ export async function createDirectoryListing(
       }
     : null;
 
-  const directories = unassociatedFiles.filter(s =>
+  const directories = unassociatedFiles.filter((s) =>
     fs.statSync(path.join(dir, s)).isDirectory()
   );
   const files = unassociatedFiles.filter(
-    s => !directories.includes(s) && s !== readmeName
+    (s) => !directories.includes(s) && s !== readmeName
   );
   const title = dir === './' ? 'P5 Server' : path.basename(dir);
 
-  const templatePaths = ['', '.pug'].flatMap(ext => [
+  const templatePaths = ['', '.pug'].flatMap((ext) => [
     path.join(templateDir, templateName + ext),
     path.join(templateDir, templateName, `directory${ext}`),
   ]);
   const templatePath = templatePaths.find(
-    p => fs.existsSync(p) && !fs.statSync(p).isDirectory()
+    (p) => fs.existsSync(p) && !fs.statSync(p).isDirectory()
   );
   if (!templatePath) {
     throw new Error(
@@ -106,7 +107,7 @@ export async function createDirectoryListing(
   }
 
   function markdown(md: string | null) {
-    return md ? marked(md, markedOptions) : '';
+    return md ? markdownToHtml(md) : '';
   }
 
   function path_to(filepath: string, sk: Sketch) {
@@ -118,8 +119,8 @@ export async function createDirectoryListing(
     return staticMode
       ? `${filepath}.html`
       : filepath.match(/.*\.(html?|js)$/i)
-      ? `${filepath}?fmt=view`
-      : filepath;
+        ? `${filepath}?fmt=view`
+        : filepath;
   }
 
   function play_link(sk: Sketch) {

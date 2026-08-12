@@ -1,22 +1,26 @@
-import { Sketch, SketchStructureType } from 'p5-analysis';
-import { die } from '../helpers';
-import { assertError } from '../ts-extras';
 import fs from 'fs';
+import { Sketch, type SketchStructureType } from 'p5-analysis';
 import path from 'path';
+import { die } from '../helpers.js';
+import { assertError } from '../ts-extras.js';
 
 const sketchTypes: Record<string, SketchStructureType | 'folder'> = {
   '^html$': 'html',
   '^(script|javascript|js)(-only)?$': 'script',
-  '^folder$': 'folder'
+  '^folder$': 'folder',
 };
 
-export default async function convert(sketchPath: string, options: { to: string }) {
+export default async function convert(
+  sketchPath: string,
+  options: { to: string }
+) {
   if (!options.to) {
     die(`Missing required option: --to`);
   }
   const targetType: SketchStructureType | 'folder' =
-    Object.entries(sketchTypes).find(([regex]) => options.to.match(regex))?.[1] ??
-    die(`Invalid option --to ${options.to}`);
+    Object.entries(sketchTypes).find(([regex]) =>
+      options.to.match(regex)
+    )?.[1] ?? die(`Invalid option --to ${options.to}`);
 
   if (!fs.existsSync(sketchPath) && fs.existsSync(sketchPath + '.html'))
     sketchPath += '.html';
@@ -28,9 +32,12 @@ export default async function convert(sketchPath: string, options: { to: string 
   if (targetType === 'folder') {
     const targetDir = sketchPath.replace(/\.(html?|js)/i, '');
     fs.mkdirSync(targetDir, { recursive: true });
-    sketch.files.forEach(file => {
+    sketch.files.forEach((file) => {
       const targetName = file === sketch.htmlFile ? 'index.html' : file;
-      fs.renameSync(path.join(sketch.dir, file), path.join(targetDir, targetName));
+      fs.renameSync(
+        path.join(sketch.dir, file),
+        path.join(targetDir, targetName)
+      );
       console.log(`Moved ${file} into new directory ${targetDir}`);
     });
     return;

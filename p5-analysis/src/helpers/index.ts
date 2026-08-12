@@ -1,3 +1,3 @@
-export { capitalize, sizeof } from './helpers';
-export { asyncFind, asyncFilter, asyncSome } from './async-array-helpers';
-export { isHtmlPathname, isScriptPathname } from './pathname-helpers';
+export { asyncFilter, asyncFind, asyncSome } from './async-array-helpers.js';
+export { capitalize, sizeof } from './helpers.js';
+export { isHtmlPathname, isScriptPathname } from './pathname-helpers.js';

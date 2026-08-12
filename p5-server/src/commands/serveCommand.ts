@@ -1,16 +1,16 @@
-import chalk, { Chalk } from 'chalk';
-import {
+import chalk, { type ChalkInstance } from 'chalk';
+import util from 'util';
+import { die, openInBrowser } from '../helpers.js';
+import type {
   BrowserConnectionEvent,
   BrowserConsoleEvent,
   BrowserConsoleEventMethods,
   BrowserDocumentEvent,
   BrowserErrorEvent,
   BrowserEventMessage,
-  BrowserWindowEvent
-} from 'src/server/eventTypes';
-import util from 'util';
-import { die, openInBrowser } from '../helpers';
-import { Server } from '../server/Server';
+  BrowserWindowEvent,
+} from '../server/eventTypes.js';
+import { Server } from '../server/Server.js';
 
 type Options = {
   browser?: 'safari' | 'chrome' | 'firefox' | 'edge';
@@ -51,25 +51,30 @@ export default async function serve(files: string[], options: Options) {
     proxyCache: options.proxyCache,
     port: Number(options.port),
     root: file,
-    relayConsoleMessages: Boolean(options.console) && options.console !== 'passive',
-    theme: options.theme || undefined
+    relayConsoleMessages:
+      Boolean(options.console) && options.console !== 'passive',
+    theme: options.theme || undefined,
   };
   if (files.length > 1) serverOptions.mountPoints = files;
   const server = await Server.start(serverOptions);
-  if (options.console) subscribeToBrowserEvents(server, options.console === 'json');
+  if (options.console)
+    subscribeToBrowserEvents(server, options.console === 'json');
   console.log(`Serving ${displayName} at ${server.url}`);
   if ((options.open || options.browser) && server.url)
     openInBrowser(server.url, options.browser?.toLowerCase());
 }
 
 function subscribeToBrowserEvents(server: Server, asJson: boolean) {
-  const consoleColors: Record<BrowserConsoleEventMethods, Chalk | null> = {
+  const consoleColors: Record<
+    BrowserConsoleEventMethods,
+    ChalkInstance | null
+  > = {
     debug: chalk.blueBright,
     error: chalk.red,
     info: chalk.green,
     log: chalk.gray,
     warn: chalk.yellow,
-    clear: null
+    clear: null,
   };
 
   server.onScriptEvent('connection', (data: BrowserConnectionEvent) => {

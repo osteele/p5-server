@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { removeSetElements, setUnion } from '../helpers/set-helpers';
-import { Category } from './Category';
-import { Cdn } from './Cdn';
-import { Script } from './Script';
+import { removeSetElements, setUnion } from '../helpers/set-helpers.js';
+import { Category } from './Category.js';
+import { Cdn } from './Cdn.js';
+import { Script } from './Script.js';
 
 export const p5Version = '1.4';
 
@@ -61,7 +61,7 @@ export class Library implements Library.Properties {
       packageName: this.packageName,
       repository: this.repository,
       importPath: this.importPath,
-      defines: this.defines
+      defines: this.defines,
     };
   }
 
@@ -72,7 +72,7 @@ export class Library implements Library.Properties {
     { ifExists = 'error' }: { ifExists?: 'error' | 'replace' } = {}
   ): Library {
     const lib = new Library(props);
-    const ix = Library.all.findIndex(l => l.name === lib.name);
+    const ix = Library.all.findIndex((l) => l.name === lib.name);
     if (ifExists === 'error' && ix >= 0) {
       throw new Error(`Library ${lib.name} already exists.`);
     } else if (ix >= 0) {
@@ -93,7 +93,7 @@ export class Library implements Library.Properties {
     const properties = JSON.parse(
       fs.readFileSync(jsonPath, 'utf-8')
     ) as Library.Properties[];
-    const libs = properties.map(props =>
+    const libs = properties.map((props) =>
       Library.fromProperties({ ...defaultProps, ...props })
     );
     return libs;
@@ -106,7 +106,7 @@ export class Library implements Library.Properties {
       name: '<library named in comment directive>',
       description: 'Library specified in script file comment directive',
       homepage: '',
-      importPath
+      importPath,
     });
   }
 
@@ -115,40 +115,40 @@ export class Library implements Library.Properties {
       name: packageName,
       description: 'Library specified in script file comment directive',
       homepage: '',
-      packageName
+      packageName,
     });
   }
 
   //#endregion
 
   static get all(): readonly Library[] {
-    return this._all;
+    return Library._all;
   }
 
   /** Find a library by its name or import path. */
   static find({
     name,
     importPath,
-    packageName
+    packageName,
   }: {
     name?: string;
     importPath?: string;
     packageName?: string;
   }): Library | null {
-    let libs = this.all;
+    let libs = Library.all;
     if (libs.length === 0) {
       // This has cost me a lot of debugging time a couple of times, so check
       // for it.
       console.warn('Library.all has not been initialized');
     }
     if (name) {
-      libs = libs.filter(lib => lib.name === name);
+      libs = libs.filter((lib) => lib.name === name);
     }
     if (packageName) {
-      libs = libs.filter(lib => lib.packageName === packageName);
+      libs = libs.filter((lib) => lib.packageName === packageName);
     }
     if (importPath) {
-      libs = libs.filter(lib => lib.matchesImportPath(importPath));
+      libs = libs.filter((lib) => lib.matchesImportPath(importPath));
     }
     // if there's a unique library, return it
     return libs.length === 1 ? libs[0] : null;
@@ -159,37 +159,41 @@ export class Library implements Library.Properties {
     { ifNotExists = 'skip' } = {}
   ): readonly Library[] {
     if (ifNotExists === 'skip') {
-      scriptPaths = scriptPaths.filter(path => fs.existsSync(path));
+      scriptPaths = scriptPaths.filter((path) => fs.existsSync(path));
     }
     const scripts = scriptPaths
       .map(Script.fromFile)
-      .filter(script => script.getErrors().length === 0);
-    const defs = setUnion(...scripts.map(script => new Set(script.defs.keys())));
-    const refs = setUnion(...scripts.map(script => script.refs));
-    const p5Properties = setUnion(...scripts.map(script => script.p5propRefs));
+      .filter((script) => script.getErrors().length === 0);
+    const defs = setUnion(
+      ...scripts.map((script) => new Set(script.defs.keys()))
+    );
+    const refs = setUnion(...scripts.map((script) => script.refs));
+    const p5Properties = setUnion(
+      ...scripts.map((script) => script.p5propRefs)
+    );
     removeSetElements(refs, defs);
 
-    const libs = this.all.filter(
-      lib =>
-        lib.defines?.globals?.some(name => refs.has(name)) ||
-        lib.defines?.p5?.some(name => p5Properties.has(name))
+    const libs = Library.all.filter(
+      (lib) =>
+        lib.defines?.globals?.some((name) => refs.has(name)) ||
+        lib.defines?.p5?.some((name) => p5Properties.has(name))
     );
 
     const libraryPattern = /^library:?\b\s*(.+)/;
-    const directives = scripts.flatMap(script =>
+    const directives = scripts.flatMap((script) =>
       script.findMatchingComments(libraryPattern)
     );
-    const libSpecs = directives.flatMap(directive =>
+    const libSpecs = directives.flatMap((directive) =>
       directive.match(libraryPattern)![1].split(/,?\s+/)
     );
     const newLibs = libSpecs.map(
-      spec =>
+      (spec) =>
         Library.find({ name: spec }) ||
         Library.find({ packageName: spec }) ||
         Library.find({ importPath: spec }) ||
         createLibraryFromSpec(spec)
     );
-    libs.push(...newLibs.filter(lib => !libs.includes(lib)));
+    libs.push(...newLibs.filter((lib) => !libs.includes(lib)));
 
     return libs;
 
@@ -204,7 +208,7 @@ export class Library implements Library.Properties {
 
   get globals(): readonly string[] {
     return Object.entries(this.defines || {}).flatMap(([key, symbols]) =>
-      key === 'globals' ? symbols : symbols.map(s => `${key}.${s}`)
+      key === 'globals' ? symbols : symbols.map((s) => `${key}.${s}`)
     );
     // return [
     //   ...this.defines?.globals || [],
@@ -232,13 +236,19 @@ export class Library implements Library.Properties {
     let path = this._importPath?.replace('$(P5Version)', p5Version);
     if (path) {
       // if the import path begins with '/', it's relative to the repository
-      if (path.startsWith('/') && this.repositoryUrl?.startsWith('https://github.com/')) {
+      if (
+        path.startsWith('/') &&
+        this.repositoryUrl?.startsWith('https://github.com/')
+      ) {
         path = `${this.repositoryUrl.replace(/\/$/, '')}${path}`;
       }
       // If it's a file in a GitHub repo, derive the corresponding CDN location.
       // This is outside the above conditional because it should apply to
       // absolute import paths too.
-      path = path.replace(/^https:\/\/github.com\//, 'https://cdn.jsdelivr.net/gh/');
+      path = path.replace(
+        /^https:\/\/github.com\//,
+        'https://cdn.jsdelivr.net/gh/'
+      );
     } else if (this.packageName) {
       path = `https://unpkg.com/${this.packageName}`;
     }

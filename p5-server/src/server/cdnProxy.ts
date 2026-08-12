@@ -2,7 +2,7 @@ import { createProxyCache } from 'cdn-proxy-cache';
 import os from 'os';
 import { Cdn, Library, p5Version } from 'p5-analysis';
 import path from 'path';
-import { isDefined } from '../ts-extras';
+import { isDefined } from '../ts-extras.js';
 
 export const proxyPrefix = '/__p5_proxy_cache';
 const cacheRoot =
@@ -20,7 +20,7 @@ const cdnDomains = [
   // JSDelivr is a known npm package proxy, but the templates use a different path schema to request Highlight.js
   // distribution files.
   'cdn.jsdelivr.net',
-]
+];
 
 /** URLs to warm the cache with, that can't be inferred from the libraries, in
  * addition to library loadPaths.
@@ -40,25 +40,29 @@ const cacheSeeds = [
   'https://cdn.jsdelivr.net/npm/semantic-ui@2.4/dist/semantic.min.css',
   'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/default.min.css',
   // source-view.pug
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/github-dark.min.css",
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/highlight.min.js",
-]
+  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/styles/github-dark.min.css',
+  'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.2.0/build/highlight.min.js',
+];
 
 //#region CDN recognition
 
 // exported for unit tests
 export function isCdnUrl(url: string): boolean {
   if (!/^https?:/.test(url)) return false;
-  return Cdn.all.some(cdn => cdn.matchesUrl(url))
-    || getLibraryImportPaths().has(url)
-    || cdnDomains.includes(new URL(url).hostname);
+  return (
+    Cdn.all.some((cdn) => cdn.matchesUrl(url)) ||
+    getLibraryImportPaths().has(url) ||
+    cdnDomains.includes(new URL(url).hostname)
+  );
 }
 
 /** Cache for memoizing getLibraryImportPaths. */
 let _libraryImportPaths: Set<string>;
 
 function getLibraryImportPaths() {
-  _libraryImportPaths ??= new Set(Library.all.map(lib => lib.importPath).filter(isDefined));
+  _libraryImportPaths ??= new Set(
+    Library.all.map((lib) => lib.importPath).filter(isDefined)
+  );
   return _libraryImportPaths;
 }
 

@@ -1,7 +1,7 @@
-import { Library, Script } from '..';
-import checkExportCollisions from '../commands/check-library-collisions';
-import { isDefined } from '../helpers/ts-extras';
-import { cachedFetch } from './cachedFetch';
+import checkExportCollisions from '../commands/check-library-collisions.js';
+import { isDefined } from '../helpers/ts-extras.js';
+import { Library, Script } from '../index.js';
+import { cachedFetch } from './cachedFetch.js';
 
 export async function checkLibraries({ parseScripts = false }) {
   await checkLibraryHomepagePaths();
@@ -12,7 +12,7 @@ export async function checkLibraries({ parseScripts = false }) {
 
 export async function checkLibraryHomepagePaths() {
   const homepages = await Promise.all(
-    Library.all.map(library => cachedFetch(library.homepage))
+    Library.all.map((library) => cachedFetch(library.homepage))
   );
   const invalid = Library.all.filter((_library, i) => {
     const homepage = homepages[i];
@@ -20,47 +20,57 @@ export async function checkLibraryHomepagePaths() {
   });
   if (invalid.length) {
     console.log(`${invalid.length} invalid library homepage paths:`);
-    invalid.forEach(library => console.log(library.homepage));
+    for (const library of invalid) console.log(library.homepage);
     console.log();
     process.exitCode = 1;
   }
 }
 
 export async function checkLibraryImportPaths({ parseScripts = false }) {
-  const missingImportPaths = Library.all.filter(library => !library.importPath);
+  const missingImportPaths = Library.all.filter(
+    (library) => !library.importPath
+  );
   if (missingImportPaths.length) {
     console.log(`These libraries are missing import paths:`);
-    missingImportPaths.forEach(library =>
-      console.log(' ', `${library.name} (${library.homepage})`)
-    );
+    for (const library of missingImportPaths) {
+      console.log(' ', `${library.name} (${library.homepage})`);
+    }
     console.log();
     process.exitCode = 1;
   }
 
-  const librariesWithPaths = Library.all.filter(library => library.importPath);
+  const librariesWithPaths = Library.all.filter(
+    (library) => library.importPath
+  );
   const responses = await Promise.all(
-    librariesWithPaths.map(async library => {
+    librariesWithPaths.map(async (library) => {
       const res = await cachedFetch(library.importPath!);
-      return { library, ok: res.ok, text: res.ok ? await res.text() : undefined };
+      return {
+        library,
+        ok: res.ok,
+        text: res.ok ? await res.text() : undefined,
+      };
     })
   );
 
-  const invalidImportPaths = responses.filter(res => !res.ok);
+  const invalidImportPaths = responses.filter((res) => !res.ok);
   if (invalidImportPaths.length) {
     console.log(`These library import paths are invalid:`);
-    invalidImportPaths.forEach(({ library }) =>
-      console.log(`  ${library.name} (${library.homepage}) – ${library.importPath}`)
-    );
+    for (const { library } of invalidImportPaths) {
+      console.log(
+        `  ${library.name} (${library.homepage}) – ${library.importPath}`
+      );
+    }
     console.log();
     process.exitCode = 1;
   }
 
   if (parseScripts) {
     const libraryScripts = responses
-      .filter(res => res.ok)
+      .filter((res) => res.ok)
       .map(({ library, text }): [Library, Script] => [
         library,
-        Script.fromSource(text!)
+        Script.fromSource(text!),
       ]);
     const scriptErrors = libraryScripts.filter(
       ([, script]) => script.getErrors().length > 0
@@ -90,14 +100,14 @@ export async function checkLibraryImportPaths({ parseScripts = false }) {
 
 export async function findMinimizedImportPathAlternatives() {
   const candidates = Library.all.filter(
-    library =>
+    (library) =>
       library.importPath &&
       library.importPath.endsWith('.js') &&
       !library.importPath.endsWith('.min.js')
   );
   const found = (
     await Promise.all(
-      candidates.map(async function(library): Promise<[Library, string] | null> {
+      candidates.map(async (library): Promise<[Library, string] | null> => {
         const url = library.importPath!.replace(/\.js$/, '.min.js');
         const res = await cachedFetch(url);
         return res.ok ? [library, url] : null;
@@ -107,9 +117,9 @@ export async function findMinimizedImportPathAlternatives() {
 
   if (found.length) {
     console.log('These libraries have minimized alternatives:');
-    found.forEach(([library, replacement]) =>
-      console.log(`${library.name}\n  ${library.importPath} -> ${replacement}`)
-    );
+    for (const [library, replacement] of found) {
+      console.log(`${library.name}\n  ${library.importPath} -> ${replacement}`);
+    }
     console.log();
   }
 }

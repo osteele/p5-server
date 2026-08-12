@@ -16,7 +16,11 @@ import { cdnProxyRouter, proxyPrefix } from './cdnProxy.js';
 import { staticAssetPrefix } from './constants.js';
 import { createDirectoryListing } from './directoryListing.js';
 import { promiseClose, promiseListen } from './httpServerUtils.js';
-import { createLiveReloadServer, type LiveReloadServer } from './liveReload.js';
+import {
+  createLiveReloadServer,
+  type FileWatchProvider,
+  type LiveReloadServer,
+} from './liveReload.js';
 import { createRouter } from './routes.js';
 import { templateDir } from './templates.js';
 
@@ -58,6 +62,10 @@ export namespace Server {
     /** Inject the live reload websocket listener into HTML pages. */
     liveServer: boolean;
 
+    /** Use a host-provided file watcher for live reload instead of the
+     * built-in Chokidar watcher. */
+    fileWatchProvider: FileWatchProvider | undefined;
+
     /** Sketches send screenshot data to this handler. */
     screenshot: Partial<{
       canvasDimensions: { width: number; height: number };
@@ -79,7 +87,9 @@ export namespace Server {
 // This type is used internally. Unlike Server.Options, all the parameters are
 // required. If they were not supplied by the user, they will be filled in with
 // defaults from defaultServerOptions.
-type ServerConfig = Required<Server.Options>;
+type ServerConfig = Required<Omit<Server.Options, 'fileWatchProvider'>> & {
+  fileWatchProvider: FileWatchProvider | undefined;
+};
 
 export type MountPointOptions =
   | string
@@ -94,6 +104,7 @@ type MountPoint = { filePath: string; urlPath: string; name?: string };
 
 const defaultServerOptions = {
   agentSupport: false,
+  fileWatchProvider: undefined,
   host: '127.0.0.1',
   liveServer: true,
   logConsoleEvents: false,
@@ -188,6 +199,7 @@ async function startServer(
   try {
     const liveReloadServer = config.liveServer
       ? await createLiveReloadServer({
+          fileWatchProvider: config.fileWatchProvider,
           host: config.host,
           port: 35729,
           scanPorts: true,

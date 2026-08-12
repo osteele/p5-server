@@ -47,6 +47,20 @@ The [Visual Studio Code
 extension](https://github.com/osteele/vscode-p5server#readme) demonstrates the
 API in an application.
 
+Applications that already provide file watching can pass a `fileWatchProvider`
+instead of starting p5-server's Chokidar watcher. The provider receives the
+paths used by live reload and a callback for created, changed, or deleted files,
+and returns a disposable subscription:
+
+```js
+const server = await Server.start({
+  fileWatchProvider(paths, onDidChange) {
+    const watcher = watchWithHost(paths, onDidChange);
+    return { dispose: () => watcher.close() };
+  },
+});
+```
+
 ## See Also
 
 For convenience, this package also re-exports the `Sketch`, `Script`, and

@@ -59,3 +59,36 @@ test('LiveReload watches all directories with one watcher', async () => {
     await rm(tempDir, { force: true, recursive: true });
   }
 });
+
+test('LiveReload can use a host-provided file watcher', async () => {
+  const watchDirs = ['/workspace/one', '/workspace/two'];
+  let onDidChange: ((filePath: string) => void) | undefined;
+  let disposeCount = 0;
+
+  const liveReloadServer = await createLiveReloadServer({
+    fileWatchProvider: (paths, callback) => {
+      expect(paths).toEqual(watchDirs);
+      onDidChange = callback;
+      return {
+        dispose: () => {
+          disposeCount += 1;
+        },
+      };
+    },
+    port: 0,
+    scanPorts: false,
+    watchDirs,
+  });
+  const refreshedPaths: string[] = [];
+  liveReloadServer.refresh = (filePath) => {
+    refreshedPaths.push(filePath);
+  };
+
+  expect(liveReloadServer.watcher).toBeUndefined();
+  expect(onDidChange).toBeDefined();
+  onDidChange?.('/workspace/one/sketch.js');
+  expect(refreshedPaths).toEqual(['/workspace/one/sketch.js']);
+
+  liveReloadServer.close();
+  expect(disposeCount).toBe(1);
+});

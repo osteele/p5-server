@@ -124,6 +124,31 @@ describe('Server', () => {
       await server.close();
     }
   });
+
+  test('passes live reload paths to a host-provided file watcher', async () => {
+    let watchedPaths: readonly string[] = [];
+    let disposed = false;
+    const server = new Server({
+      fileWatchProvider: (paths) => {
+        watchedPaths = paths;
+        return {
+          dispose: () => {
+            disposed = true;
+          },
+        };
+      },
+      port: 0,
+      proxyCache: false,
+      root: './tests/testdata',
+    });
+    try {
+      await server.start();
+      expect(watchedPaths).toContain('./tests/testdata');
+    } finally {
+      await server.close();
+    }
+    expect(disposed).toBe(true);
+  });
 });
 
 describe('script event relay', () => {

@@ -2,11 +2,27 @@ import livereload from 'livereload';
 import { addScriptToHtmlHead } from '../helpers.js';
 
 export type Options = {
+  fileWatchProvider?: FileWatchProvider;
   host?: string;
   port?: number;
   scanPorts?: boolean;
   watchDirs?: string[];
 };
+
+export type FileWatchSubscription = {
+  dispose(): void;
+};
+
+/**
+ * Watches paths and reports created, changed, or deleted files.
+ *
+ * Hosts can supply this to integrate p5-server with an existing file-watching
+ * service instead of starting LiveReload's Chokidar watcher.
+ */
+export type FileWatchProvider = (
+  paths: readonly string[],
+  onDidChange: (filePath: string) => void
+) => FileWatchSubscription;
 
 export type LiveReloadServer = ReturnType<typeof livereload.createServer>;
 
@@ -36,6 +52,7 @@ export function injectLiveReloadScript(
 }
 
 export async function createLiveReloadServer({
+  fileWatchProvider,
   host = '127.0.0.1',
   port = 35729,
   scanPorts = true,
@@ -51,8 +68,32 @@ export async function createLiveReloadServer({
       port = port < lastPort ? port + 1 : 0;
     }
   }
-  if (watchDirs.length > 0) lrServer.watch(watchDirs);
+  if (watchDirs.length > 0) {
+    if (fileWatchProvider) {
+      const subscription = fileWatchProvider(watchDirs, (filePath) =>
+        lrServer.filterRefresh(filePath)
+      );
+      disposeSubscriptionOnClose(lrServer, subscription);
+    } else {
+      lrServer.watch(watchDirs);
+    }
+  }
   return lrServer;
+}
+
+function disposeSubscriptionOnClose(
+  server: LiveReloadServer,
+  subscription: FileWatchSubscription
+): void {
+  const close = server.close.bind(server);
+  let disposed = false;
+  server.close = () => {
+    if (!disposed) {
+      disposed = true;
+      subscription.dispose();
+    }
+    close();
+  };
 }
 
 function isAddressInUseError(err: unknown): err is NodeJS.ErrnoException {

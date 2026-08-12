@@ -92,9 +92,9 @@ ensures that if the HTML for a sketch links to a CSS document that in turn
 includes other CSS documents or other assets (such as fonts or images), these
 assets are also cached.
 
-A request for `https://cdn.jsdelivr.net/npm/p5@1.4/lib/p5.min.js`, for
+A request for `https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js`, for
 example, is rewritten as a request for
-`__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js`. A request for
+`__p5_proxy_cache/cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js`. A request for
 `https://unpkg.com/p5.vector-arguments.min.js` is rewritten as
 `__p5_proxy_cache/unpkg.com/p5.vector-arguments.min.js`. This naming scheme was
 selected to keep the browser developer console's source list readable, as shown

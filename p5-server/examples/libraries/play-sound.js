@@ -1,14 +1,11 @@
 let bell;
 
-function preload() {
-  bell = loadSound('doorbell.mp3');
-}
-
-function setup() {
+async function setup() {
   createCanvas(windowWidth, windowHeight);
+  bell = await loadSound('doorbell.mp3');
   createButton('Play')
     .position(10, 10)
-    .click(playBell);
+    .mousePressed(playBell);
 }
 
 function playBell() {

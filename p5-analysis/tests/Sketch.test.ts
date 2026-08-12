@@ -216,8 +216,10 @@ describe('Sketch.generate', () => {
   describe('with options:', () => {
     test('comments=true', () =>
       testSketchGeneration('test.js', { comments: true }, 'comments'));
-    test('preload=true', () =>
-      testSketchGeneration('test.js', { preload: true }, 'preload'));
+    test('asyncSetup=true', () =>
+      testSketchGeneration('test.js', { asyncSetup: true }, 'asyncSetup'));
+    test('preload=true (legacy alias)', () =>
+      testSketchGeneration('test.js', { preload: true }, 'asyncSetup'));
     test('windowResized=true', () =>
       testSketchGeneration(
         'test.js',

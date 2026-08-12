@@ -1,7 +1,4 @@
-function preload() {
-}
-
-function setup() {
+async function setup() {
   createCanvas(windowWidth, windowHeight);
 }
 

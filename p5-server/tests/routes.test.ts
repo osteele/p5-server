@@ -31,7 +31,7 @@ describe('Express routes', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
     expect(html).toContain('<script src="./circles.js"');
-    expect(html).toContain('https://cdn.jsdelivr.net/npm/p5@');
+    expect(html).toContain('https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js');
   });
 
   test('renders JavaScript source on request', async () => {

@@ -4,7 +4,8 @@ import { Category } from './Category.js';
 import { Cdn } from './Cdn.js';
 import { Script } from './Script.js';
 
-export const p5Version = '1.4';
+export const p5Version = '2.3';
+const p5SoundVersion = '0.4';
 
 export namespace Library {
   export type Properties = {
@@ -232,7 +233,9 @@ export class Library implements Library.Properties {
 
   /** A path that can be used to load the library. */
   get importPath(): string | undefined {
-    let path = this._importPath?.replace('$(P5Version)', p5Version);
+    let path = this._importPath
+      ?.replace('$(P5Version)', p5Version)
+      .replace('$(P5SoundVersion)', p5SoundVersion);
     if (path) {
       // if the import path begins with '/', it's relative to the repository
       if (
@@ -280,8 +283,8 @@ export class Library implements Library.Properties {
       }
     }
 
-    // special case the sound library, since it is a file within p5 rather
-    // than an independent package
+    // Recognize the p5 1.x location so older HTML sketches still identify the
+    // sound library after p5.sound moved to its own package for p5 2.x.
     if (this.name === 'p5.sound' && path.endsWith('/lib/addons/p5.sound.js')) {
       const parsed = Cdn.parseUrl(path);
       return parsed?.packageName === 'p5';

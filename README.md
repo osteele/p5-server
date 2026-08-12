@@ -79,6 +79,9 @@ API](https://github.com/osteele/p5-server/tree/main/p5-analysis#readme).
   modified.
 - **JavaScript-only sketches.** A sketch can be a single JavaScript file. You
   don't need to create an HTML file just to run the sketch.
+- **p5.js 2.x.** Generated HTML and JavaScript-only sketches run on p5.js 2.3.
+  HTML sketches that include p5.js themselves keep using the version they
+  specify.
 - **Automatic includes.** If a JavaScript-only sketch uses a function
   from [one of these
   libraries](https://osteele.github.io/p5-server/p5-analysis/libraries), the
@@ -356,12 +359,13 @@ can lose information. The command performs these checks first:
 - `p5 create my-sketch` – creates a folder named `my-sketch` that contains
   `index.html` and `sketch.js`.
 
-`p5 create --options comments,preload` specifies a comma-separated set of
+`p5 create --options comments,asyncSetup` specifies a comma-separated set of
 template options. The options are:
 
 - `comments` – include comments such as `// put setup code here` inside the
   functions
-- `preload` – include an (empty) `preload()` function
+- `asyncSetup` – make `setup()` asynchronous so it can use p5.js 2.x asset
+  loading such as `image = await loadImage('image.png')`
 - `windowResized` – include a `windowResized()` function that resizes the
   canvas when the window is resized
 - `no-draw` – omit the `draw()` function to create a static sketch

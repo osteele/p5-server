@@ -9,27 +9,37 @@ window.addEventListener('DOMContentLoaded', () => {
   let pending = 0;
 
   function wrap(wrapped) {
-    return function () {
-      wrapped.call(this);
-
-      if (skipFrames-- < 0 && remainingFrames-- > 0) {
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-        const dataURL = this.canvas.toDataURL(`image/${imageType}`);
-        const body = JSON.stringify({ dataURL, frameNumber });
-        pending++;
-        fetch('/__p5_server/screenshot', {
-          method: 'post',
-          headers,
-          body,
-        }).then(() => {
-          if (--pending <= 0 && remainingFrames <= 0) window.close();
+    return function (...args) {
+      const result = wrapped.apply(this, args);
+      if (result && typeof result.then === 'function') {
+        return result.then((value) => {
+          capture.call(this);
+          return value;
         });
-        if (remainingFrames <= 0) this.noLoop(); // since it may be a while before the fetch returns
       }
-      frameNumber++;
+      capture.call(this);
+      return result;
     };
+  }
+
+  function capture() {
+    if (skipFrames-- < 0 && remainingFrames-- > 0) {
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      const dataURL = this.canvas.toDataURL(`image/${imageType}`);
+      const body = JSON.stringify({ dataURL, frameNumber });
+      pending++;
+      fetch('/__p5_server/screenshot', {
+        method: 'post',
+        headers,
+        body,
+      }).then(() => {
+        if (--pending <= 0 && remainingFrames <= 0) window.close();
+      });
+      if (remainingFrames <= 0) this.noLoop(); // since it may be a while before the fetch returns
+    }
+    frameNumber++;
   }
 
   if (typeof window.draw === 'function') {

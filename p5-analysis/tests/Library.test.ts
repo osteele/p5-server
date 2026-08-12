@@ -16,6 +16,12 @@ describe('Library.find', () => {
     expect(
       Library.find({
         importPath:
+          'https://cdn.jsdelivr.net/npm/p5.sound@0.4/dist/p5.sound.min.js',
+      })?.name
+    ).toBe('p5.sound');
+    expect(
+      Library.find({
+        importPath:
           'https://cdn.jsdelivr.net/npm/p5@1.4/lib/addons/p5.sound.min.js',
       })?.name
     ).toBe('p5.sound');
@@ -58,6 +64,7 @@ describe('Library.inferLibrariesFromScripts', () => {
     expect(inferLibraries(`dat.js`)).toEqual(['dat.gui']);
     expect(inferLibraries(`ml5.poseNet.js`)).toEqual(['ml5.js']);
     expect(inferLibraries(`p5.Pulse.js`)).toEqual(['p5.sound']);
+    expect(inferLibraries(`p5.PitchShifter.js`)).toEqual(['p5.sound']);
     expect(inferLibraries(`p5.Speech.js`)).toEqual(['p5.speech']);
   });
 

@@ -1,6 +1,10 @@
 import os from 'node:os';
 import path from 'node:path';
-import { createProxyCache } from 'cdn-proxy-cache';
+import {
+  createProxyCache,
+  type RequestI,
+  type ResponseI,
+} from 'cdn-proxy-cache';
 import { Cdn, Library, p5Version } from 'p5-analysis';
 
 export const proxyPrefix = '/__p5_proxy_cache';
@@ -76,7 +80,17 @@ export const contentProxyCache = createProxyCache({
   shouldProxyPath: isCdnUrl,
 });
 
-export const { replaceUrlsInHtml, router: cdnProxyRouter } = contentProxyCache;
+export const { replaceUrlsInHtml } = contentProxyCache;
+
+export async function cdnProxyRouter(
+  req: RequestI,
+  res: ResponseI
+): Promise<void> {
+  // Keep cached bytes and response headers consistent. Relaying compressed
+  // origin streams can otherwise make Chromium reject large bundles.
+  req.headers['accept-encoding'] = 'identity';
+  await contentProxyCache.router(req, res);
+}
 
 export function proxyCdnUrl(url: string): string | undefined {
   return isCdnUrl(url) ? contentProxyCache.encodeProxyPath(url) : undefined;

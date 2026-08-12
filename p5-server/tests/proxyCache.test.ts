@@ -1,10 +1,6 @@
 import stream from 'node:stream';
 import { transformHtml } from '../src/helpers';
-import {
-  contentProxyCache,
-  isCdnUrl,
-  proxyCdnUrl,
-} from '../src/server/cdnProxy';
+import { cdnProxyRouter, isCdnUrl, proxyCdnUrl } from '../src/server/cdnProxy';
 
 describe('CDN Proxy', () => {
   test('recognizes only configured CDN URLs', () => {
@@ -31,7 +27,12 @@ describe('CDN Proxy', () => {
     );
   });
 
-  test('refuses URLs outside the configured CDNs', async () => {
+  test('requests identity encoding and refuses URLs outside the configured CDNs', async () => {
+    const request = {
+      headers: { 'accept-encoding': 'gzip, deflate, br, zstd' },
+      path: '127.0.0.1/private',
+      query: {},
+    };
     const response = new (class extends stream.Writable {
       body = '';
       statusCode = 200;
@@ -48,11 +49,9 @@ describe('CDN Proxy', () => {
       }
     })();
 
-    await contentProxyCache.router(
-      { headers: {}, path: '127.0.0.1/private', query: {} },
-      response
-    );
+    await cdnProxyRouter(request, response);
 
+    expect(request.headers['accept-encoding']).toBe('identity');
     expect(response.statusCode).toBe(403);
     expect(response.body).toContain('Refusing to proxy URL');
   });

@@ -1,15 +1,9 @@
-{% if preload -%}
-function preload() {
-  {%- if comments %}
-  // put load functions such as loadImage here
-  {%- endif %}
-}
-
-{% endif -%}
-
-function setup() {
+{% if asyncSetup or preload %}async {% endif %}function setup() {
   createCanvas({{ dimensions | default("windowWidth, windowHeight") }});
   {%- if comments %}
+  {%- if asyncSetup or preload %}
+  // load assets with await loadImage(...) and other load functions here
+  {%- endif %}
   {%- if draw %}
   // put setup code here
   {%- else %}

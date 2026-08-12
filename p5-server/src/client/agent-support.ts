@@ -22,6 +22,9 @@ type P5Instance = {
 };
 
 type P5Constructor = {
+  lifecycleHooks?: {
+    postsetup?: Array<(this: P5Instance) => void>;
+  };
   prototype: P5Instance & Record<string, (...args: unknown[]) => unknown>;
 };
 
@@ -158,10 +161,22 @@ function installP5Hook(): void {
 
 function patchP5(p5Constructor: P5Constructor): void {
   const prototype = p5Constructor.prototype;
+  p5Constructor.lifecycleHooks?.postsetup?.push(function () {
+    observedInstance = this;
+    observedFrame = Math.max(observedFrame, 1);
+  });
   wrapMethod(prototype, '_setup', function (original, args) {
     observedInstance = this;
     applySettings(this);
-    return original.apply(this, args);
+    const result = original.apply(this, args);
+    if (isPromiseLike(result)) {
+      return result.then((value) => {
+        observedFrame = Math.max(observedFrame, 1);
+        return value;
+      });
+    }
+    observedFrame = Math.max(observedFrame, 1);
+    return result;
   });
   wrapMethod(prototype, '_draw', function (original, args) {
     observedInstance = this;
@@ -207,6 +222,15 @@ function wrapMethod(
   target[name] = function (this: P5Instance, ...args: unknown[]) {
     return wrapper.call(this, original, args);
   };
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof value.then === 'function'
+  );
 }
 
 export {};

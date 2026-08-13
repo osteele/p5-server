@@ -246,6 +246,51 @@ describe('Sketch.generate', () => {
 
   test('html output', () => testSketchGeneration('test.html', {}, 'html'));
 
+  test('checks targets relative to the sketch directory without touching cwd', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-path-test-')
+    );
+    const scriptName = `${path.basename(targetDir)}.js`;
+    const cwdFile = path.resolve(scriptName);
+    try {
+      fs.writeFileSync(cwdFile, 'unrelated');
+      fs.writeFileSync(path.join(targetDir, scriptName), 'existing target');
+      const sketch = Sketch.create(path.join(targetDir, 'index.html'), {
+        scriptFile: scriptName,
+      });
+
+      await expect(sketch.generate()).rejects.toMatchObject({ code: 'EEXIST' });
+      expect(fs.readFileSync(cwdFile, 'utf-8')).toBe('unrelated');
+      expect(fs.readFileSync(path.join(targetDir, scriptName), 'utf-8')).toBe(
+        'existing target'
+      );
+      expect(fs.existsSync(path.join(targetDir, 'index.html'))).toBe(false);
+    } finally {
+      fs.rmSync(cwdFile, { force: true });
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects generated files outside the sketch directory', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-escape-test-')
+    );
+    const escapedFile = path.join(path.dirname(targetDir), 'escaped-sketch.js');
+    try {
+      const sketch = Sketch.create(path.join(targetDir, 'index.html'), {
+        scriptFile: '../escaped-sketch.js',
+      });
+      await expect(sketch.generate()).rejects.toThrow(
+        /escapes the sketch directory/
+      );
+      expect(fs.existsSync(escapedFile)).toBe(false);
+      expect(fs.existsSync(path.join(targetDir, 'index.html'))).toBe(false);
+    } finally {
+      fs.rmSync(escapedFile, { force: true });
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
   async function testSketchGeneration(
     outputName: string,
     options: Record<string, boolean>,
@@ -342,6 +387,28 @@ describe('Sketch.convert', () => {
         { type: 'script' },
         { exception: /refers to a script file that does not exist/ }
       ));
+
+    test('custom body content requires explicit discard', async () => {
+      const htmlPath = path.join(outputDir, 'custom.html');
+      const scriptPath = path.join(outputDir, 'sketch.js');
+      fs.writeFileSync(
+        htmlPath,
+        '<body><h1>Keep me</h1></body><script src="https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js"></script><script src="sketch.js"></script>'
+      );
+      fs.writeFileSync(
+        scriptPath,
+        'function setup() { createCanvas(100, 100); }'
+      );
+      const sketch = await Sketch.fromFile(htmlPath);
+
+      await expect(sketch.convert({ type: 'script' })).rejects.toThrow(
+        /custom body content/
+      );
+      expect(fs.existsSync(htmlPath)).toBe(true);
+
+      await sketch.convert({ type: 'script', discardHtml: true });
+      expect(fs.existsSync(htmlPath)).toBe(false);
+    });
   });
 
   async function testConvert(

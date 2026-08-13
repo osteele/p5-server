@@ -45,3 +45,39 @@ test('build rejects colliding generated and source paths', async () => {
     fs.rmSync(tempDir, { force: true, recursive: true });
   }
 });
+
+test('build recursively excludes private and dependency files in sketch directories', async () => {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'p5-server-build-filter-test-')
+  );
+  const source = path.join(tempDir, 'source');
+  const output = path.join(tempDir, 'output');
+  const sketch = path.join(source, 'example');
+  fs.mkdirSync(path.join(sketch, 'node_modules', 'dependency'), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(sketch, '.git'));
+  fs.writeFileSync(
+    path.join(sketch, 'sketch.js'),
+    'function setup() { createCanvas(10, 10); }'
+  );
+  fs.writeFileSync(path.join(sketch, '.env'), 'SECRET=value');
+  fs.writeFileSync(path.join(sketch, '.git', 'config'), 'private');
+  fs.writeFileSync(
+    path.join(sketch, 'node_modules', 'dependency', 'index.js'),
+    'dependency'
+  );
+
+  try {
+    await build(source, { options: '', output, theme: 'grid' });
+
+    expect(fs.existsSync(path.join(output, 'example', 'sketch.js'))).toBe(true);
+    expect(fs.existsSync(path.join(output, 'example', '.env'))).toBe(false);
+    expect(fs.existsSync(path.join(output, 'example', '.git'))).toBe(false);
+    expect(fs.existsSync(path.join(output, 'example', 'node_modules'))).toBe(
+      false
+    );
+  } finally {
+    fs.rmSync(tempDir, { force: true, recursive: true });
+  }
+});

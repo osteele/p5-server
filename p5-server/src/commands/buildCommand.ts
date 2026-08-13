@@ -250,8 +250,19 @@ async function runActions(
     let filesCreated = 0;
     switch (action.kind) {
       case 'copyDir':
-        fs.cpSync(action.source, outputFile, { recursive: true });
-        filesCreated += fs.readdirSync(action.source).length; // FIXME
+        fs.cpSync(action.source, outputFile, {
+          recursive: true,
+          filter(sourcePath) {
+            if (sourcePath === action.source) return true;
+            const allowed = !directoryExclusions.some((pattern) =>
+              minimatch(path.basename(sourcePath), pattern)
+            );
+            if (allowed && !fs.lstatSync(sourcePath).isDirectory()) {
+              filesCreated += 1;
+            }
+            return allowed;
+          },
+        });
         break;
       case 'copyFile':
         fs.copyFileSync(action.source, outputFile);

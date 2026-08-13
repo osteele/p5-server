@@ -77,6 +77,10 @@ program
   .description('Convert an HTML sketch to JavaScript-only or vice versa')
   .argument('FILE')
   .option('--to <type>', 'output type: script, html, folder')
+  .option(
+    '--discard-html',
+    'discard custom HTML content when converting to a script'
+  )
   .action(convert);
 
 program

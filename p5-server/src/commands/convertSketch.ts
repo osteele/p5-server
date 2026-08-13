@@ -12,7 +12,7 @@ const sketchTypes: Record<string, SketchStructureType | 'folder'> = {
 
 export default async function convert(
   sketchPath: string,
-  options: { to: string }
+  options: { discardHtml?: boolean; to: string }
 ) {
   if (!options.to) {
     die(`Missing required option: --to`);
@@ -30,16 +30,7 @@ export default async function convert(
   const sketch = await Sketch.fromFile(sketchPath);
 
   if (targetType === 'folder') {
-    const targetDir = sketchPath.replace(/\.(html?|js)/i, '');
-    fs.mkdirSync(targetDir, { recursive: true });
-    sketch.files.forEach((file) => {
-      const targetName = file === sketch.htmlFile ? 'index.html' : file;
-      fs.renameSync(
-        path.join(sketch.dir, file),
-        path.join(targetDir, targetName)
-      );
-      console.log(`Moved ${file} into new directory ${targetDir}`);
-    });
+    moveSketchToFolder(sketchPath, sketch);
     return;
   }
 
@@ -48,9 +39,77 @@ export default async function convert(
     return;
   }
   try {
-    await sketch.convert({ type: targetType });
+    await sketch.convert({
+      discardHtml: options.discardHtml,
+      type: targetType,
+    });
   } catch (err) {
     assertError(err);
     die(err.message);
+  }
+}
+
+function moveSketchToFolder(sketchPath: string, sketch: Sketch): void {
+  const parsed = path.parse(path.resolve(sketchPath));
+  const targetDir = path.join(parsed.dir, parsed.name);
+  const sketchDir = path.resolve(sketch.dir);
+  const targetExisted = fs.existsSync(targetDir);
+  if (targetExisted && !fs.statSync(targetDir).isDirectory()) {
+    throw new Error(
+      `Target already exists and is not a directory: ${targetDir}`
+    );
+  }
+  if (targetExisted && fs.readdirSync(targetDir).length) {
+    throw new Error(`Target directory is not empty: ${targetDir}`);
+  }
+
+  const moves = [...new Set(sketch.files)].map((file) => {
+    const source = path.resolve(sketchDir, file);
+    const relative = path.relative(sketchDir, source);
+    if (
+      relative === '..' ||
+      relative.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relative)
+    ) {
+      throw new Error(`Associated file escapes the sketch directory: ${file}`);
+    }
+    if (!fs.existsSync(source)) {
+      throw new Error(`Associated file does not exist: ${source}`);
+    }
+    const targetName = file === sketch.htmlFile ? 'index.html' : relative;
+    return { file, source, destination: path.join(targetDir, targetName) };
+  });
+
+  const destinations = new Set<string>();
+  for (const { destination } of moves) {
+    const key =
+      process.platform === 'win32' ? destination.toLowerCase() : destination;
+    if (destinations.has(key)) {
+      throw new Error(`Multiple sketch files map to ${destination}`);
+    }
+    destinations.add(key);
+    if (fs.existsSync(destination)) {
+      throw new Error(`Target file already exists: ${destination}`);
+    }
+  }
+
+  const completed: typeof moves = [];
+  try {
+    fs.mkdirSync(targetDir, { recursive: true });
+    for (const move of moves) {
+      fs.mkdirSync(path.dirname(move.destination), { recursive: true });
+      fs.renameSync(move.source, move.destination);
+      completed.push(move);
+    }
+  } catch (error) {
+    for (const move of completed.reverse()) {
+      fs.mkdirSync(path.dirname(move.source), { recursive: true });
+      fs.renameSync(move.destination, move.source);
+    }
+    if (!targetExisted) fs.rmSync(targetDir, { force: true, recursive: true });
+    throw error;
+  }
+  for (const { file } of moves) {
+    console.log(`Moved ${file} into new directory ${targetDir}`);
   }
 }

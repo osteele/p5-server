@@ -484,18 +484,36 @@ export abstract class Sketch {
     if (this.htmlFile) files.set(this.htmlFile, Sketch.indexTemplateName);
     files.set(this.scriptFile, 'sketch.js.njk');
 
-    // Don't create any files unless we can create them all.
-    // This allows a race condition if two calls to generate() occur run in parallel.
+    const outputs = await Promise.all(
+      [...files].map(async ([filename, templateName]) => ({
+        content: await this.getGeneratedFileContent(templateName, options),
+        filename,
+        filepath: resolvePathInDirectory(this.dir, filename),
+      }))
+    );
     if (!force) {
-      [...files.keys()].filter(fs.existsSync).forEach((filename) => {
-        writeFile(filename, ''); // force the error to be thrown
-        // if it raced away, remove it before moving onto the next extant file (if there is one)
-        fs.unlinkSync(filename);
-      });
+      const existing = outputs.find(({ filepath }) => fs.existsSync(filepath));
+      if (existing) {
+        const error = new Error(
+          `File already exists: ${existing.filepath}`
+        ) as NodeJS.ErrnoException;
+        error.code = 'EEXIST';
+        error.path = existing.filepath;
+        throw error;
+      }
     }
 
-    for (const [filename, templateName] of files) {
-      await this.writeGeneratedFile(templateName, filename, force, options);
+    const created: string[] = [];
+    try {
+      for (const { content, filepath } of outputs) {
+        await writeFile(filepath, content, force ? {} : { flag: 'wx' });
+        if (!force) created.push(filepath);
+      }
+    } catch (error) {
+      for (const filepath of created.reverse()) {
+        fs.unlinkSync(filepath);
+      }
+      throw error;
     }
     return [...files.keys()];
   }
@@ -506,7 +524,7 @@ export abstract class Sketch {
     force: boolean,
     templateOptions: Record<string, unknown>
   ): Promise<string> {
-    const filepath = path.join(this.dir, filename);
+    const filepath = resolvePathInDirectory(this.dir, filename);
     const content = await this.getGeneratedFileContent(
       templateName,
       templateOptions
@@ -577,6 +595,7 @@ export abstract class Sketch {
    * @category Sketch conversion
    */
   public abstract convert(options: {
+    discardHtml?: boolean;
     type: SketchStructureType;
   }): Promise<void>;
 }
@@ -755,7 +774,10 @@ export class HtmlSketch extends Sketch {
       .filter((s) => !s.match(/https?:/));
   }
 
-  public async convert(options: { type: SketchStructureType }): Promise<void> {
+  public async convert(options: {
+    discardHtml?: boolean;
+    type: SketchStructureType;
+  }): Promise<void> {
     switch (options.type) {
       case 'script': {
         // html -> javascript
@@ -817,6 +839,15 @@ export class HtmlSketch extends Sketch {
           );
         }
 
+        if (!options.discardHtml) {
+          const reason = nonDisposableHtmlReason(htmlRoot);
+          if (reason) {
+            throw new Error(
+              `${this.htmlFile} contains ${reason}; use discardHtml to remove it anyway`
+            );
+          }
+        }
+
         fs.unlinkSync(htmlPath);
         this._htmlRoot = null;
         this._files = undefined;
@@ -831,6 +862,20 @@ function isDirectoryEntry(parent: string, entry: Dirent): boolean {
   if (!entry.isSymbolicLink()) return false;
   const file = path.join(parent, entry.name);
   return fs.existsSync(file) && fs.statSync(file).isDirectory();
+}
+
+function resolvePathInDirectory(dir: string, filename: string): string {
+  const resolvedDir = path.resolve(dir);
+  const filepath = path.resolve(resolvedDir, filename);
+  const relative = path.relative(resolvedDir, filepath);
+  if (
+    relative === '..' ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error(`File path escapes the sketch directory: ${filename}`);
+  }
+  return filepath;
 }
 
 export class ScriptSketch extends Sketch {
@@ -901,7 +946,10 @@ export class ScriptSketch extends Sketch {
     return this._libraries;
   }
 
-  public async convert(options: { type: SketchStructureType }): Promise<void> {
+  public async convert(options: {
+    discardHtml?: boolean;
+    type: SketchStructureType;
+  }): Promise<void> {
     switch (options.type) {
       case 'html': {
         // javascript -> html
@@ -936,4 +984,70 @@ export class ScriptSketch extends Sketch {
     }
     return undefined;
   }
+}
+
+function nonDisposableHtmlReason(htmlRoot: HTMLElement): string | null {
+  const html = htmlRoot.querySelector('html');
+  const allowedHtmlAttributes = new Set(['lang']);
+  if (
+    html &&
+    Object.keys(html.attributes).some(
+      (name) => !allowedHtmlAttributes.has(name)
+    )
+  ) {
+    return 'custom HTML attributes';
+  }
+
+  const body = htmlRoot.querySelector('body');
+  if (body && (Object.keys(body.attributes).length || body.innerHTML.trim())) {
+    return 'custom body content';
+  }
+
+  if (htmlRoot.querySelectorAll('link').length) return 'linked resources';
+
+  const allowedElements = new Set([
+    'HTML',
+    'HEAD',
+    'META',
+    'TITLE',
+    'STYLE',
+    'BODY',
+    'SCRIPT',
+  ]);
+  if (
+    htmlRoot
+      .querySelectorAll('*')
+      .some((element) => !allowedElements.has(element.tagName))
+  ) {
+    return 'custom page elements';
+  }
+
+  const viewport = 'width=device-width, initial-scale=1';
+  for (const meta of htmlRoot.querySelectorAll('meta')) {
+    const attributes = meta.attributes;
+    const isCharset =
+      Object.keys(attributes).length === 1 && attributes.charset === 'utf-8';
+    const isViewport =
+      Object.keys(attributes).length === 2 &&
+      attributes.name === 'viewport' &&
+      attributes.content === viewport;
+    if (!isCharset && !isViewport) return 'custom metadata';
+  }
+
+  const normalizeCss = (css: string) => css.replace(/\s+/g, ' ').trim();
+  const generatedStyles = new Set(
+    [
+      'body { margin: 0; }',
+      `html, body { height: 100%; }
+       body { margin: 0; display: flex; justify-content: center; align-items: center; }`,
+    ].map(normalizeCss)
+  );
+  if (
+    htmlRoot
+      .querySelectorAll('style')
+      .some((style) => !generatedStyles.has(normalizeCss(style.text)))
+  ) {
+    return 'custom styles';
+  }
+  return null;
 }

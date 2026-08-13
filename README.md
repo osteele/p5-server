@@ -233,6 +233,11 @@ command-line reference lists the available options.
 
 `p5 build SOURCE` builds a static site into `./build`.
 
+The build rejects symbolic links in the source tree and refuses an output path
+that is itself a symbolic link. It stages generated files before replacing the
+previous visible output, so a generation error preserves the last successful
+build.
+
 Run `p5 build --help` for a list of options.
 
 Two themes are supported, `--theme grid` and `--theme split`.
@@ -248,7 +253,8 @@ screenshot dir` for a directory that contains one sketch.
 
 Run `p5 screenshot --help` for a list of options. You can set the output
 filename, skip initial frames, save multiple frames, set the pixel density and
-canvas dimensions, or choose Safari, Chrome, Firefox, or Edge.
+canvas dimensions, choose Safari, Chrome, Firefox, or Edge, and set the maximum
+wait with `--timeout`.
 
 Notes:
 
@@ -377,6 +383,8 @@ can lose information. The command performs these checks first:
 - The libraries that the HTML file includes (via `<script>` tags) are the same
   as the libraries that will be inferred from the script file, based on the
   classes and functions that the script file uses and does not define.
+- Every external script is either p5.js or a recognized library. Use
+  `--discard-html` to explicitly discard other external dependencies.
 
 ### `p5 create [NAME]`
 
@@ -502,8 +510,9 @@ automatic library inclusion, and other details of the implementation.
 
 ## Limitations
 
-- Routine CI runs on Linux. macOS and Windows checks are available as a manual
-  workflow.
+- Routine CI runs the full workspace checks on Linux and Windows, and tests the
+  packed packages on Node.js 20, 22, and 24. macOS checks are available as a
+  manual workflow.
 - Files created by `p5 build` and `p5 create` load p5.js and other libraries
   directly from content delivery networks, so they require internet access or a
   populated browser cache. Pages served by `p5 serve` use the on-disk proxy
@@ -542,6 +551,7 @@ test:packages` also packs the publishable packages and verifies them in a clean
 consumer project.
 
 See [RELEASING.md](./RELEASING.md) for the package release workflow.
+Planned improvements are tracked in [ROADMAP.md](./ROADMAP.md).
 
 ## Acknowledgements
 

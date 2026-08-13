@@ -15,6 +15,7 @@ import {
   isHtmlPathname,
   isScriptPathname,
 } from '../helpers/index.js';
+import { Cdn } from './Cdn.js';
 import { Library, p5Version } from './Library.js';
 import {
   LibraryIndex,
@@ -171,7 +172,7 @@ export abstract class Sketch {
    */
   static async analyzeDirectory(
     dir: string,
-    options?: { exclusions?: string[] }
+    options?: { excludeSymbolicLinks?: boolean; exclusions?: string[] }
   ): Promise<{
     sketches: Sketch[];
     allFiles: string[];
@@ -181,7 +182,9 @@ export abstract class Sketch {
 
     const exclusions = options?.exclusions || defaultDirectoryExclusions;
     const entries = (await readdir(dir, { withFileTypes: true })).filter(
-      (entry) => !exclusions.some((pattern) => minimatch(entry.name, pattern))
+      (entry) =>
+        !(options?.excludeSymbolicLinks && entry.isSymbolicLink()) &&
+        !exclusions.some((pattern) => minimatch(entry.name, pattern))
     );
     let files = entries.map((entry) => entry.name);
 
@@ -335,7 +338,17 @@ export abstract class Sketch {
       return null;
     }
 
-    return sketch || (await Sketch.fromFile(scriptSketches[0]));
+    const result = sketch || (await Sketch.fromFile(scriptSketches[0]));
+    const associatedFiles = new Set(
+      result.files.map((file) => path.resolve(result.dir, file))
+    );
+    const hasLooseFile = files.some(
+      (file) =>
+        !/^readme\.(md|mkd|mkdn|mdwn|mdown|markdown)$/i.test(
+          path.basename(file)
+        ) && !associatedFiles.has(path.resolve(file))
+    );
+    return hasLooseFile ? null : result;
 
     async function subdirectoriesContainSketchFiles(
       dir: string,
@@ -480,17 +493,26 @@ export abstract class Sketch {
     force = false,
     options: Record<string, unknown> = {}
   ): Promise<string[]> {
-    const files = new Map<string, string>(); // file name => template name
-    if (this.htmlFile) files.set(this.htmlFile, Sketch.indexTemplateName);
-    files.set(this.scriptFile, 'sketch.js.njk');
+    const files: [filename: string, templateName: string][] = [];
+    if (this.htmlFile) files.push([this.htmlFile, Sketch.indexTemplateName]);
+    files.push([this.scriptFile, 'sketch.js.njk']);
 
     const outputs = await Promise.all(
-      [...files].map(async ([filename, templateName]) => ({
+      files.map(async ([filename, templateName]) => ({
         content: await this.getGeneratedFileContent(templateName, options),
         filename,
         filepath: resolvePathInDirectory(this.dir, filename),
       }))
     );
+    const portableOutputs = new Set<string>();
+    for (const { filename, filepath } of outputs) {
+      const key = portablePathKey(filepath);
+      if (portableOutputs.has(key)) {
+        throw new Error(`Generated file output collision: ${filepath}`);
+      }
+      assertPortableRelativePath(filename);
+      portableOutputs.add(key);
+    }
     if (!force) {
       const existing = outputs.find(({ filepath }) => fs.existsSync(filepath));
       if (existing) {
@@ -503,19 +525,97 @@ export abstract class Sketch {
       }
     }
 
-    const created: string[] = [];
-    try {
-      for (const { content, filepath } of outputs) {
-        await writeFile(filepath, content, force ? {} : { flag: 'wx' });
-        if (!force) created.push(filepath);
+    for (const { filepath } of outputs) {
+      assertPathHasNoSymbolicLinks(this.dir, filepath);
+      if (!fs.existsSync(filepath)) continue;
+      const stat = fs.lstatSync(filepath);
+      if (!stat.isFile()) {
+        const error = new Error(
+          `Generated file target is not a regular file: ${filepath}`
+        ) as NodeJS.ErrnoException;
+        error.code = stat.isDirectory() ? 'EISDIR' : 'EINVAL';
+        error.path = filepath;
+        throw error;
       }
-    } catch (error) {
-      for (const filepath of created.reverse()) {
-        fs.unlinkSync(filepath);
+      if (!force) {
+        const error = new Error(
+          `File already exists: ${filepath}`
+        ) as NodeJS.ErrnoException;
+        error.code = 'EEXIST';
+        error.path = filepath;
+        throw error;
       }
-      throw error;
     }
-    return [...files.keys()];
+
+    const stagingDir = fs.mkdtempSync(
+      path.join(path.resolve(this.dir), '.p5-generate-')
+    );
+    let retainStaging = false;
+    try {
+      const transactions = outputs.map(({ filepath }, index) => ({
+        filepath,
+        staged: path.join(stagingDir, `output-${index}`),
+        backup: path.join(stagingDir, `backup-${index}`),
+        backupMoved: false,
+        installed: false,
+      }));
+      for (let index = 0; index < outputs.length; index++) {
+        await writeFile(transactions[index].staged, outputs[index].content, {
+          flag: 'wx',
+        });
+      }
+
+      try {
+        for (const transaction of transactions) {
+          if (!force) {
+            fs.linkSync(transaction.staged, transaction.filepath);
+            transaction.installed = true;
+            continue;
+          }
+          if (fs.existsSync(transaction.filepath)) {
+            fs.renameSync(transaction.filepath, transaction.backup);
+            transaction.backupMoved = true;
+          }
+          fs.renameSync(transaction.staged, transaction.filepath);
+          transaction.installed = true;
+        }
+      } catch (error) {
+        const rollbackErrors: unknown[] = [];
+        for (const transaction of transactions.reverse()) {
+          if (transaction.installed) {
+            try {
+              if (force) {
+                fs.renameSync(transaction.filepath, transaction.staged);
+              } else {
+                fs.rmSync(transaction.filepath);
+              }
+            } catch (rollbackError) {
+              rollbackErrors.push(rollbackError);
+            }
+          }
+          if (transaction.backupMoved) {
+            try {
+              fs.renameSync(transaction.backup, transaction.filepath);
+            } catch (rollbackError) {
+              rollbackErrors.push(rollbackError);
+            }
+          }
+        }
+        if (rollbackErrors.length) {
+          retainStaging = true;
+          throw new AggregateError(
+            [error, ...rollbackErrors],
+            `Could not restore every generated file; recovery files retained in ${stagingDir}`
+          );
+        }
+        throw error;
+      }
+    } finally {
+      if (!retainStaging) {
+        fs.rmSync(stagingDir, { force: true, recursive: true });
+      }
+    }
+    return files.map(([filename]) => filename);
   }
 
   protected async writeGeneratedFile(
@@ -525,6 +625,7 @@ export abstract class Sketch {
     templateOptions: Record<string, unknown>
   ): Promise<string> {
     const filepath = resolvePathInDirectory(this.dir, filename);
+    assertPathHasNoSymbolicLinks(this.dir, filepath);
     const content = await this.getGeneratedFileContent(
       templateName,
       templateOptions
@@ -619,6 +720,11 @@ export class HtmlSketch extends Sketch {
   static async fromFile(htmlFilePath: string): Promise<HtmlSketch> {
     const htmlContent = await readFile(htmlFilePath, 'utf-8');
     const htmlRoot = parseHtml(htmlContent);
+    if (!HtmlSketch.isSketchHtmlRoot(htmlRoot)) {
+      throw new Error(
+        `HTML sketch does not reference p5.js and a local script file: ${htmlFilePath}`
+      );
+    }
     return HtmlSketch.fromHtmlRoot(htmlFilePath, htmlRoot);
   }
 
@@ -674,9 +780,20 @@ export class HtmlSketch extends Sketch {
   }
 
   private static isSketchHtmlRoot(htmlRoot: HTMLElement): boolean {
-    return htmlRoot
+    const sources = htmlRoot
       .querySelectorAll('script[src]')
-      .some((node) => /\bp5(\.min)?\.js$/.test(node.attributes.src));
+      .map((node) => node.attributes.src);
+    const hasP5 = sources.some((source) =>
+      /(?:^|\/)p5(\.min)?\.js$/i.test(sourcePathname(source))
+    );
+    const hasLocalSketchScript = sources.some((source) => {
+      const local = localSourcePath(source);
+      return (
+        local !== null &&
+        !/(?:^|\/)p5(\.min)?\.js$/i.test(sourcePathname(local))
+      );
+    });
+    return hasP5 && hasLocalSketchScript;
   }
 
   get structureType(): SketchStructureType {
@@ -770,8 +887,8 @@ export class HtmlSketch extends Sketch {
   private static getLocalScriptFiles(htmlRoot: HTMLElement) {
     return htmlRoot
       .querySelectorAll('script[src]')
-      .map((e) => e.attributes.src.replace(/^\.\//, ''))
-      .filter((s) => !s.match(/https?:/));
+      .map((element) => localSourcePath(element.attributes.src))
+      .filter((source): source is string => source !== null);
   }
 
   public async convert(options: {
@@ -793,26 +910,49 @@ export class HtmlSketch extends Sketch {
         if (scriptSrcs.some((s) => !s)) {
           throw new Error(`${htmlPath} contains an inline script`);
         }
-        const localScripts = scriptSrcs.filter((s) => !/^https?:/.test(s));
+        const localScripts = scriptSrcs
+          .map(localSourcePath)
+          .filter((source): source is string => source !== null);
         switch (localScripts.length) {
           case 0:
             throw new Error(`${htmlPath} does not contain any local scripts`);
-          case 1:
+          case 1: {
             if (!isScriptPathname(localScripts[0])) {
               throw new Error(
                 `${htmlPath} refers to a script file with the wrong extension`
               );
             }
-            if (!fs.existsSync(path.join(this.dir, localScripts[0]))) {
+            const localScriptPath = resolvePathInDirectory(
+              this.dir,
+              localScripts[0]
+            );
+            assertPathHasNoSymbolicLinks(this.dir, localScriptPath);
+            if (
+              !fs.existsSync(localScriptPath) ||
+              !fs.lstatSync(localScriptPath).isFile()
+            ) {
               throw new Error(
                 `${htmlPath} refers to a script file that does not exist`
               );
             }
             break;
+          }
           default:
             if (localScripts.length > 1) {
               throw new Error(`${htmlPath} contains multiple script tags`);
             }
+        }
+
+        const unrecognizedExternalScripts = scriptSrcs.filter(
+          (src) =>
+            isExternalScriptSource(src) &&
+            !isP5ScriptSource(src) &&
+            !Library.find({ importPath: src })
+        );
+        if (unrecognizedExternalScripts.length && !options.discardHtml) {
+          throw new Error(
+            `${htmlPath} contains unrecognized external scripts: ${unrecognizedExternalScripts.join(', ')}`
+          );
         }
 
         // check that explicit and inferred libraries match
@@ -848,6 +988,7 @@ export class HtmlSketch extends Sketch {
           }
         }
 
+        assertPathHasNoSymbolicLinks(this.dir, htmlPath);
         fs.unlinkSync(htmlPath);
         this._htmlRoot = null;
         this._files = undefined;
@@ -876,6 +1017,107 @@ function resolvePathInDirectory(dir: string, filename: string): string {
     throw new Error(`File path escapes the sketch directory: ${filename}`);
   }
   return filepath;
+}
+
+function portablePathKey(filePath: string): string {
+  const resolved = path.resolve(filePath);
+  const { root } = path.parse(resolved);
+  const relative = resolved.slice(root.length);
+  return (
+    root.toLowerCase() +
+    relative.split(path.sep).map(portablePathComponentKey).join(path.sep)
+  );
+}
+
+function assertPortableRelativePath(relativePath: string): void {
+  if (path.sep !== '\\' && relativePath.includes('\\')) {
+    throw new Error(
+      `Generated file path is not portable to Windows because it contains an invalid filename character: ${relativePath}`
+    );
+  }
+  for (const component of relativePath.split(/[\\/]/u).filter(Boolean)) {
+    const normalized = component.normalize('NFD').replace(/[ .]+$/u, '');
+    const stem = normalized.split('.', 1)[0];
+    if (/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])$/iu.test(stem)) {
+      throw new Error(
+        `Generated file path is not portable to Windows because it uses a reserved device name: ${relativePath}`
+      );
+    }
+    if (
+      [...component].some((character) => character.charCodeAt(0) <= 31) ||
+      /[<>:"|?*]/u.test(component)
+    ) {
+      throw new Error(
+        `Generated file path is not portable to Windows because it contains an invalid filename character: ${relativePath}`
+      );
+    }
+    if (/[ .]$/u.test(component)) {
+      throw new Error(
+        `Generated file path is not portable to Windows because it ends in a dot or space: ${relativePath}`
+      );
+    }
+  }
+}
+
+function portablePathComponentKey(component: string): string {
+  const normalized = component
+    .normalize('NFD')
+    .toLowerCase()
+    .replace(/[ .]+$/u, '');
+  const regularName = normalized.split(':', 1)[0];
+  const stem = regularName.split('.', 1)[0];
+  return /^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])$/iu.test(stem)
+    ? `\0device:${stem}`
+    : regularName;
+}
+
+function assertPathHasNoSymbolicLinks(dir: string, filepath: string): void {
+  const resolvedDir = path.resolve(dir);
+  if (fs.lstatSync(resolvedDir).isSymbolicLink()) {
+    throw new Error(
+      `Generated file path contains a symbolic link: ${resolvedDir}`
+    );
+  }
+  const relative = path.relative(resolvedDir, filepath);
+  let current = resolvedDir;
+  for (const component of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    let stat: fs.Stats;
+    try {
+      stat = fs.lstatSync(current);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') break;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) {
+      throw new Error(
+        `Generated file path contains a symbolic link: ${current}`
+      );
+    }
+  }
+}
+
+function isExternalScriptSource(source: string): boolean {
+  return /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(source);
+}
+
+function localSourcePath(source: string): string | null {
+  if (isExternalScriptSource(source)) return null;
+  const pathname = sourcePathname(source).replace(/^\.\//, '');
+  try {
+    return decodeURIComponent(pathname);
+  } catch (error) {
+    if (error instanceof URIError) return pathname;
+    throw error;
+  }
+}
+
+function sourcePathname(source: string): string {
+  return source.replace(/[?#].*$/, '');
+}
+
+function isP5ScriptSource(source: string): boolean {
+  return /(?:^|\/)p5(\.min)?\.js$/i.test(sourcePathname(source));
 }
 
 export class ScriptSketch extends Sketch {

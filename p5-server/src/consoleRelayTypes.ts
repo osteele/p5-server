@@ -2,6 +2,7 @@
  * socket to the server. */
 
 export const browserScriptRelayPath = '/__p5_server/events';
+export const maxBrowserRelayMessageLength = 1_000_000;
 
 // TODO: merge these with the types in eventTypes.ts
 

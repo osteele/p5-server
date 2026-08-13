@@ -5,6 +5,7 @@ export function jsonCycleStringifier(prefix = '$__jsonCycleStringifer:'): {
   const scopeKey = `${prefix}circular`;
   const defKey = `${prefix}def`;
   const refKey = `${prefix}ref`;
+  const bigintKey = `${prefix}bigint`;
   const objectHasOwnProperty = Object.prototype.hasOwnProperty;
 
   function stringify(value: unknown) {
@@ -23,37 +24,46 @@ export function jsonCycleStringifier(prefix = '$__jsonCycleStringifer:'): {
     value: unknown,
     replacer?: (this: unknown, key: string, value: unknown) => unknown
   ) {
-    const seen = new Set();
-    const defs = new Map();
+    const seen = new Set<object>();
+    const repeated = new Set<object>();
+    let hasBigInt = false;
 
     JSON.stringify(value, collector);
     seen.clear();
-    return defs.size === 0
+    const definitionIds = new Map<object, number>();
+    return repeated.size === 0 && !hasBigInt
       ? JSON.stringify(value, replacer)
       : JSON.stringify({ [scopeKey]: value }, cycleReplacer);
 
     function collector(_key: unknown, value: unknown) {
-      if (value && (typeof value === 'object' || Array.isArray(value))) {
-        if (defs.has(value)) {
+      if (typeof value === 'bigint') {
+        hasBigInt = true;
+        return { [bigintKey]: value.toString() };
+      }
+      if (value && typeof value === 'object') {
+        if (seen.has(value)) {
+          repeated.add(value);
           return undefined;
-        } else if (seen.has(value)) {
-          defs.set(value, defs.size);
-          return undefined;
-        } else {
-          seen.add(value);
         }
+        seen.add(value);
       }
       return value;
     }
 
     function cycleReplacer(key: string, value: unknown) {
-      if (value && (typeof value === 'object' || Array.isArray(value))) {
+      if (typeof value === 'bigint') {
+        return { [bigintKey]: value.toString() };
+      }
+      if (value && typeof value === 'object') {
         if (key === defKey) {
           return value;
-        } else if (seen.has(value)) {
-          return { [refKey]: defs.get(value) };
-        } else if (defs.has(value)) {
-          seen.add(value);
+        }
+        const definitionId = definitionIds.get(value);
+        if (definitionId !== undefined) {
+          return { [refKey]: definitionId };
+        }
+        if (repeated.has(value)) {
+          definitionIds.set(value, definitionIds.size);
           return { [defKey]: value };
         }
       }
@@ -69,26 +79,40 @@ export function jsonCycleStringifier(prefix = '$__jsonCycleStringifer:'): {
       return value;
 
     const defs: any[] = [];
-    return resolve(value[scopeKey]);
-
-    function resolve(value: any) {
-      if (value && typeof value === 'object') {
-        if (objectHasOwnProperty.call(value, defKey)) {
-          value = value[defKey];
-          defs.push(value);
-        } else if (objectHasOwnProperty.call(value, refKey)) {
-          return defs[value[refKey]];
-        }
-        for (const key in value) {
-          value[key] = resolve(value[key]);
-        }
-      } else if (Array.isArray(value)) {
-        for (const i in value) {
-          value[i] = resolve(value[i]);
+    let root: any;
+    const stack: { key: string | null; parent: any; value: any }[] = [
+      { key: null, parent: null, value: value[scopeKey] },
+    ];
+    while (stack.length) {
+      const frame = stack.pop()!;
+      let resolved = frame.value;
+      let traverse = true;
+      if (resolved && typeof resolved === 'object') {
+        if (objectHasOwnProperty.call(resolved, defKey)) {
+          resolved = resolved[defKey];
+          defs.push(resolved);
+        } else if (objectHasOwnProperty.call(resolved, refKey)) {
+          resolved = defs[resolved[refKey]];
+          traverse = false;
+        } else if (objectHasOwnProperty.call(resolved, bigintKey)) {
+          resolved = BigInt(resolved[bigintKey]);
+          traverse = false;
         }
       }
-      return value;
+      if (frame.parent === null) {
+        root = resolved;
+      } else {
+        frame.parent[frame.key!] = resolved;
+      }
+      if (traverse && resolved && typeof resolved === 'object') {
+        const keys = Object.keys(resolved);
+        for (let index = keys.length - 1; index >= 0; index--) {
+          const key = keys[index];
+          stack.push({ key, parent: resolved, value: resolved[key] });
+        }
+      }
     }
+    return root;
   }
 
   return { stringify, parse };

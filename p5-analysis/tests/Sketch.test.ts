@@ -54,7 +54,36 @@ test('Sketch.isSketchHtmlFile', async () => {
 
     const p5File = path.join(dir, 'p5.html');
     fs.writeFileSync(p5File, '<script src="p5.js"></script>');
-    expect(await Sketch.isSketchHtmlFile(p5File)).toBe(true);
+    expect(await Sketch.isSketchHtmlFile(p5File)).toBe(false);
+
+    const inlineFile = path.join(dir, 'inline.html');
+    fs.writeFileSync(
+      inlineFile,
+      '<script src="https://cdn.example/p5.js"></script><script>function setup() { createCanvas(10, 10); }</script>'
+    );
+    expect(await Sketch.isSketchHtmlFile(inlineFile)).toBe(false);
+    await expect(Sketch.fromHtmlFile(inlineFile)).rejects.toThrow(
+      /local script file/
+    );
+
+    const versionedP5File = path.join(dir, 'versioned-p5.html');
+    fs.writeFileSync(
+      versionedP5File,
+      '<script src="https://cdn.example/p5.min.js?v=2#runtime"></script><script src="sketch.js?v=2"></script>'
+    );
+    fs.writeFileSync(path.join(dir, 'sketch.js'), 'function setup() {}');
+    expect(await Sketch.isSketchHtmlFile(versionedP5File)).toBe(true);
+    const versionedSketch = await Sketch.fromHtmlFile(versionedP5File);
+    expect(versionedSketch.scriptFile).toBe('sketch.js');
+
+    const protocolRelativeFile = path.join(dir, 'protocol-relative.html');
+    fs.writeFileSync(
+      protocolRelativeFile,
+      '<script src="//cdn.example/p5.min.js"></script><script src="sketch.js"></script>'
+    );
+    const protocolRelativeSketch =
+      await Sketch.fromHtmlFile(protocolRelativeFile);
+    expect(protocolRelativeSketch.scriptFile).toBe('sketch.js');
   } finally {
     fs.rmSync(dir, { force: true, recursive: true });
   }
@@ -132,6 +161,21 @@ describe('Sketch.isSketchDir', () => {
       const source = 'function setup() { createCanvas(100, 100); }';
       fs.writeFileSync(path.join(dir, 'sketch.js'), source);
       fs.writeFileSync(path.join(nestedDir, 'sketch.js'), source);
+      expect(await Sketch.isSketchDir(dir)).toBeNull();
+    } finally {
+      fs.rmSync(dir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects a sketch directory with an unrelated loose file', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p5-loose-file-test-'));
+    try {
+      fs.writeFileSync(
+        path.join(dir, 'sketch.js'),
+        'function setup() { createCanvas(100, 100); }'
+      );
+      fs.writeFileSync(path.join(dir, 'notes.txt'), 'unrelated');
+
       expect(await Sketch.isSketchDir(dir)).toBeNull();
     } finally {
       fs.rmSync(dir, { force: true, recursive: true });
@@ -246,6 +290,36 @@ describe('Sketch.generate', () => {
 
   test('html output', () => testSketchGeneration('test.html', {}, 'html'));
 
+  test('rejects generated outputs with portable filename collisions', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-portable-collision-test-')
+    );
+    try {
+      const sketch = Sketch.create(path.join(targetDir, 'index.html'), {
+        scriptFile: 'INDEX.HTML.',
+      });
+      await expect(sketch.generate()).rejects.toThrow(
+        /Generated file output collision/
+      );
+      expect(fs.readdirSync(targetDir)).toEqual([]);
+    } finally {
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects generated outputs with Windows reserved device names', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-device-name-test-')
+    );
+    try {
+      const sketch = Sketch.create(path.join(targetDir, 'CON.js'));
+      await expect(sketch.generate()).rejects.toThrow(/reserved device name/);
+      expect(fs.readdirSync(targetDir)).toEqual([]);
+    } finally {
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
   test('checks targets relative to the sketch directory without touching cwd', async () => {
     const targetDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'p5-generate-path-test-')
@@ -287,6 +361,83 @@ describe('Sketch.generate', () => {
       expect(fs.existsSync(path.join(targetDir, 'index.html'))).toBe(false);
     } finally {
       fs.rmSync(escapedFile, { force: true });
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects generated-file symlinks without changing their targets', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-symlink-test-')
+    );
+    const outsideFile = path.join(path.dirname(targetDir), 'outside-sketch.js');
+    try {
+      fs.writeFileSync(outsideFile, 'keep');
+      fs.symlinkSync(outsideFile, path.join(targetDir, 'sketch.js'));
+      const sketch = Sketch.create(path.join(targetDir, 'sketch.js'));
+
+      await expect(sketch.generate(true)).rejects.toThrow(/symbolic link/);
+      expect(fs.readFileSync(outsideFile, 'utf-8')).toBe('keep');
+    } finally {
+      fs.rmSync(outsideFile, { force: true });
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects dangling generated-file symlinks', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-dangling-symlink-test-')
+    );
+    const outsideFile = path.join(path.dirname(targetDir), 'missing-sketch.js');
+    try {
+      fs.symlinkSync(outsideFile, path.join(targetDir, 'sketch.js'));
+      const sketch = Sketch.create(path.join(targetDir, 'sketch.js'));
+
+      await expect(sketch.generate(true)).rejects.toThrow(/symbolic link/);
+      expect(fs.existsSync(outsideFile)).toBe(false);
+    } finally {
+      fs.rmSync(outsideFile, { force: true });
+      fs.rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects a sketch directory that is itself a symbolic link', async () => {
+    const parent = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-root-symlink-test-')
+    );
+    const outsideDir = path.join(parent, 'outside');
+    const linkedDir = path.join(parent, 'linked');
+    try {
+      fs.mkdirSync(outsideDir);
+      fs.writeFileSync(path.join(outsideDir, 'index.html'), 'keep html');
+      fs.writeFileSync(path.join(outsideDir, 'sketch.js'), 'keep script');
+      fs.symlinkSync(outsideDir, linkedDir);
+      const sketch = Sketch.create(path.join(linkedDir, 'index.html'));
+
+      await expect(sketch.generate(true)).rejects.toThrow(/symbolic link/);
+      expect(
+        fs.readFileSync(path.join(outsideDir, 'index.html'), 'utf-8')
+      ).toBe('keep html');
+      expect(fs.readFileSync(path.join(outsideDir, 'sketch.js'), 'utf-8')).toBe(
+        'keep script'
+      );
+    } finally {
+      fs.rmSync(parent, { force: true, recursive: true });
+    }
+  });
+
+  test('preflights every generated file before overwriting any file', async () => {
+    const targetDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'p5-generate-atomic-test-')
+    );
+    try {
+      const htmlPath = path.join(targetDir, 'index.html');
+      fs.writeFileSync(htmlPath, 'keep');
+      fs.mkdirSync(path.join(targetDir, 'sketch.js'));
+      const sketch = Sketch.create(htmlPath);
+
+      await expect(sketch.generate(true)).rejects.toThrow();
+      expect(fs.readFileSync(htmlPath, 'utf-8')).toBe('keep');
+    } finally {
       fs.rmSync(targetDir, { force: true, recursive: true });
     }
   });
@@ -409,6 +560,137 @@ describe('Sketch.convert', () => {
       await sketch.convert({ type: 'script', discardHtml: true });
       expect(fs.existsSync(htmlPath)).toBe(false);
     });
+
+    test('unknown external scripts require explicit discard', async () => {
+      const htmlPath = path.join(outputDir, 'custom-library.html');
+      const scriptPath = path.join(outputDir, 'sketch.js');
+      fs.writeFileSync(
+        htmlPath,
+        '<script src="https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js"></script><script src="https://example.com/custom-library.js"></script><script src="sketch.js"></script>'
+      );
+      fs.writeFileSync(
+        scriptPath,
+        'function setup() { createCanvas(100, 100); }'
+      );
+      const sketch = await Sketch.fromFile(htmlPath);
+
+      await expect(sketch.convert({ type: 'script' })).rejects.toThrow(
+        /unrecognized external scripts/
+      );
+      expect(fs.existsSync(htmlPath)).toBe(true);
+
+      await sketch.convert({ type: 'script', discardHtml: true });
+      expect(fs.existsSync(htmlPath)).toBe(false);
+    });
+
+    test('rejects conversion through a symlinked sketch directory', async () => {
+      const parent = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'p5-convert-root-symlink-test-')
+      );
+      const outsideDir = path.join(parent, 'outside');
+      const linkedDir = path.join(parent, 'linked');
+      const html =
+        '<script src="https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js"></script><script src="sketch.js"></script>';
+      try {
+        fs.mkdirSync(outsideDir);
+        fs.writeFileSync(path.join(outsideDir, 'index.html'), html);
+        fs.writeFileSync(
+          path.join(outsideDir, 'sketch.js'),
+          'function setup() { createCanvas(100, 100); }'
+        );
+        fs.symlinkSync(outsideDir, linkedDir);
+        const sketch = await Sketch.fromFile(
+          path.join(linkedDir, 'index.html')
+        );
+
+        await expect(sketch.convert({ type: 'script' })).rejects.toThrow(
+          /symbolic link/
+        );
+        expect(
+          fs.readFileSync(path.join(outsideDir, 'index.html'), 'utf-8')
+        ).toBe(html);
+      } finally {
+        fs.rmSync(parent, { force: true, recursive: true });
+      }
+    });
+
+    test('rejects a surviving script outside the sketch directory', async () => {
+      const parent = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'p5-convert-script-escape-test-')
+      );
+      const root = path.join(parent, 'root');
+      const htmlPath = path.join(root, 'index.html');
+      try {
+        fs.mkdirSync(root);
+        fs.writeFileSync(
+          htmlPath,
+          '<script src="https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js"></script><script src="../outside.js"></script>'
+        );
+        fs.writeFileSync(
+          path.join(parent, 'outside.js'),
+          'function setup() { createCanvas(100, 100); }'
+        );
+        const sketch = await Sketch.fromFile(htmlPath);
+
+        await expect(sketch.convert({ type: 'script' })).rejects.toThrow(
+          /escapes the sketch directory/
+        );
+        expect(fs.existsSync(htmlPath)).toBe(true);
+      } finally {
+        fs.rmSync(parent, { force: true, recursive: true });
+      }
+    });
+
+    test('rejects a surviving script reached through a symlink', async () => {
+      const parent = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'p5-convert-script-symlink-test-')
+      );
+      const root = path.join(parent, 'root');
+      const htmlPath = path.join(root, 'index.html');
+      try {
+        fs.mkdirSync(root);
+        fs.mkdirSync(path.join(root, 'assets'));
+        fs.writeFileSync(
+          htmlPath,
+          '<script src="https://cdn.jsdelivr.net/npm/p5@2.3/lib/p5.min.js"></script><script src="assets/sketch.js"></script>'
+        );
+        fs.writeFileSync(
+          path.join(parent, 'outside.js'),
+          'function setup() { createCanvas(100, 100); }'
+        );
+        fs.symlinkSync(
+          path.join(parent, 'outside.js'),
+          path.join(root, 'assets', 'sketch.js')
+        );
+        const sketch = await Sketch.fromFile(htmlPath);
+
+        await expect(sketch.convert({ type: 'script' })).rejects.toThrow(
+          /symbolic link/
+        );
+        expect(fs.existsSync(htmlPath)).toBe(true);
+      } finally {
+        fs.rmSync(parent, { force: true, recursive: true });
+      }
+    });
+
+    test('protocol-relative p5.js URLs do not count as local scripts', async () => {
+      const htmlPath = path.join(outputDir, 'protocol-relative.html');
+      const scriptPath = path.join(outputDir, 'sketch.js');
+      fs.writeFileSync(
+        htmlPath,
+        '<script src="//cdn.example/p5.min.js"></script><script src="sketch.js?v=2"></script>'
+      );
+      fs.writeFileSync(
+        scriptPath,
+        'function setup() { createCanvas(100, 100); }'
+      );
+      const sketch = await Sketch.fromFile(htmlPath);
+
+      await sketch.convert({ type: 'script' });
+
+      expect(fs.existsSync(htmlPath)).toBe(false);
+      expect(fs.existsSync(scriptPath)).toBe(true);
+    });
   });
 
   async function testConvert(
@@ -416,31 +698,33 @@ describe('Sketch.convert', () => {
     options: { type: SketchStructureType },
     expectation: string | { exception: string | RegExp }
   ) {
-    let mainFile = Array.isArray(filePath) ? filePath[0] : filePath;
+    const nativeFilePaths = (
+      Array.isArray(filePath) ? filePath : [filePath]
+    ).map((file) => path.join(...file.split(/[\\/]/)));
+    let mainFile = nativeFilePaths[0];
     let snapshotRelDir = path.join(
       'snapshots',
       typeof expectation === 'string' ? expectation : path.dirname(mainFile)
     );
     if (Array.isArray(filePath)) {
-      filePath.forEach((file) => {
+      nativeFilePaths.forEach((file) => {
         ensureDirSync(path.dirname(path.join(outputDir, file)));
         fs.copyFileSync(
           path.join(testfileDir, file),
           path.join(outputDir, file)
         );
       });
-      mainFile = filePath[0];
       // if the file is in a directory, copy all the files
-    } else if (filePath.indexOf(path.sep) !== -1) {
-      const srcDir = filePath.split(path.sep)[0];
+    } else if (path.dirname(mainFile) !== '.') {
+      const srcDir = mainFile.split(path.sep)[0];
       copyDirectory(path.join(testfileDir, srcDir), outputDir);
-      mainFile = filePath.split(path.sep).slice(1).join(path.sep);
+      mainFile = mainFile.split(path.sep).slice(1).join(path.sep);
       if (typeof expectation !== 'string') snapshotRelDir = srcDir;
     } else {
-      ensureDirSync(path.dirname(path.join(outputDir, filePath)));
+      ensureDirSync(path.dirname(path.join(outputDir, mainFile)));
       fs.copyFileSync(
-        path.join(testfileDir, filePath),
-        path.join(outputDir, filePath)
+        path.join(testfileDir, mainFile),
+        path.join(outputDir, mainFile)
       );
     }
     async function convert() {

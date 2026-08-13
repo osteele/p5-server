@@ -8,7 +8,10 @@ import type {
   UnhandledRejectionMessage,
   WindowMessage,
 } from '../consoleRelayTypes.js';
-import { browserScriptRelayPath } from '../consoleRelayTypes.js';
+import {
+  browserScriptRelayPath,
+  maxBrowserRelayMessageLength,
+} from '../consoleRelayTypes.js';
 import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
 
 const { stringify } = jsonCycleStringifier();
@@ -56,31 +59,37 @@ Object.entries(console).forEach(([key, originalFn]) => {
   if (!consoleEventMethods.includes(method)) return;
   function newFn(...args: unknown[]) {
     originalFn.apply(console, args);
-    const argStrings = args.map((value) =>
-      value &&
-      (typeof value === 'object' || typeof value === 'function') &&
-      !Array.isArray(value) &&
-      value &&
-      typeof value.toString === 'function'
-        ? value.toString()
-        : null
-    );
-    while (argStrings.length && argStrings[argStrings.length - 1] === null) {
-      argStrings.pop();
+    try {
+      const argStrings = args.map((value) =>
+        value &&
+        (typeof value === 'object' || typeof value === 'function') &&
+        !Array.isArray(value) &&
+        value &&
+        typeof value.toString === 'function'
+          ? value.toString()
+          : null
+      );
+      while (argStrings.length && argStrings[argStrings.length - 1] === null) {
+        argStrings.pop();
+      }
+      const payload: ConsoleMethodMessage = {
+        method,
+        args: args.map((value, i) => undefinedValueReplacer(i, value)),
+        argStrings: argStrings.length ? argStrings : undefined,
+        ...getSourceLocation(),
+      };
+      send('console', payload);
+    } catch {
+      // Console relay instrumentation must not change sketch control flow.
     }
-    const payload: ConsoleMethodMessage = {
-      method,
-      args: args.map((value, i) => undefinedValueReplacer(i, value)),
-      argStrings: argStrings.length ? argStrings : undefined,
-      ...getSourceLocation(),
-    };
-    send('console', payload);
   }
   savedMethods[method] = originalFn.bind(console);
   console[method] = newFn;
   newFn.displayName = originalFn.displayName;
-  newFn.name = originalFn.name;
-  newFn.length = originalFn.length;
+  Object.defineProperties(newFn, {
+    length: { configurable: true, value: originalFn.length },
+    name: { configurable: true, value: originalFn.name },
+  });
 });
 
 function getSourceLocation() {
@@ -117,7 +126,9 @@ function undefinedValueReplacer(_key: unknown, value: any) {
 const relayUrl = new URL(browserScriptRelayPath, window.location.href);
 relayUrl.protocol = relayUrl.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(relayUrl);
-const q: (string | ArrayBufferView | ArrayBuffer | Blob)[] = [];
+const q: { byteLength: number; payload: string }[] = [];
+const maxQueuedMessages = 1_000;
+let queuedBytes = 0;
 
 const clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2)))
   .map((n) => n.toString(16))
@@ -125,7 +136,9 @@ const clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2)))
 
 ws.onopen = () => {
   while (q.length) {
-    ws.send(q.shift()!);
+    const queued = q.shift()!;
+    queuedBytes -= queued.byteLength;
+    ws.send(queued.payload);
   }
 };
 
@@ -145,10 +158,20 @@ function send(route: string, data: MessageCore) {
       data
     ),
   ]);
-  if (ws.readyState === 1 && !q.length) {
+  const byteLength = new TextEncoder().encode(payload).byteLength;
+  if (byteLength > maxBrowserRelayMessageLength) return;
+  if (ws.readyState === WebSocket.OPEN && !q.length) {
     ws.send(payload);
-  } else {
-    q.push(payload);
+  } else if (ws.readyState === WebSocket.CONNECTING) {
+    while (
+      q.length &&
+      (q.length >= maxQueuedMessages ||
+        queuedBytes + byteLength > maxBrowserRelayMessageLength)
+    ) {
+      queuedBytes -= q.shift()!.byteLength;
+    }
+    q.push({ byteLength, payload });
+    queuedBytes += byteLength;
   }
 }
 

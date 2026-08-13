@@ -6,9 +6,11 @@ import { minimatch } from 'minimatch';
 import open from 'open';
 import { Sketch } from 'p5-analysis';
 import {
+  assertPortableRelativePath,
   die,
   pathIsInDirectory,
   pathIsMarkdown,
+  portablePathKey,
   stringToOptions,
 } from '../helpers.js';
 import {
@@ -31,7 +33,8 @@ type Options = {
 const directoryExclusions = [...defaultDirectoryExclusions, 'build'];
 
 export default async function build(source: string, options: Options) {
-  const output = options.output;
+  const output = path.resolve(options.output);
+  const resolvedSource = path.resolve(source);
   const hrstart = process.hrtime.bigint();
 
   if (options.theme === 'directory') {
@@ -43,32 +46,57 @@ export default async function build(source: string, options: Options) {
     );
   }
 
+  assertTreeHasNoSymbolicLinks(resolvedSource);
+  const outputStat = lstatIfExists(output);
+  if (outputStat?.isSymbolicLink()) {
+    throw new Error(`Build output directory is a symbolic link: ${output}`);
+  }
+  if (outputStat && !outputStat.isDirectory()) {
+    throw new Error(`Build output is not a directory: ${output}`);
+  }
+
+  const canonicalSource = fs.realpathSync(resolvedSource);
+  const canonicalOutput = resolveThroughExistingAncestor(output);
   if (
-    pathIsInDirectory(output, source) &&
+    pathIsInDirectory(canonicalOutput, canonicalSource) &&
     !directoryExclusions.some((pattern) =>
-      minimatch(path.relative(source, output), pattern)
+      minimatch(path.relative(canonicalSource, canonicalOutput), pattern)
     )
   ) {
     die('The output directory cannot be inside the source directory');
   }
-  if (pathIsInDirectory(source, output)) {
+  if (pathIsInDirectory(canonicalSource, canonicalOutput)) {
     die('The source directory cannot be inside the output directory');
   }
 
-  const actions: Action[] = [];
-  for await (const action of createActions(source, output))
-    actions.push(action);
-  assertDistinctOutputPaths(actions);
-
-  if (!options.dryRun && fs.existsSync(output)) {
-    const outputFiles = fs
-      .readdirSync(output)
-      .filter((file) => !file.startsWith('.'))
-      .map((file) => path.join(output, file));
-    await Promise.all(outputFiles.map((file) => rm(file, { recursive: true })));
+  let count: number;
+  if (options.dryRun) {
+    const actions: Action[] = [];
+    for await (const action of createActions(resolvedSource, output)) {
+      actions.push(action);
+    }
+    assertOutputPathsInDirectory(actions, output);
+    assertDistinctOutputPaths(actions, output);
+    count = await runActions(actions, options);
+  } else {
+    fs.mkdirSync(path.dirname(output), { recursive: true });
+    const staging = fs.mkdtempSync(
+      path.join(path.dirname(output), `.${path.basename(output)}-p5-build-`)
+    );
+    const actions: Action[] = [];
+    try {
+      for await (const action of createActions(resolvedSource, staging)) {
+        actions.push(action);
+      }
+      assertOutputPathsInDirectory(actions, staging);
+      assertDistinctOutputPaths(actions, staging);
+      count = await runActions(actions, options);
+      replaceBuildOutput(staging, output);
+    } finally {
+      await rm(staging, { force: true, recursive: true });
+    }
   }
 
-  const count = await runActions(actions, options);
   const rootIndex = path.join(output, 'index.html');
   const elapsed = Number(process.hrtime.bigint() - hrstart) / 1e6;
   console.log(
@@ -78,6 +106,116 @@ export default async function build(source: string, options: Options) {
     open(rootIndex);
   } else if (options.verbose) {
     console.log(`Open file://${path.resolve(rootIndex)} to view`);
+  }
+}
+
+function lstatIfExists(filepath: string): fs.Stats | null {
+  try {
+    return fs.lstatSync(filepath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+function resolveThroughExistingAncestor(filepath: string): string {
+  const suffix: string[] = [];
+  let current = path.resolve(filepath);
+  while (!fs.existsSync(current)) {
+    const parent = path.dirname(current);
+    if (parent === current) return path.resolve(filepath);
+    suffix.unshift(path.basename(current));
+    current = parent;
+  }
+  return path.join(fs.realpathSync(current), ...suffix);
+}
+
+function assertTreeHasNoSymbolicLinks(root: string): void {
+  const stat = fs.lstatSync(root);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`Build source contains a symbolic link: ${root}`);
+  }
+  if (!stat.isDirectory()) return;
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (directoryExclusions.some((pattern) => minimatch(entry.name, pattern))) {
+      continue;
+    }
+    const filepath = path.join(root, entry.name);
+    if (entry.isSymbolicLink()) {
+      throw new Error(`Build source contains a symbolic link: ${filepath}`);
+    }
+    if (entry.isDirectory()) assertTreeHasNoSymbolicLinks(filepath);
+  }
+}
+
+function assertOutputPathsInDirectory(
+  actions: readonly Action[],
+  output: string
+): void {
+  for (const action of actions) {
+    if (!pathIsInDirectory(action.outputFile, output)) {
+      throw new Error(
+        `Generated path escapes the build output directory: ${action.outputFile}`
+      );
+    }
+  }
+}
+
+function replaceBuildOutput(staging: string, output: string): void {
+  const outputStat = lstatIfExists(output);
+  if (!outputStat) {
+    fs.renameSync(staging, output);
+    return;
+  }
+  if (outputStat.isSymbolicLink() || !outputStat.isDirectory()) {
+    throw new Error(`Build output is not a regular directory: ${output}`);
+  }
+
+  const backup = fs.mkdtempSync(
+    path.join(path.dirname(output), `.${path.basename(output)}-p5-backup-`)
+  );
+  const oldEntries = fs
+    .readdirSync(output)
+    .filter((name) => !name.startsWith('.'));
+  const newEntries = fs.readdirSync(staging);
+  const movedOld: string[] = [];
+  const movedNew: string[] = [];
+  let keepBackup = false;
+  try {
+    for (const name of oldEntries) {
+      fs.renameSync(path.join(output, name), path.join(backup, name));
+      movedOld.push(name);
+    }
+    for (const name of newEntries) {
+      fs.renameSync(path.join(staging, name), path.join(output, name));
+      movedNew.push(name);
+    }
+  } catch (error) {
+    const rollbackErrors: unknown[] = [];
+    for (const name of movedNew.reverse()) {
+      try {
+        fs.renameSync(path.join(output, name), path.join(staging, name));
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    for (const name of movedOld.reverse()) {
+      try {
+        fs.renameSync(path.join(backup, name), path.join(output, name));
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    if (rollbackErrors.length) {
+      keepBackup = true;
+      throw new AggregateError(
+        [error, ...rollbackErrors],
+        `Could not restore the previous build output; backup retained at ${backup}`
+      );
+    }
+    throw error;
+  } finally {
+    if (!keepBackup) fs.rmSync(backup, { force: true, recursive: true });
   }
 }
 
@@ -93,21 +231,24 @@ type Action = (
 
 type ActionIterator = AsyncIterableIterator<Action>;
 
-function assertDistinctOutputPaths(actions: readonly Action[]): void {
+function assertDistinctOutputPaths(
+  actions: readonly Action[],
+  outputRoot: string
+): void {
   const outputs = new Map<string, Action>();
   for (const action of actions) {
-    const resolvedOutput = path.resolve(action.outputFile);
-    const key =
-      process.platform === 'win32'
-        ? resolvedOutput.toLowerCase()
-        : resolvedOutput;
-    const previous = outputs.get(key);
-    if (previous) {
-      throw new Error(
-        `Build output collision at ${resolvedOutput}: ${describeAction(previous)} and ${describeAction(action)}`
-      );
+    for (const outputFile of actionOutputPaths(action)) {
+      const resolvedOutput = path.resolve(outputFile);
+      const key = portablePathKey(resolvedOutput);
+      const previous = outputs.get(key);
+      if (previous) {
+        throw new Error(
+          `Build output collision at ${resolvedOutput}: ${describeAction(previous)} and ${describeAction(action)}`
+        );
+      }
+      assertPortableRelativePath(path.relative(outputRoot, resolvedOutput));
+      outputs.set(key, action);
     }
-    outputs.set(key, action);
   }
 
   function describeAction(action: Action): string {
@@ -117,6 +258,31 @@ function assertDistinctOutputPaths(actions: readonly Action[]): void {
     }
     return `${action.kind} for ${action.dir}`;
   }
+}
+
+function* actionOutputPaths(action: Action): Generator<string> {
+  yield action.outputFile;
+  if (action.kind !== 'copyDir') return;
+  yield* copiedDirectoryOutputPaths(action.source, action.outputFile);
+}
+
+function* copiedDirectoryOutputPaths(
+  source: string,
+  output: string
+): Generator<string> {
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    if (!shouldCopyEntry(entry.name)) continue;
+    const sourcePath = path.join(source, entry.name);
+    const outputPath = path.join(output, entry.name);
+    yield outputPath;
+    if (entry.isDirectory()) {
+      yield* copiedDirectoryOutputPaths(sourcePath, outputPath);
+    }
+  }
+}
+
+function shouldCopyEntry(name: string): boolean {
+  return !directoryExclusions.some((pattern) => minimatch(name, pattern));
 }
 
 function Action(
@@ -147,17 +313,6 @@ function createActions(file: string, output: string): ActionIterator {
     });
     yield Action('mkdir', dir, output);
 
-    const scriptOnlySketches = sketches.filter(
-      (sk) => sk.structureType === 'script'
-    );
-    // TODO: check for collisions when choosing the output file path
-    for (const sketch of scriptOnlySketches) {
-      const outputFile = path
-        .join(output, sketch.scriptFile)
-        .replace(/\.js$/i, '.html');
-      yield { kind: 'createSketchHtml', sketch, outputFile };
-    }
-
     const subdirectorySketches = sketches.filter((sk) => sk.dir !== dir);
     for (const sketch of subdirectorySketches) {
       yield Action(
@@ -165,6 +320,16 @@ function createActions(file: string, output: string): ActionIterator {
         sketch.dir,
         path.join(output, path.relative(dir, sketch.dir))
       );
+    }
+
+    const scriptOnlySketches = sketches.filter(
+      (sk) => sk.structureType === 'script'
+    );
+    for (const sketch of scriptOnlySketches) {
+      const outputFile = path
+        .join(output, path.relative(dir, sketch.dir), sketch.scriptFile)
+        .replace(/\.js$/i, '.html');
+      yield { kind: 'createSketchHtml', sketch, outputFile };
     }
 
     // Do this after the directories are copied
@@ -254,9 +419,7 @@ async function runActions(
           recursive: true,
           filter(sourcePath) {
             if (sourcePath === action.source) return true;
-            const allowed = !directoryExclusions.some((pattern) =>
-              minimatch(path.basename(sourcePath), pattern)
-            );
+            const allowed = shouldCopyEntry(path.basename(sourcePath));
             if (allowed && !fs.lstatSync(sourcePath).isDirectory()) {
               filesCreated += 1;
             }

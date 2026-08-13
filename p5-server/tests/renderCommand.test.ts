@@ -1,5 +1,8 @@
 import path from 'node:path';
-import render, { formatRenderReport } from '../src/commands/renderCommand';
+import render, {
+  formatRenderReport,
+  withinDeadline,
+} from '../src/commands/renderCommand';
 
 test('render reports static failures before opening a browser', async () => {
   const source = '../p5-analysis/tests/testdata/html-includes/index.html';
@@ -25,5 +28,13 @@ test('render formats invalid options as a readable report', async () => {
   expect(output).toContain('Frame: 1 requested; not reached');
   expect(output).toContain(
     'frame must be a non-negative integer; received later'
+  );
+});
+
+test('withinDeadline rejects work that does not settle before the deadline', async () => {
+  const never = new Promise<never>(() => undefined);
+
+  await expect(withinDeadline(never, Date.now() + 10)).rejects.toThrow(
+    /render timed out/
   );
 });

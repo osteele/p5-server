@@ -10,6 +10,45 @@
   lower, or 6.2 times faster). This benchmark used Bun 1.3.14 on macOS and is
   not a production guarantee.
 
+- Reject source-tree symlinks during static builds, and stage generated output
+  before replacing the previous build.
+- Bound browser-relay payloads and pending client messages, and require relay
+  WebSocket requests with an Origin header to use the served origin.
+- Upgrade `cdn-proxy-cache` to 0.3.0.
+- Make package build and cleanup scripts portable to Windows.
+
+### Fixed
+
+- Prevent static serving, building, generation, and folder conversion from
+  following paths outside their declared roots through symbolic links or
+  parent-directory references.
+- Reject case-insensitive, canonically equivalent Unicode, and Windows-specific
+  output aliases before building or moving sketch files.
+- Keep generated pages for nested script-only sketches in their source
+  directories, and preflight generated files against every copied descendant.
+- Preserve previous build and generated-file contents when a later operation
+  fails.
+- Initialize the browser console relay in strict bundles, round-trip cyclic
+  shared references and BigInt values, bound pending messages by count and
+  encoded bytes, enforce the payload cap after connection, and close relay
+  sockets with the server. Relay serialization failures no longer throw into
+  sketch code.
+- Enforce render and screenshot deadlines, capture setup-only sketches, and
+  reject screenshot counts and densities that cannot terminate. Multi-frame
+  capture now waits for every output write and serializes frames that target
+  the same file, including draining accepted writes after a timeout. The
+  browser capture client reports non-successful screenshot POST responses and
+  does not close as though those frames were saved.
+- Validate screenshot frame encoding and image type before saving, use native
+  output paths on Windows, and reject numeric values outside runtime limits.
+- Attempt HTTP, relay, and LiveReload cleanup independently so one close error
+  cannot skip the remaining resources, including during failed startup and when
+  watcher disposal fails. Startup rollback retains both the initiating error
+  and any cleanup errors.
+- Encode filesystem names in generated and programmatic URLs.
+- Resolve delegated `p5 analyze`, `p5 libraries`, and `p5 tree` commands from
+  the installed `p5-analysis` package.
+
 ## [1.0.1] - 2026-08-12
 
 ### Fixed

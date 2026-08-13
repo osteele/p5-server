@@ -1,8 +1,9 @@
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import type http from 'node:http';
+import type net from 'node:net';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import chalk from 'chalk';
 import express from 'express';
 import {
@@ -12,10 +13,13 @@ import {
 } from 'p5-analysis';
 import pug from 'pug';
 import { assertError } from '../assertError.js';
+import { pathIsInDirectory, resolvePathInDirectory } from '../helpers.js';
 import type { AgentSupportSettings } from './agentSupport.js';
 import {
   attachBrowserScriptRelay,
   type BrowserScriptRelay,
+  type BrowserScriptRelayServer,
+  closeBrowserScriptRelay,
 } from './browserScriptEventRelay.js';
 import { cdnProxyRouter, proxyPrefix } from './cdnProxy.js';
 import { staticAssetPrefix } from './constants.js';
@@ -163,7 +167,23 @@ async function startServer(
     }
     const routerConfig: RouterConfig = { ...config, root, sketchFile };
     app.use(urlPath, createRouter(routerConfig));
-    app.use(urlPath, express.static(root));
+    app.use(
+      urlPath,
+      (req, res, next) => {
+        try {
+          const file = resolvePathInDirectory(
+            decodeURIComponent(req.path),
+            root
+          );
+          if (!file) return res.sendStatus(403);
+        } catch (error) {
+          if (error instanceof URIError) return res.sendStatus(403);
+          throw error;
+        }
+        next();
+      },
+      express.static(root)
+    );
   }
   if (mountPoints.every((mp) => mp.urlPath !== '/')) {
     const mountListTmpl = pug.compileFile(
@@ -184,22 +204,33 @@ async function startServer(
   // For effect only. This provide errors and diagnostics before waiting for a
   // browser request.
   if (fs.statSync(mountPoints[0].filePath).isDirectory()) {
-    createDirectoryListing(mountPoints[0].filePath, mountPoints[0].urlPath, {
-      libraryPolicy: config.libraryPolicy,
-      p5Version: config.p5Version,
-      templateName: config.theme,
-    });
+    await createDirectoryListing(
+      mountPoints[0].filePath,
+      mountPoints[0].urlPath,
+      {
+        libraryPolicy: config.libraryPolicy,
+        p5Version: config.p5Version,
+        templateName: config.theme,
+      }
+    );
   }
 
   // Scan for an avialable port
   let server: http.Server | null = null;
+  const connections = new Set<net.Socket>();
   const port = config.port;
   if (port === 0) {
-    server = await promiseListen(app, 0, config.host);
+    server = await promiseListen(app, 0, config.host, undefined, connections);
   } else {
     for (let p = port; p < port + 10; p++) {
       try {
-        server = await promiseListen(app, p, config.host);
+        server = await promiseListen(
+          app,
+          p,
+          config.host,
+          undefined,
+          connections
+        );
         break; // success!
       } catch (err) {
         assertError(err);
@@ -212,13 +243,23 @@ async function startServer(
   }
   // If the port scan didn't find an available port within the range. Allow
   // server.listen to choose a port.
-  if (!server) server = await promiseListen(app, undefined, config.host);
+  if (!server)
+    server = await promiseListen(
+      app,
+      undefined,
+      config.host,
+      undefined,
+      connections
+    );
 
   const address = server.address();
   if (!address || typeof address === 'string') {
     throw new Error('Failed to start the server');
   }
-  attachBrowserScriptRelay(server, sketchRelay);
+  const browserScriptRelayServer = attachBrowserScriptRelay(
+    server,
+    sketchRelay
+  );
   try {
     const liveReloadServer = config.liveServer
       ? await createLiveReloadServer({
@@ -234,9 +275,24 @@ async function startServer(
       : null;
     app.locals.liveReloadServer = liveReloadServer;
     const url = `http://${hostForUrl(config.host)}:${address.port}`;
-    return { server, liveReloadServer, url };
+    return {
+      browserScriptRelayServer,
+      connections,
+      server,
+      liveReloadServer,
+      url,
+    };
   } catch (e) {
-    server.close();
+    for (const connection of connections) connection.destroy();
+    connections.clear();
+    await runCleanupTasks(
+      [
+        () => closeBrowserScriptRelay(browserScriptRelayServer),
+        () => promiseClose(server),
+      ],
+      [e],
+      'Server startup and rollback did not complete cleanly'
+    );
     throw e;
   }
 }
@@ -249,7 +305,11 @@ export class Server {
   public url?: string;
   public mountPoints: MountPoint[];
   private readonly config: ServerConfig;
+  private browserScriptRelayServer: BrowserScriptRelayServer | null = null;
+  private connections = new Set<net.Socket>();
   private liveReloadServer: LiveReloadServer | null = null;
+  private startPromise: Promise<this> | null = null;
+  private closePromise: Promise<void> | null = null;
   private readonly browserScriptEmitter = new EventEmitter();
   public readonly emitScriptEvent = this.browserScriptEmitter.emit.bind(
     this.browserScriptEmitter
@@ -283,14 +343,24 @@ export class Server {
   }
 
   public async start(): Promise<this> {
-    const { server, liveReloadServer, url } = await startServer(
-      this.config,
-      this
-    );
-    this.server = server;
-    this.liveReloadServer = liveReloadServer;
-    this.url = url;
-    return this;
+    if (this.server || this.startPromise || this.closePromise) {
+      throw new Error('Server has already started');
+    }
+    const startPromise = (async () => {
+      const result = await startServer(this.config, this);
+      this.browserScriptRelayServer = result.browserScriptRelayServer;
+      this.connections = result.connections;
+      this.server = result.server;
+      this.liveReloadServer = result.liveReloadServer;
+      this.url = result.url;
+      return this;
+    })();
+    this.startPromise = startPromise;
+    try {
+      return await startPromise;
+    } finally {
+      if (this.startPromise === startPromise) this.startPromise = null;
+    }
   }
 
   /**
@@ -298,23 +368,53 @@ export class Server {
    *
    * Note: Can return before the liveServer is stopped.
    */
-  public async close(): Promise<void> {
-    if (this.server) {
-      await promiseClose(this.server);
-      this.server = null;
+  public close(): Promise<void> {
+    if (this.closePromise) return this.closePromise;
+    const closePromise = this.performClose();
+    this.closePromise = closePromise;
+    return closePromise.finally(() => {
+      if (this.closePromise === closePromise) this.closePromise = null;
+    });
+  }
+
+  private async performClose(): Promise<void> {
+    const pendingStart = this.startPromise;
+    if (pendingStart) {
+      try {
+        await pendingStart;
+      } catch {
+        return;
+      }
     }
-    this.url = undefined;
-    this.liveReloadServer?.close();
+    const relayServer = this.browserScriptRelayServer;
+    const httpServer = this.server;
+    const liveReloadServer = this.liveReloadServer;
+    this.browserScriptRelayServer = null;
+    this.server = null;
     this.liveReloadServer = null;
+    this.url = undefined;
+    for (const connection of this.connections) connection.destroy();
+    this.connections.clear();
+    await runCleanupTasks([
+      () =>
+        relayServer ? closeBrowserScriptRelay(relayServer) : Promise.resolve(),
+      () => (httpServer ? promiseClose(httpServer) : Promise.resolve()),
+      () => liveReloadServer?.close(),
+    ]);
   }
 
   public filePathToUrl(filePath: string): string | null {
     const baseUrl = this.url || this.defaultUrl;
     for (const mountPoint of this.mountPoints) {
-      const filePrefix = this.mountPointFileRoot(mountPoint) + path.sep;
+      const fileRoot = this.mountPointFileRoot(mountPoint);
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
-      if (filePath.startsWith(filePrefix)) {
-        return baseUrl + filePath.replace(filePrefix, pathPrefix);
+      if (pathIsInDirectory(filePath, fileRoot)) {
+        const relative = path.relative(fileRoot, filePath);
+        const encoded = relative
+          .split(path.sep)
+          .map(encodeURIComponent)
+          .join('/');
+        return baseUrl + pathPrefix + encoded;
       }
     }
     return null;
@@ -325,7 +425,26 @@ export class Server {
       const filePrefix = this.mountPointFileRoot(mountPoint) + path.sep;
       const pathPrefix = mountPoint.urlPath.replace(/(?<!\/)$/, '/');
       if (urlPath.startsWith(pathPrefix)) {
-        return urlPath.replace(pathPrefix, filePrefix);
+        try {
+          const decoded = urlPath
+            .slice(pathPrefix.length)
+            .split('/')
+            .map(decodeURIComponent)
+            .join(path.sep);
+          const filepath = path.join(filePrefix, decoded);
+          if (!pathIsInDirectory(filepath, filePrefix)) return null;
+          if (
+            fs.existsSync(mountPoint.filePath) &&
+            !fs.statSync(mountPoint.filePath).isDirectory() &&
+            path.resolve(filepath) === path.resolve(mountPoint.filePath)
+          ) {
+            return mountPoint.filePath;
+          }
+          return filepath;
+        } catch (error) {
+          if (error instanceof URIError) return null;
+          throw error;
+        }
       }
     }
     return null;
@@ -333,8 +452,15 @@ export class Server {
 
   public serverUrlToFileUrl(url: string): string | null {
     const baseUrl = this.url || this.defaultUrl;
-    if (url.startsWith(`${baseUrl}/`)) {
-      const urlPath = url.slice(baseUrl.length);
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch (error) {
+      if (error instanceof TypeError) return null;
+      throw error;
+    }
+    if (parsedUrl.origin === new URL(baseUrl).origin) {
+      const urlPath = parsedUrl.pathname;
       if (
         urlPath.startsWith(`${proxyPrefix}/`) ||
         urlPath.startsWith(`${staticAssetPrefix}/`)
@@ -342,7 +468,7 @@ export class Server {
         return null;
       }
       const filepath = this.urlPathToFilePath(urlPath);
-      if (filepath) return `file://${path.resolve(filepath)}`;
+      if (filepath) return pathToFileURL(path.resolve(filepath)).href;
     }
     return null;
   }
@@ -408,7 +534,7 @@ export class Server {
     function* generateNames(base: string) {
       yield base;
       let ix = 2;
-      const m = base.match(/^(.*?)-(\d*)$/);
+      const m = base.match(/^(.*?)-(\d+)$/);
       if (m) {
         base = m[1];
         ix = parseInt(m[2], 10) + 1;
@@ -417,6 +543,26 @@ export class Server {
         yield `${base}-${ix++}`;
       }
     }
+  }
+}
+
+export async function runCleanupTasks(
+  tasks: readonly (() => Promise<void> | void)[],
+  precedingErrors: readonly unknown[] = [],
+  aggregateMessage = 'Failed to close every server resource'
+): Promise<void> {
+  const results = await Promise.allSettled(
+    tasks.map((task) => Promise.resolve().then(task))
+  );
+  const errors = [
+    ...precedingErrors,
+    ...results.flatMap((result) =>
+      result.status === 'rejected' ? [result.reason] : []
+    ),
+  ];
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) {
+    throw new AggregateError(errors, aggregateMessage);
   }
 }
 

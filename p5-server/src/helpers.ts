@@ -62,7 +62,7 @@ export function pathComponentsForBreadcrumbs(
     const parentPath = crumbs[crumbs.length - 1].path;
     crumbs.push({
       name,
-      path: path.posix.join(parentPath, name),
+      path: path.posix.join(parentPath, encodeURIComponent(name)),
     });
   }
   return crumbs;
@@ -79,6 +79,60 @@ export function pathIsInDirectory(filepath: string, dir: string): boolean {
   );
 }
 
+/** Canonicalize a path for collision checks on common macOS and Windows filesystems. */
+export function portablePathKey(filePath: string): string {
+  const resolved = path.resolve(filePath);
+  const { root } = path.parse(resolved);
+  const relative = resolved.slice(root.length);
+  return (
+    root.toLowerCase() +
+    relative.split(path.sep).map(portablePathComponentKey).join(path.sep)
+  );
+}
+
+/** Reject relative path components that cannot name regular files on Windows. */
+export function assertPortableRelativePath(relativePath: string): void {
+  if (path.sep !== '\\' && relativePath.includes('\\')) {
+    throw new Error(
+      `Path is not portable to Windows because it contains an invalid filename character: ${relativePath}`
+    );
+  }
+  for (const component of relativePath.split(/[\\/]/u).filter(Boolean)) {
+    const normalized = component.normalize('NFD').replace(/[ .]+$/u, '');
+    const stem = normalized.split('.', 1)[0];
+    if (/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])$/iu.test(stem)) {
+      throw new Error(
+        `Path is not portable to Windows because it uses a reserved device name: ${relativePath}`
+      );
+    }
+    if (
+      [...component].some((character) => character.charCodeAt(0) <= 31) ||
+      /[<>:"|?*]/u.test(component)
+    ) {
+      throw new Error(
+        `Path is not portable to Windows because it contains an invalid filename character: ${relativePath}`
+      );
+    }
+    if (/[ .]$/u.test(component)) {
+      throw new Error(
+        `Path is not portable to Windows because it ends in a dot or space: ${relativePath}`
+      );
+    }
+  }
+}
+
+function portablePathComponentKey(component: string): string {
+  const normalized = component
+    .normalize('NFD')
+    .toLowerCase()
+    .replace(/[ .]+$/u, '');
+  const regularName = normalized.split(':', 1)[0];
+  const stem = regularName.split('.', 1)[0];
+  return /^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])$/iu.test(stem)
+    ? `\0device:${stem}`
+    : regularName;
+}
+
 /** Resolve a relative path inside `dir`, rejecting lexical and symlink escapes. */
 export function resolvePathInDirectory(
   filepath: string,
@@ -89,11 +143,15 @@ export function resolvePathInDirectory(
   const resolvedPath = path.resolve(resolvedDir, relativePath);
   if (!pathIsInDirectory(resolvedPath, resolvedDir)) return null;
 
-  if (fs.existsSync(resolvedPath)) {
-    const realDir = fs.realpathSync(resolvedDir);
-    const realPath = fs.realpathSync(resolvedPath);
-    if (!pathIsInDirectory(realPath, realDir)) return null;
+  const realDir = fs.realpathSync(resolvedDir);
+  let existingAncestor = resolvedPath;
+  while (!fs.existsSync(existingAncestor)) {
+    const parent = path.dirname(existingAncestor);
+    if (parent === existingAncestor) return null;
+    existingAncestor = parent;
   }
+  const realAncestor = fs.realpathSync(existingAncestor);
+  if (!pathIsInDirectory(realAncestor, realDir)) return null;
   return resolvedPath;
 }
 

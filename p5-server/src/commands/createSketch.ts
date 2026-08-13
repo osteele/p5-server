@@ -24,6 +24,9 @@ export default async function create(file: string, options: Options) {
       if (err.code !== 'EEXIST') {
         throw err;
       }
+      if (fs.lstatSync(file).isSymbolicLink()) {
+        die(`The ${file} folder is a symbolic link`);
+      }
       if (!fs.statSync(file).isDirectory()) {
         die(`The ${file} folder already exists and is not a directory`);
       }

@@ -32,7 +32,7 @@ export function parseNpmSpecifier(
   specifier: string
 ): { packageName: string; version: string | undefined } | null {
   const match =
-    /^(?<packageName>(?:@[^/@]+\/)?[^/@]+)(?:@(?<version>[^/]+))?$/.exec(
+    /^(?<packageName>(?:@[a-z\d][a-z\d._~-]*\/)?[a-z\d][a-z\d._~-]*)(?:@(?<version>[a-z\d][a-z\d._+~-]*))?$/i.exec(
       specifier
     );
   if (!match?.groups) return null;

@@ -8,8 +8,13 @@ export function parseDimensions(
   }
   const width = Number(match[1]);
   const height = Number(match[2] ?? match[1]);
-  if (width <= 0 || height <= 0) {
-    throw new Error(`${label} dimensions must be positive`);
+  if (
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    throw new Error(`${label} dimensions must be positive safe integers`);
   }
   return { width, height };
 }

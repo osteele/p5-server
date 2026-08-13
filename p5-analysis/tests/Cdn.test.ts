@@ -62,5 +62,7 @@ describe('parseNpmSpecifier', () => {
   test('rejects paths and incomplete scopes', () => {
     expect(parseNpmSpecifier('@scope')).toBeNull();
     expect(parseNpmSpecifier('package/dist/index.js')).toBeNull();
+    expect(parseNpmSpecifier('package;touch injected')).toBeNull();
+    expect(parseNpmSpecifier('package$(touch injected)')).toBeNull();
   });
 });

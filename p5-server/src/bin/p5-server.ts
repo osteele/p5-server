@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
@@ -28,7 +29,16 @@ const PROJECT_HOME = path.join(
   fileURLToPath(new URL('.', import.meta.url)),
   '../../'
 );
-const P5_ANALYSIS_BIN = path.join(PROJECT_HOME, 'node_modules/.bin');
+const require = createRequire(import.meta.url);
+const p5AnalysisPackagePath = require.resolve('p5-analysis/package.json');
+const p5AnalysisPackage = JSON.parse(
+  fs.readFileSync(p5AnalysisPackagePath, 'utf-8')
+);
+const p5AnalysisBin = p5AnalysisPackage.bin as Record<string, string>;
+
+function p5AnalysisExecutable(name: string): string {
+  return path.join(path.dirname(p5AnalysisPackagePath), p5AnalysisBin[name]);
+}
 
 const pkg = JSON.parse(
   fs.readFileSync(path.join(PROJECT_HOME, 'package.json'), 'utf-8')
@@ -116,6 +126,7 @@ program
   .option('--frame-count <NUMBER>', 'the number of frames saved', '1')
   .option('--pixel-density <NUMBER>', 'e.g. 2, 0.5, or 1/2')
   .option('--skip-frames <COUNT>', 'omit the first COUNT frames')
+  .option('--timeout <SECONDS>', 'maximum time to wait for screenshots', '30')
   .action(screenshot);
 
 program
@@ -208,7 +219,7 @@ cacheCommand
  */
 
 program.command('analyze', 'Display information about a sketch', {
-  executableFile: `${P5_ANALYSIS_BIN}/p5-analyze`,
+  executableFile: p5AnalysisExecutable('p5-analyze'),
 });
 
 for (const command of ['library', 'libraries']) {
@@ -216,7 +227,7 @@ for (const command of ['library', 'libraries']) {
     command,
     'Print information about p5.js libraries known to p5-server',
     {
-      executableFile: `${P5_ANALYSIS_BIN}/p5-libraries`,
+      executableFile: p5AnalysisExecutable('p5-libraries'),
     }
   );
 }
@@ -225,7 +236,7 @@ program.command(
   'tree',
   'Print the tree structure of a directory and its sketches',
   {
-    executableFile: `${P5_ANALYSIS_BIN}/p5-tree`,
+    executableFile: p5AnalysisExecutable('p5-tree'),
   }
 );
 

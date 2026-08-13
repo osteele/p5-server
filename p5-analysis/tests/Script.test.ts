@@ -41,6 +41,22 @@ test('Script parses ECMAScript modules', () => {
   expect(script.refs).toEqual(new Set(['createCanvas']));
 });
 
+test('Script.getAssociatedFiles excludes remote URLs and strips URL suffixes', () => {
+  const script = Script.fromSource(`
+    loadImage("https://example.com/remote.png");
+    loadJSON("//example.com/data.json");
+    loadImage("local image.png?v=2#preview");
+  `);
+
+  expect(script.getAssociatedFiles()).toEqual(['local image.png']);
+});
+
+test('Script.findMatchingComments is stable for global regular expressions', () => {
+  const script = Script.fromSource('// foo\n// foo\n');
+
+  expect(script.findMatchingComments(/foo/g)).toEqual(['foo', 'foo']);
+});
+
 describe('Script..defs', () => {
   test('finds function definitions', () => {
     expect(Script.fromSource('function f() {}').defs).toEqual(

@@ -15,7 +15,10 @@ import type {
   UnhandledRejectionMessage,
   WindowMessage,
 } from '../consoleRelayTypes.js';
-import { browserScriptRelayPath } from '../consoleRelayTypes.js';
+import {
+  browserScriptRelayPath,
+  maxBrowserRelayMessageLength,
+} from '../consoleRelayTypes.js';
 import { addScriptsToHtmlHead, type HtmlHeadScript } from '../helpers.js';
 import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
 import { staticAssetPrefix } from './constants.js';
@@ -38,15 +41,24 @@ export interface BrowserScriptRelay {
 type WithClientKeys<T> = Omit<T, 'timestamp'> & BrowserEventCommon;
 
 const { parse: parseCyclicJson } = jsonCycleStringifier();
+export type BrowserScriptRelayServer = {
+  sockets: Set<net.Socket>;
+  webSocketServer: WebSocketServer;
+};
 
 export function attachBrowserScriptRelay(
   server: http.Server,
   relay: BrowserScriptRelay
-): void {
+): BrowserScriptRelayServer {
   const handlers = new Map<string, (event: WithClientKeys<Message>) => void>();
-  const wsServer = new WebSocketServer({ noServer: true });
+  const sockets = new Set<net.Socket>();
+  const wsServer = new WebSocketServer({
+    maxPayload: maxBrowserRelayMessageLength,
+    noServer: true,
+  });
 
   wsServer.on('connection', (socket) => {
+    socket.on('error', () => socket.close());
     socket.on('message', (message) => {
       const parsed = parseBrowserRelayMessage(message.toString());
       if (!parsed) {
@@ -72,6 +84,13 @@ export function attachBrowserScriptRelay(
       socket.destroy();
       return;
     }
+    if (!isAllowedOrigin(request)) {
+      socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    sockets.add(socket);
+    socket.once('close', () => sockets.delete(socket));
     wsServer.handleUpgrade(request, socket, head, (socket) => {
       wsServer.emit('connection', socket, request);
     });
@@ -149,6 +168,31 @@ export function attachBrowserScriptRelay(
     }
     return relay.urlPathToFilePath(new URL(url).pathname);
   }
+
+  return { sockets, webSocketServer: wsServer };
+}
+
+export async function closeBrowserScriptRelay(
+  relayServer: BrowserScriptRelayServer
+): Promise<void> {
+  const { sockets, webSocketServer } = relayServer;
+  const closed = new Promise<void>((resolve, reject) => {
+    webSocketServer.close((error) => (error ? reject(error) : resolve()));
+  });
+  for (const client of webSocketServer.clients) client.terminate();
+  for (const socket of sockets) socket.destroy();
+  await closed;
+}
+
+function isAllowedOrigin(request: http.IncomingMessage): boolean {
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === request.headers.host;
+  } catch (error) {
+    if (error instanceof TypeError) return false;
+    throw error;
+  }
 }
 
 type BrowserRelayRoute =
@@ -161,11 +205,13 @@ type BrowserRelayRoute =
 export function parseBrowserRelayMessage(
   serialized: string
 ): [BrowserRelayRoute, Message] | null {
+  if (serialized.length > maxBrowserRelayMessageLength) return null;
   let value: unknown;
   try {
     value = parseCyclicJson(serialized);
   } catch (error) {
-    if (error instanceof SyntaxError) return null;
+    if (error instanceof SyntaxError || error instanceof RangeError)
+      return null;
     throw error;
   }
   if (!Array.isArray(value) || value.length !== 2) return null;

@@ -13,11 +13,13 @@ export function promiseListen(
   app: express.Application | http.Server,
   port?: number,
   host?: string,
-  timeout: number = 1000
+  timeout: number = 1000,
+  connections?: Set<net.Socket>
 ): Promise<http.Server> {
   return new Promise<http.Server>((resolve, reject) => {
     const listenPort = port ?? 0;
     const server = host ? app.listen(listenPort, host) : app.listen(listenPort);
+    server.on('connection', trackConnection);
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
       const address = server.address();
@@ -25,7 +27,19 @@ export function promiseListen(
       if (address) {
         resolve(server);
       } else {
-        reject(new Error('Failed to start server'));
+        const timeoutError = new Error('Failed to start server');
+        server.close((closeError) => {
+          reject(
+            closeError &&
+              (closeError as NodeJS.ErrnoException).code !==
+                'ERR_SERVER_NOT_RUNNING'
+              ? new AggregateError(
+                  [timeoutError, closeError],
+                  'Failed to start or close server'
+                )
+              : timeoutError
+          );
+        });
       }
     }, timeout);
     const intervalTimer = setInterval(() => {
@@ -45,6 +59,10 @@ export function promiseListen(
       clearTimeout(timeoutTimer);
       clearInterval(intervalTimer);
     }
+    function trackConnection(socket: net.Socket) {
+      connections?.add(socket);
+      socket.once('close', () => connections?.delete(socket));
+    }
   });
 }
 
@@ -61,14 +79,13 @@ export function promiseClose(
   timeout: number = 10000
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    // server.close((err?: Error) => (err ? reject(err) : resolve()));
-    server.close();
     server.on('close', onClose);
     server.on('error', onError);
     const timeoutTimer = setTimeout(() => {
       removeListeners();
       onError(new Error('Failed to close server within the timeout period'));
     }, timeout);
+    server.close();
 
     function onClose() {
       removeListeners();

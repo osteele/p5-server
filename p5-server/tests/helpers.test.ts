@@ -3,8 +3,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { parse } from 'node-html-parser';
 import {
+  assertPortableRelativePath,
   pathComponentsForBreadcrumbs,
   pathIsInDirectory,
+  portablePathKey,
   resolvePathInDirectory,
   transformHtml,
 } from '../src/helpers';
@@ -16,6 +18,37 @@ test('pathIsInDirectory', () => {
   expect(pathIsInDirectory('/a/b', '/a/b/c')).toBe(false);
   expect(pathIsInDirectory('/a/b/c', '/a/b')).toBe(true);
   expect(pathIsInDirectory('/a/b', '/a/b')).toBe(true);
+});
+
+test('portablePathKey models case, Unicode, trailing-dot, device, and stream aliases', () => {
+  expect(portablePathKey('/tmp/Demo.html.')).toBe(
+    portablePathKey('/tmp/demo.html')
+  );
+  expect(portablePathKey('/tmp/\u00e9.html')).toBe(
+    portablePathKey('/tmp/e\u0301.html')
+  );
+  expect(portablePathKey('/tmp/CON.js')).toBe(portablePathKey('/tmp/con.txt'));
+  expect(portablePathKey('/tmp/asset')).toBe(
+    portablePathKey('/tmp/asset:metadata')
+  );
+});
+
+test('assertPortableRelativePath rejects Win32 device and stream paths', () => {
+  expect(() => assertPortableRelativePath('assets/CON.js')).toThrow(
+    /reserved device name/
+  );
+  expect(() => assertPortableRelativePath('assets/image.png:metadata')).toThrow(
+    /invalid filename character/
+  );
+  expect(() => assertPortableRelativePath('assets/image.png.')).toThrow(
+    /ends in a dot or space/
+  );
+  if (path.sep !== '\\') {
+    expect(() => assertPortableRelativePath('assets\\image.png')).toThrow(
+      /invalid filename character/
+    );
+  }
+  expect(() => assertPortableRelativePath('assets/image.png')).not.toThrow();
 });
 
 test('resolvePathInDirectory', () => {
@@ -33,6 +66,7 @@ test('resolvePathInDirectory', () => {
     );
     expect(resolvePathInDirectory('/../outside.js', dir)).toBeNull();
     expect(resolvePathInDirectory('/linked/outside.js', dir)).toBeNull();
+    expect(resolvePathInDirectory('/linked/missing.js', dir)).toBeNull();
   } finally {
     fs.rmSync(dir, { force: true, recursive: true });
     fs.rmSync(outsideDir, { force: true, recursive: true });
@@ -58,6 +92,11 @@ test('pathComponentsForBreadcrumbs', () => {
     { path: '/', name: 'Home' },
     { path: '/a', name: 'a' },
     { path: '/a/b', name: 'b' },
+  ]);
+  expect(pathComponentsForBreadcrumbs('/a#b/c?d')).toEqual([
+    { path: '/', name: 'Home' },
+    { path: '/a%23b', name: 'a#b' },
+    { path: '/a%23b/c%3Fd', name: 'c?d' },
   ]);
 });
 

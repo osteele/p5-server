@@ -55,6 +55,7 @@ export async function createDirectoryListing(
     ...options,
   };
   const { sketches, unassociatedFiles } = await Sketch.analyzeDirectory(dir, {
+    excludeSymbolicLinks: true,
     exclusions: defaultDirectoryExclusions,
   });
   sketches.sort((a, b) => a.name.localeCompare(b.name));
@@ -69,7 +70,7 @@ export async function createDirectoryListing(
     ? {
         name: readmeName,
         html: markdown(fs.readFileSync(path.join(dir, readmeName), 'utf-8')),
-        url: staticMode ? `${readmeName}.html` : readmeName,
+        url: url_for(staticMode ? `${readmeName}.html` : readmeName),
       }
     : null;
 
@@ -112,6 +113,7 @@ export async function createDirectoryListing(
     markdown,
     libraries_for,
     play_link,
+    url_for,
 
     // pug options
     cache: true,
@@ -119,7 +121,8 @@ export async function createDirectoryListing(
   });
 
   function directory_index(dir: string) {
-    return staticMode ? `${dir}/index.html` : `${dir}/`;
+    const encoded = url_for(dir);
+    return staticMode ? `${encoded}/index.html` : `${encoded}/`;
   }
 
   function markdown(md: string | null) {
@@ -127,7 +130,7 @@ export async function createDirectoryListing(
   }
 
   function path_to(filepath: string, sk: Sketch) {
-    return path.relative(dir, path.join(sk.dir, filepath));
+    return url_for(path.relative(dir, path.join(sk.dir, filepath)));
   }
 
   function path_to_src_view(file: string, sk: Sketch) {
@@ -153,5 +156,9 @@ export async function createDirectoryListing(
       p5Version,
       policy: libraryPolicy,
     }).libraries;
+  }
+
+  function url_for(filepath: string) {
+    return filepath.split(/[\\/]/).map(encodeURIComponent).join('/');
   }
 }

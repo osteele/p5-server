@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { LibraryIndex } from '../src';
 
 describe('LibraryIndex', () => {
@@ -89,5 +92,18 @@ describe('LibraryIndex', () => {
       { policy: { allow: ['p5.gui'], deny: ['p5.touchgui'] } }
     );
     expect(result.libraries.map(({ name }) => name)).toEqual(['p5.gui']);
+  });
+
+  test('parses the documented colon form of library directives', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p5-library-directive-'));
+    const script = path.join(dir, 'sketch.js');
+    try {
+      fs.writeFileSync(script, '// library: p5.sound\n');
+      const result = LibraryIndex.default.resolveScripts([script]);
+
+      expect(result.libraries.map(({ name }) => name)).toEqual(['p5.sound']);
+    } finally {
+      fs.rmSync(dir, { force: true, recursive: true });
+    }
   });
 });

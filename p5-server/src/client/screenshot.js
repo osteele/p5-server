@@ -7,6 +7,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ? settings.imageType.replace('jpg', 'jpeg')
     : 'png';
   let pending = 0;
+  let failed = false;
 
   function wrap(wrapped) {
     return function (...args) {
@@ -23,7 +24,9 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function capture() {
-    if (skipFrames-- < 0 && remainingFrames-- > 0) {
+    if (skipFrames > 0) {
+      skipFrames--;
+    } else if (remainingFrames-- > 0) {
       const headers = {
         'Content-Type': 'application/json',
       };
@@ -34,9 +37,22 @@ window.addEventListener('DOMContentLoaded', () => {
         method: 'post',
         headers,
         body,
-      }).then(() => {
-        if (--pending <= 0 && remainingFrames <= 0) window.close();
-      });
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              `Screenshot upload failed with HTTP ${response.status}`
+            );
+          }
+        })
+        .catch((error) => {
+          failed = true;
+          console.error(error);
+        })
+        .finally(() => {
+          pending--;
+          if (!failed && pending <= 0 && remainingFrames <= 0) window.close();
+        });
       if (remainingFrames <= 0) this.noLoop(); // since it may be a while before the fetch returns
     }
     frameNumber++;

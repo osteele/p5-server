@@ -29,6 +29,16 @@ changes.
 - Require `.html` or `.htm` to occur at the end of HTML filenames.
 - Detect nested sketches when deciding whether a directory contains exactly one
   sketch.
+- Require HTML sketches to reference both p5.js and a local sketch script, and
+  recognize script URLs with query strings, fragments, and protocol-relative
+  CDN paths.
+- Exclude remote `load*()` URLs from associated local files and normalize local
+  URL suffixes.
+- Parse the documented `library: NAME` directive without inventing a `:`
+  package, and reject unsafe npm package names.
+- Enforce the documented loose-file restriction for sketch directories.
+- Reject generated filenames that would alias or fail on common Windows and
+  macOS filesystems.
 
 ## [1.0.0] - 2026-08-12
 

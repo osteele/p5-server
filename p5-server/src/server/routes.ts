@@ -47,6 +47,7 @@ export function createRouter(config: RouterConfig): express.Router {
     } else if (config.screenshot) {
       const { sketches } = fs.statSync(file).isDirectory()
         ? await Sketch.analyzeDirectory(file, {
+            excludeSymbolicLinks: true,
             exclusions: defaultDirectoryExclusions,
           })
         : { sketches: [] };
@@ -66,13 +67,21 @@ export function createRouter(config: RouterConfig): express.Router {
     '/__p5_server/screenshot',
     express.json({ limit: '50mb' }),
     async (req, res) => {
-      const { dataURL } = req.body;
-      const m = dataURL.match(/^data:image\/(.+?);base64,(.*)$/);
-      if (!m || !config.screenshot?.onFrameData) return res.sendStatus(200);
+      const dataURL = req.body?.dataURL;
+      if (typeof dataURL !== 'string') return res.sendStatus(400);
+      const frameNumber = req.body?.frameNumber;
+      if (!Number.isInteger(frameNumber) || frameNumber < 0) {
+        return res.sendStatus(400);
+      }
+      if (!config.screenshot?.onFrameData) return res.sendStatus(200);
+      const frame = decodeScreenshotDataUrl(
+        dataURL,
+        config.screenshot.imageType ?? 'png'
+      );
+      if (!frame) return res.sendStatus(400);
       await config.screenshot.onFrameData({
-        imageType: m[1],
-        data: Buffer.from(m[2], 'base64'),
-        frameNumber: req.body.frameNumber,
+        ...frame,
+        frameNumber,
       });
       res.sendStatus(200);
     }
@@ -115,6 +124,7 @@ export function createRouter(config: RouterConfig): express.Router {
       const { sketches } = await Sketch.analyzeDirectory(
         path.dirname(filepath),
         {
+          excludeSymbolicLinks: true,
           exclusions: defaultDirectoryExclusions,
         }
       );
@@ -192,6 +202,31 @@ export function createRouter(config: RouterConfig): express.Router {
 
   return router;
 
+  function decodeScreenshotDataUrl(
+    dataURL: string,
+    expectedImageType: 'jpeg' | 'png'
+  ): { data: Buffer; imageType: 'jpeg' | 'png' } | null {
+    const match = dataURL.match(
+      /^data:image\/(jpeg|png);base64,((?:[A-Za-z\d+/]{4})*(?:[A-Za-z\d+/]{2}==|[A-Za-z\d+/]{3}=)?)$/
+    );
+    if (!match || match[1] !== expectedImageType || !match[2]) return null;
+    const imageType = match[1] as 'jpeg' | 'png';
+    const data = Buffer.from(match[2], 'base64');
+    const hasExpectedSignature =
+      imageType === 'png'
+        ? data
+            .subarray(0, 8)
+            .equals(
+              Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+            )
+        : data.length >= 4 &&
+          data[0] === 0xff &&
+          data[1] === 0xd8 &&
+          data.at(-2) === 0xff &&
+          data.at(-1) === 0xd9;
+    return hasExpectedSignature ? { data, imageType } : null;
+  }
+
   function requestPathToFilePath(requestPath: string): string | null {
     try {
       return resolvePathInDirectory(
@@ -265,9 +300,11 @@ async function sendDirectoryListing<T extends Record<string, unknown>>(
     return;
   }
   // read the directory contents
-  const indexFile = (await readdir(dir)).find((file) =>
-    /^index\.html?$/i.test(file)
-  );
+  const indexFile = (await readdir(dir)).find((file) => {
+    if (!/^index\.html?$/i.test(file)) return false;
+    const resolved = resolvePathInDirectory(file, dir);
+    return resolved !== null && fs.statSync(resolved).isFile();
+  });
   let html = indexFile
     ? await readFile(path.join(dir, indexFile), 'utf-8')
     : await createDirectoryListing(dir, req.originalUrl, {

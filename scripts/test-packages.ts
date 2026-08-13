@@ -62,6 +62,15 @@ try {
         : [path.join(consumerDir, 'node_modules', '.bin', binName), '--help'];
     await run(command, consumerDir);
   }
+  for (const command of ['analyze', 'libraries', 'tree']) {
+    const p5Executable = path.join(
+      consumerDir,
+      'node_modules',
+      'p5-server',
+      'dist/bin/p5-server.js'
+    );
+    await run(['node', p5Executable, command, '--help'], consumerDir);
+  }
   console.log('Packed packages install and load successfully');
 } finally {
   await rm(tempDir, { force: true, recursive: true });

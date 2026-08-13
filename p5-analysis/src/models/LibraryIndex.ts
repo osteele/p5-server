@@ -195,7 +195,7 @@ export class LibraryIndex {
     const globals = setUnion(...scripts.map((script) => script.refs));
     removeSetElements(globals, defs);
     const p5 = setUnion(...scripts.map((script) => script.p5propRefs));
-    const libraryPattern = /^library:?\b\s*(.+)/;
+    const libraryPattern = /^library(?:\s*:\s*|\s+)(.+)/;
     const directives = scripts
       .flatMap((script) => script.findMatchingComments(libraryPattern))
       .flatMap((directive) =>

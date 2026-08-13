@@ -33,7 +33,8 @@
       },
       "packageName": {
         "description": "NPM package name",
-        "type": "string"
+        "type": "string",
+        "pattern": "^(?:@[a-zA-Z0-9][a-zA-Z0-9._~-]*/)?[a-zA-Z0-9][a-zA-Z0-9._~-]*$"
       },
       "defines": {
         "description": "Functions and property values",

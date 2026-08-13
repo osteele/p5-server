@@ -101,7 +101,7 @@ export default async function render(
     report.viewport = viewport;
     const deadline = Date.now() + timeoutMs;
 
-    const sketch = await resolveSketch(source);
+    const sketch = await withinDeadline(resolveSketch(source), deadline);
     report.mainFile = path.resolve(sketch.mainFilePath);
     report.files = sketch.files.map((file) => path.resolve(sketch.dir, file));
     report.libraries = sketch.libraries.map((library) =>
@@ -145,24 +145,28 @@ export default async function render(
     await page.waitForFunction(() => Boolean(window.__p5Agent), undefined, {
       timeout: remainingTime(deadline),
     });
-    const outcome = await Promise.race([
-      page
-        .evaluate(
-          async ({ frame, timeout }) => {
-            await window.__p5Agent.waitForReady(timeout);
-            return frame > 0
-              ? window.__p5Agent.waitForFrame(frame, timeout)
-              : window.__p5Agent.getStatus();
-          },
-          { frame: requestedFrame, timeout: remainingTime(deadline) }
-        )
-        .then((status) => ({ status: status as AgentStatus })),
-      runtimeFailure.then(() => ({ status: undefined })),
-    ]);
+    const outcome = await withinDeadline(
+      Promise.race([
+        page
+          .evaluate(
+            async ({ frame, timeout }) => {
+              await window.__p5Agent.waitForReady(timeout);
+              return frame > 0
+                ? window.__p5Agent.waitForFrame(frame, timeout)
+                : window.__p5Agent.getStatus();
+            },
+            { frame: requestedFrame, timeout: remainingTime(deadline) }
+          )
+          .then((status) => ({ status: status as AgentStatus })),
+        runtimeFailure.then(() => ({ status: undefined })),
+      ]),
+      deadline
+    );
     const status =
       outcome.status ??
-      ((await page.evaluate(() =>
-        window.__p5Agent.getStatus()
+      ((await withinDeadline(
+        page.evaluate(() => window.__p5Agent.getStatus()),
+        deadline
       )) as AgentStatus);
     report.actualFrame = status.frame;
     report.canvas = status.canvas ?? undefined;
@@ -170,7 +174,10 @@ export default async function render(
     const output = path.resolve(
       options.output ?? defaultOutputPath(sketch.mainFilePath)
     );
-    await mkdir(path.dirname(output), { recursive: true });
+    await withinDeadline(
+      mkdir(path.dirname(output), { recursive: true }),
+      deadline
+    );
     if (options.fullPage) {
       await page.screenshot({
         fullPage: true,
@@ -183,11 +190,17 @@ export default async function render(
         return report;
       }
       const imageType = imageTypeForPath(output);
-      const dataUrl = await page.evaluate(
-        (type) => window.__p5Agent.captureCanvas(type),
-        imageType
+      const dataUrl = await withinDeadline(
+        page.evaluate(
+          (type) => window.__p5Agent.captureCanvas(type),
+          imageType
+        ),
+        deadline
       );
-      await writeFile(output, Buffer.from(dataUrl.split(',')[1], 'base64'));
+      await withinDeadline(
+        writeFile(output, Buffer.from(dataUrl.split(',')[1], 'base64')),
+        deadline
+      );
     }
     report.output = output;
     report.success = report.errors.length === 0;
@@ -397,6 +410,27 @@ function remainingTime(deadline: number): number {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new Error('The render timed out');
   return remaining;
+}
+
+export async function withinDeadline<T>(
+  operation: Promise<T>,
+  deadline: number
+): Promise<T> {
+  const timeout = remainingTime(deadline);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('The render timed out')),
+          timeout
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 function formatLocation(

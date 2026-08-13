@@ -176,7 +176,11 @@ export class Script implements ScriptAnalysis {
     const comments =
       this.ast.comments
         ?.map((c) => c.value.trim())
-        .filter((s) => pattern.test(s)) || [];
+        .filter((s) => {
+          pattern.lastIndex = 0;
+          return pattern.test(s);
+        }) || [];
+    pattern.lastIndex = 0;
     if (cacheKey)
       commentDirectiveCache.set(cacheKey, [
         this.cacheDigest!,
@@ -197,7 +201,11 @@ export class Script implements ScriptAnalysis {
   }
 
   getAssociatedFiles(): string[] {
-    return [...this.loadCallArguments].map((s) => s.replace(/^\.\//, ''));
+    return [...this.loadCallArguments]
+      .filter((source) => !/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(source))
+      .map((source) =>
+        source.replace(/[?#].*$/, '').replace(/^(?:\.\/|[/\\]+)/, '')
+      );
   }
 
   static getAssociatedFiles(file: string): string[] {

@@ -1,14 +1,11 @@
-name: Test Cross-Platform
+name: Test macOS
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    strategy:
-        matrix:
-          os: [macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

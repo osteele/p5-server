@@ -107,9 +107,9 @@ html(lang='en')
           each file in files
             .item
               i.file.outline.icon
-              a.content(href=file)= file
+              a.content(href=url_for(file))= file
 
     if readme
       #readme.ui.segment
-        a#readme-title(href=readme.name)= readme.name
+        a#readme-title(href=url_for(readme.name))= readme.name
         != readme.html

@@ -27,7 +27,7 @@ export type FileWatchProvider = (
 export type LiveReloadServer = ReturnType<typeof livereload.createServer>;
 
 export const liveReloadTemplate = `
-  document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
+  document.write('<script src="http://' + (location.hostname || 'localhost') +
   ':$(port)/livereload.js?snipver=1"></' + 'script>')`;
 
 export function injectLiveReloadScript(
@@ -74,15 +74,20 @@ export async function createLiveReloadServer({
       port = port < lastPort ? port + 1 : 0;
     }
   }
-  if (watchDirs.length > 0) {
-    if (fileWatchProvider) {
-      const subscription = fileWatchProvider(watchDirs, (filePath) =>
-        lrServer.filterRefresh(filePath)
-      );
-      disposeSubscriptionOnClose(lrServer, subscription);
-    } else {
-      lrServer.watch(watchDirs);
+  try {
+    if (watchDirs.length > 0) {
+      if (fileWatchProvider) {
+        const subscription = fileWatchProvider(watchDirs, (filePath) =>
+          lrServer.filterRefresh(filePath)
+        );
+        disposeSubscriptionOnClose(lrServer, subscription);
+      } else {
+        lrServer.watch(watchDirs);
+      }
     }
+  } catch (error) {
+    lrServer.close();
+    throw error;
   }
   return lrServer;
 }
@@ -94,11 +99,27 @@ function disposeSubscriptionOnClose(
   const close = server.close.bind(server);
   let disposed = false;
   server.close = () => {
+    const errors: unknown[] = [];
     if (!disposed) {
       disposed = true;
-      subscription.dispose();
+      try {
+        subscription.dispose();
+      } catch (error) {
+        errors.push(error);
+      }
     }
-    close();
+    try {
+      close();
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) {
+      throw new AggregateError(
+        errors,
+        'Failed to dispose the file watcher and close LiveReload'
+      );
+    }
   };
 }
 

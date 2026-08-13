@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import nunjucks from 'nunjucks';
 import { Library } from '../index.js';
@@ -59,13 +59,15 @@ export function listLibraries({ json = false, verbose = false }) {
 }
 
 export async function updateDescriptions() {
+  const { executable, leadingArgs } = npmInvocation();
   const libs = Library.all.filter((lib) => lib.packageName);
   const packageDescriptions = await Promise.all(
     libs.map(
       (lib) =>
         new Promise((resolve, reject) =>
-          exec(
-            `npm view --json ${lib.packageName} description`,
+          execFile(
+            executable,
+            [...leadingArgs, 'view', '--json', lib.packageName!, 'description'],
             {
               encoding: 'utf-8',
             },
@@ -88,4 +90,20 @@ export async function updateDescriptions() {
       );
     }
   });
+}
+
+export function npmInvocation(
+  platform = process.platform,
+  executablePath = process.execPath,
+  npmExecPath = process.env.npm_execpath,
+  commandProcessor = process.env.ComSpec
+): { executable: string; leadingArgs: string[] } {
+  if (platform !== 'win32') return { executable: 'npm', leadingArgs: [] };
+  if (/npm-cli\.js$/i.test(npmExecPath ?? '') && npmExecPath) {
+    return { executable: executablePath, leadingArgs: [npmExecPath] };
+  }
+  return {
+    executable: commandProcessor || 'cmd.exe',
+    leadingArgs: ['/d', '/s', '/c', 'npm.cmd'],
+  };
 }

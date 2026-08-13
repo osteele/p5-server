@@ -205,7 +205,7 @@ export class Library implements Library.Properties {
         lib.defines?.p5?.some((name) => p5Properties.has(name))
     );
 
-    const libraryPattern = /^library:?\b\s*(.+)/;
+    const libraryPattern = /^library(?:\s*:\s*|\s+)(.+)/;
     const directives = scripts.flatMap((script) =>
       script.findMatchingComments(libraryPattern)
     );

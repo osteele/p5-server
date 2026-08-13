@@ -92,3 +92,75 @@ test('LiveReload can use a host-provided file watcher', async () => {
   liveReloadServer.close();
   expect(disposeCount).toBe(1);
 });
+
+test('LiveReload closes its listener when watcher disposal throws', async () => {
+  const liveReloadServer = await createLiveReloadServer({
+    fileWatchProvider: () => ({
+      dispose: () => {
+        throw new Error('watcher disposal failed');
+      },
+    }),
+    host: '127.0.0.1',
+    port: 0,
+    scanPorts: false,
+    watchDirs: ['/workspace'],
+  });
+  const address = liveReloadServer.server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Expected LiveReload to listen on an IP port');
+  }
+
+  expect(() => liveReloadServer.close()).toThrow('watcher disposal failed');
+
+  const rebound = net.createServer();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      rebound.once('error', reject);
+      rebound.listen(address.port, '127.0.0.1', resolve);
+    });
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      rebound.close((error) => (error ? reject(error) : resolve()))
+    );
+  }
+});
+
+test('LiveReload closes its listener when a file-watch provider throws', async () => {
+  const portProbe = net.createServer();
+  await new Promise<void>((resolve, reject) => {
+    portProbe.once('error', reject);
+    portProbe.listen(0, '127.0.0.1', resolve);
+  });
+  const address = portProbe.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Expected the probe to listen on an IP port');
+  }
+  const port = address.port;
+  await new Promise<void>((resolve, reject) =>
+    portProbe.close((error) => (error ? reject(error) : resolve()))
+  );
+
+  await expect(
+    createLiveReloadServer({
+      fileWatchProvider: () => {
+        throw new Error('watcher failed');
+      },
+      host: '127.0.0.1',
+      port,
+      scanPorts: false,
+      watchDirs: ['/workspace'],
+    })
+  ).rejects.toThrow('watcher failed');
+
+  const rebound = net.createServer();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      rebound.once('error', reject);
+      rebound.listen(port, '127.0.0.1', resolve);
+    });
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      rebound.close((error) => (error ? reject(error) : resolve()))
+    );
+  }
+});

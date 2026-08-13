@@ -1,5 +1,8 @@
 import path from 'node:path';
-import { replaceUrlsInStack } from '../src/server/browserScriptEventRelay';
+import {
+  parseBrowserRelayMessage,
+  replaceUrlsInStack,
+} from '../src/server/browserScriptEventRelay';
 import { Server } from '../src/server/Server';
 
 describe('Server', () => {
@@ -152,6 +155,39 @@ describe('Server', () => {
 });
 
 describe('script event relay', () => {
+  test('rejects malformed and incorrectly shaped messages', () => {
+    expect(parseBrowserRelayMessage('{')).toBeNull();
+    expect(parseBrowserRelayMessage('{}')).toBeNull();
+    expect(parseBrowserRelayMessage('["console", null]')).toBeNull();
+    expect(
+      parseBrowserRelayMessage(
+        JSON.stringify([
+          'console',
+          {
+            clientId: 'client',
+            url: 'http://localhost/sketch.js',
+            timestamp: Date.now(),
+            method: 'log',
+            args: 'not an array',
+          },
+        ])
+      )
+    ).toBeNull();
+  });
+
+  test('accepts a valid message', () => {
+    const data = {
+      clientId: 'client',
+      url: 'http://localhost/sketch.js',
+      timestamp: Date.now(),
+      method: 'log',
+      args: ['hello'],
+    };
+    expect(parseBrowserRelayMessage(JSON.stringify(['console', data]))).toEqual(
+      ['console', data]
+    );
+  });
+
   test('replaceUrlsInStack', () => {
     const relay = {
       emitScriptEvent() {

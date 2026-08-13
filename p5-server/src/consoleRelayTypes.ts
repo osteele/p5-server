@@ -1,6 +1,8 @@
 /** Types of the messages that the client-side console relay sends on the web
  * socket to the server. */
 
+export const browserScriptRelayPath = '/__p5_server/events';
+
 // TODO: merge these with the types in eventTypes.ts
 
 export type ConsoleMethodName =
@@ -56,6 +58,6 @@ export type MessageCore =
 export type Message = MessageCore & {
   clientId: string;
   stack?: string;
-  timestamp: string;
+  timestamp: number | string;
   url: string;
 };

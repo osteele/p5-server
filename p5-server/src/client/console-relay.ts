@@ -8,6 +8,7 @@ import type {
   UnhandledRejectionMessage,
   WindowMessage,
 } from '../consoleRelayTypes.js';
+import { browserScriptRelayPath } from '../consoleRelayTypes.js';
 import { jsonCycleStringifier } from '../jsonCycleStringifier.js';
 
 const { stringify } = jsonCycleStringifier();
@@ -113,7 +114,9 @@ function undefinedValueReplacer(_key: unknown, value: any) {
     : value;
 }
 
-const ws = new WebSocket(`ws://${window.location.host}`);
+const relayUrl = new URL(browserScriptRelayPath, window.location.href);
+relayUrl.protocol = relayUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(relayUrl);
 const q: (string | ArrayBufferView | ArrayBuffer | Blob)[] = [];
 
 const clientId = Array.from(window.crypto.getRandomValues(new Uint32Array(2)))

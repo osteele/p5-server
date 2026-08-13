@@ -1,5 +1,5 @@
 export { Category } from './models/Category.js';
-export { Cdn } from './models/Cdn.js';
+export { Cdn, parseNpmSpecifier } from './models/Cdn.js';
 export {
   Library,
   type LibraryCompatibility,

@@ -23,13 +23,30 @@ export class Cdn {
   parseUrl(
     url: string
   ): { packageName: string; version: string | undefined } | null {
-    const nameWithVersion = this.matcher.exec(url)?.[1];
-    if (!nameWithVersion) return null;
-    const [packageName, version] = nameWithVersion.split('@');
-    return { packageName, version };
+    const specifier = this.matcher.exec(url)?.[1];
+    return specifier ? parseNpmSpecifier(specifier) : null;
   }
 }
 
-Cdn.create({ matcher: /^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+)/ });
-Cdn.create({ matcher: /^https:\/\/cdn\.skypack\.dev\/([^/@]+)/ });
-Cdn.create({ matcher: /^https:\/\/unpkg\.com\/([^/@]+)/ });
+export function parseNpmSpecifier(
+  specifier: string
+): { packageName: string; version: string | undefined } | null {
+  const match =
+    /^(?<packageName>(?:@[^/@]+\/)?[^/@]+)(?:@(?<version>[^/]+))?$/.exec(
+      specifier
+    );
+  if (!match?.groups) return null;
+  return {
+    packageName: match.groups.packageName,
+    version: match.groups.version,
+  };
+}
+
+const npmSpecifier = '((?:@[^/]+/)?[^/]+)';
+Cdn.create({
+  matcher: new RegExp(`^https://cdn\\.jsdelivr\\.net/npm/${npmSpecifier}`),
+});
+Cdn.create({
+  matcher: new RegExp(`^https://cdn\\.skypack\\.dev/${npmSpecifier}`),
+});
+Cdn.create({ matcher: new RegExp(`^https://unpkg\\.com/${npmSpecifier}`) });

@@ -1,0 +1,329 @@
+{
+  "HY5": {
+    "set": {
+      "load": {
+        "kind": "github",
+        "repository": "ffd8/hy5",
+        "ref": "main",
+        "file": "hy5.js"
+      }
+    }
+  },
+  "ml5.js": {
+    "set": {
+      "defines": {
+        "globals": ["ml5"]
+      }
+    }
+  },
+  "número": {
+    "set": {
+      "defines": {
+        "globals": ["createTensor"]
+      }
+    }
+  },
+  "p5.asciify": {
+    "set": {
+      "defines": {
+        "globals": ["p5asciify"]
+      },
+      "compatibility": [
+        {
+          "p5Range": ">=1.8.0 <2.0.0",
+          "confidence": "reported"
+        },
+        {
+          "p5Range": ">=2.0.2 <3.0.0",
+          "confidence": "reported"
+        }
+      ],
+      "lifecycle": "archived",
+      "replacedBy": "textmode.js"
+    }
+  },
+  "p5.ble": {
+    "set": {
+      "defines": {
+        "globals": ["p5ble"]
+      }
+    }
+  },
+  "p5.brush": {
+    "set": {
+      "defines": {
+        "globals": ["brush"]
+      }
+    }
+  },
+  "p5.capture": {
+    "set": {
+      "defines": {
+        "globals": ["P5Capture"]
+      },
+      "load": {
+        "kind": "npm",
+        "packageName": "p5.capture",
+        "file": "dist/p5.capture.umd.js"
+      }
+    }
+  },
+  "p5.cmyk": {
+    "set": {
+      "defines": {
+        "globals": ["Cmyk"]
+      },
+      "load": {
+        "kind": "repository",
+        "file": "addons/p5.cmyk.js"
+      }
+    }
+  },
+  "p5.collide2d": {
+    "set": {
+      "defines": {
+        "globals": [
+          "collideDebug",
+          "collidePointPoint",
+          "collidePointCircle",
+          "collidePointEllipse",
+          "collidePointRect",
+          "collidePointLine",
+          "collidePointArc",
+          "collideRectRect",
+          "collideCircleCircle",
+          "collideRectCircle",
+          "collideLineLine",
+          "collideLineCircle",
+          "collideLineRect",
+          "collidePointPoly",
+          "collideCirclePoly",
+          "collideRectPoly",
+          "collideLinePoly",
+          "collidePolyPoly",
+          "collidePointTriangle"
+        ]
+      }
+    }
+  },
+  "p5.createLoop": {
+    "set": {
+      "defines": {
+        "globals": ["createLoop"]
+      },
+      "load": {
+        "kind": "npm",
+        "packageName": "p5.createloop",
+        "version": "0.2.8",
+        "file": "dist/p5.createloop.js",
+        "provider": "unpkg"
+      }
+    }
+  },
+  "p5.geolocation": {
+    "set": {
+      "defines": {
+        "globals": [
+          "geoCheck",
+          "getCurrentPosition",
+          "watchPosition",
+          "clearWatch",
+          "intervalCurrentPosition",
+          "clearIntervalPos",
+          "calcGeoDistance",
+          "geoFenceCircle",
+          "geoFencePolygon"
+        ]
+      },
+      "load": {
+        "kind": "github",
+        "repository": "bmoren/p5.geolocation",
+        "ref": "master",
+        "file": "p5.geolocation.js"
+      }
+    }
+  },
+  "p5.grain": {
+    "set": {
+      "defines": {
+        "globals": ["p5grain"]
+      },
+      "load": {
+        "kind": "npm",
+        "packageName": "p5.grain",
+        "file": "dist/p5.grain.min.js"
+      }
+    }
+  },
+  "p5.party": {
+    "set": {
+      "defines": {
+        "globals": ["partyConnect", "partyLoadShared"]
+      }
+    }
+  },
+  "p5.pattern": {
+    "set": {
+      "defines": {
+        "globals": [
+          "arcPattern",
+          "circlePattern",
+          "ellipsePattern",
+          "quadPattern",
+          "randPattern",
+          "rectPattern",
+          "squarePattern",
+          "trianglePattern",
+          "patternAngle",
+          "patternColors",
+          "beginContourPattern",
+          "beginShapePattern",
+          "endShapePattern"
+        ]
+      },
+      "load": {
+        "kind": "repository",
+        "file": "p5.pattern.js"
+      }
+    }
+  },
+  "p5.plotSvg": {
+    "set": {
+      "defines": {
+        "globals": ["beginRecordSvg", "endRecordSvg", "p5plotSvg"]
+      },
+      "compatibility": [
+        {
+          "p5Range": ">=1.4.2 <2.0.0",
+          "confidence": "reported"
+        },
+        {
+          "p5Range": ">=2.3.0 <3.0.0",
+          "confidence": "reported"
+        }
+      ]
+    }
+  },
+  "p5.Riso": {
+    "set": {
+      "defines": {
+        "globals": ["drawRiso"]
+      },
+      "load": {
+        "kind": "repository",
+        "file": "lib/p5.riso.js"
+      }
+    }
+  },
+  "p5.SceneManager": {
+    "set": {
+      "defines": {
+        "globals": ["SceneManager"]
+      }
+    }
+  },
+  "p5.speech": {
+    "set": {
+      "defines": {
+        "p5": ["Speech", "SpeechRec"]
+      },
+      "load": {
+        "kind": "repository",
+        "file": "lib/p5.speech.js"
+      }
+    }
+  },
+  "p5.touchgui": {
+    "set": {
+      "defines": {
+        "globals": ["createGui"]
+      },
+      "load": {
+        "kind": "url",
+        "url": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js"
+      }
+    }
+  },
+  "p5.tree": {
+    "set": {
+      "compatibility": [
+        {
+          "p5Range": "<2.0.0",
+          "confidence": "incompatible"
+        },
+        {
+          "p5Range": ">=2.0.0 <3.0.0",
+          "confidence": "reported"
+        }
+      ]
+    }
+  },
+  "p5.tween": {
+    "set": {
+      "defines": {
+        "p5": ["tween"]
+      }
+    }
+  },
+  "p5.Utils": {
+    "set": {
+      "defines": {
+        "p5": ["Utils"]
+      }
+    }
+  },
+  "p5.webserial": {
+    "set": {
+      "defines": {
+        "globals": ["createSerial"]
+      }
+    }
+  },
+  "p5.woff2": {
+    "set": {
+      "compatibility": [
+        {
+          "p5Range": "<2.0.0",
+          "confidence": "incompatible"
+        },
+        {
+          "p5Range": ">=2.0.0 <3.0.0",
+          "confidence": "reported"
+        }
+      ]
+    }
+  },
+  "p5.xr": {
+    "set": {
+      "defines": {
+        "globals": ["createVRCanvas"]
+      }
+    }
+  },
+  "p5play": {
+    "set": {
+      "defines": {
+        "globals": ["createSprite", "loadAnimation"]
+      },
+      "lifecycle": "maintenance",
+      "replacedBy": "q5play"
+    }
+  },
+  "rita.js": {
+    "set": {
+      "defines": {
+        "globals": ["RiTa"]
+      }
+    }
+  },
+  "XYscope.js": {
+    "set": {
+      "load": {
+        "kind": "github",
+        "repository": "ffd8/xyscopejs",
+        "ref": "main",
+        "file": "xyscope.js"
+      }
+    }
+  }
+}

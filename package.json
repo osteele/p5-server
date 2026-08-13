@@ -12,7 +12,8 @@
     "gh-pages:build": "rimraf 'gh-pages/*' && bun run build:docs && cp -r p5-analysis/build/docs gh-pages/p5-analysis && cp -r p5-server/build/docs gh-pages/p5-server",
     "gh-pages:publish": "cd gh-pages && git add -A && (git commit -m 'gh-pages:publish' || true) && git push origin +gh-pages",
     "gh-pages": "bun run gh-pages:build && bun run gh-pages:publish",
-    "check": "bun run build && bun run lint && bun run typecheck:workspaces && bun run test:workspaces && bun run test:packages:built",
+    "check": "bun run build && bun run lint && bun run typecheck:workspaces && bun run test:workspaces && bun run check:library-catalog && bun run test:packages:built",
+    "check:library-catalog": "bun test scripts/library-catalog.test.ts && bun run scripts/check-library-catalog.ts",
     "clean": "bun run --parallel --filter '*' clean",
     "clean:ws": "cd $INIT_CWD && rimraf build dist",
     "changeset": "changeset",
@@ -24,6 +25,7 @@
     "release": "bun run check && changeset publish",
     "test:workspaces": "bun run --parallel --filter '*' test",
     "update:library-catalog": "bun run scripts/update-library-catalog.ts",
+    "update:library-catalog:source": "bun run scripts/update-library-catalog.ts --refresh-source",
     "typecheck": "bun run build && bun run typecheck:workspaces",
     "typecheck:workspaces": "bun run --parallel --filter '*' typecheck",
     "version-packages": "changeset version && bun install --lockfile-only"

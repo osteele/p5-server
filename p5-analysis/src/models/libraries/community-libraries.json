@@ -3,28 +3,24 @@
     "name": "AnimatorJs",
     "description": "A javascript animation viewer based on a custom animation API primarily designed for p5.js and allows for dynamic, lightweight, real-time rendered browser animations controlled purely by code.",
     "homepage": "https://github.com/RandomGamingDev/AnimatorJs/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "BasicECSJs",
     "description": "A basic javascript ECS system, with SceneManagers, Scenes and GameObjects with their own Start and Update functions.",
     "homepage": "https://github.com/RandomGamingDev/BasicECSJs/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "BasicUnitTesterJs",
     "description": "BasicUnitTesterJs is a basic javascript unit tester designed to work on all JS platforms and be small and streamlined for the best developer experience.",
     "homepage": "https://github.com/RandomGamingDev/BasicUnitTesterJs/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "BMWalker.js",
     "description": "A simple JavaScript library for drawing the biological motion 'Walker'.",
     "homepage": "https://github.com/tetunori/BMWalker.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -34,7 +30,6 @@
     "repository": "https://github.com/ren-yuan/c2.js",
     "packageName": "c2.js",
     "importPath": "https://cdn.jsdelivr.net/npm/c2.js/dist/c2.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -42,7 +37,6 @@
     "description": "Create GUI controls directly on your canvas.",
     "homepage": "http://www.lagers.org.uk/canvasgui/index.html",
     "repository": "https://github.com/quarks/canvasGUI",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -50,21 +44,18 @@
     "description": "Calculate a Concave Hull from a set of points in 2D space",
     "homepage": "https://github.com/markroland/concaveHullJS",
     "packageName": "@markroland/concave-hull",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "DoubleLinkedListLibJs",
     "description": "A simple double linked list that stores the head, tail and length of the list",
     "homepage": "https://github.com/RandomGamingDev/DoubleLinkedListLibJs",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "every",
     "description": "every simplifies using time in p5.js sketch to do things like scene changes or repetitive drawing.",
     "homepage": "https://github.com/mngyuan/every",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -72,8 +63,7 @@
     "description": "hydra 🙏 p5.js ~ share visuals between both frameworks!",
     "homepage": "https://hy5live.teddavis.org",
     "repository": "https://github.com/ffd8/hy5",
-    "importPath": "https://cdn.jsdelivr.net/npm/undefined/ffd8/hy5@main/hy5.js",
-    "lastReviewed": "2026-08-12",
+    "importPath": "https://cdn.jsdelivr.net/gh/ffd8/hy5@main/hy5.js",
     "inference": "directive-only"
   },
   {
@@ -82,27 +72,24 @@
     "homepage": "https://lygia.xyz/",
     "repository": "https://github.com/patriciogonzalezvivo/lygia",
     "packageName": "resolve-lygia",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "MatrixJs",
     "description": "A basic javascript library for dynamic and powerful matrices based on lists wrapped around with a powerful class.",
     "homepage": "https://github.com/RandomGamingDev/MatrixJs",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "ml5.js",
     "description": "Friendly machine learning for the web—a neighborly approach to creating and exploring artificial intelligence in the browser.",
     "homepage": "https://ml5js.org/",
-    "packageName": "ml5",
-    "importPath": "https://cdn.jsdelivr.net/npm/ml5/dist/ml5.min.js",
+    "repository": "https://github.com/ml5js/ml5-library",
     "defines": {
       "globals": ["ml5"]
     },
-    "repository": "https://github.com/ml5js/ml5-library",
-    "lastReviewed": "2026-08-12",
+    "packageName": "ml5",
+    "importPath": "https://cdn.jsdelivr.net/npm/ml5/dist/ml5.min.js",
     "inference": "automatic"
   },
   {
@@ -113,28 +100,24 @@
     "defines": {
       "globals": ["createTensor"]
     },
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "OneWayLinkedListLibJs",
     "description": "A simple one way linked list that stores the head, tail and length of the list",
     "homepage": "https://github.com/RandomGamingDev/OneWayLinkedListLibJs/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.5",
     "description": "Add UI to p5.js and other goodies",
     "homepage": "https://github.com/eltapir/p5.5",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.anaglyph",
     "description": "A library for creating 3D stereoscopic 3D scenes and images using red/cyan glasses",
     "homepage": "https://github.com/jdeboi/p5.anaglyph",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -143,19 +126,15 @@
     "homepage": "https://wixette.github.io/p5.animS",
     "repository": "https://github.com/wixette/p5.animS",
     "packageName": "p5.anims",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.asciify",
     "description": "Apply real-time ASCII conversion to your favorite WEBGL p5.js sketches instantly.",
     "homepage": "https://p5.textmode.art",
-    "packageName": "p5.asciify",
     "defines": {
       "globals": ["p5asciify"]
     },
-    "lastReviewed": "2026-08-12",
-    "lifecycle": "archived",
     "compatibility": [
       {
         "p5Range": ">=1.8.0 <2.0.0",
@@ -166,7 +145,9 @@
         "confidence": "reported"
       }
     ],
+    "lifecycle": "archived",
     "replacedBy": "textmode.js",
+    "packageName": "p5.asciify",
     "inference": "automatic"
   },
   {
@@ -174,59 +155,54 @@
     "description": "p5.bezier helps draw Bézier curves with more than four control points and closed curves.",
     "homepage": "https://github.com/peilingjiang/p5.bezier",
     "packageName": "p5bezier",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.ble",
     "description": "A Javascript library that enables communication between your BLE devices and your p5.js sketch.",
     "homepage": "https://itpnyu.github.io/p5ble-website/",
+    "repository": "https://github.com/ITPNYU/p5.ble.js",
     "defines": {
       "globals": ["p5ble"]
     },
-    "repository": "https://github.com/ITPNYU/p5.ble.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.brush",
     "description": "Unlock custom brushes, natural fill effects and intuitive hatching in p5.js.",
     "homepage": "https://github.com/acamposuribe/p5.brush",
-    "packageName": "p5.brush",
     "defines": {
       "globals": ["brush"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.brush",
     "inference": "automatic"
   },
   {
     "name": "p5.capture",
     "description": "Record your p5.js sketches effortlessly!",
     "homepage": "https://github.com/tapioca24/p5.capture",
-    "packageName": "p5.capture",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.capture/dist/p5.capture.umd.js",
     "defines": {
       "globals": ["P5Capture"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.capture",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.capture/dist/p5.capture.umd.js",
     "inference": "automatic"
   },
   {
     "name": "p5.cmyk",
     "description": "CMYK color for p5.js",
     "homepage": "https://github.com/jtnimoy/p5.cmyk.js",
-    "importPath": "/addons/p5.cmyk.js",
     "defines": {
       "globals": ["Cmyk"]
     },
-    "lastReviewed": "2026-08-12",
+    "importPath": "/addons/p5.cmyk.js",
     "inference": "automatic"
   },
   {
     "name": "p5.collide2d",
     "description": "p5.collide2D provides tools for calculating collision detection for 2D geometry with p5.js.",
     "homepage": "https://editor.p5js.org/p52dcollide/collections/taUUdSGhj",
-    "packageName": "p5.collide2d",
+    "repository": "https://github.com/bmoren/p5.collide2D",
     "defines": {
       "globals": [
         "collideDebug",
@@ -250,8 +226,7 @@
         "collidePointTriangle"
       ]
     },
-    "repository": "https://github.com/bmoren/p5.collide2D",
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.collide2d",
     "inference": "automatic"
   },
   {
@@ -259,7 +234,6 @@
     "description": "p5.colorGenerator generates harmonious color schemes by starting from a given base color or selecting a random color as a starting point.",
     "homepage": "https://alexandru-postolache.github.io/p5.colorGenerator/demo",
     "repository": "https://github.com/alexandru-postolache/p5.colorGenerator",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -268,20 +242,18 @@
     "homepage": "https://github.com/gohai/p5.comfyui-helper",
     "packageName": "@gohai/p5.comfyui-helper",
     "importPath": "https://cdn.jsdelivr.net/npm/@gohai/p5.comfyui-helper/libraries/p5.comfyui-helper.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.createLoop",
     "description": "Create animation loops with noise and GIF exports in one line of code.",
     "homepage": "https://www.npmjs.com/package/p5.createloop",
-    "packageName": "p5.createloop",
-    "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
+    "repository": "https://github.com/mrchantey/p5.createLoop",
     "defines": {
       "globals": ["createLoop"]
     },
-    "repository": "https://github.com/mrchantey/p5.createLoop",
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.createloop",
+    "importPath": "https://unpkg.com/p5.createloop@0.2.8/dist/p5.createloop.js",
     "inference": "automatic"
   },
   {
@@ -289,7 +261,6 @@
     "description": "A library for constructive solid geometry. Do Boolean operations on your p5.Geometry to make new shapes!",
     "homepage": "https://github.com/davepagurek/p5.csg",
     "packageName": "@davepagurek/p5.csg",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -298,7 +269,6 @@
     "homepage": "https://machineagency.github.io/p5.fab-docs/",
     "repository": "https://github.com/machineagency/p5.fab",
     "packageName": "p5-fab",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -307,7 +277,6 @@
     "homepage": "https://www.npmjs.com/package/p5.fillgradient",
     "repository": "https://github.com/alterebro/p5.fillGradient",
     "packageName": "p5.fillgradient",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -316,7 +285,6 @@
     "homepage": "https://github.com/davepagurek/p5.filterRenderer",
     "packageName": "@davepagurek/p5.filterrenderer",
     "importPath": "https://cdn.jsdelivr.net/npm/@davepagurek/p5.filterrenderer/p5.filterRenderer.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -324,7 +292,6 @@
     "description": "Real-time image processing library - add filters and post-processing to your p5.js sketches.",
     "homepage": "https://prontopablo.github.io/p5.FIP/",
     "repository": "https://github.com/prontopablo/p5.FIP",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -333,14 +300,12 @@
     "homepage": "https://github.com/ZRNOF/p5.flex",
     "packageName": "p5.flex",
     "importPath": "https://cdn.jsdelivr.net/npm/p5.flex/src/p5.flex.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.fps",
     "description": "Add a simple FPS counter to your sketches.",
     "homepage": "https://github.com/taylorvance/p5.fps",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -361,7 +326,6 @@
       ]
     },
     "importPath": "https://cdn.jsdelivr.net/gh/bmoren/p5.geolocation@master/p5.geolocation.js",
-    "lastReviewed": "2026-08-12",
     "inference": "automatic"
   },
   {
@@ -370,19 +334,17 @@
     "homepage": "https://p5.glitch.me",
     "repository": "https://github.com/ffd8/p5.glitch",
     "packageName": "p5.glitch",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.grain",
     "description": "Conveniently add film grain, seamless texture overlays, and manipulate pixels to achieve nostalgic and artistic effects in p5.js sketches and artworks.",
     "homepage": "https://github.com/meezwhite/p5.grain",
-    "packageName": "p5.grain",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.grain/dist/p5.grain.min.js",
     "defines": {
       "globals": ["p5grain"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.grain",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.grain/dist/p5.grain.min.js",
     "inference": "automatic"
   },
   {
@@ -390,7 +352,6 @@
     "description": "Connect and play with physical joysticks.",
     "homepage": "https://github.com/Vamoss/p5.joystick",
     "packageName": "p5.joystick",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -398,35 +359,30 @@
     "description": "A Visual Studio Code extension that quickly generates new p5.js 2.0 projects with a clean, minimal setup, including autocomplete, IntelliSense, and parameter hints for p5.js functions",
     "homepage": "https://marketplace.visualstudio.com/items?itemName=Irti.p5js-project-generator",
     "repository": "https://github.com/IrtizaNasar/p5-2.vscode",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.localessage",
     "description": "p5.localmessage provides a simple interface to send messages locally from one sketch to another.",
     "homepage": "https://github.com/bmoren/p5.localmessage",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.mapper",
     "description": "A projection mapping library for p5.js",
     "homepage": "https://github.com/jdeboi/p5.mapper",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.marching",
     "description": "Raster to vector conversion, isosurfaces.",
     "homepage": "https://github.com/jtnimoy/marching",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.Modbuttons",
     "description": "a simple and modular button system for p5js",
     "homepage": "https://github.com/yetyeeter1337/p5.Modbuttons",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -434,14 +390,12 @@
     "description": "A library for interfacing with the Korg nanoKONTROL2 MIDI controller.",
     "homepage": "https://github.com/SableRaf/p5js_nanoKontrol2",
     "packageName": "p5.nanokontrol2",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.nvim",
     "description": "Better editor support for p5.js sketchspaces in Neovim",
     "homepage": "https://github.com/prjctimg/p5.nvim",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -451,7 +405,6 @@
     "repository": "https://github.com/remistura/p5.palette",
     "packageName": "p5.palette",
     "importPath": "https://cdn.jsdelivr.net/npm/p5.palette/dist/p5.palette.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -459,19 +412,17 @@
     "description": "quickly prototype networked multiplayer games and apps",
     "homepage": "https://p5party.org",
     "repository": "https://github.com/jbakse/p5.party",
-    "packageName": "p5.party",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.party/dist/p5.party.js",
     "defines": {
       "globals": ["partyConnect", "partyLoadShared"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.party",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.party/dist/p5.party.js",
     "inference": "automatic"
   },
   {
     "name": "p5.pattern",
     "description": "A pattern drawing library for p5.js.",
     "homepage": "https://github.com/SYM380/p5.pattern",
-    "importPath": "/p5.pattern.js",
     "defines": {
       "globals": [
         "arcPattern",
@@ -489,19 +440,16 @@
         "endShapePattern"
       ]
     },
-    "lastReviewed": "2026-08-12",
+    "importPath": "/p5.pattern.js",
     "inference": "automatic"
   },
   {
     "name": "p5.plotSvg",
     "description": "Export plotter-friendly SVG files from p5.js sketches.",
     "homepage": "https://github.com/golanlevin/p5.plotSvg",
-    "packageName": "p5.plotsvg",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.plotsvg/dist/p5.plotSvg.js",
     "defines": {
       "globals": ["beginRecordSvg", "endRecordSvg", "p5plotSvg"]
     },
-    "lastReviewed": "2026-08-12",
     "compatibility": [
       {
         "p5Range": ">=1.4.2 <2.0.0",
@@ -512,6 +460,8 @@
         "confidence": "reported"
       }
     ],
+    "packageName": "p5.plotsvg",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.plotsvg/dist/p5.plotSvg.js",
     "inference": "automatic"
   },
   {
@@ -519,7 +469,6 @@
     "description": "p5.Polar provides mathematical abstractions making it easy to create create beautiful, kaleidoscopic, radial patterns.",
     "homepage": "https://github.com/liz-peng/p5.Polar",
     "packageName": "@liz-peng/p5.polar",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -527,7 +476,6 @@
     "description": "Extend p5 with Quality of Life utilities.",
     "homepage": "https://github.com/error-four-o-four/p5.qol.js",
     "packageName": "p5.qol",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -535,26 +483,23 @@
     "description": "A library for creating puzzle and board games, and for visual computing experiments.",
     "homepage": "https://objetos.github.io/p5.quadrille.js/",
     "repository": "https://github.com/objetos/p5.quadrille.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.Riso",
     "description": "p5.Riso is a library for generating files suitable for Risograph printing. It helps turn your sketches into multi-color prints.",
     "homepage": "https://antiboredom.github.io/p5.riso/",
-    "importPath": "/lib/p5.riso.js",
+    "repository": "https://github.com/antiboredom/p5.riso",
     "defines": {
       "globals": ["drawRiso"]
     },
-    "repository": "https://github.com/antiboredom/p5.riso",
-    "lastReviewed": "2026-08-12",
+    "importPath": "/lib/p5.riso.js",
     "inference": "automatic"
   },
   {
     "name": "p5.scaler",
     "description": "Smart scaling of p5.js sketches in a variety of ways (to fit the browser's inner dimensions, to fit the canvas DOM container, to a specific ratio, etc).",
     "homepage": "https://github.com/Morfologia-digital/p5.scaler",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -564,7 +509,6 @@
     "defines": {
       "globals": ["SceneManager"]
     },
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -572,40 +516,35 @@
     "description": "p5.serialserver is a p5.js library that enables communication between your p5.js sketch and a serial enabled device, for example, an Arduino microcontroller.",
     "homepage": "https://p5-serial.github.io/p5.serialserver/",
     "repository": "https://github.com/p5-serial/p5.serialserver",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.simpleAR",
     "description": "A simple JavaScript library that easily converts existing p5.js sketches to AR.",
     "homepage": "https://github.com/tetunori/p5.simpleAR",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.speech",
     "description": "p5.speech provides simple, clear access to the Web Speech and Speech Recognition APIs, allowing for the easy creation of sketches that can talk and listen.",
     "homepage": "https://idmnyu.github.io/p5.js-speech",
-    "importPath": "/lib/p5.speech.js",
+    "repository": "https://github.com/IDMNYU/p5.js-speech",
     "defines": {
       "p5": ["Speech", "SpeechRec"]
     },
-    "repository": "https://github.com/IDMNYU/p5.js-speech",
-    "lastReviewed": "2026-08-12",
+    "importPath": "/lib/p5.speech.js",
     "inference": "automatic"
   },
   {
     "name": "p5.Sprite",
     "description": "A basic sprite library that supports both animated and static sprites for p5.js",
     "homepage": "https://github.com/RandomGamingDev/p5.Sprite/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.teach.js",
     "description": "A beginner friendly math animation library for p5.js",
     "homepage": "https://github.com/two-ticks/p5.teach.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -613,18 +552,16 @@
     "description": "A JavaScript library for controlling toio™Core Cube from p5.js sketches.",
     "homepage": "https://tetunori.github.io/p5.toio/",
     "repository": "https://github.com/tetunori/p5.toio",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.touchgui",
     "description": "p5.touchgui is intended to extend p5.js and make it easy to add buttons, sliders, and other GUI (graphical user interface) objects to your p5.js sketches, enabling you to focus on quickly iterating ideas with easily created GUI objects that work with both mouse and multi-touch input.",
     "homepage": "https://github.com/L05/p5.touchgui",
-    "importPath": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
     "defines": {
       "globals": ["createGui"]
     },
-    "lastReviewed": "2026-08-12",
+    "importPath": "https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js",
     "inference": "automatic"
   },
   {
@@ -632,7 +569,6 @@
     "description": "In WebGL mode, you may have noticed that transparent images still occlude other objects as if they're opaque. This library provides helper functions you can surround each item with to make your items blend better.",
     "homepage": "https://github.com/davepagurek/p5.transparency",
     "packageName": "p5.transparency",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -640,9 +576,6 @@
     "description": "Render pipeline for p5.js v2 — pose and camera interpolation, space transforms, frustum visibility, HUD, post-processing pipe, picking, and declarative control panels.",
     "homepage": "https://nakednous.github.io/tags/p5.tree/",
     "repository": "https://github.com/VisualComputing/p5.tree",
-    "packageName": "p5.tree",
-    "importPath": "https://cdn.jsdelivr.net/npm/p5.tree/dist/p5.tree.min.js",
-    "lastReviewed": "2026-08-12",
     "compatibility": [
       {
         "p5Range": "<2.0.0",
@@ -653,17 +586,18 @@
         "confidence": "reported"
       }
     ],
+    "packageName": "p5.tree",
+    "importPath": "https://cdn.jsdelivr.net/npm/p5.tree/dist/p5.tree.min.js",
     "inference": "directive-only"
   },
   {
     "name": "p5.tween",
     "description": "With p5.tween you can create easily animations as tween in a few keyframes.",
     "homepage": "https://github.com/Milchreis/p5.tween",
-    "packageName": "p5.tween",
     "defines": {
       "p5": ["tween"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "p5.tween",
     "inference": "automatic"
   },
   {
@@ -674,14 +608,12 @@
     "defines": {
       "p5": ["Utils"]
     },
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.videorecorder",
     "description": "Record your canvas as a video file with audio.",
     "homepage": "https://github.com/calebfoss/p5.videorecorder",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -689,7 +621,6 @@
     "description": "Fast 3D domain warping using shaders.",
     "homepage": "https://github.com/davepagurek/p5.warp",
     "packageName": "@davepagurek/p5.warp",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -697,27 +628,23 @@
     "description": "A p5.js library featuring a curated collection of 34 wave types for animation, modulation, and generative art.",
     "homepage": "https://seb-prjcts-be.github.io/p5.waves/",
     "repository": "https://github.com/seb-prjcts-be/p5.waves",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5.webserial",
     "description": "A library for interacting with Serial devices from within the browser, based on Web Serial API (available on Chrome and Edge).",
     "homepage": "https://github.com/gohai/p5.webserial",
-    "packageName": "@gohai/p5.webserial",
-    "importPath": "https://cdn.jsdelivr.net/npm/@gohai/p5.webserial/libraries/p5.webserial.js",
     "defines": {
       "globals": ["createSerial"]
     },
-    "lastReviewed": "2026-08-12",
+    "packageName": "@gohai/p5.webserial",
+    "importPath": "https://cdn.jsdelivr.net/npm/@gohai/p5.webserial/libraries/p5.webserial.js",
     "inference": "automatic"
   },
   {
     "name": "p5.woff2",
     "description": "An addon to add support for WebGL rendering, textToPoints, and related text methods for woff2 fonts. Load a Google Fonts URL and you're good to go!",
     "homepage": "https://github.com/davepagurek/p5.woff2",
-    "packageName": "p5.woff2",
-    "lastReviewed": "2026-08-12",
     "compatibility": [
       {
         "p5Range": "<2.0.0",
@@ -728,74 +655,67 @@
         "confidence": "reported"
       }
     ],
+    "packageName": "p5.woff2",
     "inference": "directive-only"
   },
   {
     "name": "p5.xr",
     "description": "A library for creating VR and AR sketches with p5.",
     "homepage": "https://p5xr.org",
-    "packageName": "p5.xr",
+    "repository": "https://github.com/stalgiag/p5.xr",
     "defines": {
       "globals": ["createVRCanvas"]
     },
-    "repository": "https://github.com/stalgiag/p5.xr",
+    "packageName": "p5.xr",
     "importPath": "https://cdn.jsdelivr.net/npm/p5.xr/dist/p5xr.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "automatic"
   },
   {
     "name": "p5grid",
     "description": "Hexagonal Tiling Library",
     "homepage": "https://github.com/aahdee/p5grid",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5jsDebugCam",
     "description": "A basic keyboard only debug camera for p5.js",
     "homepage": "https://github.com/RandomGamingDev/p5jsDebugCam/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5mirror",
     "description": "A library to download your editor.p5js sketches into a git repo or locally",
     "homepage": "https://github.com/molab-itp/p5mirror",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5play",
     "description": "JS game engine that uses p5.js for graphics and Box2D for physics.",
     "homepage": "https://github.com/quinton-ashley/p5play",
-    "packageName": "p5play",
     "defines": {
       "globals": ["createSprite", "loadAnimation"]
     },
-    "lastReviewed": "2026-08-12",
     "lifecycle": "maintenance",
     "replacedBy": "q5play",
+    "packageName": "p5play",
     "inference": "automatic"
   },
   {
     "name": "p5snap",
     "description": "a command-line interface to create snapshots of sketches",
     "homepage": "https://github.com/zachkrall/p5snap",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "p5videoKit",
     "description": "A dashboard for mixing video in the browser",
     "homepage": "https://github.com/molab-itp/p5videoKit",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "Pixyp5js",
     "description": "A library for easily more easily dealing with pixels in images during runtime",
     "homepage": "https://github.com/RandomGamingDev/Pixyp5js/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -804,27 +724,24 @@
     "homepage": "https://github.com/VadimGouskov/pretty-grid",
     "packageName": "pretty-grid",
     "importPath": "https://cdn.jsdelivr.net/npm/pretty-grid/dist/pretty-grid.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "rita.js",
     "description": "AI-free tools for natural language and generative writing",
     "homepage": "https://rednoise.org/rita",
-    "packageName": "rita",
+    "repository": "https://github.com/dhowe/ritajs",
     "defines": {
       "globals": ["RiTa"]
     },
-    "repository": "https://github.com/dhowe/ritajs",
+    "packageName": "rita",
     "importPath": "https://cdn.jsdelivr.net/npm/rita/dist/rita.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "automatic"
   },
   {
     "name": "Serial Bridge",
     "description": "A desktop application that bridges serial devices (Arduino, microcontrollers) with P5.js, enabling multiple simultaneous connections and real-time data streaming through a simple JavaScript API.",
     "homepage": "https://github.com/IrtizaNasar/SerialBridge",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -832,7 +749,6 @@
     "description": "Explore shader programming through a JavaScript interface without the complexity of GLSL. Quickly script shaders using a P5.js style language.",
     "homepage": "https://shaderpark.com/",
     "repository": "https://github.com/shader-park/shader-park-core",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -840,21 +756,18 @@
     "description": "Helper functions and defaults for young and new coders.",
     "homepage": "https://github.com/makeyourownalgorithmicart/simple.js/wiki",
     "repository": "https://github.com/makeyourownalgorithmicart/simple.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "Tideon.js",
     "description": "Tideon.js is a lightweight, extensible JavaScript animation engine designed for creating smooth and expressive UI and canvas animations with minimal effort.",
     "homepage": "https://github.com/simonMat21/Tideon.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "Tilemapp5js",
     "description": "A simple to use & performant tilemap p5.js library",
     "homepage": "https://github.com/RandomGamingDev/Tilemapp5js/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -864,14 +777,12 @@
     "repository": "https://github.com/tmhglnd/total-serialism",
     "packageName": "total-serialism",
     "importPath": "https://cdn.jsdelivr.net/npm/total-serialism/build/ts.es5.min.js",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "TurtleGFX",
     "description": "TurtleGFX allows to code with Turtle Graphics in JavaScript. Great for education and creative coding.",
     "homepage": "https://github.com/CodeGuppyPrograms/TurtleGFX",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -879,7 +790,6 @@
     "description": "Watch images being drawn using turtle graphics.",
     "homepage": "http://www.lagers.org.uk/tg/index.html",
     "repository": "https://github.com/quarks/turtle-graphics",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -887,28 +797,24 @@
     "description": "Create a UI within your sketch, including utilities for different layouts and interactive sliders.",
     "homepage": "https://github.com/amitSah121/p5.js-libraries/tree/main/renderer",
     "repository": "https://github.com/amitSah121/p5.js-libraries",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "VecJs",
     "description": "A basic javascript library for dynamic vectors (e.g. vec2 & vec3) based on lists.",
     "homepage": "https://github.com/RandomGamingDev/VecJs",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "WebGL2FBO",
     "description": "A simple library for OOP encapsulation and abstraction of some of WebGL2 Framebuffers and the Renderbuffers they rely on",
     "homepage": "https://github.com/RandomGamingDev/WebGL2FBO",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
     "name": "WebGL2Tex",
     "description": "A simple library for OOP encapsulation and abstraction of some of the different WebGL2 textures while still giving full control over them.",
     "homepage": "https://github.com/RandomGamingDev/WebGL2Tex",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -916,7 +822,6 @@
     "description": "A user-friendly library to send and receive MIDI messages with ease.",
     "homepage": "https://github.com/djipco/webmidi",
     "packageName": "webmidi",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   },
   {
@@ -924,15 +829,13 @@
     "description": "p5.js library to render graphics on analog vector displays",
     "homepage": "https://teddavis.org/xyscopejs",
     "repository": "https://github.com/ffd8/xyscopejs",
-    "importPath": "https://cdn.jsdelivr.net/npm/undefined/ffd8/xyscopejs@main/xyscope.js",
-    "lastReviewed": "2026-08-12",
+    "importPath": "https://cdn.jsdelivr.net/gh/ffd8/xyscopejs@main/xyscope.js",
     "inference": "directive-only"
   },
   {
     "name": "Zoomp5js",
     "description": "A simple library for adding the zooming functionality to your p5.js project.",
     "homepage": "https://github.com/RandomGamingDev/Zoomp5js/",
-    "lastReviewed": "2026-08-12",
     "inference": "directive-only"
   }
 ]

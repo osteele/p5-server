@@ -1,6 +1,6 @@
 {
   "name": "p5-server",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
   "description": "p5.js development server with live reload, automatic library inclusion, and airplane mode, with CLI to create sketch files.",
   "keywords": [
@@ -74,7 +74,7 @@
     "node-html-parser": "^9.0.1",
     "nunjucks": "^3.2.3",
     "open": "^11.0.0",
-    "p5-analysis": "^1.0.0",
+    "p5-analysis": "^2.0.0",
     "playwright-core": "^1.62.1",
     "pug": "^3.0.4",
     "update-notifier": "^7.3.1",

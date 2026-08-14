@@ -1,9 +1,27 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [2.0.0] - 2026-08-13
+
+This release focuses on performance and quality: analysis is substantially
+faster, sketch and library detection is more accurate, and generated sketches
+move to the p5.js 2 lifecycle.
+
+### Added
+
+- Add readable sketch diagnostics, bounded headless rendering, and a p5-aware
+  browser API for coding agents and browser automation tools.
+- Add a policy-aware library index and resolver, refresh the official p5.js
+  library catalog, preserve older projects in a legacy collection, and let
+  p5-server configure and expose the effective catalog.
 
 ### Changed
 
+- Use p5.js 2.3 for generated and JavaScript-only sketches, load p5.sound from
+  its p5 2.x-compatible package, generate async asset-loading setup functions,
+  and adapt browser rendering and screenshots to the p5 2 lifecycle. This is
+  the breaking change that requires the 2.0 major version.
 - Make directory analysis linear in the number of files and sketches by
   collecting associated files once, reusing each sketch's parsed HTML and
   derived properties, and using directory entries instead of per-file stat

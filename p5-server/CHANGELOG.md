@@ -1,15 +1,34 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [2.0.0] - 2026-08-13
+
+This release focuses on performance and quality: HTML processing is much
+faster, filesystem and server operations are safer, cross-platform support is
+stronger, and generated sketches move to the p5.js 2 lifecycle.
+
+### Added
+
+- Add readable sketch diagnostics, bounded headless rendering, and a p5-aware
+  browser API for coding agents and browser automation tools.
+- Allow hosts to provide the file watcher used for live reload.
+- Add a policy-aware library index and resolver, refresh the official p5.js
+  library catalog, preserve older projects in a legacy collection, and let
+  p5-server configure and expose the effective catalog.
 
 ### Changed
 
+- Use p5.js 2.3 for generated and JavaScript-only sketches, load p5.sound from
+  its p5 2.x-compatible package, generate async asset-loading setup functions,
+  and adapt browser rendering, screenshots, and CDN caching to the p5 2
+  lifecycle. This is the breaking change that requires the 2.0 major version.
+- Require p5-analysis 2.0.0.
 - Apply script injection and CDN URL rewriting in one HTML parse per response.
   In a local synthetic benchmark on a 10,000-node document with six script
   insertions, median transformation time fell from 276.54 ms to 44.51 ms (84%
   lower, or 6.2 times faster). This benchmark used Bun 1.3.14 on macOS and is
   not a production guarantee.
-
 - Reject source-tree symlinks during static builds, and stage generated output
   before replacing the previous build.
 - Bound browser-relay payloads and pending client messages, and require relay
@@ -19,6 +38,8 @@
 
 ### Fixed
 
+- Close file watchers for every live-reload source directory when the server
+  stops.
 - Prevent static serving, building, generation, and folder conversion from
   following paths outside their declared roots through symbolic links or
   parent-directory references.

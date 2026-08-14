@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0
+
+### Major Changes
+
+- 9f65521: Use p5.js 2.3 for generated and JavaScript-only sketches, load p5.sound from
+  its p5 2.x-compatible package, generate async asset-loading setup functions,
+  and adapt browser rendering, screenshots, and CDN caching to the p5 2 lifecycle.
+
+### Minor Changes
+
+- 711b91b: Add readable sketch diagnostics, bounded headless rendering, and a p5-aware
+  browser API for coding agents and browser automation tools.
+- 7b00c2f: Add a policy-aware library index and resolver, refresh the official p5.js
+  library catalog, preserve older projects in a legacy collection, and let
+  p5-server configure and expose the effective catalog.
+
 ## Unreleased
 
 ### Changed

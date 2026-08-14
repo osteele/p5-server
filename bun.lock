@@ -14,7 +14,7 @@
     },
     "p5-analysis": {
       "name": "p5-analysis",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "bin": {
         "p5-analyze": "dist/bin/p5-analyze-cli.js",
         "p5-libraries": "dist/bin/p5-libraries-cli.js",
@@ -51,7 +51,7 @@
     },
     "p5-server": {
       "name": "p5-server",
-      "version": "1.0.1",
+      "version": "2.0.0",
       "bin": {
         "p5": "dist/bin/p5-server.js",
       },
@@ -929,6 +929,8 @@
     "minipass-pipeline/minipass": ["minipass@3.3.6", "", { "dependencies": { "yallist": "^4.0.0" } }, "sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw=="],
 
     "nunjucks/commander": ["commander@5.1.0", "", {}, "sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg=="],
+
+    "p5-server/p5-analysis": ["p5-analysis@1.0.0", "", { "dependencies": { "@babel/parser": "^7.29.8", "@babel/traverse": "^7.29.8", "@babel/types": "^7.29.8", "commander": "^15.0.0", "js-beautify": "^2.0.3", "lru-cache": "^11.5.2", "minimatch": "^10.2.6", "node-html-parser": "^9.0.1", "nunjucks": "^3.2.3", "pug": "^3.0.4" }, "bin": { "p5-analyze": "dist/bin/p5-analyze-cli.js", "p5-libraries": "dist/bin/p5-libraries-cli.js", "p5-library": "dist/bin/p5-libraries-cli.js", "p5-tree": "dist/bin/p5-tree-cli.js" } }, "sha512-9U6DYzHts2Qnh5f9yOLD6rDx39yBI1TOywCRJeGbzuvwqGVlLApgmxPqcyYfv/3POL8oj3JOCHKGIufQ4uiKQg=="],
 
     "rimraf/glob": ["glob@13.0.6", "", { "dependencies": { "minimatch": "^10.2.2", "minipass": "^7.1.3", "path-scurry": "^2.0.2" } }, "sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw=="],
 
